@@ -1,0 +1,478 @@
+\hypertarget{afhints_8h_source}{}\doxysection{afhints.\+h}
+\label{afhints_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/autofit/afhints.h@{AseSprite/aseprite/third\_party/freetype2/src/autofit/afhints.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ afhints.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Auto-\/fitter\ hinting\ routines\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2003-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ AFHINTS\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ AFHINTS\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}aftypes.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ xxAF\_SORT\_SEGMENTS}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ \ \ *\ The\ definition\ of\ outline\ glyph\ hints.\ \ These\ are\ shared\ by\ all}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ \ *\ writing\ system\ analysis\ routines\ (until\ now).}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ AF\_Dimension\_}
+\DoxyCodeLine{00034\ \ \ \{}
+\DoxyCodeLine{00035\ \ \ \ \ AF\_DIMENSION\_HORZ\ =\ 0,\ \ \textcolor{comment}{/*\ x\ coordinates,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ i.e.,\ vertical\ segments\ \&\ edges\ \ \ */}}
+\DoxyCodeLine{00037\ \ \ \ \ AF\_DIMENSION\_VERT\ =\ 1,\ \ \textcolor{comment}{/*\ y\ coordinates,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ i.e.,\ horizontal\ segments\ \&\ edges\ */}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ AF\_DIMENSION\_MAX\ \ \textcolor{comment}{/*\ do\ not\ remove\ */}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \}\ AF\_Dimension;}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{comment}{/*\ hint\ directions\ -\/-\/\ the\ values\ are\ computed\ so\ that\ two\ vectors\ are\ */}}
+\DoxyCodeLine{00046\ \ \ \textcolor{comment}{/*\ in\ opposite\ directions\ iff\ `dir1\ +\ dir2\ ==\ 0'\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ AF\_Direction\_}
+\DoxyCodeLine{00048\ \ \ \{}
+\DoxyCodeLine{00049\ \ \ \ \ AF\_DIR\_NONE\ \ =\ \ 4,}
+\DoxyCodeLine{00050\ \ \ \ \ AF\_DIR\_RIGHT\ =\ \ 1,}
+\DoxyCodeLine{00051\ \ \ \ \ AF\_DIR\_LEFT\ \ =\ -\/1,}
+\DoxyCodeLine{00052\ \ \ \ \ AF\_DIR\_UP\ \ \ \ =\ \ 2,}
+\DoxyCodeLine{00053\ \ \ \ \ AF\_DIR\_DOWN\ \ =\ -\/2}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \}\ AF\_Direction;}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ *\ The\ following\ explanations\ are\ mostly\ taken\ from\ the\ article}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *\ \ \ Real-\/Time\ Grid\ Fitting\ of\ Typographic\ Outlines}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *\ by\ David\ Turner\ and\ Werner\ Lemberg}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *\ \ \ https://www.tug.org/TUGboat/Articles/tb24-\/3/lemberg.pdf}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *\ with\ appropriate\ updates.}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ *\ Segments}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ *\ \ \ `af\_\{cjk,latin,...\}\_hints\_compute\_segments'\ are\ the\ functions\ to}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ \ *\ \ \ find\ segments\ in\ an\ outline.}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00075\ \textcolor{comment}{\ \ \ *\ \ \ A\ segment\ is\ a\ series\ of\ at\ least\ two\ consecutive\ points\ that\ are}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ \ \ *\ \ \ approximately\ aligned\ along\ a\ coordinate\ axis.\ \ The\ analysis\ to\ do}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ \ \ *\ \ \ so\ is\ specific\ to\ a\ writing\ system.}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ \ \ *\ Edges}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ \ \ *\ \ \ `af\_\{cjk,latin,...\}\_hints\_compute\_edges'\ are\ the\ functions\ to\ find}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ *\ \ \ edges.}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ *\ \ \ As\ soon\ as\ segments\ are\ defined,\ the\ auto-\/hinter\ groups\ them\ into}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ *\ \ \ edges.\ \ An\ edge\ corresponds\ to\ a\ single\ position\ on\ the\ main}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ *\ \ \ dimension\ that\ collects\ one\ or\ more\ segments\ (allowing\ for\ a\ small}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *\ \ \ threshold).}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ *\ \ \ As\ an\ example,\ the\ `latin'\ writing\ system\ first\ tries\ to\ grid-\/fit}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ *\ \ \ edges,\ then\ to\ align\ segments\ on\ the\ edges\ unless\ it\ detects\ that}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ *\ \ \ they\ form\ a\ serif.}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ A\ \ \ \ \ \ \ \ \ \ H}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ |}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ |}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ |}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ |}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ C\ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ F}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ +-\/-\/-\/-\/-\/-\/<-\/-\/-\/-\/-\/+\ \ \ \ \ \ \ \ +-\/-\/-\/-\/-\/<-\/-\/-\/-\/-\/-\/+}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ B\ \ \ \ \ \ G\ \ \ \ \ \ \ \ \ \ \ \ \ |}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ +-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/>-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/+}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ D\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ E}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ *\ Stems}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ \ \ Stems\ are\ detected\ by\ `af\_\{cjk,latin,...\}\_hint\_edges'.}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ \ \ *\ \ \ Segments\ need\ to\ be\ `linked'\ to\ other\ ones\ in\ order\ to\ detect\ stems.}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ *\ \ \ A\ stem\ is\ made\ of\ two\ segments\ that\ face\ each\ other\ in\ opposite}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ \ \ *\ \ \ directions\ and\ that\ are\ sufficiently\ close\ to\ each\ other.\ \ Using}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ *\ \ \ vocabulary\ from\ the\ TrueType\ specification,\ stem\ segments\ form\ a}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ \ \ *\ \ \ `black\ distance'.}}
+\DoxyCodeLine{00118\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00119\ \textcolor{comment}{\ \ \ *\ \ \ In\ the\ above\ ASCII\ drawing,\ the\ horizontal\ segments\ are\ BC,\ DE,\ and}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ \ \ *\ \ \ FG;\ the\ vertical\ segments\ are\ AB,\ CD,\ EF,\ and\ GH.}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ \ \ *\ \ \ Each\ segment\ has\ at\ most\ one\ `best'\ candidate\ to\ form\ a\ black}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ \ \ *\ \ \ distance,\ or\ no\ candidate\ at\ all.\ \ Notice\ that\ two\ distinct\ segments}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ \ \ *\ \ \ can\ have\ the\ same\ candidate,\ which\ frequently\ means\ a\ serif.}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00126\ \textcolor{comment}{\ \ \ *\ \ \ A\ stem\ is\ recognized\ by\ the\ following\ condition:}}
+\DoxyCodeLine{00127\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ *\ \ \ \ \ best\ segment\_1\ =\ segment\_2\ \&\&\ best\ segment\_2\ =\ segment\_1}}
+\DoxyCodeLine{00129\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00130\ \textcolor{comment}{\ \ \ *\ \ \ The\ best\ candidate\ is\ stored\ in\ field\ `link'\ in\ structure}}
+\DoxyCodeLine{00131\ \textcolor{comment}{\ \ \ *\ \ \ `AF\_Segment'.}}
+\DoxyCodeLine{00132\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00133\ \textcolor{comment}{\ \ \ *\ \ \ In\ the\ above\ ASCII\ drawing,\ the\ best\ candidate\ for\ both\ AB\ and\ CD\ is}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ \ \ *\ \ \ GH,\ while\ the\ best\ candidate\ for\ GH\ is\ AB.\ \ Similarly,\ the\ best}}
+\DoxyCodeLine{00135\ \textcolor{comment}{\ \ \ *\ \ \ candidate\ for\ EF\ and\ GH\ is\ AB,\ while\ the\ best\ candidate\ for\ AB\ is}}
+\DoxyCodeLine{00136\ \textcolor{comment}{\ \ \ *\ \ \ GH.}}
+\DoxyCodeLine{00137\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00138\ \textcolor{comment}{\ \ \ *\ \ \ The\ detection\ and\ handling\ of\ stems\ is\ dependent\ on\ the\ writing}}
+\DoxyCodeLine{00139\ \textcolor{comment}{\ \ \ *\ \ \ system.}}
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ *\ Serifs}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *\ \ \ Serifs\ are\ detected\ by\ `af\_\{cjk,latin,...\}\_hint\_edges'.}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ *\ \ \ In\ comparison\ to\ a\ stem,\ a\ serif\ (as\ handled\ by\ the\ auto-\/hinter}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ *\ \ \ module\ that\ takes\ care\ of\ the\ `latin'\ writing\ system)\ has}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ *\ \ \ \ \ best\ segment\_1\ =\ segment\_2\ \&\&\ best\ segment\_2\ !=\ segment\_1}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ \ \ *\ \ \ where\ segment\_1\ corresponds\ to\ the\ serif\ segment\ (CD\ and\ EF\ in\ the}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ *\ \ \ above\ ASCII\ drawing).}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00154\ \textcolor{comment}{\ \ \ *\ \ \ The\ best\ candidate\ is\ stored\ in\ field\ `serif'\ in\ structure}}
+\DoxyCodeLine{00155\ \textcolor{comment}{\ \ \ *\ \ \ `AF\_Segment'\ (and\ `link'\ is\ set\ to\ NULL).}}
+\DoxyCodeLine{00156\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ \ \ *\ Touched\ points}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00160\ \textcolor{comment}{\ \ \ *\ \ \ A\ point\ is\ called\ `touched'\ if\ it\ has\ been\ processed\ somehow\ by\ the}}
+\DoxyCodeLine{00161\ \textcolor{comment}{\ \ \ *\ \ \ auto-\/hinter.\ \ It\ basically\ means\ that\ it\ shouldn't\ be\ moved\ again}}
+\DoxyCodeLine{00162\ \textcolor{comment}{\ \ \ *\ \ \ (or\ moved\ only\ under\ certain\ constraints\ to\ preserve\ the\ already}}
+\DoxyCodeLine{00163\ \textcolor{comment}{\ \ \ *\ \ \ applied\ processing).}}
+\DoxyCodeLine{00164\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ \ \ *\ Flat\ and\ round\ segments}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ \ \ *\ \ \ Segments\ are\ `round'\ or\ `flat',\ depending\ on\ the\ series\ of\ points}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ \ *\ \ \ that\ define\ them.\ \ A\ segment\ is\ round\ if\ the\ next\ and\ previous\ point}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ \ *\ \ \ of\ an\ extremum\ (which\ can\ be\ either\ a\ single\ point\ or\ sequence\ of}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ \ \ *\ \ \ points)\ are\ both\ conic\ or\ cubic\ control\ points.\ \ Otherwise,\ a}}
+\DoxyCodeLine{00172\ \textcolor{comment}{\ \ \ *\ \ \ segment\ with\ an\ extremum\ is\ flat.}}
+\DoxyCodeLine{00173\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ *\ Strong\ Points}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ \ \ *\ \ \ Experience\ has\ shown\ that\ points\ not\ part\ of\ an\ edge\ need\ to\ be}}
+\DoxyCodeLine{00178\ \textcolor{comment}{\ \ \ *\ \ \ interpolated\ linearly\ between\ their\ two\ closest\ edges,\ even\ if\ these}}
+\DoxyCodeLine{00179\ \textcolor{comment}{\ \ \ *\ \ \ are\ not\ part\ of\ the\ contour\ of\ those\ particular\ points.\ \ Typical}}
+\DoxyCodeLine{00180\ \textcolor{comment}{\ \ \ *\ \ \ candidates\ for\ this\ are}}
+\DoxyCodeLine{00181\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00182\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ angle\ points\ (i.e.,\ points\ where\ the\ `in'\ and\ `out'\ direction}}
+\DoxyCodeLine{00183\ \textcolor{comment}{\ \ \ *\ \ \ \ \ differ\ greatly)}}
+\DoxyCodeLine{00184\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00185\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ inflection\ points\ (i.e.,\ where\ the\ `in'\ and\ `out'\ angles\ are\ the}}
+\DoxyCodeLine{00186\ \textcolor{comment}{\ \ \ *\ \ \ \ \ same,\ but\ the\ curvature\ changes\ sign)\ [currently,\ such\ points}}
+\DoxyCodeLine{00187\ \textcolor{comment}{\ \ \ *\ \ \ \ \ aren't\ handled\ specially\ in\ the\ auto-\/hinter]}}
+\DoxyCodeLine{00188\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00189\ \textcolor{comment}{\ \ \ *\ \ \ `af\_glyph\_hints\_align\_strong\_points'\ is\ the\ function\ that\ takes}}
+\DoxyCodeLine{00190\ \textcolor{comment}{\ \ \ *\ \ \ care\ of\ such\ situations;\ it\ is\ equivalent\ to\ the\ TrueType\ `IP'}}
+\DoxyCodeLine{00191\ \textcolor{comment}{\ \ \ *\ \ \ hinting\ instruction.}}
+\DoxyCodeLine{00192\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00193\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ \ \ *\ Weak\ Points}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ \ \ *\ \ \ Other\ points\ in\ the\ outline\ must\ be\ interpolated\ using\ the}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ \ \ *\ \ \ coordinates\ of\ their\ previous\ and\ next\ unfitted\ contour\ neighbours.}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ \ *\ \ \ These\ are\ called\ `weak\ points'\ and\ are\ touched\ by\ the\ function}}
+\DoxyCodeLine{00199\ \textcolor{comment}{\ \ \ *\ \ \ `af\_glyph\_hints\_align\_weak\_points',\ equivalent\ to\ the\ TrueType\ `IUP'}}
+\DoxyCodeLine{00200\ \textcolor{comment}{\ \ \ *\ \ \ hinting\ instruction.\ \ Typical\ candidates\ are\ control\ points\ and}}
+\DoxyCodeLine{00201\ \textcolor{comment}{\ \ \ *\ \ \ points\ on\ the\ contour\ without\ a\ major\ direction.}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ \ \ *\ \ \ The\ major\ effect\ is\ to\ reduce\ possible\ distortion\ caused\ by}}
+\DoxyCodeLine{00204\ \textcolor{comment}{\ \ \ *\ \ \ alignment\ of\ edges\ and\ strong\ points,\ thus\ weak\ points\ are\ processed}}
+\DoxyCodeLine{00205\ \textcolor{comment}{\ \ \ *\ \ \ after\ strong\ points.}}
+\DoxyCodeLine{00206\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \ \ \textcolor{comment}{/*\ point\ hint\ flags\ */}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_NONE\ \ 0}}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \textcolor{comment}{/*\ point\ type\ flags\ */}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_CONIC\ \ \ \ (\ 1U\ <<\ 0\ )}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_CUBIC\ \ \ \ (\ 1U\ <<\ 1\ )}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_CONTROL\ \ (\ AF\_FLAG\_CONIC\ |\ AF\_FLAG\_CUBIC\ )}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \textcolor{comment}{/*\ point\ touch\ flags\ */}}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_TOUCH\_X\ \ (\ 1U\ <<\ 2\ )}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_TOUCH\_Y\ \ (\ 1U\ <<\ 3\ )}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \ \ \textcolor{comment}{/*\ candidates\ for\ weak\ interpolation\ have\ this\ flag\ set\ */}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_WEAK\_INTERPOLATION\ \ (\ 1U\ <<\ 4\ )}}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \textcolor{comment}{/*\ the\ distance\ to\ the\ next\ point\ is\ very\ small\ */}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\#define\ AF\_FLAG\_NEAR\ \ (\ 1U\ <<\ 5\ )}}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \textcolor{comment}{/*\ edge\ hint\ flags\ */}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#define\ AF\_EDGE\_NORMAL\ \ 0}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#define\ AF\_EDGE\_ROUND\ \ \ \ (\ 1U\ <<\ 0\ )}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#define\ AF\_EDGE\_SERIF\ \ \ \ (\ 1U\ <<\ 1\ )}}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\#define\ AF\_EDGE\_DONE\ \ \ \ \ (\ 1U\ <<\ 2\ )}}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\#define\ AF\_EDGE\_NEUTRAL\ \ (\ 1U\ <<\ 3\ )\ }\textcolor{comment}{/*\ edge\ aligns\ to\ a\ neutral\ blue\ zone\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_a_f___point_rec__}{AF\_PointRec\_}}*\ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}};}
+\DoxyCodeLine{00237\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_SegmentRec\_}}*\ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}};}
+\DoxyCodeLine{00238\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_EdgeRec\_}}*\ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}};}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_a_f___point_rec__}{AF\_PointRec\_}}}
+\DoxyCodeLine{00242\ \ \ \{}
+\DoxyCodeLine{00243\ \ \ \ \ FT\_UShort\ \ flags;\ \ \ \ \textcolor{comment}{/*\ point\ flags\ used\ by\ hinter\ \ \ */}}
+\DoxyCodeLine{00244\ \ \ \ \ FT\_Char\ \ \ \ in\_dir;\ \ \ \textcolor{comment}{/*\ direction\ of\ inwards\ vector\ \ */}}
+\DoxyCodeLine{00245\ \ \ \ \ FT\_Char\ \ \ \ out\_dir;\ \ \textcolor{comment}{/*\ direction\ of\ outwards\ vector\ */}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ FT\_Pos\ \ \ \ \ ox,\ oy;\ \ \ \textcolor{comment}{/*\ original,\ scaled\ position\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00248\ \ \ \ \ FT\_Short\ \ \ fx,\ fy;\ \ \ \textcolor{comment}{/*\ original,\ unscaled\ position\ (in\ font\ units)\ */}}
+\DoxyCodeLine{00249\ \ \ \ \ FT\_Pos\ \ \ \ \ x,\ y;\ \ \ \ \ \textcolor{comment}{/*\ current\ position\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00250\ \ \ \ \ FT\_Pos\ \ \ \ \ u,\ v;\ \ \ \ \ \textcolor{comment}{/*\ current\ (x,y)\ or\ (y,x)\ depending\ on\ context\ */}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}}\ \ \ next;\ \ \ \ \ \textcolor{comment}{/*\ next\ point\ in\ contour\ \ \ \ \ */}}
+\DoxyCodeLine{00253\ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}}\ \ \ prev;\ \ \ \ \ \textcolor{comment}{/*\ previous\ point\ in\ contour\ */}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \textcolor{preprocessor}{\#ifdef\ FT\_DEBUG\_AUTOFIT}}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{comment}{/*\ track\ `before'\ and\ `after'\ edges\ for\ strong\ points\ */}}
+\DoxyCodeLine{00257\ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}}\ \ \ \ before[2];}
+\DoxyCodeLine{00258\ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}}\ \ \ \ after[2];}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \}\ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_PointRec}};}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_SegmentRec\_}}}
+\DoxyCodeLine{00265\ \ \ \{}
+\DoxyCodeLine{00266\ \ \ \ \ FT\_Byte\ \ \ \ \ flags;\ \ \ \ \ \ \ \textcolor{comment}{/*\ edge/segment\ flags\ for\ this\ segment\ */}}
+\DoxyCodeLine{00267\ \ \ \ \ FT\_Char\ \ \ \ \ dir;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ segment\ direction\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00268\ \ \ \ \ FT\_Short\ \ \ \ pos;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ position\ of\ segment\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00269\ \ \ \ \ FT\_Short\ \ \ \ delta;\ \ \ \ \ \ \ \textcolor{comment}{/*\ deviation\ from\ segment\ position\ \ \ \ \ */}}
+\DoxyCodeLine{00270\ \ \ \ \ FT\_Short\ \ \ \ min\_coord;\ \ \ \textcolor{comment}{/*\ minimum\ coordinate\ of\ segment\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00271\ \ \ \ \ FT\_Short\ \ \ \ max\_coord;\ \ \ \textcolor{comment}{/*\ maximum\ coordinate\ of\ segment\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00272\ \ \ \ \ FT\_Short\ \ \ \ height;\ \ \ \ \ \ \textcolor{comment}{/*\ the\ hinted\ segment\ height\ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}}\ \ \ \ \ edge;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ segment's\ parent\ edge\ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00275\ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}}\ \ edge\_next;\ \ \ \textcolor{comment}{/*\ link\ to\ next\ segment\ in\ parent\ edge\ */}}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}}\ \ link;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ (stem)\ link\ segment\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00278\ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}}\ \ serif;\ \ \ \ \ \ \ \textcolor{comment}{/*\ primary\ segment\ for\ serifs\ */}}
+\DoxyCodeLine{00279\ \ \ \ \ FT\_Pos\ \ \ \ \ \ score;\ \ \ \ \ \ \ \textcolor{comment}{/*\ used\ during\ stem\ matching\ \ */}}
+\DoxyCodeLine{00280\ \ \ \ \ FT\_Pos\ \ \ \ \ \ len;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ used\ during\ stem\ matching\ \ */}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}}\ \ \ \ first;\ \ \ \ \ \ \ \textcolor{comment}{/*\ first\ point\ in\ edge\ segment\ */}}
+\DoxyCodeLine{00283\ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}}\ \ \ \ last;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ last\ point\ in\ edge\ segment\ \ */}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \ \ \}\ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_SegmentRec}};}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_EdgeRec\_}}}
+\DoxyCodeLine{00289\ \ \ \{}
+\DoxyCodeLine{00290\ \ \ \ \ FT\_Short\ \ \ \ fpos;\ \ \ \ \ \ \ \textcolor{comment}{/*\ original,\ unscaled\ position\ (in\ font\ units)\ */}}
+\DoxyCodeLine{00291\ \ \ \ \ FT\_Pos\ \ \ \ \ \ opos;\ \ \ \ \ \ \ \textcolor{comment}{/*\ original,\ scaled\ position\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00292\ \ \ \ \ FT\_Pos\ \ \ \ \ \ pos;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ position\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \ \ \ \ FT\_Byte\ \ \ \ \ flags;\ \ \ \ \ \ \textcolor{comment}{/*\ edge\ flags\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00295\ \ \ \ \ FT\_Char\ \ \ \ \ dir;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ edge\ direction\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00296\ \ \ \ \ FT\_Fixed\ \ \ \ scale;\ \ \ \ \ \ \textcolor{comment}{/*\ used\ to\ speed\ up\ interpolation\ between\ edges\ */}}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \ \ AF\_Width\ \ \ \ blue\_edge;\ \ \textcolor{comment}{/*\ non-\/NULL\ if\ this\ is\ a\ blue\ edge\ */}}
+\DoxyCodeLine{00299\ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}}\ \ \ \ \ link;\ \ \ \ \ \ \ \textcolor{comment}{/*\ link\ edge\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00300\ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}}\ \ \ \ \ serif;\ \ \ \ \ \ \textcolor{comment}{/*\ primary\ edge\ for\ serifs\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00301\ \ \ \ \ FT\_Int\ \ \ \ \ \ score;\ \ \ \ \ \ \textcolor{comment}{/*\ used\ during\ stem\ matching\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}}\ \ first;\ \ \ \ \ \ \textcolor{comment}{/*\ first\ segment\ in\ edge\ */}}
+\DoxyCodeLine{00304\ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}}\ \ last;\ \ \ \ \ \ \ \textcolor{comment}{/*\ last\ segment\ in\ edge\ \ */}}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \ \ \}\ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_EdgeRec}};}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \textcolor{preprocessor}{\#define\ AF\_SEGMENTS\_EMBEDDED\ \ 18\ \ \ }\textcolor{comment}{/*\ number\ of\ embedded\ segments\ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00309\ \textcolor{preprocessor}{\#define\ AF\_EDGES\_EMBEDDED\ \ \ \ \ 12\ \ \ }\textcolor{comment}{/*\ number\ of\ embedded\ edges\ \ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_a_f___axis_hints_rec__}{AF\_AxisHintsRec\_}}}
+\DoxyCodeLine{00312\ \ \ \{}
+\DoxyCodeLine{00313\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ num\_segments;\ \textcolor{comment}{/*\ number\ of\ used\ segments\ \ \ \ \ \ */}}
+\DoxyCodeLine{00314\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ max\_segments;\ \textcolor{comment}{/*\ number\ of\ allocated\ segments\ */}}
+\DoxyCodeLine{00315\ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}}\ \ \ \ segments;\ \ \ \ \ \textcolor{comment}{/*\ segments\ array\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00316\ \textcolor{preprocessor}{\#ifdef\ AF\_SORT\_SEGMENTS}}
+\DoxyCodeLine{00317\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ mid\_segments;}
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ num\_edges;\ \ \ \ \textcolor{comment}{/*\ number\ of\ used\ edges\ \ \ \ \ \ */}}
+\DoxyCodeLine{00321\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ max\_edges;\ \ \ \ \textcolor{comment}{/*\ number\ of\ allocated\ edges\ */}}
+\DoxyCodeLine{00322\ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}}\ \ \ \ \ \ \ edges;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ edges\ array\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \ \ \ \ AF\_Direction\ \ major\_dir;\ \ \ \ \textcolor{comment}{/*\ either\ vertical\ or\ horizontal\ */}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \ \ \ \ \textcolor{comment}{/*\ two\ arrays\ to\ avoid\ allocation\ penalty\ */}}
+\DoxyCodeLine{00327\ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00328\ \ \ \ \ \{}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_SegmentRec}}\ \ segments[AF\_SEGMENTS\_EMBEDDED];}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_EdgeRec}}\ \ \ \ \ edges[AF\_EDGES\_EMBEDDED];}
+\DoxyCodeLine{00331\ \ \ \ \ \}\ embedded;}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \ \ \}\ \mbox{\hyperlink{struct_a_f___axis_hints_rec__}{AF\_AxisHintsRec}},\ *\mbox{\hyperlink{struct_a_f___axis_hints_rec__}{AF\_AxisHints}};}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\#define\ AF\_POINTS\_EMBEDDED\ \ \ \ \ 96\ \ \ }\textcolor{comment}{/*\ number\ of\ embedded\ points\ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\#define\ AF\_CONTOURS\_EMBEDDED\ \ \ \ 8\ \ \ }\textcolor{comment}{/*\ number\ of\ embedded\ contours\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHintsRec\_}}}
+\DoxyCodeLine{00341\ \ \ \{}
+\DoxyCodeLine{00342\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00343\ }
+\DoxyCodeLine{00344\ \ \ \ \ FT\_Fixed\ \ \ \ \ \ \ \ \ x\_scale;}
+\DoxyCodeLine{00345\ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ \ \ \ x\_delta;}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ \ \ \ \ FT\_Fixed\ \ \ \ \ \ \ \ \ y\_scale;}
+\DoxyCodeLine{00348\ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ \ \ \ y\_delta;}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ max\_points;\ \ \ \ \textcolor{comment}{/*\ number\ of\ allocated\ points\ */}}
+\DoxyCodeLine{00351\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ num\_points;\ \ \ \ \textcolor{comment}{/*\ number\ of\ used\ points\ \ \ \ \ \ */}}
+\DoxyCodeLine{00352\ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}}\ \ \ \ \ \ \ \ \ points;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ points\ array\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ max\_contours;\ \ \textcolor{comment}{/*\ number\ of\ allocated\ contours\ */}}
+\DoxyCodeLine{00355\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ num\_contours;\ \ \textcolor{comment}{/*\ number\ of\ used\ contours\ \ \ \ \ \ */}}
+\DoxyCodeLine{00356\ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}}*\ \ \ \ \ \ \ \ contours;\ \ \ \ \ \ \textcolor{comment}{/*\ contours\ array\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \ \ \mbox{\hyperlink{struct_a_f___axis_hints_rec__}{AF\_AxisHintsRec}}\ \ axis[AF\_DIMENSION\_MAX];}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \ \ \ \ FT\_UInt32\ \ \ \ \ \ \ \ scaler\_flags;\ \ \textcolor{comment}{/*\ copy\ of\ scaler\ flags\ \ \ \ */}}
+\DoxyCodeLine{00361\ \ \ \ \ FT\_UInt32\ \ \ \ \ \ \ \ other\_flags;\ \ \ \textcolor{comment}{/*\ free\ for\ style-\/specific\ */}}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ implementations\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00363\ \ \ \ \ \mbox{\hyperlink{struct_a_f___style_metrics_rec__}{AF\_StyleMetrics}}\ \ metrics;}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \ \ \ \ \textcolor{comment}{/*\ Two\ arrays\ to\ avoid\ allocation\ penalty.\ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00366\ \ \ \ \ \textcolor{comment}{/*\ The\ `embedded'\ structure\ must\ be\ the\ last\ element!\ */}}
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00368\ \ \ \ \ \{}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_Point}}\ \ \ \ \ \ \ contours[AF\_CONTOURS\_EMBEDDED];}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \mbox{\hyperlink{struct_a_f___point_rec__}{AF\_PointRec}}\ \ \ \ points[AF\_POINTS\_EMBEDDED];}
+\DoxyCodeLine{00371\ \ \ \ \ \}\ embedded;}
+\DoxyCodeLine{00372\ }
+\DoxyCodeLine{00373\ \ \ \}\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHintsRec}};}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_TEST\_SCALER(\ h,\ f\ )\ \ (\ (h)-\/>scaler\_flags\ \&\ (f)\ )}}
+\DoxyCodeLine{00377\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_TEST\_OTHER(\ h,\ f\ )\ \ \ (\ (h)-\/>other\_flags\ \ \&\ (f)\ )}}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \textcolor{preprocessor}{\#ifdef\ FT\_DEBUG\_AUTOFIT}}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_DO\_HORIZONTAL(\ h\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00383\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ !\_af\_debug\_disable\_horz\_hints\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00384\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ !AF\_HINTS\_TEST\_SCALER(\ h,\ AF\_SCALER\_FLAG\_NO\_HORIZONTAL\ )\ )}}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_DO\_VERTICAL(\ h\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00387\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ !\_af\_debug\_disable\_vert\_hints\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00388\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ !AF\_HINTS\_TEST\_SCALER(\ h,\ AF\_SCALER\_FLAG\_NO\_VERTICAL\ )\ )}}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_DO\_BLUES(\ h\ )\ \ (\ !\_af\_debug\_disable\_blue\_hints\ )}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{/*\ !FT\_DEBUG\_AUTOFIT\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_DO\_HORIZONTAL(\ h\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00395\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ !AF\_HINTS\_TEST\_SCALER(\ h,\ AF\_SCALER\_FLAG\_NO\_HORIZONTAL\ )}}
+\DoxyCodeLine{00396\ }
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_DO\_VERTICAL(\ h\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00398\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ !AF\_HINTS\_TEST\_SCALER(\ h,\ AF\_SCALER\_FLAG\_NO\_VERTICAL\ )}}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_DO\_BLUES(\ h\ )\ \ 1}}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !FT\_DEBUG\_AUTOFIT\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00403\ }
+\DoxyCodeLine{00404\ }
+\DoxyCodeLine{00405\ \textcolor{preprocessor}{\#define\ AF\_HINTS\_DO\_ADVANCE(\ h\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00406\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ !AF\_HINTS\_TEST\_SCALER(\ h,\ AF\_SCALER\_FLAG\_NO\_ADVANCE\ )}}
+\DoxyCodeLine{00407\ }
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \ \ FT\_LOCAL(\ AF\_Direction\ )}
+\DoxyCodeLine{00410\ \ \ af\_direction\_compute(\ FT\_Pos\ \ dx,}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ dy\ );}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00415\ \ \ af\_axis\_hints\_new\_segment(\ \mbox{\hyperlink{struct_a_f___axis_hints_rec__}{AF\_AxisHints}}\ \ axis,}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}},}
+\DoxyCodeLine{00417\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_a_f___segment_rec__}{AF\_Segment}}\ \ \ *asegment\ );}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \ \ FT\_LOCAL(\ FT\_Error)}
+\DoxyCodeLine{00420\ \ \ af\_axis\_hints\_new\_edge(\ \mbox{\hyperlink{struct_a_f___axis_hints_rec__}{AF\_AxisHints}}\ \ axis,}
+\DoxyCodeLine{00421\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ fpos,}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ AF\_Direction\ \ dir,}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ top\_to\_bottom\_hinting,}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}},}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_a_f___edge_rec__}{AF\_Edge}}\ \ \ \ \ \ *edge\ );}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00428\ \ \ af\_glyph\_hints\_init(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ hints,}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}}\ );}
+\DoxyCodeLine{00430\ }
+\DoxyCodeLine{00431\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00432\ \ \ af\_glyph\_hints\_rescale(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ \ \ hints,}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_a_f___style_metrics_rec__}{AF\_StyleMetrics}}\ \ metrics\ );}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00436\ \ \ af\_glyph\_hints\_reload(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ hints,}
+\DoxyCodeLine{00437\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ outline\ );}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00440\ \ \ af\_glyph\_hints\_save(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ hints,}
+\DoxyCodeLine{00441\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ outline\ );}
+\DoxyCodeLine{00442\ }
+\DoxyCodeLine{00443\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00444\ \ \ af\_glyph\_hints\_align\_edge\_points(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ hints,}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ AF\_Dimension\ \ \ dim\ );}
+\DoxyCodeLine{00446\ }
+\DoxyCodeLine{00447\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00448\ \ \ af\_glyph\_hints\_align\_strong\_points(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ hints,}
+\DoxyCodeLine{00449\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ AF\_Dimension\ \ \ dim\ );}
+\DoxyCodeLine{00450\ }
+\DoxyCodeLine{00451\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00452\ \ \ af\_glyph\_hints\_align\_weak\_points(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ hints,}
+\DoxyCodeLine{00453\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ AF\_Dimension\ \ \ dim\ );}
+\DoxyCodeLine{00454\ }
+\DoxyCodeLine{00455\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00456\ \ \ af\_glyph\_hints\_done(\ \mbox{\hyperlink{struct_a_f___glyph_hints_rec__}{AF\_GlyphHints}}\ \ hints\ );}
+\DoxyCodeLine{00457\ }
+\DoxyCodeLine{00458\ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00459\ }
+\DoxyCodeLine{00460\ \textcolor{preprocessor}{\#define\ AF\_SEGMENT\_LEN(\ seg\ )\ \ \ \ \ \ \ \ \ \ (\ (seg)-\/>max\_coord\ -\/\ (seg)-\/>min\_coord\ )}}
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \textcolor{preprocessor}{\#define\ AF\_SEGMENT\_DIST(\ seg1,\ seg2\ )\ \ (\ (\ (seg1)-\/>pos\ >\ (seg2)-\/>pos\ )\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00463\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ?\ (seg1)-\/>pos\ -\/\ (seg2)-\/>pos\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00464\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ (seg2)-\/>pos\ -\/\ (seg1)-\/>pos\ )}}
+\DoxyCodeLine{00465\ }
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ FT\_END\_HEADER}
+\DoxyCodeLine{00468\ }
+\DoxyCodeLine{00469\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ AFHINTS\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ }
+\DoxyCodeLine{00472\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

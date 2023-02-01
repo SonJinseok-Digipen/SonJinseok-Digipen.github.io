@@ -1,0 +1,1278 @@
+\hypertarget{hb-repacker_8hh_source}{}\doxysection{hb-\/repacker.hh}
+\label{hb-repacker_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/repacker.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/repacker.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2020\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Garret\ Rieger}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_REPACKER\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_REPACKER\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb-\/open-\/type.hh"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}hb-\/map.hh"{}}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/priority-\/queue.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/serialize.hh"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb-\/vector.hh"{}}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ For\ a\ detailed\ writeup\ on\ the\ overflow\ resolution\ algorithm\ see:}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ docs/repacker.md}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgraph__t}{graph\_t}}}
+\DoxyCodeLine{00042\ \{}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgraph__t_1_1vertex__t}{vertex\_t}}}
+\DoxyCodeLine{00044\ \ \ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t}{hb\_serialize\_context\_t::object\_t}}\ obj;}
+\DoxyCodeLine{00046\ \ \ \ \ int64\_t\ distance\ =\ 0\ ;}
+\DoxyCodeLine{00047\ \ \ \ \ int64\_t\ space\ =\ 0\ ;}
+\DoxyCodeLine{00048\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\ parents;}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ start\ =\ 0;}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ end\ =\ 0;}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ priority\ =\ 0;}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_shared\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00054\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ parents.length\ >\ 1;}
+\DoxyCodeLine{00056\ \ \ \ \ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ incoming\_edges\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00059\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ parents.length;}
+\DoxyCodeLine{00061\ \ \ \ \ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordtype}{void}\ remove\_parent\ (\textcolor{keywordtype}{unsigned}\ parent\_index)}
+\DoxyCodeLine{00064\ \ \ \ \ \{}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ parents.length;\ i++)}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (parents[i]\ !=\ parent\_index)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ parents.remove\ (i);}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00071\ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{void}\ remap\_parents\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\&\ id\_map)}
+\DoxyCodeLine{00074\ \ \ \ \ \{}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ parents.length;\ i++)}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ parents[i]\ =\ id\_map[parents[i]];}
+\DoxyCodeLine{00077\ \ \ \ \ \}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{void}\ remap\_parent\ (\textcolor{keywordtype}{unsigned}\ old\_index,\ \textcolor{keywordtype}{unsigned}\ new\_index)}
+\DoxyCodeLine{00080\ \ \ \ \ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ parents.length;\ i++)}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (parents[i]\ ==\ old\_index)}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ parents[i]\ =\ new\_index;}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00086\ \ \ \ \ \}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_leaf\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00089\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ !obj.real\_links.length\ \&\&\ !obj.virtual\_links.length;}
+\DoxyCodeLine{00091\ \ \ \ \ \}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordtype}{bool}\ raise\_priority\ ()}
+\DoxyCodeLine{00094\ \ \ \ \ \{}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has\_max\_priority\ ())\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ priority++;}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_max\_priority\ ()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ priority\ >=\ 3;}
+\DoxyCodeLine{00102\ \ \ \ \ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ int64\_t\ modified\_distance\ (\textcolor{keywordtype}{unsigned}\ order)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00105\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO(garretrieger):\ once\ priority\ is\ high\ enough,\ should\ try}}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \textcolor{comment}{//\ setting\ distance\ =\ 0\ which\ will\ force\ to\ sort\ immediately\ after}}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \textcolor{comment}{//\ it's\ parent\ where\ possible.}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \ \ \ \ int64\_t\ modified\_distance\ =}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ hb\_min\ (hb\_max(distance\ +\ distance\_modifier\ (),\ 0),\ 0x7FFFFFFFFFF);}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has\_max\_priority\ ())\ \{}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ modified\_distance\ =\ 0;}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (modified\_distance\ <<\ 18)\ |\ (0x003FFFF\ \&\ order);}
+\DoxyCodeLine{00116\ \ \ \ \ \}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ int64\_t\ distance\_modifier\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00119\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!priority)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ int64\_t\ table\_size\ =\ obj.tail\ -\/\ obj.head;}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (priority\ ==\ 1)}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/table\_size\ /\ 2;}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/table\_size;}
+\DoxyCodeLine{00127\ \ \ \ \ \}}
+\DoxyCodeLine{00128\ \ \ \};}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgraph__t_1_1overflow__record__t}{overflow\_record\_t}}}
+\DoxyCodeLine{00131\ \ \ \{}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ parent;}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ child;}
+\DoxyCodeLine{00134\ \ \ \};}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00137\ \textcolor{comment}{\ \ \ *\ A\ topological\ sorting\ of\ an\ object\ graph.\ Ordered}}
+\DoxyCodeLine{00138\ \textcolor{comment}{\ \ \ *\ in\ reverse\ serialization\ order\ (first\ object\ in\ the}}
+\DoxyCodeLine{00139\ \textcolor{comment}{\ \ \ *\ serialization\ is\ at\ the\ end\ of\ the\ list).\ This\ matches}}
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ \ *\ the\ 'packed'\ object\ stack\ used\ internally\ in\ the}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ *\ serializer}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00143\ \ \ \mbox{\hyperlink{structgraph__t}{graph\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<hb\_serialize\_context\_t::object\_t\ *>}}\&\ objects)}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ :\ parents\_invalid\ (true),}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ distance\_invalid\ (true),}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ positions\_invalid\ (true),}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ successful\ (true)}
+\DoxyCodeLine{00148\ \ \ \{}
+\DoxyCodeLine{00149\ \ \ \ \ num\_roots\_for\_space\_.push\ (1);}
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{keywordtype}{bool}\ removed\_nil\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ objects.length;\ i++)}
+\DoxyCodeLine{00152\ \ \ \ \ \{}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO(grieger):\ check\ all\ links\ point\ to\ valid\ objects.}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \textcolor{comment}{//\ If\ this\ graph\ came\ from\ a\ serialization\ buffer\ object\ 0\ is\ the}}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \textcolor{comment}{//\ nil\ object.\ We\ don't\ need\ it\ for\ our\ purposes\ here\ so\ drop\ it.}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ ==\ 0\ \&\&\ !objects[i])}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ removed\_nil\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \ \ \ \ vertex\_t*\ v\ =\ vertices\_.push\ ();}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (check\_success\ (!vertices\_.in\_error\ ()))}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ v-\/>obj\ =\ *objects[i];}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!removed\_nil)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \textcolor{comment}{//\ Fix\ indices\ to\ account\ for\ removed\ nil\ object.}}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ l\ :\ v-\/>obj.all\_links\_writer\ ())\ \{}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ l.objidx-\/-\/;}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00171\ \ \ \ \ \}}
+\DoxyCodeLine{00172\ \ \ \}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ \mbox{\hyperlink{structgraph__t}{\string~graph\_t}}\ ()}
+\DoxyCodeLine{00175\ \ \ \{}
+\DoxyCodeLine{00176\ \ \ \ \ vertices\_.fini\ ();}
+\DoxyCodeLine{00177\ \ \ \}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \textcolor{keywordtype}{bool}\ in\_error\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00180\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordflow}{return}\ !successful\ ||}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ vertices\_.in\_error\ ()\ ||}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ num\_roots\_for\_space\_.in\_error\ ();}
+\DoxyCodeLine{00184\ \ \ \}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \textcolor{keyword}{const}\ vertex\_t\&\ root\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00187\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{keywordflow}{return}\ vertices\_[root\_idx\ ()];}
+\DoxyCodeLine{00189\ \ \ \}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \textcolor{keywordtype}{unsigned}\ root\_idx\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00192\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{comment}{//\ Object\ graphs\ are\ in\ reverse\ order,\ the\ first\ object\ is\ at\ the\ end}}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{comment}{//\ of\ the\ vector.\ Since\ the\ graph\ is\ topologically\ sorted\ it's\ safe\ to}}
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{comment}{//\ assume\ the\ first\ object\ has\ no\ incoming\ edges.}}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{keywordflow}{return}\ vertices\_.length\ -\/\ 1;}
+\DoxyCodeLine{00197\ \ \ \}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t}{hb\_serialize\_context\_t::object\_t}}\&\ object(\textcolor{keywordtype}{unsigned}\ i)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00200\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keywordflow}{return}\ vertices\_[i].obj;}
+\DoxyCodeLine{00202\ \ \ \}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00205\ \textcolor{comment}{\ \ \ *\ serialize\ graph\ into\ the\ provided\ serialization\ buffer.}}
+\DoxyCodeLine{00206\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00207\ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}*\ serialize\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00208\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00209\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<char>}}\ \mbox{\hyperlink{classbuffer}{buffer}};}
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ size\ =\ serialized\_length\ ();}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{keywordflow}{if}\ (!\mbox{\hyperlink{classbuffer}{buffer}}.alloc\ (size))\ \{}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Unable\ to\ allocate\ output\ buffer."{}});}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00214\ \ \ \ \ \}}
+\DoxyCodeLine{00215\ \ \ \ \ \mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ c((\textcolor{keywordtype}{void}\ *)\ \mbox{\hyperlink{classbuffer}{buffer}},\ size);}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ c.start\_serialize<\textcolor{keywordtype}{void}>\ ();}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ vertices\_.length;\ i++)\ \{}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ c.push\ ();}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ size\ =\ vertices\_[i].obj.tail\ -\/\ vertices\_[i].obj.head;}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ start\ =\ c.allocate\_size\ <\textcolor{keywordtype}{char}>\ (size);}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!start)\ \{}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Buffer\ out\ of\ space."{}});}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \ \ \ \ memcpy\ (start,\ vertices\_[i].obj.head,\ size);}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \textcolor{comment}{//\ Only\ real\ links\ needs\ to\ be\ serialized.}}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ link\ :\ vertices\_[i].obj.real\_links)}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ serialize\_link\ (link,\ start,\ \&c);}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \textcolor{comment}{//\ All\ duplications\ are\ already\ encoded\ in\ the\ graph,\ so\ don't}}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \textcolor{comment}{//\ enable\ sharing\ during\ packing.}}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ c.pop\_pack\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00237\ \ \ \ \ \}}
+\DoxyCodeLine{00238\ \ \ \ \ c.end\_serialize\ ();}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \ \ \ \ \textcolor{keywordflow}{if}\ (c.in\_error\ ())\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Error\ during\ serialization.\ Err\ flag:\ \%d"{}},}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ c.errors);}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00244\ \ \ \ \ \}}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ \textcolor{keywordflow}{return}\ c.copy\_blob\ ();}
+\DoxyCodeLine{00247\ \ \ \}}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00250\ \textcolor{comment}{\ \ \ *\ Generates\ a\ new\ topological\ sorting\ of\ graph\ using\ Kahn's}}
+\DoxyCodeLine{00251\ \textcolor{comment}{\ \ \ *\ algorithm:\ https://en.wikipedia.org/wiki/Topological\_sorting\#Algorithms}}
+\DoxyCodeLine{00252\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00253\ \ \ \textcolor{keywordtype}{void}\ sort\_kahn\ ()}
+\DoxyCodeLine{00254\ \ \ \{}
+\DoxyCodeLine{00255\ \ \ \ \ positions\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{keywordflow}{if}\ (vertices\_.length\ <=\ 1)\ \{}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \textcolor{comment}{//\ Graph\ of\ 1\ or\ less\ doesn't\ need\ sorting.}}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00260\ \ \ \ \ \}}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\ queue;}
+\DoxyCodeLine{00263\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<vertex\_t>}}\ sorted\_graph;}
+\DoxyCodeLine{00264\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (sorted\_graph.resize\ (vertices\_.length))))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00265\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\ id\_map;}
+\DoxyCodeLine{00266\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (id\_map.resize\ (vertices\_.length))))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\ removed\_edges;}
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (removed\_edges.resize\ (vertices\_.length))))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00270\ \ \ \ \ update\_parents\ ();}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \ \ queue.push\ (root\_idx\ ());}
+\DoxyCodeLine{00273\ \ \ \ \ \textcolor{keywordtype}{int}\ new\_id\ =\ vertices\_.length\ -\/\ 1;}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \ \ \textcolor{keywordflow}{while}\ (!queue.in\_error\ ()\ \&\&\ queue.length)}
+\DoxyCodeLine{00276\ \ \ \ \ \{}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ next\_id\ =\ queue[0];}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ queue.remove\ (0);}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \ \ \ \ vertex\_t\&\ next\ =\ vertices\_[next\_id];}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ sorted\_graph[new\_id]\ =\ next;}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ id\_map[next\_id]\ =\ new\_id-\/-\/;}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ link\ :\ next.obj.all\_links\ ())\ \{}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ removed\_edges[link.objidx]++;}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!(vertices\_[link.objidx].incoming\_edges\ ()\ -\/\ removed\_edges[link.objidx]))}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ queue.push\ (link.objidx);}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00289\ \ \ \ \ \}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \ \ \ \ check\_success\ (!queue.in\_error\ ());}
+\DoxyCodeLine{00292\ \ \ \ \ check\_success\ (!sorted\_graph.in\_error\ ());}
+\DoxyCodeLine{00293\ \ \ \ \ \textcolor{keywordflow}{if}\ (!check\_success\ (new\_id\ ==\ -\/1))}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ print\_orphaned\_nodes\ ();}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \ \ \ \ remap\_all\_obj\_indices\ (id\_map,\ \&sorted\_graph);}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \ \ hb\_swap\ (vertices\_,\ sorted\_graph);}
+\DoxyCodeLine{00299\ \ \ \ \ sorted\_graph.fini\ ();}
+\DoxyCodeLine{00300\ \ \ \}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00303\ \textcolor{comment}{\ \ \ *\ Generates\ a\ new\ topological\ sorting\ of\ graph\ ordered\ by\ the\ shortest}}
+\DoxyCodeLine{00304\ \textcolor{comment}{\ \ \ *\ distance\ to\ each\ node.}}
+\DoxyCodeLine{00305\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00306\ \ \ \textcolor{keywordtype}{void}\ sort\_shortest\_distance\ ()}
+\DoxyCodeLine{00307\ \ \ \{}
+\DoxyCodeLine{00308\ \ \ \ \ positions\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \ \ \ \ \textcolor{keywordflow}{if}\ (vertices\_.length\ <=\ 1)\ \{}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \textcolor{comment}{//\ Graph\ of\ 1\ or\ less\ doesn't\ need\ sorting.}}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00313\ \ \ \ \ \}}
+\DoxyCodeLine{00314\ }
+\DoxyCodeLine{00315\ \ \ \ \ update\_distances\ ();}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \ \ \ \ \mbox{\hyperlink{structhb__priority__queue__t}{hb\_priority\_queue\_t}}\ queue;}
+\DoxyCodeLine{00318\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<vertex\_t>}}\ sorted\_graph;}
+\DoxyCodeLine{00319\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (sorted\_graph.resize\ (vertices\_.length))))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00320\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\ id\_map;}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (id\_map.resize\ (vertices\_.length))))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\ removed\_edges;}
+\DoxyCodeLine{00324\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (removed\_edges.resize\ (vertices\_.length))))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00325\ \ \ \ \ update\_parents\ ();}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \ \ \ \ queue.insert\ (root\ ().modified\_distance\ (0),\ root\_idx\ ());}
+\DoxyCodeLine{00328\ \ \ \ \ \textcolor{keywordtype}{int}\ new\_id\ =\ root\_idx\ ();}
+\DoxyCodeLine{00329\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ order\ =\ 1;}
+\DoxyCodeLine{00330\ \ \ \ \ \textcolor{keywordflow}{while}\ (!queue.in\_error\ ()\ \&\&\ !queue.is\_empty\ ())}
+\DoxyCodeLine{00331\ \ \ \ \ \{}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ next\_id\ =\ queue.pop\_minimum().second;}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \ \ \ \ \ \ vertex\_t\&\ next\ =\ vertices\_[next\_id];}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ sorted\_graph[new\_id]\ =\ next;}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ id\_map[next\_id]\ =\ new\_id-\/-\/;}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ link\ :\ next.obj.all\_links\ ())\ \{}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ removed\_edges[link.objidx]++;}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!(vertices\_[link.objidx].incoming\_edges\ ()\ -\/\ removed\_edges[link.objidx]))}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Add\ the\ order\ that\ the\ links\ were\ encountered\ to\ the\ priority.}}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ This\ ensures\ that\ ties\ between\ priorities\ objects\ are\ broken\ in\ a\ consistent}}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ way.\ More\ specifically\ this\ is\ set\ up\ so\ that\ if\ a\ set\ of\ objects\ have\ the\ same}}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ distance\ they'll\ be\ added\ to\ the\ topological\ order\ in\ the\ order\ that\ they\ are}}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ referenced\ from\ the\ parent\ object.}}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ \ \ queue.insert\ (vertices\_[link.objidx].modified\_distance\ (order++),}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ link.objidx);}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00349\ \ \ \ \ \}}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \ \ \ \ check\_success\ (!queue.in\_error\ ());}
+\DoxyCodeLine{00352\ \ \ \ \ check\_success\ (!sorted\_graph.in\_error\ ());}
+\DoxyCodeLine{00353\ \ \ \ \ \textcolor{keywordflow}{if}\ (!check\_success\ (new\_id\ ==\ -\/1))}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ print\_orphaned\_nodes\ ();}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \ \ \ \ remap\_all\_obj\_indices\ (id\_map,\ \&sorted\_graph);}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \ \ hb\_swap\ (vertices\_,\ sorted\_graph);}
+\DoxyCodeLine{00359\ \ \ \ \ sorted\_graph.fini\ ();}
+\DoxyCodeLine{00360\ \ \ \}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ \ \ *\ Assign\ unique\ space\ numbers\ to\ each\ connected\ subgraph\ of\ 32\ bit\ offset(s).}}
+\DoxyCodeLine{00364\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00365\ \ \ \textcolor{keywordtype}{bool}\ assign\_32bit\_spaces\ ()}
+\DoxyCodeLine{00366\ \ \ \{}
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ root\_index\ =\ root\_idx\ ();}
+\DoxyCodeLine{00368\ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ visited;}
+\DoxyCodeLine{00369\ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ roots;}
+\DoxyCodeLine{00370\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <=\ root\_index;\ i++)}
+\DoxyCodeLine{00371\ \ \ \ \ \{}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \textcolor{comment}{//\ Only\ real\ links\ can\ form\ 32\ bit\ spaces}}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ l\ :\ vertices\_[i].obj.real\_links)}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00375\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (l.width\ ==\ 4\ \&\&\ !l.is\_signed)}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \ \ \ \ roots.add\ (l.objidx);}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ \ \ find\_subgraph\ (l.objidx,\ visited);}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00381\ \ \ \ \ \}}
+\DoxyCodeLine{00382\ }
+\DoxyCodeLine{00383\ \ \ \ \ \textcolor{comment}{//\ Mark\ everything\ not\ in\ the\ subgraphs\ of\ 32\ bit\ roots\ as\ visited.}}
+\DoxyCodeLine{00384\ \ \ \ \ \textcolor{comment}{//\ This\ prevents\ 32\ bit\ subgraphs\ from\ being\ connected\ via\ nodes\ not\ in\ the\ 32\ bit\ subgraphs.}}
+\DoxyCodeLine{00385\ \ \ \ \ visited.invert\ ();}
+\DoxyCodeLine{00386\ }
+\DoxyCodeLine{00387\ \ \ \ \ \textcolor{keywordflow}{if}\ (!roots)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00388\ }
+\DoxyCodeLine{00389\ \ \ \ \ \textcolor{keywordflow}{while}\ (roots)}
+\DoxyCodeLine{00390\ \ \ \ \ \{}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ next\ =\ HB\_SET\_VALUE\_INVALID;}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (!roots.in\_error\ ())))\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!roots.next\ (\&next))\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ connected\_roots;}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ find\_connected\_nodes\ (next,\ roots,\ visited,\ connected\_roots);}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (!connected\_roots.in\_error\ ())))\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \ \ \ \ \ \ isolate\_subgraph\ (connected\_roots);}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (!connected\_roots.in\_error\ ())))\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ next\_space\ =\ this-\/>next\_space\ ();}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ num\_roots\_for\_space\_.push\ (0);}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ root\ :\ connected\_roots)}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Subgraph\ \%u\ gets\ space\ \%u"{}},\ root,\ next\_space);}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ vertices\_[root].space\ =\ next\_space;}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ num\_roots\_for\_space\_[next\_space]\ =\ num\_roots\_for\_space\_[next\_space]\ +\ 1;}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ distance\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ positions\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO(grieger):\ special\ case\ for\ GSUB/GPOS\ use\ extension\ promotions\ to\ move\ 16\ bit\ space}}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ into\ the\ 32\ bit\ space\ as\ needed,\ instead\ of\ using\ isolation.}}
+\DoxyCodeLine{00415\ \ \ \ \ \}}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ }
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00420\ \ \ \}}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00423\ \textcolor{comment}{\ \ \ *\ Isolates\ the\ subgraph\ of\ nodes\ reachable\ from\ root.\ Any\ links\ to\ nodes\ in\ the\ subgraph}}
+\DoxyCodeLine{00424\ \textcolor{comment}{\ \ \ *\ that\ originate\ from\ outside\ of\ the\ subgraph\ will\ be\ removed\ by\ duplicating\ the\ linked\ to}}
+\DoxyCodeLine{00425\ \textcolor{comment}{\ \ \ *\ object.}}
+\DoxyCodeLine{00426\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00427\ \textcolor{comment}{\ \ \ *\ Indices\ stored\ in\ roots\ will\ be\ updated\ if\ any\ of\ the\ roots\ are\ duplicated\ to\ new\ indices.}}
+\DoxyCodeLine{00428\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00429\ \ \ \textcolor{keywordtype}{bool}\ isolate\_subgraph\ (\mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ roots)}
+\DoxyCodeLine{00430\ \ \ \{}
+\DoxyCodeLine{00431\ \ \ \ \ update\_parents\ ();}
+\DoxyCodeLine{00432\ \ \ \ \ \mbox{\hyperlink{structhb__hashmap__t}{hb\_hashmap\_t<unsigned,\ unsigned>}}\ subgraph;}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \ \ \ \ \textcolor{comment}{//\ incoming\ edges\ to\ root\_idx\ should\ be\ all\ 32\ bit\ in\ length\ so\ we\ don't\ need\ to\ de-\/dup\ these}}
+\DoxyCodeLine{00435\ \ \ \ \ \textcolor{comment}{//\ set\ the\ subgraph\ incoming\ edge\ count\ to\ match\ all\ of\ root\_idx's\ incoming\ edges}}
+\DoxyCodeLine{00436\ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ parents;}
+\DoxyCodeLine{00437\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ root\_idx\ :\ roots)}
+\DoxyCodeLine{00438\ \ \ \ \ \{}
+\DoxyCodeLine{00439\ \ \ \ \ \ \ subgraph.set\ (root\_idx,\ wide\_parents\ (root\_idx,\ parents));}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ find\_subgraph\ (root\_idx,\ subgraph);}
+\DoxyCodeLine{00441\ \ \ \ \ \}}
+\DoxyCodeLine{00442\ }
+\DoxyCodeLine{00443\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ original\_root\_idx\ =\ root\_idx\ ();}
+\DoxyCodeLine{00444\ \ \ \ \ \mbox{\hyperlink{structhb__hashmap__t}{hb\_hashmap\_t<unsigned,\ unsigned>}}\ index\_map;}
+\DoxyCodeLine{00445\ \ \ \ \ \textcolor{keywordtype}{bool}\ made\_changes\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00446\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \mbox{\hyperlink{structentry}{entry}}\ :\ subgraph.iter\ ())}
+\DoxyCodeLine{00447\ \ \ \ \ \{}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ node\ =\ vertices\_[\mbox{\hyperlink{structentry}{entry}}.first];}
+\DoxyCodeLine{00449\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ subgraph\_incoming\_edges\ =\ \mbox{\hyperlink{structentry}{entry}}.second;}
+\DoxyCodeLine{00450\ }
+\DoxyCodeLine{00451\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (subgraph\_incoming\_edges\ <\ node.incoming\_edges\ ())}
+\DoxyCodeLine{00452\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00453\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Only\ \ de-\/dup\ objects\ with\ incoming\ links\ from\ outside\ the\ subgraph.}}
+\DoxyCodeLine{00454\ \ \ \ \ \ \ \ \ made\_changes\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00455\ \ \ \ \ \ \ \ \ duplicate\_subgraph\ (\mbox{\hyperlink{structentry}{entry}}.first,\ index\_map);}
+\DoxyCodeLine{00456\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00457\ \ \ \ \ \}}
+\DoxyCodeLine{00458\ }
+\DoxyCodeLine{00459\ \ \ \ \ \textcolor{keywordflow}{if}\ (!made\_changes)}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \ \ \ \ \textcolor{keywordflow}{if}\ (original\_root\_idx\ !=\ root\_idx\ ()}
+\DoxyCodeLine{00463\ \ \ \ \ \ \ \ \ \&\&\ parents.has\ (original\_root\_idx))}
+\DoxyCodeLine{00464\ \ \ \ \ \{}
+\DoxyCodeLine{00465\ \ \ \ \ \ \ \textcolor{comment}{//\ If\ the\ root\ idx\ has\ changed\ since\ parents\ was\ determined,\ update\ root\ idx\ in\ parents}}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ parents.add\ (root\_idx\ ());}
+\DoxyCodeLine{00467\ \ \ \ \ \ \ parents.del\ (original\_root\_idx);}
+\DoxyCodeLine{00468\ \ \ \ \ \}}
+\DoxyCodeLine{00469\ }
+\DoxyCodeLine{00470\ \ \ \ \ \textcolor{keyword}{auto}\ new\_subgraph\ =}
+\DoxyCodeLine{00471\ \ \ \ \ \ \ \ \ +\ subgraph.keys\ ()}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ |\ hb\_map([\&]\ (\textcolor{keywordtype}{unsigned}\ node\_idx)\ \{}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index\_map.has\ (node\_idx))\ \textcolor{keywordflow}{return}\ index\_map[node\_idx];}
+\DoxyCodeLine{00474\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ node\_idx;}
+\DoxyCodeLine{00475\ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{00476\ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{00477\ }
+\DoxyCodeLine{00478\ \ \ \ \ remap\_obj\_indices\ (index\_map,\ new\_subgraph);}
+\DoxyCodeLine{00479\ \ \ \ \ remap\_obj\_indices\ (index\_map,\ parents.iter\ (),\ \textcolor{keyword}{true});}
+\DoxyCodeLine{00480\ }
+\DoxyCodeLine{00481\ \ \ \ \ \textcolor{comment}{//\ Update\ roots\ set\ with\ new\ indices\ as\ needed.}}
+\DoxyCodeLine{00482\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ next\ =\ HB\_SET\_VALUE\_INVALID;}
+\DoxyCodeLine{00483\ \ \ \ \ \textcolor{keywordflow}{while}\ (roots.next\ (\&next))}
+\DoxyCodeLine{00484\ \ \ \ \ \{}
+\DoxyCodeLine{00485\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (index\_map.has\ (next))}
+\DoxyCodeLine{00486\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00487\ \ \ \ \ \ \ \ \ roots.del\ (next);}
+\DoxyCodeLine{00488\ \ \ \ \ \ \ \ \ roots.add\ (index\_map[next]);}
+\DoxyCodeLine{00489\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00490\ \ \ \ \ \}}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00493\ \ \ \}}
+\DoxyCodeLine{00494\ }
+\DoxyCodeLine{00495\ \ \ \textcolor{keywordtype}{void}\ find\_subgraph\ (\textcolor{keywordtype}{unsigned}\ node\_idx,\ \mbox{\hyperlink{structhb__hashmap__t}{hb\_hashmap\_t<unsigned,\ unsigned>}}\&\ subgraph)}
+\DoxyCodeLine{00496\ \ \ \{}
+\DoxyCodeLine{00497\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ link\ :\ vertices\_[node\_idx].obj.all\_links\ ())}
+\DoxyCodeLine{00498\ \ \ \ \ \{}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (subgraph.has\ (link.objidx))}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \ \ subgraph.set\ (link.objidx,\ subgraph[link.objidx]\ +\ 1);}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ subgraph.set\ (link.objidx,\ 1);}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ find\_subgraph\ (link.objidx,\ subgraph);}
+\DoxyCodeLine{00506\ \ \ \ \ \}}
+\DoxyCodeLine{00507\ \ \ \}}
+\DoxyCodeLine{00508\ }
+\DoxyCodeLine{00509\ \ \ \textcolor{keywordtype}{void}\ find\_subgraph\ (\textcolor{keywordtype}{unsigned}\ node\_idx,\ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ subgraph)}
+\DoxyCodeLine{00510\ \ \ \{}
+\DoxyCodeLine{00511\ \ \ \ \ \textcolor{keywordflow}{if}\ (subgraph.has\ (node\_idx))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00512\ \ \ \ \ subgraph.add\ (node\_idx);}
+\DoxyCodeLine{00513\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ link\ :\ vertices\_[node\_idx].obj.all\_links\ ())}
+\DoxyCodeLine{00514\ \ \ \ \ \ \ find\_subgraph\ (link.objidx,\ subgraph);}
+\DoxyCodeLine{00515\ \ \ \}}
+\DoxyCodeLine{00516\ }
+\DoxyCodeLine{00517\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00518\ \textcolor{comment}{\ \ \ *\ duplicates\ all\ nodes\ in\ the\ subgraph\ reachable\ from\ node\_idx.\ Does\ not\ re-\/assign}}
+\DoxyCodeLine{00519\ \textcolor{comment}{\ \ \ *\ links.\ index\_map\ is\ updated\ with\ mappings\ from\ old\ id\ to\ new\ id.\ If\ a\ duplication\ has\ already}}
+\DoxyCodeLine{00520\ \textcolor{comment}{\ \ \ *\ been\ performed\ for\ a\ given\ index,\ then\ it\ will\ be\ skipped.}}
+\DoxyCodeLine{00521\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00522\ \ \ \textcolor{keywordtype}{void}\ duplicate\_subgraph\ (\textcolor{keywordtype}{unsigned}\ node\_idx,\ \mbox{\hyperlink{structhb__hashmap__t}{hb\_hashmap\_t<unsigned,\ unsigned>}}\&\ index\_map)}
+\DoxyCodeLine{00523\ \ \ \{}
+\DoxyCodeLine{00524\ \ \ \ \ \textcolor{keywordflow}{if}\ (index\_map.has\ (node\_idx))}
+\DoxyCodeLine{00525\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00526\ }
+\DoxyCodeLine{00527\ \ \ \ \ index\_map.set\ (node\_idx,\ duplicate\ (node\_idx));}
+\DoxyCodeLine{00528\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ \textcolor{keywordtype}{object}\ (node\_idx).all\_links\ ())\ \{}
+\DoxyCodeLine{00529\ \ \ \ \ \ \ duplicate\_subgraph\ (l.objidx,\ index\_map);}
+\DoxyCodeLine{00530\ \ \ \ \ \}}
+\DoxyCodeLine{00531\ \ \ \}}
+\DoxyCodeLine{00532\ }
+\DoxyCodeLine{00533\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ *\ Creates\ a\ copy\ of\ node\_idx\ and\ returns\ it's\ new\ index.}}
+\DoxyCodeLine{00535\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00536\ \ \ \textcolor{keywordtype}{unsigned}\ duplicate\ (\textcolor{keywordtype}{unsigned}\ node\_idx)}
+\DoxyCodeLine{00537\ \ \ \{}
+\DoxyCodeLine{00538\ \ \ \ \ positions\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00539\ \ \ \ \ distance\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00540\ }
+\DoxyCodeLine{00541\ \ \ \ \ \textcolor{keyword}{auto}*\ clone\ =\ vertices\_.push\ ();}
+\DoxyCodeLine{00542\ \ \ \ \ \textcolor{keyword}{auto}\&\ child\ =\ vertices\_[node\_idx];}
+\DoxyCodeLine{00543\ \ \ \ \ \textcolor{keywordflow}{if}\ (vertices\_.in\_error\ ())\ \{}
+\DoxyCodeLine{00544\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ -\/1;}
+\DoxyCodeLine{00545\ \ \ \ \ \}}
+\DoxyCodeLine{00546\ }
+\DoxyCodeLine{00547\ \ \ \ \ clone-\/>obj.head\ =\ child.obj.head;}
+\DoxyCodeLine{00548\ \ \ \ \ clone-\/>obj.tail\ =\ child.obj.tail;}
+\DoxyCodeLine{00549\ \ \ \ \ clone-\/>distance\ =\ child.distance;}
+\DoxyCodeLine{00550\ \ \ \ \ clone-\/>space\ =\ child.space;}
+\DoxyCodeLine{00551\ \ \ \ \ clone-\/>parents.reset\ ();}
+\DoxyCodeLine{00552\ }
+\DoxyCodeLine{00553\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ clone\_idx\ =\ vertices\_.length\ -\/\ 2;}
+\DoxyCodeLine{00554\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ child.obj.real\_links)}
+\DoxyCodeLine{00555\ \ \ \ \ \{}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ clone-\/>obj.real\_links.push\ (l);}
+\DoxyCodeLine{00557\ \ \ \ \ \ \ vertices\_[l.objidx].parents.push\ (clone\_idx);}
+\DoxyCodeLine{00558\ \ \ \ \ \}}
+\DoxyCodeLine{00559\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ child.obj.virtual\_links)}
+\DoxyCodeLine{00560\ \ \ \ \ \{}
+\DoxyCodeLine{00561\ \ \ \ \ \ \ clone-\/>obj.virtual\_links.push\ (l);}
+\DoxyCodeLine{00562\ \ \ \ \ \ \ vertices\_[l.objidx].parents.push\ (clone\_idx);}
+\DoxyCodeLine{00563\ \ \ \ \ \}}
+\DoxyCodeLine{00564\ }
+\DoxyCodeLine{00565\ \ \ \ \ check\_success\ (!clone-\/>obj.real\_links.in\_error\ ());}
+\DoxyCodeLine{00566\ \ \ \ \ check\_success\ (!clone-\/>obj.virtual\_links.in\_error\ ());}
+\DoxyCodeLine{00567\ }
+\DoxyCodeLine{00568\ \ \ \ \ \textcolor{comment}{//\ The\ last\ object\ is\ the\ root\ of\ the\ graph,\ so\ swap\ back\ the\ root\ to\ the\ end.}}
+\DoxyCodeLine{00569\ \ \ \ \ \textcolor{comment}{//\ The\ root's\ obj\ idx\ does\ change,\ however\ since\ it's\ root\ nothing\ else\ refers\ to\ it.}}
+\DoxyCodeLine{00570\ \ \ \ \ \textcolor{comment}{//\ all\ other\ obj\ idx's\ will\ be\ unaffected.}}
+\DoxyCodeLine{00571\ \ \ \ \ vertex\_t\ root\ =\ vertices\_[vertices\_.length\ -\/\ 2];}
+\DoxyCodeLine{00572\ \ \ \ \ vertices\_[clone\_idx]\ =\ *clone;}
+\DoxyCodeLine{00573\ \ \ \ \ vertices\_[vertices\_.length\ -\/\ 1]\ =\ root;}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ \ \ \ \ \textcolor{comment}{//\ Since\ the\ root\ moved,\ update\ the\ parents\ arrays\ of\ all\ children\ on\ the\ root.}}
+\DoxyCodeLine{00576\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ root.obj.all\_links\ ())}
+\DoxyCodeLine{00577\ \ \ \ \ \ \ vertices\_[l.objidx].remap\_parent\ (root\_idx\ ()\ -\/\ 1,\ root\_idx\ ());}
+\DoxyCodeLine{00578\ }
+\DoxyCodeLine{00579\ \ \ \ \ \textcolor{keywordflow}{return}\ clone\_idx;}
+\DoxyCodeLine{00580\ \ \ \}}
+\DoxyCodeLine{00581\ }
+\DoxyCodeLine{00582\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00583\ \textcolor{comment}{\ \ \ *\ Creates\ a\ copy\ of\ child\ and\ re-\/assigns\ the\ link\ from}}
+\DoxyCodeLine{00584\ \textcolor{comment}{\ \ \ *\ parent\ to\ the\ clone.\ The\ copy\ is\ a\ shallow\ copy,\ objects}}
+\DoxyCodeLine{00585\ \textcolor{comment}{\ \ \ *\ linked\ from\ child\ are\ not\ duplicated.}}
+\DoxyCodeLine{00586\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00587\ \ \ \textcolor{keywordtype}{bool}\ duplicate\ (\textcolor{keywordtype}{unsigned}\ parent\_idx,\ \textcolor{keywordtype}{unsigned}\ child\_idx)}
+\DoxyCodeLine{00588\ \ \ \{}
+\DoxyCodeLine{00589\ \ \ \ \ update\_parents\ ();}
+\DoxyCodeLine{00590\ }
+\DoxyCodeLine{00591\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ links\_to\_child\ =\ 0;}
+\DoxyCodeLine{00592\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ vertices\_[parent\_idx].obj.all\_links\ ())}
+\DoxyCodeLine{00593\ \ \ \ \ \{}
+\DoxyCodeLine{00594\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (l.objidx\ ==\ child\_idx)\ links\_to\_child++;}
+\DoxyCodeLine{00595\ \ \ \ \ \}}
+\DoxyCodeLine{00596\ }
+\DoxyCodeLine{00597\ \ \ \ \ \textcolor{keywordflow}{if}\ (vertices\_[child\_idx].incoming\_edges\ ()\ <=\ links\_to\_child)}
+\DoxyCodeLine{00598\ \ \ \ \ \{}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ \textcolor{comment}{//\ Can't\ duplicate\ this\ node,\ doing\ so\ would\ orphan\ the\ original\ one\ as\ all\ remaining\ links}}
+\DoxyCodeLine{00600\ \ \ \ \ \ \ \textcolor{comment}{//\ to\ child\ are\ from\ parent.}}
+\DoxyCodeLine{00601\ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}\ \ Not\ duplicating\ \%d\ =>\ \%d"{}},}
+\DoxyCodeLine{00602\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parent\_idx,\ child\_idx);}
+\DoxyCodeLine{00603\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00604\ \ \ \ \ \}}
+\DoxyCodeLine{00605\ }
+\DoxyCodeLine{00606\ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}\ \ Duplicating\ \%d\ =>\ \%d"{}},}
+\DoxyCodeLine{00607\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parent\_idx,\ child\_idx);}
+\DoxyCodeLine{00608\ }
+\DoxyCodeLine{00609\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ clone\_idx\ =\ duplicate\ (child\_idx);}
+\DoxyCodeLine{00610\ \ \ \ \ \textcolor{keywordflow}{if}\ (clone\_idx\ ==\ (\textcolor{keywordtype}{unsigned})\ -\/1)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00611\ \ \ \ \ \textcolor{comment}{//\ duplicate\ shifts\ the\ root\ node\ idx,\ so\ if\ parent\_idx\ was\ root\ update\ it.}}
+\DoxyCodeLine{00612\ \ \ \ \ \textcolor{keywordflow}{if}\ (parent\_idx\ ==\ clone\_idx)\ parent\_idx++;}
+\DoxyCodeLine{00613\ }
+\DoxyCodeLine{00614\ \ \ \ \ \textcolor{keyword}{auto}\&\ parent\ =\ vertices\_[parent\_idx];}
+\DoxyCodeLine{00615\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ l\ :\ parent.obj.all\_links\_writer\ ())}
+\DoxyCodeLine{00616\ \ \ \ \ \{}
+\DoxyCodeLine{00617\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (l.objidx\ !=\ child\_idx)}
+\DoxyCodeLine{00618\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00619\ }
+\DoxyCodeLine{00620\ \ \ \ \ \ \ reassign\_link\ (l,\ parent\_idx,\ clone\_idx);}
+\DoxyCodeLine{00621\ \ \ \ \ \}}
+\DoxyCodeLine{00622\ }
+\DoxyCodeLine{00623\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00624\ \ \ \}}
+\DoxyCodeLine{00625\ }
+\DoxyCodeLine{00626\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00627\ \textcolor{comment}{\ \ \ *\ Raises\ the\ sorting\ priority\ of\ all\ children.}}
+\DoxyCodeLine{00628\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00629\ \ \ \textcolor{keywordtype}{bool}\ raise\_childrens\_priority\ (\textcolor{keywordtype}{unsigned}\ parent\_idx)}
+\DoxyCodeLine{00630\ \ \ \{}
+\DoxyCodeLine{00631\ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}\ \ Raising\ priority\ of\ all\ children\ of\ \%d"{}},}
+\DoxyCodeLine{00632\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parent\_idx);}
+\DoxyCodeLine{00633\ \ \ \ \ \textcolor{comment}{//\ This\ operation\ doesn't\ change\ ordering\ until\ a\ sort\ is\ run,\ so\ no\ need}}
+\DoxyCodeLine{00634\ \ \ \ \ \textcolor{comment}{//\ to\ invalidate\ positions.\ It\ does\ not\ change\ graph\ structure\ so\ no\ need}}
+\DoxyCodeLine{00635\ \ \ \ \ \textcolor{comment}{//\ to\ update\ distances\ or\ edge\ counts.}}
+\DoxyCodeLine{00636\ \ \ \ \ \textcolor{keyword}{auto}\&\ parent\ =\ vertices\_[parent\_idx].obj;}
+\DoxyCodeLine{00637\ \ \ \ \ \textcolor{keywordtype}{bool}\ made\_change\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00638\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ l\ :\ parent.all\_links\_writer\ ())}
+\DoxyCodeLine{00639\ \ \ \ \ \ \ made\_change\ |=\ vertices\_[l.objidx].raise\_priority\ ();}
+\DoxyCodeLine{00640\ \ \ \ \ \textcolor{keywordflow}{return}\ made\_change;}
+\DoxyCodeLine{00641\ \ \ \}}
+\DoxyCodeLine{00642\ }
+\DoxyCodeLine{00643\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00644\ \textcolor{comment}{\ \ \ *\ Will\ any\ offsets\ overflow\ on\ graph\ when\ it's\ serialized?}}
+\DoxyCodeLine{00645\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00646\ \ \ \textcolor{keywordtype}{bool}\ will\_overflow\ (\mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<overflow\_record\_t>}}*\ overflows\ =\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00647\ \ \ \{}
+\DoxyCodeLine{00648\ \ \ \ \ \textcolor{keywordflow}{if}\ (overflows)\ overflows-\/>resize\ (0);}
+\DoxyCodeLine{00649\ \ \ \ \ update\_positions\ ();}
+\DoxyCodeLine{00650\ }
+\DoxyCodeLine{00651\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ parent\_idx\ =\ vertices\_.length\ -\/\ 1;\ parent\_idx\ >=\ 0;\ parent\_idx-\/-\/)}
+\DoxyCodeLine{00652\ \ \ \ \ \{}
+\DoxyCodeLine{00653\ \ \ \ \ \ \ \textcolor{comment}{//\ Don't\ need\ to\ check\ virtual\ links\ for\ overflow}}
+\DoxyCodeLine{00654\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ link\ :\ vertices\_[parent\_idx].obj.real\_links)}
+\DoxyCodeLine{00655\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00656\ \ \ \ \ \ \ \ \ int64\_t\ offset\ =\ compute\_offset\ (parent\_idx,\ link);}
+\DoxyCodeLine{00657\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_valid\_offset\ (offset,\ link))}
+\DoxyCodeLine{00658\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00659\ }
+\DoxyCodeLine{00660\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!overflows)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00661\ }
+\DoxyCodeLine{00662\ \ \ \ \ \ \ \ \ overflow\_record\_t\ r;}
+\DoxyCodeLine{00663\ \ \ \ \ \ \ \ \ r.parent\ =\ parent\_idx;}
+\DoxyCodeLine{00664\ \ \ \ \ \ \ \ \ r.child\ =\ link.objidx;}
+\DoxyCodeLine{00665\ \ \ \ \ \ \ \ \ overflows-\/>push\ (r);}
+\DoxyCodeLine{00666\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00667\ \ \ \ \ \}}
+\DoxyCodeLine{00668\ }
+\DoxyCodeLine{00669\ \ \ \ \ \textcolor{keywordflow}{if}\ (!overflows)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00670\ \ \ \ \ \textcolor{keywordflow}{return}\ overflows-\/>length;}
+\DoxyCodeLine{00671\ \ \ \}}
+\DoxyCodeLine{00672\ }
+\DoxyCodeLine{00673\ \ \ \textcolor{keywordtype}{void}\ print\_orphaned\_nodes\ ()}
+\DoxyCodeLine{00674\ \ \ \{}
+\DoxyCodeLine{00675\ \ \ \ \ \textcolor{keywordflow}{if}\ (!DEBUG\_ENABLED(SUBSET\_REPACK))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00676\ }
+\DoxyCodeLine{00677\ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Graph\ is\ not\ fully\ connected."{}});}
+\DoxyCodeLine{00678\ \ \ \ \ parents\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00679\ \ \ \ \ update\_parents();}
+\DoxyCodeLine{00680\ }
+\DoxyCodeLine{00681\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ root\_idx\ ();\ i++)}
+\DoxyCodeLine{00682\ \ \ \ \ \{}
+\DoxyCodeLine{00683\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ v\ =\ vertices\_[i];}
+\DoxyCodeLine{00684\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!v.parents)}
+\DoxyCodeLine{00685\ \ \ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Node\ \%u\ is\ orphaned."{}},\ i);}
+\DoxyCodeLine{00686\ \ \ \ \ \}}
+\DoxyCodeLine{00687\ \ \ \}}
+\DoxyCodeLine{00688\ }
+\DoxyCodeLine{00689\ \ \ \textcolor{keywordtype}{void}\ print\_overflows\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<overflow\_record\_t>}}\&\ overflows)}
+\DoxyCodeLine{00690\ \ \ \{}
+\DoxyCodeLine{00691\ \ \ \ \ \textcolor{keywordflow}{if}\ (!DEBUG\_ENABLED(SUBSET\_REPACK))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00692\ }
+\DoxyCodeLine{00693\ \ \ \ \ update\_parents\ ();}
+\DoxyCodeLine{00694\ \ \ \ \ \textcolor{keywordtype}{int}\ limit\ =\ 10;}
+\DoxyCodeLine{00695\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ o\ :\ overflows)}
+\DoxyCodeLine{00696\ \ \ \ \ \{}
+\DoxyCodeLine{00697\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!limit-\/-\/)\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00698\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ parent\ =\ vertices\_[o.parent];}
+\DoxyCodeLine{00699\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ child\ =\ vertices\_[o.child];}
+\DoxyCodeLine{00700\ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},}
+\DoxyCodeLine{00701\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ \ overflow\ from\ "{}}}
+\DoxyCodeLine{00702\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\%4d\ (\%4d\ in,\ \%4d\ out,\ space\ \%2d)\ =>\ "{}}}
+\DoxyCodeLine{00703\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\%4d\ (\%4d\ in,\ \%4d\ out,\ space\ \%2d)"{}},}
+\DoxyCodeLine{00704\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ o.parent,}
+\DoxyCodeLine{00705\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parent.incoming\_edges\ (),}
+\DoxyCodeLine{00706\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ parent.obj.real\_links.length\ +\ parent.obj.virtual\_links.length,}
+\DoxyCodeLine{00707\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ space\_for\ (o.parent),}
+\DoxyCodeLine{00708\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ o.child,}
+\DoxyCodeLine{00709\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child.incoming\_edges\ (),}
+\DoxyCodeLine{00710\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ child.obj.real\_links.length\ +\ child.obj.virtual\_links.length,}
+\DoxyCodeLine{00711\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ space\_for\ (o.child));}
+\DoxyCodeLine{00712\ \ \ \ \ \}}
+\DoxyCodeLine{00713\ \ \ \ \ \textcolor{keywordflow}{if}\ (overflows.length\ >\ 10)\ \{}
+\DoxyCodeLine{00714\ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}\ \ ...\ plus\ \%d\ more\ overflows."{}},\ overflows.length\ -\/\ 10);}
+\DoxyCodeLine{00715\ \ \ \ \ \}}
+\DoxyCodeLine{00716\ \ \ \}}
+\DoxyCodeLine{00717\ }
+\DoxyCodeLine{00718\ \ \ \textcolor{keywordtype}{unsigned}\ num\_roots\_for\_space\ (\textcolor{keywordtype}{unsigned}\ space)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00719\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00720\ \ \ \ \ \textcolor{keywordflow}{return}\ num\_roots\_for\_space\_[space];}
+\DoxyCodeLine{00721\ \ \ \}}
+\DoxyCodeLine{00722\ }
+\DoxyCodeLine{00723\ \ \ \textcolor{keywordtype}{unsigned}\ next\_space\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00724\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00725\ \ \ \ \ \textcolor{keywordflow}{return}\ num\_roots\_for\_space\_.length;}
+\DoxyCodeLine{00726\ \ \ \}}
+\DoxyCodeLine{00727\ }
+\DoxyCodeLine{00728\ \ \ \textcolor{keywordtype}{void}\ move\_to\_new\_space\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ indices)}
+\DoxyCodeLine{00729\ \ \ \{}
+\DoxyCodeLine{00730\ \ \ \ \ num\_roots\_for\_space\_.push\ (0);}
+\DoxyCodeLine{00731\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ new\_space\ =\ num\_roots\_for\_space\_.length\ -\/\ 1;}
+\DoxyCodeLine{00732\ }
+\DoxyCodeLine{00733\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ index\ :\ indices)\ \{}
+\DoxyCodeLine{00734\ \ \ \ \ \ \ \textcolor{keyword}{auto}\&\ node\ =\ vertices\_[index];}
+\DoxyCodeLine{00735\ \ \ \ \ \ \ num\_roots\_for\_space\_[node.space]\ =\ num\_roots\_for\_space\_[node.space]\ -\/\ 1;}
+\DoxyCodeLine{00736\ \ \ \ \ \ \ num\_roots\_for\_space\_[new\_space]\ =\ num\_roots\_for\_space\_[new\_space]\ +\ 1;}
+\DoxyCodeLine{00737\ \ \ \ \ \ \ node.space\ =\ new\_space;}
+\DoxyCodeLine{00738\ \ \ \ \ \ \ distance\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00739\ \ \ \ \ \ \ positions\_invalid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00740\ \ \ \ \ \}}
+\DoxyCodeLine{00741\ \ \ \}}
+\DoxyCodeLine{00742\ }
+\DoxyCodeLine{00743\ \ \ \textcolor{keywordtype}{unsigned}\ space\_for\ (\textcolor{keywordtype}{unsigned}\ index,\ \textcolor{keywordtype}{unsigned}*\ root\ =\ \textcolor{keyword}{nullptr})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00744\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00745\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ node\ =\ vertices\_[index];}
+\DoxyCodeLine{00746\ \ \ \ \ \textcolor{keywordflow}{if}\ (node.space)}
+\DoxyCodeLine{00747\ \ \ \ \ \{}
+\DoxyCodeLine{00748\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (root\ !=\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00749\ \ \ \ \ \ \ \ \ *root\ =\ index;}
+\DoxyCodeLine{00750\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ node.space;}
+\DoxyCodeLine{00751\ \ \ \ \ \}}
+\DoxyCodeLine{00752\ }
+\DoxyCodeLine{00753\ \ \ \ \ \textcolor{keywordflow}{if}\ (!node.parents)}
+\DoxyCodeLine{00754\ \ \ \ \ \{}
+\DoxyCodeLine{00755\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (root)}
+\DoxyCodeLine{00756\ \ \ \ \ \ \ \ \ *root\ =\ index;}
+\DoxyCodeLine{00757\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00758\ \ \ \ \ \}}
+\DoxyCodeLine{00759\ }
+\DoxyCodeLine{00760\ \ \ \ \ \textcolor{keywordflow}{return}\ space\_for\ (node.parents[0],\ root);}
+\DoxyCodeLine{00761\ \ \ \}}
+\DoxyCodeLine{00762\ }
+\DoxyCodeLine{00763\ \ \ \textcolor{keywordtype}{void}\ err\_other\_error\ ()\ \{\ this-\/>successful\ =\ \textcolor{keyword}{false};\ \}}
+\DoxyCodeLine{00764\ }
+\DoxyCodeLine{00765\ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00766\ }
+\DoxyCodeLine{00767\ \ \ \textcolor{keywordtype}{size\_t}\ serialized\_length\ ()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00768\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ total\_size\ =\ 0;}
+\DoxyCodeLine{00769\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ vertices\_.length;\ i++)\ \{}
+\DoxyCodeLine{00770\ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ size\ =\ vertices\_[i].obj.tail\ -\/\ vertices\_[i].obj.head;}
+\DoxyCodeLine{00771\ \ \ \ \ \ \ total\_size\ +=\ size;}
+\DoxyCodeLine{00772\ \ \ \ \ \}}
+\DoxyCodeLine{00773\ \ \ \ \ \textcolor{keywordflow}{return}\ total\_size;}
+\DoxyCodeLine{00774\ \ \ \}}
+\DoxyCodeLine{00775\ }
+\DoxyCodeLine{00776\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00777\ \textcolor{comment}{\ \ \ *\ Returns\ the\ numbers\ of\ incoming\ edges\ that\ are\ 32bits\ wide.}}
+\DoxyCodeLine{00778\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00779\ \ \ \textcolor{keywordtype}{unsigned}\ wide\_parents\ (\textcolor{keywordtype}{unsigned}\ node\_idx,\ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ parents)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00780\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00781\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ count\ =\ 0;}
+\DoxyCodeLine{00782\ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ visited;}
+\DoxyCodeLine{00783\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ p\ :\ vertices\_[node\_idx].parents)}
+\DoxyCodeLine{00784\ \ \ \ \ \{}
+\DoxyCodeLine{00785\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (visited.has\ (p))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00786\ \ \ \ \ \ \ visited.add\ (p);}
+\DoxyCodeLine{00787\ }
+\DoxyCodeLine{00788\ \ \ \ \ \ \ \textcolor{comment}{//\ Only\ real\ links\ can\ be\ wide}}
+\DoxyCodeLine{00789\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ vertices\_[p].obj.real\_links)}
+\DoxyCodeLine{00790\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00791\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (l.objidx\ ==\ node\_idx\ \&\&\ l.width\ ==\ 4\ \&\&\ !l.is\_signed)}
+\DoxyCodeLine{00792\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00793\ \ \ \ \ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{00794\ \ \ \ \ \ \ \ \ \ \ parents.add\ (p);}
+\DoxyCodeLine{00795\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00796\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00797\ \ \ \ \ \}}
+\DoxyCodeLine{00798\ \ \ \ \ \textcolor{keywordflow}{return}\ count;}
+\DoxyCodeLine{00799\ \ \ \}}
+\DoxyCodeLine{00800\ }
+\DoxyCodeLine{00801\ \ \ \textcolor{keywordtype}{bool}\ check\_success\ (\textcolor{keywordtype}{bool}\ success)}
+\DoxyCodeLine{00802\ \ \ \{\ \textcolor{keywordflow}{return}\ this-\/>successful\ \&\&\ (success\ ||\ (err\_other\_error\ (),\ \textcolor{keyword}{false}));\ \}}
+\DoxyCodeLine{00803\ }
+\DoxyCodeLine{00804\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00805\ \textcolor{comment}{\ \ \ *\ Creates\ a\ map\ from\ objid\ to\ \#\ of\ incoming\ edges.}}
+\DoxyCodeLine{00806\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00807\ \ \ \textcolor{keywordtype}{void}\ update\_parents\ ()}
+\DoxyCodeLine{00808\ \ \ \{}
+\DoxyCodeLine{00809\ \ \ \ \ \textcolor{keywordflow}{if}\ (!parents\_invalid)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00810\ }
+\DoxyCodeLine{00811\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ vertices\_.length;\ i++)}
+\DoxyCodeLine{00812\ \ \ \ \ \ \ vertices\_[i].parents.reset\ ();}
+\DoxyCodeLine{00813\ }
+\DoxyCodeLine{00814\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ p\ =\ 0;\ p\ <\ vertices\_.length;\ p++)}
+\DoxyCodeLine{00815\ \ \ \ \ \{}
+\DoxyCodeLine{00816\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ l\ :\ vertices\_[p].obj.all\_links\ ())}
+\DoxyCodeLine{00817\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00818\ \ \ \ \ \ \ \ \ vertices\_[l.objidx].parents.push\ (p);}
+\DoxyCodeLine{00819\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00820\ \ \ \ \ \}}
+\DoxyCodeLine{00821\ }
+\DoxyCodeLine{00822\ \ \ \ \ parents\_invalid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00823\ \ \ \}}
+\DoxyCodeLine{00824\ }
+\DoxyCodeLine{00825\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00826\ \textcolor{comment}{\ \ \ *\ compute\ the\ serialized\ start\ and\ end\ positions\ for\ each\ vertex.}}
+\DoxyCodeLine{00827\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00828\ \ \ \textcolor{keywordtype}{void}\ update\_positions\ ()}
+\DoxyCodeLine{00829\ \ \ \{}
+\DoxyCodeLine{00830\ \ \ \ \ \textcolor{keywordflow}{if}\ (!positions\_invalid)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00831\ }
+\DoxyCodeLine{00832\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ current\_pos\ =\ 0;}
+\DoxyCodeLine{00833\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ root\_idx\ ();\ i\ >=\ 0;\ i-\/-\/)}
+\DoxyCodeLine{00834\ \ \ \ \ \{}
+\DoxyCodeLine{00835\ \ \ \ \ \ \ \textcolor{keyword}{auto}\&\ v\ =\ vertices\_[i];}
+\DoxyCodeLine{00836\ \ \ \ \ \ \ v.start\ =\ current\_pos;}
+\DoxyCodeLine{00837\ \ \ \ \ \ \ current\_pos\ +=\ v.obj.tail\ -\/\ v.obj.head;}
+\DoxyCodeLine{00838\ \ \ \ \ \ \ v.end\ =\ current\_pos;}
+\DoxyCodeLine{00839\ \ \ \ \ \}}
+\DoxyCodeLine{00840\ }
+\DoxyCodeLine{00841\ \ \ \ \ positions\_invalid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00842\ \ \ \}}
+\DoxyCodeLine{00843\ }
+\DoxyCodeLine{00844\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00845\ \textcolor{comment}{\ \ \ *\ Finds\ the\ distance\ to\ each\ object\ in\ the\ graph}}
+\DoxyCodeLine{00846\ \textcolor{comment}{\ \ \ *\ from\ the\ initial\ node.}}
+\DoxyCodeLine{00847\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00848\ \ \ \textcolor{keywordtype}{void}\ update\_distances\ ()}
+\DoxyCodeLine{00849\ \ \ \{}
+\DoxyCodeLine{00850\ \ \ \ \ \textcolor{keywordflow}{if}\ (!distance\_invalid)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00851\ }
+\DoxyCodeLine{00852\ \ \ \ \ \textcolor{comment}{//\ Uses\ Dijkstra's\ algorithm\ to\ find\ all\ of\ the\ shortest\ distances.}}
+\DoxyCodeLine{00853\ \ \ \ \ \textcolor{comment}{//\ https://en.wikipedia.org/wiki/Dijkstra\%27s\_algorithm}}
+\DoxyCodeLine{00854\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00855\ \ \ \ \ \textcolor{comment}{//\ Implementation\ Note:}}
+\DoxyCodeLine{00856\ \ \ \ \ \textcolor{comment}{//\ Since\ our\ priority\ queue\ doesn't\ support\ fast\ priority\ decreases}}
+\DoxyCodeLine{00857\ \ \ \ \ \textcolor{comment}{//\ we\ instead\ just\ add\ new\ entries\ into\ the\ queue\ when\ a\ priority\ changes.}}
+\DoxyCodeLine{00858\ \ \ \ \ \textcolor{comment}{//\ Redundant\ ones\ are\ filtered\ out\ later\ on\ by\ the\ visited\ set.}}
+\DoxyCodeLine{00859\ \ \ \ \ \textcolor{comment}{//\ According\ to\ https://www3.cs.stonybrook.edu/\string~rezaul/papers/TR-\/07-\/54.pdf}}
+\DoxyCodeLine{00860\ \ \ \ \ \textcolor{comment}{//\ for\ practical\ performance\ this\ is\ faster\ then\ using\ a\ more\ advanced\ queue}}
+\DoxyCodeLine{00861\ \ \ \ \ \textcolor{comment}{//\ (such\ as\ a\ fibonacci\ queue)\ with\ a\ fast\ decrease\ priority.}}
+\DoxyCodeLine{00862\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ vertices\_.length;\ i++)}
+\DoxyCodeLine{00863\ \ \ \ \ \{}
+\DoxyCodeLine{00864\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ ==\ vertices\_.length\ -\/\ 1)}
+\DoxyCodeLine{00865\ \ \ \ \ \ \ \ \ vertices\_[i].distance\ =\ 0;}
+\DoxyCodeLine{00866\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00867\ \ \ \ \ \ \ \ \ vertices\_[i].distance\ =\ \mbox{\hyperlink{structhb__int__max}{hb\_int\_max}}\ (int64\_t);}
+\DoxyCodeLine{00868\ \ \ \ \ \}}
+\DoxyCodeLine{00869\ }
+\DoxyCodeLine{00870\ \ \ \ \ \mbox{\hyperlink{structhb__priority__queue__t}{hb\_priority\_queue\_t}}\ queue;}
+\DoxyCodeLine{00871\ \ \ \ \ queue.insert\ (0,\ vertices\_.length\ -\/\ 1);}
+\DoxyCodeLine{00872\ }
+\DoxyCodeLine{00873\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<bool>}}\ visited;}
+\DoxyCodeLine{00874\ \ \ \ \ visited.resize\ (vertices\_.length);}
+\DoxyCodeLine{00875\ }
+\DoxyCodeLine{00876\ \ \ \ \ \textcolor{keywordflow}{while}\ (!queue.in\_error\ ()\ \&\&\ !queue.is\_empty\ ())}
+\DoxyCodeLine{00877\ \ \ \ \ \{}
+\DoxyCodeLine{00878\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ next\_idx\ =\ queue.pop\_minimum\ ().second;}
+\DoxyCodeLine{00879\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (visited[next\_idx])\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00880\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ next\ =\ vertices\_[next\_idx];}
+\DoxyCodeLine{00881\ \ \ \ \ \ \ int64\_t\ next\_distance\ =\ vertices\_[next\_idx].distance;}
+\DoxyCodeLine{00882\ \ \ \ \ \ \ visited[next\_idx]\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00883\ }
+\DoxyCodeLine{00884\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ link\ :\ next.obj.all\_links\ ())}
+\DoxyCodeLine{00885\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00886\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (visited[link.objidx])\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00887\ }
+\DoxyCodeLine{00888\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ child\ =\ vertices\_[link.objidx].obj;}
+\DoxyCodeLine{00889\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ link\_width\ =\ link.width\ ?\ link.width\ :\ 4;\ \textcolor{comment}{//\ treat\ virtual\ offsets\ as\ 32\ bits\ wide}}
+\DoxyCodeLine{00890\ \ \ \ \ \ \ \ \ int64\_t\ child\_weight\ =\ (child.tail\ -\/\ child.head)\ +}
+\DoxyCodeLine{00891\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((int64\_t)\ 1\ <<\ (link\_width\ *\ 8))\ *\ (vertices\_[link.objidx].space\ +\ 1);}
+\DoxyCodeLine{00892\ \ \ \ \ \ \ \ \ int64\_t\ child\_distance\ =\ next\_distance\ +\ child\_weight;}
+\DoxyCodeLine{00893\ }
+\DoxyCodeLine{00894\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (child\_distance\ <\ vertices\_[link.objidx].distance)}
+\DoxyCodeLine{00895\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00896\ \ \ \ \ \ \ \ \ \ \ vertices\_[link.objidx].distance\ =\ child\_distance;}
+\DoxyCodeLine{00897\ \ \ \ \ \ \ \ \ \ \ queue.insert\ (child\_distance,\ link.objidx);}
+\DoxyCodeLine{00898\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00899\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00900\ \ \ \ \ \}}
+\DoxyCodeLine{00901\ }
+\DoxyCodeLine{00902\ \ \ \ \ check\_success\ (!queue.in\_error\ ());}
+\DoxyCodeLine{00903\ \ \ \ \ \textcolor{keywordflow}{if}\ (!check\_success\ (queue.is\_empty\ ()))}
+\DoxyCodeLine{00904\ \ \ \ \ \{}
+\DoxyCodeLine{00905\ \ \ \ \ \ \ print\_orphaned\_nodes\ ();}
+\DoxyCodeLine{00906\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00907\ \ \ \ \ \}}
+\DoxyCodeLine{00908\ }
+\DoxyCodeLine{00909\ \ \ \ \ distance\_invalid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00910\ \ \ \}}
+\DoxyCodeLine{00911\ }
+\DoxyCodeLine{00912\ \ \ int64\_t\ compute\_offset\ (}
+\DoxyCodeLine{00913\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ parent\_idx,}
+\DoxyCodeLine{00914\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t_1_1link__t}{hb\_serialize\_context\_t::object\_t::link\_t}}\&\ link)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00915\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00916\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ parent\ =\ vertices\_[parent\_idx];}
+\DoxyCodeLine{00917\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ child\ =\ vertices\_[link.objidx];}
+\DoxyCodeLine{00918\ \ \ \ \ int64\_t\ offset\ =\ 0;}
+\DoxyCodeLine{00919\ \ \ \ \ \textcolor{keywordflow}{switch}\ ((hb\_serialize\_context\_t::whence\_t)\ link.whence)\ \{}
+\DoxyCodeLine{00920\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ hb\_serialize\_context\_t::whence\_t::Head:}
+\DoxyCodeLine{00921\ \ \ \ \ \ \ \ \ offset\ =\ child.start\ -\/\ parent.start;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00922\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ hb\_serialize\_context\_t::whence\_t::Tail:}
+\DoxyCodeLine{00923\ \ \ \ \ \ \ \ \ offset\ =\ child.start\ -\/\ parent.end;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00924\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ hb\_serialize\_context\_t::whence\_t::Absolute:}
+\DoxyCodeLine{00925\ \ \ \ \ \ \ \ \ offset\ =\ child.start;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00926\ \ \ \ \ \}}
+\DoxyCodeLine{00927\ }
+\DoxyCodeLine{00928\ \ \ \ \ assert\ (offset\ >=\ link.bias);}
+\DoxyCodeLine{00929\ \ \ \ \ offset\ -\/=\ link.bias;}
+\DoxyCodeLine{00930\ \ \ \ \ \textcolor{keywordflow}{return}\ offset;}
+\DoxyCodeLine{00931\ \ \ \}}
+\DoxyCodeLine{00932\ }
+\DoxyCodeLine{00933\ \ \ \textcolor{keywordtype}{bool}\ is\_valid\_offset\ (int64\_t\ offset,}
+\DoxyCodeLine{00934\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t_1_1link__t}{hb\_serialize\_context\_t::object\_t::link\_t}}\&\ link)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00935\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00936\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!link.width))}
+\DoxyCodeLine{00937\ \ \ \ \ \ \ \textcolor{comment}{//\ Virtual\ links\ can't\ overflow.}}
+\DoxyCodeLine{00938\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ link.is\_signed\ ||\ offset\ >=\ 0;}
+\DoxyCodeLine{00939\ }
+\DoxyCodeLine{00940\ \ \ \ \ \textcolor{keywordflow}{if}\ (link.is\_signed)}
+\DoxyCodeLine{00941\ \ \ \ \ \{}
+\DoxyCodeLine{00942\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (link.width\ ==\ 4)}
+\DoxyCodeLine{00943\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ offset\ >=\ -\/((int64\_t)\ 1\ <<\ 31)\ \&\&\ offset\ <\ ((int64\_t)\ 1\ <<\ 31);}
+\DoxyCodeLine{00944\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00945\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ offset\ >=\ -\/(1\ <<\ 15)\ \&\&\ offset\ <\ (1\ <<\ 15);}
+\DoxyCodeLine{00946\ \ \ \ \ \}}
+\DoxyCodeLine{00947\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00948\ \ \ \ \ \{}
+\DoxyCodeLine{00949\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (link.width\ ==\ 4)}
+\DoxyCodeLine{00950\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ offset\ >=\ 0\ \&\&\ offset\ <\ ((int64\_t)\ 1\ <<\ 32);}
+\DoxyCodeLine{00951\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (link.width\ ==\ 3)}
+\DoxyCodeLine{00952\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ offset\ >=\ 0\ \&\&\ offset\ <\ ((int32\_t)\ 1\ <<\ 24);}
+\DoxyCodeLine{00953\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00954\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ offset\ >=\ 0\ \&\&\ offset\ <\ (1\ <<\ 16);}
+\DoxyCodeLine{00955\ \ \ \ \ \}}
+\DoxyCodeLine{00956\ \ \ \}}
+\DoxyCodeLine{00957\ }
+\DoxyCodeLine{00958\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00959\ \textcolor{comment}{\ \ \ *\ Updates\ a\ link\ in\ the\ graph\ to\ point\ to\ a\ different\ object.\ Corrects\ the}}
+\DoxyCodeLine{00960\ \textcolor{comment}{\ \ \ *\ parents\ vector\ on\ the\ previous\ and\ new\ child\ nodes.}}
+\DoxyCodeLine{00961\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00962\ \ \ \textcolor{keywordtype}{void}\ reassign\_link\ (\mbox{\hyperlink{structhb__serialize__context__t_1_1object__t_1_1link__t}{hb\_serialize\_context\_t::object\_t::link\_t}}\&\ link,}
+\DoxyCodeLine{00963\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ parent\_idx,}
+\DoxyCodeLine{00964\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ new\_idx)}
+\DoxyCodeLine{00965\ \ \ \{}
+\DoxyCodeLine{00966\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ old\_idx\ =\ link.objidx;}
+\DoxyCodeLine{00967\ \ \ \ \ link.objidx\ =\ new\_idx;}
+\DoxyCodeLine{00968\ \ \ \ \ vertices\_[old\_idx].remove\_parent\ (parent\_idx);}
+\DoxyCodeLine{00969\ \ \ \ \ vertices\_[new\_idx].parents.push\ (parent\_idx);}
+\DoxyCodeLine{00970\ \ \ \}}
+\DoxyCodeLine{00971\ }
+\DoxyCodeLine{00972\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00973\ \textcolor{comment}{\ \ \ *\ Updates\ all\ objidx's\ in\ all\ links\ using\ the\ provided\ mapping.\ Corrects\ incoming\ edge\ counts.}}
+\DoxyCodeLine{00974\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00975\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Iterator,\ hb\_requires\ (hb\_is\_iterator\ (Iterator))>}
+\DoxyCodeLine{00976\ \ \ \textcolor{keywordtype}{void}\ remap\_obj\_indices\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__hashmap__t}{hb\_hashmap\_t<unsigned,\ unsigned>}}\&\ id\_map,}
+\DoxyCodeLine{00977\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Iterator\ subgraph,}
+\DoxyCodeLine{00978\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ only\_wide\ =\ \textcolor{keyword}{false})}
+\DoxyCodeLine{00979\ \ \ \{}
+\DoxyCodeLine{00980\ \ \ \ \ \textcolor{keywordflow}{if}\ (!id\_map)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00981\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ :\ subgraph)}
+\DoxyCodeLine{00982\ \ \ \ \ \{}
+\DoxyCodeLine{00983\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ link\ :\ vertices\_[i].obj.all\_links\_writer\ ())}
+\DoxyCodeLine{00984\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00985\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!id\_map.has\ (link.objidx))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00986\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (only\_wide\ \&\&\ !(link.width\ ==\ 4\ \&\&\ !link.is\_signed))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00987\ }
+\DoxyCodeLine{00988\ \ \ \ \ \ \ \ \ reassign\_link\ (link,\ i,\ id\_map[link.objidx]);}
+\DoxyCodeLine{00989\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00990\ \ \ \ \ \}}
+\DoxyCodeLine{00991\ \ \ \}}
+\DoxyCodeLine{00992\ }
+\DoxyCodeLine{00993\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00994\ \textcolor{comment}{\ \ \ *\ Updates\ all\ objidx's\ in\ all\ links\ using\ the\ provided\ mapping.}}
+\DoxyCodeLine{00995\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00996\ \ \ \textcolor{keywordtype}{void}\ remap\_all\_obj\_indices\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\&\ id\_map,}
+\DoxyCodeLine{00997\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<vertex\_t>}}*\ sorted\_graph)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00998\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00999\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ sorted\_graph-\/>length;\ i++)}
+\DoxyCodeLine{01000\ \ \ \ \ \{}
+\DoxyCodeLine{01001\ \ \ \ \ \ \ (*sorted\_graph)[i].remap\_parents\ (id\_map);}
+\DoxyCodeLine{01002\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ link\ :\ (*sorted\_graph)[i].obj.all\_links\_writer\ ())}
+\DoxyCodeLine{01003\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01004\ \ \ \ \ \ \ \ \ link.objidx\ =\ id\_map[link.objidx];}
+\DoxyCodeLine{01005\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01006\ \ \ \ \ \}}
+\DoxyCodeLine{01007\ \ \ \}}
+\DoxyCodeLine{01008\ }
+\DoxyCodeLine{01009\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ O>\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01010\ \ \ serialize\_link\_of\_type\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t_1_1link__t}{hb\_serialize\_context\_t::object\_t::link\_t}}\&\ link,}
+\DoxyCodeLine{01011\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ head,}
+\DoxyCodeLine{01012\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}*\ c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01013\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{01014\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_offset}{OT::Offset<O>}}*\ offset\ =\ \textcolor{keyword}{reinterpret\_cast<}\mbox{\hyperlink{struct_o_t_1_1_offset}{OT::Offset<O>}}*\textcolor{keyword}{>}\ (head\ +\ link.position);}
+\DoxyCodeLine{01015\ \ \ \ \ *offset\ =\ 0;}
+\DoxyCodeLine{01016\ \ \ \ \ c-\/>add\_link\ (*offset,}
+\DoxyCodeLine{01017\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ serializer\ has\ an\ extra\ nil\ object\ at\ the\ start\ of\ the}}
+\DoxyCodeLine{01018\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ object\ array.\ So\ all\ id's\ are\ +1\ of\ what\ our\ id's\ are.}}
+\DoxyCodeLine{01019\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ link.objidx\ +\ 1,}
+\DoxyCodeLine{01020\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (hb\_serialize\_context\_t::whence\_t)\ link.whence,}
+\DoxyCodeLine{01021\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ link.bias);}
+\DoxyCodeLine{01022\ \ \ \}}
+\DoxyCodeLine{01023\ }
+\DoxyCodeLine{01024\ \ \ \textcolor{keywordtype}{void}\ serialize\_link\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t_1_1link__t}{hb\_serialize\_context\_t::object\_t::link\_t}}\&\ link,}
+\DoxyCodeLine{01025\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}*\ head,}
+\DoxyCodeLine{01026\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}*\ c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01027\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{01028\ \ \ \ \ \textcolor{keywordflow}{switch}\ (link.width)}
+\DoxyCodeLine{01029\ \ \ \ \ \{}
+\DoxyCodeLine{01030\ \ \ \ \ \textcolor{keywordflow}{case}\ 0:}
+\DoxyCodeLine{01031\ \ \ \ \ \ \ \textcolor{comment}{//\ Virtual\ links\ aren't\ serialized.}}
+\DoxyCodeLine{01032\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01033\ \ \ \ \ \textcolor{keywordflow}{case}\ 4:}
+\DoxyCodeLine{01034\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (link.is\_signed)}
+\DoxyCodeLine{01035\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01036\ \ \ \ \ \ \ \ \ serialize\_link\_of\_type<OT::HBINT32>\ (link,\ head,\ c);}
+\DoxyCodeLine{01037\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{01038\ \ \ \ \ \ \ \ \ serialize\_link\_of\_type<OT::HBUINT32>\ (link,\ head,\ c);}
+\DoxyCodeLine{01039\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01040\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01041\ \ \ \ \ \textcolor{keywordflow}{case}\ 2:}
+\DoxyCodeLine{01042\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (link.is\_signed)}
+\DoxyCodeLine{01043\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01044\ \ \ \ \ \ \ \ \ serialize\_link\_of\_type<OT::HBINT16>\ (link,\ head,\ c);}
+\DoxyCodeLine{01045\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{01046\ \ \ \ \ \ \ \ \ serialize\_link\_of\_type<OT::HBUINT16>\ (link,\ head,\ c);}
+\DoxyCodeLine{01047\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01048\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01049\ \ \ \ \ \textcolor{keywordflow}{case}\ 3:}
+\DoxyCodeLine{01050\ \ \ \ \ \ \ serialize\_link\_of\_type<OT::HBUINT24>\ (link,\ head,\ c);}
+\DoxyCodeLine{01051\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01052\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01053\ \ \ \ \ \ \ \textcolor{comment}{//\ Unexpected\ link\ width.}}
+\DoxyCodeLine{01054\ \ \ \ \ \ \ assert\ (0);}
+\DoxyCodeLine{01055\ \ \ \ \ \}}
+\DoxyCodeLine{01056\ \ \ \}}
+\DoxyCodeLine{01057\ }
+\DoxyCodeLine{01058\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{01059\ \textcolor{comment}{\ \ \ *\ Finds\ all\ nodes\ in\ targets\ that\ are\ reachable\ from\ start\_idx,\ nodes\ in\ visited\ will\ be\ skipped.}}
+\DoxyCodeLine{01060\ \textcolor{comment}{\ \ \ *\ For\ this\ search\ the\ graph\ is\ treated\ as\ being\ undirected.}}
+\DoxyCodeLine{01061\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01062\ \textcolor{comment}{\ \ \ *\ Connected\ targets\ will\ be\ added\ to\ connected\ and\ removed\ from\ targets.\ All\ visited\ nodes}}
+\DoxyCodeLine{01063\ \textcolor{comment}{\ \ \ *\ will\ be\ added\ to\ visited.}}
+\DoxyCodeLine{01064\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{01065\ \ \ \textcolor{keywordtype}{void}\ find\_connected\_nodes\ (\textcolor{keywordtype}{unsigned}\ start\_idx,}
+\DoxyCodeLine{01066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ targets,}
+\DoxyCodeLine{01067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ visited,}
+\DoxyCodeLine{01068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ connected)}
+\DoxyCodeLine{01069\ \ \ \{}
+\DoxyCodeLine{01070\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!check\_success\ (!visited.in\_error\ ())))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01071\ \ \ \ \ \textcolor{keywordflow}{if}\ (visited.has\ (start\_idx))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01072\ \ \ \ \ visited.add\ (start\_idx);}
+\DoxyCodeLine{01073\ }
+\DoxyCodeLine{01074\ \ \ \ \ \textcolor{keywordflow}{if}\ (targets.has\ (start\_idx))}
+\DoxyCodeLine{01075\ \ \ \ \ \{}
+\DoxyCodeLine{01076\ \ \ \ \ \ \ targets.del\ (start\_idx);}
+\DoxyCodeLine{01077\ \ \ \ \ \ \ connected.add\ (start\_idx);}
+\DoxyCodeLine{01078\ \ \ \ \ \}}
+\DoxyCodeLine{01079\ }
+\DoxyCodeLine{01080\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ v\ =\ vertices\_[start\_idx];}
+\DoxyCodeLine{01081\ }
+\DoxyCodeLine{01082\ \ \ \ \ \textcolor{comment}{//\ Graph\ is\ treated\ as\ undirected\ so\ search\ children\ and\ parents\ of\ start\_idx}}
+\DoxyCodeLine{01083\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ v.obj.all\_links\ ())}
+\DoxyCodeLine{01084\ \ \ \ \ \ \ find\_connected\_nodes\ (l.objidx,\ targets,\ visited,\ connected);}
+\DoxyCodeLine{01085\ }
+\DoxyCodeLine{01086\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ p\ :\ v.parents)}
+\DoxyCodeLine{01087\ \ \ \ \ \ \ find\_connected\_nodes\ (p,\ targets,\ visited,\ connected);}
+\DoxyCodeLine{01088\ \ \ \}}
+\DoxyCodeLine{01089\ }
+\DoxyCodeLine{01090\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01091\ \ \ \textcolor{comment}{//\ TODO(garretrieger):\ make\ private,\ will\ need\ to\ move\ most\ of\ offset\ overflow\ code\ into\ graph.}}
+\DoxyCodeLine{01092\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<vertex\_t>}}\ vertices\_;}
+\DoxyCodeLine{01093\ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{01094\ \ \ \textcolor{keywordtype}{bool}\ parents\_invalid;}
+\DoxyCodeLine{01095\ \ \ \textcolor{keywordtype}{bool}\ distance\_invalid;}
+\DoxyCodeLine{01096\ \ \ \textcolor{keywordtype}{bool}\ positions\_invalid;}
+\DoxyCodeLine{01097\ \ \ \textcolor{keywordtype}{bool}\ successful;}
+\DoxyCodeLine{01098\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned>}}\ num\_roots\_for\_space\_;}
+\DoxyCodeLine{01099\ \};}
+\DoxyCodeLine{01100\ }
+\DoxyCodeLine{01101\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \_try\_isolating\_subgraphs\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<graph\_t::overflow\_record\_t>}}\&\ overflows,}
+\DoxyCodeLine{01102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structgraph__t}{graph\_t}}\&\ sorted\_graph)}
+\DoxyCodeLine{01103\ \{}
+\DoxyCodeLine{01104\ \ \ \textcolor{keywordtype}{unsigned}\ space\ =\ 0;}
+\DoxyCodeLine{01105\ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ roots\_to\_isolate;}
+\DoxyCodeLine{01106\ }
+\DoxyCodeLine{01107\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ overflows.length\ -\/\ 1;\ i\ >=\ 0;\ i-\/-\/)}
+\DoxyCodeLine{01108\ \ \ \{}
+\DoxyCodeLine{01109\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structgraph__t_1_1overflow__record__t}{graph\_t::overflow\_record\_t}}\&\ r\ =\ overflows[i];}
+\DoxyCodeLine{01110\ }
+\DoxyCodeLine{01111\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ root;}
+\DoxyCodeLine{01112\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ overflow\_space\ =\ sorted\_graph.space\_for\ (r.parent,\ \&root);}
+\DoxyCodeLine{01113\ \ \ \ \ \textcolor{keywordflow}{if}\ (!overflow\_space)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{01114\ \ \ \ \ \textcolor{keywordflow}{if}\ (sorted\_graph.num\_roots\_for\_space\ (overflow\_space)\ <=\ 1)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{01115\ }
+\DoxyCodeLine{01116\ \ \ \ \ \textcolor{keywordflow}{if}\ (!space)\ \{}
+\DoxyCodeLine{01117\ \ \ \ \ \ \ space\ =\ overflow\_space;}
+\DoxyCodeLine{01118\ \ \ \ \ \}}
+\DoxyCodeLine{01119\ }
+\DoxyCodeLine{01120\ \ \ \ \ \textcolor{keywordflow}{if}\ (space\ ==\ overflow\_space)}
+\DoxyCodeLine{01121\ \ \ \ \ \ \ roots\_to\_isolate.add(root);}
+\DoxyCodeLine{01122\ \ \ \}}
+\DoxyCodeLine{01123\ }
+\DoxyCodeLine{01124\ \ \ \textcolor{keywordflow}{if}\ (!roots\_to\_isolate)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01125\ }
+\DoxyCodeLine{01126\ \ \ \textcolor{keywordtype}{unsigned}\ maximum\_to\_move\ =\ hb\_max\ ((sorted\_graph.num\_roots\_for\_space\ (space)\ /\ 2u),\ 1u);}
+\DoxyCodeLine{01127\ \ \ \textcolor{keywordflow}{if}\ (roots\_to\_isolate.get\_population\ ()\ >\ maximum\_to\_move)\ \{}
+\DoxyCodeLine{01128\ \ \ \ \ \textcolor{comment}{//\ Only\ move\ at\ most\ half\ of\ the\ roots\ in\ a\ space\ at\ a\ time.}}
+\DoxyCodeLine{01129\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ extra\ =\ roots\_to\_isolate.get\_population\ ()\ -\/\ maximum\_to\_move;}
+\DoxyCodeLine{01130\ \ \ \ \ \textcolor{keywordflow}{while}\ (extra-\/-\/)\ \{}
+\DoxyCodeLine{01131\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ root\ =\ HB\_SET\_VALUE\_INVALID;}
+\DoxyCodeLine{01132\ \ \ \ \ \ \ roots\_to\_isolate.previous\ (\&root);}
+\DoxyCodeLine{01133\ \ \ \ \ \ \ roots\_to\_isolate.del\ (root);}
+\DoxyCodeLine{01134\ \ \ \ \ \}}
+\DoxyCodeLine{01135\ \ \ \}}
+\DoxyCodeLine{01136\ }
+\DoxyCodeLine{01137\ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},}
+\DoxyCodeLine{01138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Overflow\ in\ space\ \%d\ (\%d\ roots).\ Moving\ \%d\ roots\ to\ space\ \%d."{}},}
+\DoxyCodeLine{01139\ \ \ \ \ \ \ \ \ \ \ \ \ \ space,}
+\DoxyCodeLine{01140\ \ \ \ \ \ \ \ \ \ \ \ \ \ sorted\_graph.num\_roots\_for\_space\ (space),}
+\DoxyCodeLine{01141\ \ \ \ \ \ \ \ \ \ \ \ \ \ roots\_to\_isolate.get\_population\ (),}
+\DoxyCodeLine{01142\ \ \ \ \ \ \ \ \ \ \ \ \ \ sorted\_graph.next\_space\ ());}
+\DoxyCodeLine{01143\ }
+\DoxyCodeLine{01144\ \ \ sorted\_graph.isolate\_subgraph\ (roots\_to\_isolate);}
+\DoxyCodeLine{01145\ \ \ sorted\_graph.move\_to\_new\_space\ (roots\_to\_isolate);}
+\DoxyCodeLine{01146\ }
+\DoxyCodeLine{01147\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01148\ \}}
+\DoxyCodeLine{01149\ }
+\DoxyCodeLine{01150\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \_process\_overflows\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<graph\_t::overflow\_record\_t>}}\&\ overflows,}
+\DoxyCodeLine{01151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\&\ priority\_bumped\_parents,}
+\DoxyCodeLine{01152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structgraph__t}{graph\_t}}\&\ sorted\_graph)}
+\DoxyCodeLine{01153\ \{}
+\DoxyCodeLine{01154\ \ \ \textcolor{keywordtype}{bool}\ resolution\_attempted\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01155\ }
+\DoxyCodeLine{01156\ \ \ \textcolor{comment}{//\ Try\ resolving\ the\ furthest\ overflows\ first.}}
+\DoxyCodeLine{01157\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ overflows.length\ -\/\ 1;\ i\ >=\ 0;\ i-\/-\/)}
+\DoxyCodeLine{01158\ \ \ \{}
+\DoxyCodeLine{01159\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structgraph__t_1_1overflow__record__t}{graph\_t::overflow\_record\_t}}\&\ r\ =\ overflows[i];}
+\DoxyCodeLine{01160\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ child\ =\ sorted\_graph.vertices\_[r.child];}
+\DoxyCodeLine{01161\ \ \ \ \ \textcolor{keywordflow}{if}\ (child.is\_shared\ ())}
+\DoxyCodeLine{01162\ \ \ \ \ \{}
+\DoxyCodeLine{01163\ \ \ \ \ \ \ \textcolor{comment}{//\ The\ child\ object\ is\ shared,\ we\ may\ be\ able\ to\ eliminate\ the\ overflow}}
+\DoxyCodeLine{01164\ \ \ \ \ \ \ \textcolor{comment}{//\ by\ duplicating\ it.}}
+\DoxyCodeLine{01165\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!sorted\_graph.duplicate\ (r.parent,\ r.child))\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{01166\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01167\ \ \ \ \ \}}
+\DoxyCodeLine{01168\ }
+\DoxyCodeLine{01169\ \ \ \ \ \textcolor{keywordflow}{if}\ (child.is\_leaf\ ()\ \&\&\ !priority\_bumped\_parents.has\ (r.parent))}
+\DoxyCodeLine{01170\ \ \ \ \ \{}
+\DoxyCodeLine{01171\ \ \ \ \ \ \ \textcolor{comment}{//\ This\ object\ is\ too\ far\ from\ it's\ parent,\ attempt\ to\ move\ it\ closer.}}
+\DoxyCodeLine{01172\ \ \ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{01173\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO(garretrieger):\ initially\ limiting\ this\ to\ leaf's\ since\ they\ can\ be}}
+\DoxyCodeLine{01174\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ moved\ closer\ with\ fewer\ consequences.\ However,\ this\ can}}
+\DoxyCodeLine{01175\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ likely\ can\ be\ used\ for\ non-\/leafs\ as\ well.}}
+\DoxyCodeLine{01176\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO(garretrieger):\ also\ try\ lowering\ priority\ of\ the\ parent.\ Make\ it}}
+\DoxyCodeLine{01177\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ get\ placed\ further\ up\ in\ the\ ordering,\ closer\ to\ it's\ children.}}
+\DoxyCodeLine{01178\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ this\ is\ probably\ preferable\ if\ the\ total\ size\ of\ the\ parent\ object}}
+\DoxyCodeLine{01179\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ <\ then\ the\ total\ size\ of\ the\ children\ (and\ the\ parent\ can\ be\ moved).}}
+\DoxyCodeLine{01180\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Since\ in\ that\ case\ moving\ the\ parent\ will\ cause\ a\ smaller\ increase\ in}}
+\DoxyCodeLine{01181\ \ \ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ the\ length\ of\ other\ offsets.}}
+\DoxyCodeLine{01182\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (sorted\_graph.raise\_childrens\_priority\ (r.parent))\ \{}
+\DoxyCodeLine{01183\ \ \ \ \ \ \ \ \ priority\_bumped\_parents.add\ (r.parent);}
+\DoxyCodeLine{01184\ \ \ \ \ \ \ \ \ resolution\_attempted\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01185\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01186\ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{01187\ \ \ \ \ \}}
+\DoxyCodeLine{01188\ }
+\DoxyCodeLine{01189\ \ \ \ \ \textcolor{comment}{//\ TODO(garretrieger):\ add\ additional\ offset\ resolution\ strategies}}
+\DoxyCodeLine{01190\ \ \ \ \ \textcolor{comment}{//\ -\/\ Promotion\ to\ extension\ lookups.}}
+\DoxyCodeLine{01191\ \ \ \ \ \textcolor{comment}{//\ -\/\ Table\ splitting.}}
+\DoxyCodeLine{01192\ \ \ \}}
+\DoxyCodeLine{01193\ }
+\DoxyCodeLine{01194\ \ \ \textcolor{keywordflow}{return}\ resolution\_attempted;}
+\DoxyCodeLine{01195\ \}}
+\DoxyCodeLine{01196\ }
+\DoxyCodeLine{01197\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01198\ \textcolor{comment}{\ *\ Attempts\ to\ modify\ the\ topological\ sorting\ of\ the\ provided\ object\ graph\ to}}
+\DoxyCodeLine{01199\ \textcolor{comment}{\ *\ eliminate\ offset\ overflows\ in\ the\ links\ between\ objects\ of\ the\ graph.\ If\ a}}
+\DoxyCodeLine{01200\ \textcolor{comment}{\ *\ non-\/overflowing\ ordering\ is\ found\ the\ updated\ graph\ is\ serialized\ it\ into\ the}}
+\DoxyCodeLine{01201\ \textcolor{comment}{\ *\ provided\ serialization\ context.}}
+\DoxyCodeLine{01202\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{01203\ \textcolor{comment}{\ *\ If\ necessary\ the\ structure\ of\ the\ graph\ may\ be\ modified\ in\ ways\ that\ do\ not}}
+\DoxyCodeLine{01204\ \textcolor{comment}{\ *\ affect\ the\ functionality\ of\ the\ graph.\ For\ example\ shared\ objects\ may\ be}}
+\DoxyCodeLine{01205\ \textcolor{comment}{\ *\ duplicated.}}
+\DoxyCodeLine{01206\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{01207\ \textcolor{comment}{\ *\ For\ a\ detailed\ writeup\ describing\ how\ the\ algorithm\ operates\ see:}}
+\DoxyCodeLine{01208\ \textcolor{comment}{\ *\ docs/repacker.md}}
+\DoxyCodeLine{01209\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01210\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}*}
+\DoxyCodeLine{01211\ hb\_resolve\_overflows\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<hb\_serialize\_context\_t::object\_t\ *>}}\&\ packed,}
+\DoxyCodeLine{01212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_tag\_t\ table\_tag,}
+\DoxyCodeLine{01213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ max\_rounds\ =\ 20)\ \{}
+\DoxyCodeLine{01214\ \ \ \textcolor{comment}{//\ Kahn\ sort\ is\ \string~twice\ as\ fast\ as\ shortest\ distance\ sort\ and\ works\ for\ many\ fonts}}
+\DoxyCodeLine{01215\ \ \ \textcolor{comment}{//\ so\ try\ it\ first\ to\ save\ time.}}
+\DoxyCodeLine{01216\ \ \ \mbox{\hyperlink{structgraph__t}{graph\_t}}\ sorted\_graph\ (packed);}
+\DoxyCodeLine{01217\ \ \ sorted\_graph.sort\_kahn\ ();}
+\DoxyCodeLine{01218\ \ \ \textcolor{keywordflow}{if}\ (!sorted\_graph.will\_overflow\ ())}
+\DoxyCodeLine{01219\ \ \ \{}
+\DoxyCodeLine{01220\ \ \ \ \ \textcolor{keywordflow}{return}\ sorted\_graph.serialize\ ();}
+\DoxyCodeLine{01221\ \ \ \}}
+\DoxyCodeLine{01222\ }
+\DoxyCodeLine{01223\ \ \ sorted\_graph.sort\_shortest\_distance\ ();}
+\DoxyCodeLine{01224\ }
+\DoxyCodeLine{01225\ \ \ \textcolor{keywordflow}{if}\ ((table\_tag\ ==\ HB\_OT\_TAG\_GPOS}
+\DoxyCodeLine{01226\ \ \ \ \ \ \ \ ||\ \ table\_tag\ ==\ HB\_OT\_TAG\_GSUB)}
+\DoxyCodeLine{01227\ \ \ \ \ \ \ \&\&\ sorted\_graph.will\_overflow\ ())}
+\DoxyCodeLine{01228\ \ \ \{}
+\DoxyCodeLine{01229\ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Assigning\ spaces\ to\ 32\ bit\ subgraphs."{}});}
+\DoxyCodeLine{01230\ \ \ \ \ \textcolor{keywordflow}{if}\ (sorted\_graph.assign\_32bit\_spaces\ ())}
+\DoxyCodeLine{01231\ \ \ \ \ \ \ sorted\_graph.sort\_shortest\_distance\ ();}
+\DoxyCodeLine{01232\ \ \ \}}
+\DoxyCodeLine{01233\ }
+\DoxyCodeLine{01234\ \ \ \textcolor{keywordtype}{unsigned}\ round\ =\ 0;}
+\DoxyCodeLine{01235\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<graph\_t::overflow\_record\_t>}}\ overflows;}
+\DoxyCodeLine{01236\ \ \ \textcolor{comment}{//\ TODO(garretrieger):\ select\ a\ good\ limit\ for\ max\ rounds.}}
+\DoxyCodeLine{01237\ \ \ \textcolor{keywordflow}{while}\ (!sorted\_graph.in\_error\ ()}
+\DoxyCodeLine{01238\ \ \ \ \ \ \ \ \ \ \&\&\ sorted\_graph.will\_overflow\ (\&overflows)}
+\DoxyCodeLine{01239\ \ \ \ \ \ \ \ \ \ \&\&\ round++\ <\ max\_rounds)\ \{}
+\DoxyCodeLine{01240\ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}===\ Overflow\ resolution\ round\ \%d\ ==="{}},\ round);}
+\DoxyCodeLine{01241\ \ \ \ \ sorted\_graph.print\_overflows\ (overflows);}
+\DoxyCodeLine{01242\ }
+\DoxyCodeLine{01243\ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ priority\_bumped\_parents;}
+\DoxyCodeLine{01244\ }
+\DoxyCodeLine{01245\ \ \ \ \ \textcolor{keywordflow}{if}\ (!\_try\_isolating\_subgraphs\ (overflows,\ sorted\_graph))}
+\DoxyCodeLine{01246\ \ \ \ \ \{}
+\DoxyCodeLine{01247\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!\_process\_overflows\ (overflows,\ priority\_bumped\_parents,\ sorted\_graph))}
+\DoxyCodeLine{01248\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01249\ \ \ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}No\ resolution\ available\ :("{}});}
+\DoxyCodeLine{01250\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01251\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01252\ \ \ \ \ \}}
+\DoxyCodeLine{01253\ }
+\DoxyCodeLine{01254\ \ \ \ \ sorted\_graph.sort\_shortest\_distance\ ();}
+\DoxyCodeLine{01255\ \ \ \}}
+\DoxyCodeLine{01256\ }
+\DoxyCodeLine{01257\ \ \ \textcolor{keywordflow}{if}\ (sorted\_graph.in\_error\ ())}
+\DoxyCodeLine{01258\ \ \ \{}
+\DoxyCodeLine{01259\ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Sorted\ graph\ in\ error\ state."{}});}
+\DoxyCodeLine{01260\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{01261\ \ \ \}}
+\DoxyCodeLine{01262\ }
+\DoxyCodeLine{01263\ \ \ \textcolor{keywordflow}{if}\ (sorted\_graph.will\_overflow\ ())}
+\DoxyCodeLine{01264\ \ \ \{}
+\DoxyCodeLine{01265\ \ \ \ \ DEBUG\_MSG\ (SUBSET\_REPACK,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}Offset\ overflow\ resolution\ failed."{}});}
+\DoxyCodeLine{01266\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{01267\ \ \ \}}
+\DoxyCodeLine{01268\ }
+\DoxyCodeLine{01269\ \ \ \textcolor{keywordflow}{return}\ sorted\_graph.serialize\ ();}
+\DoxyCodeLine{01270\ \}}
+\DoxyCodeLine{01271\ }
+\DoxyCodeLine{01272\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_REPACKER\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

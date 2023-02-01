@@ -1,0 +1,358 @@
+\hypertarget{ftccache_8h_source}{}\doxysection{ftccache.\+h}
+\label{ftccache_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/cache/ftccache.h@{AseSprite/aseprite/third\_party/freetype2/src/cache/ftccache.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftccache.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ FreeType\ internal\ cache\ interface\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2000-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ FTCCACHE\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ FTCCACHE\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <freetype/internal/compiler-\/macros.h>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}ftcmru.h"{}}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ FTC\_FACE\_ID\_HASH(\ i\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ (\ (\ (FT\_Offset)(i)\ >>\ 3\ )\ \string^\ (\ (FT\_Offset)(i)\ <<\ 7\ )\ )}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \textcolor{comment}{/*\ handle\ to\ cache\ object\ */}}
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_CacheRec\_}}*\ \ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \textcolor{comment}{/*\ handle\ to\ cache\ class\ */}}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_t_c___cache_class_rec__}{FTC\_CacheClassRec\_}}*\ \ \mbox{\hyperlink{struct_f_t_c___cache_class_rec__}{FTC\_CacheClass}};}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CACHE\ NODE\ DEFINITIONS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ *\ Each\ cache\ controls\ one\ or\ more\ cache\ nodes.\ \ Each\ node\ is\ part\ of}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ *\ the\ global\_lru\ list\ of\ the\ manager.\ \ Its\ `data'\ field\ however\ is\ used}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ *\ as\ a\ reference\ count\ for\ now.}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ *\ A\ node\ can\ be\ anything,\ depending\ on\ the\ type\ of\ information\ held\ by}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ *\ the\ cache.\ \ It\ can\ be\ an\ individual\ glyph\ image,\ a\ set\ of\ bitmaps}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ *\ glyphs\ for\ a\ given\ size,\ some\ metrics,\ etc.}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \textcolor{comment}{/*\ structure\ size\ should\ be\ 20\ bytes\ on\ 32-\/bits\ machines\ */}}
+\DoxyCodeLine{00058\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_NodeRec\_}}}
+\DoxyCodeLine{00059\ \ \ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___mru_node_rec__}{FTC\_MruNodeRec}}\ \ mru;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ circular\ mru\ list\ pointer\ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00061\ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}\ \ \ \ \ \ \ \ link;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ used\ for\ hashing\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00062\ \ \ \ \ FT\_Offset\ \ \ \ \ \ \ hash;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ used\ for\ hashing\ too\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00063\ \ \ \ \ FT\_UShort\ \ \ \ \ \ \ cache\_index;\ \ \textcolor{comment}{/*\ index\ of\ cache\ the\ node\ belongs\ to\ \ */}}
+\DoxyCodeLine{00064\ \ \ \ \ FT\_Short\ \ \ \ \ \ \ \ ref\_count;\ \ \ \ \textcolor{comment}{/*\ reference\ count\ for\ this\ node\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \}\ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_NodeRec}};}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#define\ FTC\_NODE(\ x\ )\ \ \ \ (\ (FTC\_Node)(x)\ )}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ FTC\_NODE\_P(\ x\ )\ \ (\ (FTC\_Node*)(x)\ )}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#define\ FTC\_NODE\_NEXT(\ x\ )\ \ FTC\_NODE(\ (x)-\/>mru.next\ )}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#define\ FTC\_NODE\_PREV(\ x\ )\ \ FTC\_NODE(\ (x)-\/>mru.prev\ )}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#ifdef\ FTC\_INLINE}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#define\ FTC\_NODE\_TOP\_FOR\_HASH(\ cache,\ hash\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ (\ (\ cache\ )-\/>buckets\ +\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ (\ (\ (\ (\ hash\ )\ \&\ \ \ (\ cache\ )-\/>mask\ )\ <\ (\ cache\ )-\/>p\ )\ \(\backslash\)}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ ?\ (\ (\ hash\ )\ \&\ (\ (\ cache\ )-\/>mask\ *\ 2\ +\ 1\ )\ )\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ (\ (\ hash\ )\ \&\ \ \ (\ cache\ )-\/>mask\ )\ )\ )}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00082\ \ \ FT\_LOCAL(\ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}*\ )}
+\DoxyCodeLine{00083\ \ \ ftc\_get\_top\_node\_for\_hash(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ cache,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Offset\ \ hash\ );}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ FTC\_NODE\_TOP\_FOR\_HASH(\ cache,\ hash\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ftc\_get\_top\_node\_for\_hash(\ (\ cache\ ),\ (\ hash\ )\ )}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CACHE\ DEFINITIONS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \textcolor{comment}{/*\ initialize\ a\ new\ cache\ node\ */}}
+\DoxyCodeLine{00099\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00100\ \ \ (*FTC\_Node\_NewFunc)(\ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}\ \ \ \ *pnode,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ query,}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ \ \ cache\ );}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \textcolor{keyword}{typedef}\ FT\_Offset}
+\DoxyCodeLine{00105\ \ \ (*FTC\_Node\_WeightFunc)(\ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}\ \ \ node,}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ cache\ );}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \textcolor{comment}{/*\ compare\ a\ node\ to\ a\ given\ key\ pair\ */}}
+\DoxyCodeLine{00109\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00110\ \ \ (*FTC\_Node\_CompareFunc)(\ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}\ \ \ \ node,}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ key,}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ \ cache,}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool*\ \ \ \ list\_changed\ );}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00117\ \ \ (*FTC\_Node\_FreeFunc)(\ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}\ \ \ node,}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ cache\ );}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00121\ \ \ (*FTC\_Cache\_InitFunc)(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ cache\ );}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00124\ \ \ (*FTC\_Cache\_DoneFunc)(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ cache\ );}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t_c___cache_class_rec__}{FTC\_CacheClassRec\_}}}
+\DoxyCodeLine{00128\ \ \ \{}
+\DoxyCodeLine{00129\ \ \ \ \ FTC\_Node\_NewFunc\ \ \ \ \ \ node\_new;}
+\DoxyCodeLine{00130\ \ \ \ \ FTC\_Node\_WeightFunc\ \ \ node\_weight;}
+\DoxyCodeLine{00131\ \ \ \ \ FTC\_Node\_CompareFunc\ \ node\_compare;}
+\DoxyCodeLine{00132\ \ \ \ \ FTC\_Node\_CompareFunc\ \ node\_remove\_faceid;}
+\DoxyCodeLine{00133\ \ \ \ \ FTC\_Node\_FreeFunc\ \ \ \ \ node\_free;}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ FT\_Offset\ \ \ \ \ \ \ \ \ \ \ \ \ cache\_size;}
+\DoxyCodeLine{00136\ \ \ \ \ FTC\_Cache\_InitFunc\ \ \ \ cache\_init;}
+\DoxyCodeLine{00137\ \ \ \ \ FTC\_Cache\_DoneFunc\ \ \ \ cache\_done;}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \}\ \mbox{\hyperlink{struct_f_t_c___cache_class_rec__}{FTC\_CacheClassRec}};}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \textcolor{comment}{/*\ each\ cache\ really\ implements\ a\ dynamic\ hash\ table\ to\ manage\ its\ nodes\ */}}
+\DoxyCodeLine{00143\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_CacheRec\_}}}
+\DoxyCodeLine{00144\ \ \ \{}
+\DoxyCodeLine{00145\ \ \ \ \ FT\_UFast\ \ \ \ \ \ \ \ \ \ \ p;}
+\DoxyCodeLine{00146\ \ \ \ \ FT\_UFast\ \ \ \ \ \ \ \ \ \ \ mask;}
+\DoxyCodeLine{00147\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ slack;}
+\DoxyCodeLine{00148\ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}*\ \ \ \ \ \ \ \ \ \ buckets;}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___cache_class_rec__}{FTC\_CacheClassRec}}\ \ clazz;\ \ \ \ \ \ \ \textcolor{comment}{/*\ local\ copy,\ for\ speed\ \ */}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___manager_rec__}{FTC\_Manager}}\ \ \ \ \ \ \ \ manager;}
+\DoxyCodeLine{00153\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00154\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ index;\ \ \ \ \ \ \ \textcolor{comment}{/*\ in\ manager's\ table\ \ \ \ \ */}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___cache_class_rec__}{FTC\_CacheClass}}\ \ \ \ \ org\_class;\ \ \ \textcolor{comment}{/*\ original\ class\ pointer\ */}}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \}\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_CacheRec}};}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#define\ FTC\_CACHE(\ x\ )\ \ \ \ (\ (FTC\_Cache)(x)\ )}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#define\ FTC\_CACHE\_P(\ x\ )\ \ (\ (FTC\_Cache*)(x)\ )}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \textcolor{comment}{/*\ default\ cache\ initialize\ */}}
+\DoxyCodeLine{00166\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00167\ \ \ FTC\_Cache\_Init(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ cache\ );}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \textcolor{comment}{/*\ default\ cache\ finalizer\ */}}
+\DoxyCodeLine{00170\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00171\ \ \ FTC\_Cache\_Done(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ cache\ );}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \ \ \textcolor{comment}{/*\ Call\ this\ function\ to\ look\ up\ the\ cache.\ \ If\ no\ corresponding}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ \ \ *\ node\ is\ found,\ a\ new\ one\ is\ automatically\ created.\ \ This\ function}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ *\ is\ capable\ of\ flushing\ the\ cache\ adequately\ to\ make\ room\ for\ the}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ *\ new\ cache\ object.}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\#ifndef\ FTC\_INLINE}}
+\DoxyCodeLine{00180\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00181\ \ \ FTC\_Cache\_Lookup(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ \ cache,}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Offset\ \ \ hash,}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ query,}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}\ \ \ *anode\ );}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00188\ \ \ FTC\_Cache\_NewNode(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ \ cache,}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Offset\ \ \ hash,}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ query,}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___node_rec__}{FTC\_Node}}\ \ \ *anode\ );}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \textcolor{comment}{/*\ Remove\ all\ nodes\ that\ relate\ to\ a\ given\ face\_id.\ \ This\ is\ useful}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ \ \ *\ when\ un-\/installing\ fonts.\ \ Note\ that\ if\ a\ cache\ node\ relates\ to}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ \ \ *\ the\ face\_id\ but\ is\ locked\ (i.e.,\ has\ `ref\_count\ >\ 0'),\ the\ node}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ \ \ *\ will\ \_not\_\ be\ destroyed,\ but\ its\ internal\ face\_id\ reference\ will}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ \ \ *\ be\ modified.}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00199\ \textcolor{comment}{\ \ \ *\ The\ final\ result\ will\ be\ that\ the\ node\ will\ never\ come\ back}}
+\DoxyCodeLine{00200\ \textcolor{comment}{\ \ \ *\ in\ further\ lookup\ requests,\ and\ will\ be\ flushed\ on\ demand\ from}}
+\DoxyCodeLine{00201\ \textcolor{comment}{\ \ \ *\ the\ cache\ normally\ when\ its\ reference\ count\ reaches\ 0.}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00203\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00204\ \ \ FTC\_Cache\_RemoveFaceID(\ \mbox{\hyperlink{struct_f_t_c___cache_rec__}{FTC\_Cache}}\ \ \ cache,}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_FaceID\ \ face\_id\ );}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#ifdef\ FTC\_INLINE}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#define\ FTC\_CACHE\_LOOKUP\_CMP(\ cache,\ nodecmp,\ hash,\ query,\ node,\ error\ )\ \(\backslash\)}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\ \ FT\_BEGIN\_STMNT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\ \ \ \ FTC\_Node\ \ \ \ \ \ \ \ \ \ \ \ \ *\_bucket,\ *\_pnode,\ \_node;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\ \ \ \ FTC\_Cache\ \ \ \ \ \ \ \ \ \ \ \ \ \_cache\ \ \ =\ FTC\_CACHE(\ cache\ );\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\ \ \ \ FT\_Offset\ \ \ \ \ \ \ \ \ \ \ \ \ \_hash\ \ \ \ =\ (FT\_Offset)(hash);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\ \ \ \ FTC\_Node\_CompareFunc\ \ \_nodcomp\ =\ (FTC\_Node\_CompareFunc)(nodecmp);\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_list\_changed\ =\ FALSE;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\ \ \ \ error\ =\ FT\_Err\_Ok;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00220\ \textcolor{preprocessor}{\ \ \ \ node\ \ =\ NULL;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ Go\ to\ the\ `top'\ node\ of\ the\ list\ sharing\ same\ masked\ hash\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\ \ \ \ \_bucket\ =\ \_pnode\ =\ FTC\_NODE\_TOP\_FOR\_HASH(\ \_cache,\ \_hash\ );\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ Look\ up\ a\ node\ with\ identical\ hash\ and\ queried\ properties.\ \ \ \ */}\textcolor{preprocessor}{\ \ \(\backslash\)}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ NOTE:\ \_nodcomp()\ may\ change\ the\ linked\ list\ to\ reduce\ memory.\ */}\textcolor{preprocessor}{\ \ \(\backslash\)}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\ \ \ \ for\ (;;)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\ \ \ \ \ \ \_node\ =\ *\_pnode;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (\ !\_node\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ goto\ NewNode\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (\ \_node-\/>hash\ ==\ \_hash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \_nodcomp(\ \_node,\ query,\ \_cache,\ \&\_list\_changed\ )\ )\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ break;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\ \ \ \ \ \ \_pnode\ =\ \&\_node-\/>link;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\ \ \ \ if\ (\ \_list\_changed\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\ \ \ \ \ \ }\textcolor{comment}{/*\ Update\ \_bucket\ by\ possibly\ modified\ linked\ list\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\ \ \ \ \ \ \_bucket\ =\ \_pnode\ =\ FTC\_NODE\_TOP\_FOR\_HASH(\ \_cache,\ \_hash\ );\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\ \ \ \ \ \ }\textcolor{comment}{/*\ Update\ \_pnode\ by\ possibly\ modified\ linked\ list\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\ \ \ \ \ \ while\ (\ *\_pnode\ !=\ \_node\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (\ !*\_pnode\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_ERROR((\ "{}FTC\_CACHE\_LOOKUP\_CMP:\ oops!!!\ node\ missing\(\backslash\)n"{}}\ ));\ \ \(\backslash\)}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ goto\ NewNode\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ else\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \_pnode\ =\ \&(*\_pnode)-\/>link;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00256\ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{comment}{/*\ Reorder\ the\ list\ to\ move\ the\ found\ node\ to\ the\ `top'\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\ \ \ \ if\ (\ \_node\ !=\ *\_bucket\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\ \ \ \ \ \ *\_pnode\ \ \ \ \ =\ \_node-\/>link;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00262\ \textcolor{preprocessor}{\ \ \ \ \ \ \_node-\/>link\ =\ *\_bucket;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\ \ \ \ \ \ *\_bucket\ \ \ \ =\ \_node;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00264\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00265\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ Update\ MRU\ list\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\ \ \ \ \ \ FTC\_Manager\ \ \_manager\ =\ \_cache-\/>manager;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\ \ \ \ \ \ void*\ \ \ \ \ \ \ \ \_nl\ \ \ \ \ \ =\ \&\_manager-\/>nodes\_list;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (\ \_node\ !=\ \_manager-\/>nodes\_list\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ FTC\_MruNode\_Up(\ (FTC\_MruNode*)\_nl,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FTC\_MruNode)\_node\ );\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00276\ \textcolor{preprocessor}{\ \ \ \ goto\ Ok\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00277\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00278\ \textcolor{preprocessor}{\ \ NewNode\_:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00279\ \textcolor{preprocessor}{\ \ \ \ error\ =\ FTC\_Cache\_NewNode(\ \_cache,\ \_hash,\ query,\ \&\_node\ );\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00280\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00281\ \textcolor{preprocessor}{\ \ Ok\_:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00282\ \textcolor{preprocessor}{\ \ \ \ node\ =\ \_node;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\ \ FT\_END\_STMNT}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{/*\ !FTC\_INLINE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \textcolor{preprocessor}{\#define\ FTC\_CACHE\_LOOKUP\_CMP(\ cache,\ nodecmp,\ hash,\ query,\ node,\ error\ )\ \(\backslash\)}}
+\DoxyCodeLine{00288\ \textcolor{preprocessor}{\ \ FT\_BEGIN\_STMNT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\ \ \ \ error\ =\ FTC\_Cache\_Lookup(\ FTC\_CACHE(\ cache\ ),\ hash,\ query,\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00290\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FTC\_Node*)\&(node)\ );\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00291\ \textcolor{preprocessor}{\ \ FT\_END\_STMNT}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !FTC\_INLINE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00297\ \textcolor{comment}{\ \ \ *\ This\ macro,\ together\ with\ FTC\_CACHE\_TRYLOOP\_END,\ defines\ a\ retry}}
+\DoxyCodeLine{00298\ \textcolor{comment}{\ \ \ *\ loop\ to\ flush\ the\ cache\ repeatedly\ in\ case\ of\ memory\ overflows.}}
+\DoxyCodeLine{00299\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00300\ \textcolor{comment}{\ \ \ *\ It\ is\ used\ when\ creating\ a\ new\ cache\ node,\ or\ within\ a\ lookup}}
+\DoxyCodeLine{00301\ \textcolor{comment}{\ \ \ *\ that\ needs\ to\ allocate\ data\ (e.g.\ the\ sbit\ cache\ lookup).}}
+\DoxyCodeLine{00302\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00303\ \textcolor{comment}{\ \ \ *\ Example:}}
+\DoxyCodeLine{00304\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00305\ \textcolor{comment}{\ \ \ *\ \{}}
+\DoxyCodeLine{00306\ \textcolor{comment}{\ \ \ *\ \ \ FTC\_CACHE\_TRYLOOP(\ cache\ )}}
+\DoxyCodeLine{00307\ \textcolor{comment}{\ \ \ *\ \ \ \ \ error\ =\ load\_data(\ ...\ );}}
+\DoxyCodeLine{00308\ \textcolor{comment}{\ \ \ *\ \ \ FTC\_CACHE\_TRYLOOP\_END()}}
+\DoxyCodeLine{00309\ \textcolor{comment}{\ \ \ *\ \}}}
+\DoxyCodeLine{00310\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00311\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00312\ \textcolor{preprocessor}{\#define\ FTC\_CACHE\_TRYLOOP(\ cache\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00313\ \textcolor{preprocessor}{\ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\ \ \ \ FTC\_Manager\ \ \_try\_manager\ =\ FTC\_CACHE(\ cache\ )-\/>manager;\ \(\backslash\)}}
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\ \ \ \ FT\_UInt\ \ \ \ \ \ \_try\_count\ \ \ =\ 4;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00316\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\ \ \ \ for\ (;;)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\ \ \ \ \ \ FT\_UInt\ \ \_try\_done;}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\#define\ FTC\_CACHE\_TRYLOOP\_END(\ list\_changed\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00324\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (\ !error\ ||\ FT\_ERR\_NEQ(\ error,\ Out\_Of\_Memory\ )\ )\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ break;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00327\ \textcolor{preprocessor}{\ \ \ \ \ \ \_try\_done\ =\ FTC\_Manager\_FlushN(\ \_try\_manager,\ \_try\_count\ );\ \(\backslash\)}}
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (\ \_try\_done\ >\ 0\ \&\&\ list\_changed\ !=\ NULL\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ *(FT\_Bool*)(\ list\_changed\ )\ =\ TRUE;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00331\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (\ \_try\_done\ ==\ 0\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ break;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (\ \_try\_done\ ==\ \_try\_count\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00336\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_try\_count\ *=\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (\ \_try\_count\ <\ \_try\_done\ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_try\_count\ >\ \_try\_manager-\/>num\_nodes\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \_try\_count\ =\ \_try\_manager-\/>num\_nodes;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00341\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00342\ \textcolor{preprocessor}{\ \ \}}}
+\DoxyCodeLine{00343\ }
+\DoxyCodeLine{00344\ \ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ FT\_END\_HEADER}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTCCACHE\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ }
+\DoxyCodeLine{00352\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

@@ -1,0 +1,503 @@
+\hypertarget{timeline_8h_source}{}\doxysection{timeline.\+h}
+\label{timeline_8h_source}\index{AseSprite/aseprite/src/app/ui/timeline/timeline.h@{AseSprite/aseprite/src/app/ui/timeline/timeline.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_UI\_TIMELINE\_TIMELINE\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_UI\_TIMELINE\_TIMELINE\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/doc\_observer.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/doc\_range.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/docs\_observer.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/loop\_tag.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}app/pref/preferences.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}app/ui/editor/editor\_observer.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}app/ui/input\_chain\_element.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}app/ui/timeline/ani\_controls.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}app/ui/timeline/timeline\_observer.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}base/debug.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}doc/frame.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}doc/layer.h"{}}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ "{}doc/object\_version.h"{}}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}doc/selected\_frames.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}doc/selected\_layers.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}doc/sprite.h"{}}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ "{}doc/tag.h"{}}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ "{}gfx/color.h"{}}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}obs/connection.h"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}obs/observable.h"{}}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}ui/scroll\_bar.h"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}ui/timer.h"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}ui/widget.h"{}}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{class\ }Cel;}
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{class\ }Layer;}
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{class\ }LayerImage;}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00044\ \}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{namespace\ }ui\ \{}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{class\ }Graphics;}
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{class\ }TooltipManager;}
+\DoxyCodeLine{00049\ \}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \textcolor{keyword}{namespace\ }skin\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keyword}{class\ }SkinTheme;}
+\DoxyCodeLine{00055\ \ \ \}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{using\ namespace\ }doc;}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \textcolor{keyword}{class\ }CommandExecutionEvent;}
+\DoxyCodeLine{00060\ \ \ \textcolor{keyword}{class\ }ConfigureTimelinePopup;}
+\DoxyCodeLine{00061\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00062\ \ \ \textcolor{keyword}{class\ }Doc;}
+\DoxyCodeLine{00063\ \ \ \textcolor{keyword}{class\ }Editor;}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_timeline}{Timeline}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classui_1_1_widget}{ui::Widget}},}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classui_1_1_scrollable_view_delegate}{ui::ScrollableViewDelegate}},}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classobs_1_1observable}{obs::observable}}<TimelineObserver>,}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_context_observer}{ContextObserver}},}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_docs_observer}{DocsObserver}},}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_doc_observer}{DocObserver}},}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_editor_observer}{EditorObserver}},}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_input_chain_element}{InputChainElement}},}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_tag_provider}{TagProvider}}\ \{}
+\DoxyCodeLine{00074\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{classapp_1_1_doc_range}{DocRange}}\ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}};}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keyword}{enum}\ \mbox{\hyperlink{struct_state}{State}}\ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ STATE\_STANDBY,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ STATE\_SCROLLING,}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ STATE\_SELECTING\_LAYERS,}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ STATE\_SELECTING\_FRAMES,}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ STATE\_SELECTING\_CELS,}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ STATE\_MOVING\_SEPARATOR,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ STATE\_MOVING\_RANGE,}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ STATE\_MOVING\_ONIONSKIN\_RANGE\_LEFT,}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ STATE\_MOVING\_ONIONSKIN\_RANGE\_RIGHT,}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ STATE\_MOVING\_TAG,}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ STATE\_RESIZING\_TAG\_LEFT,}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ STATE\_RESIZING\_TAG\_RIGHT,}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \textcolor{comment}{//\ Changing\ layers\ flags\ states}}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ STATE\_SHOWING\_LAYERS,}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ STATE\_HIDING\_LAYERS,}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ STATE\_LOCKING\_LAYERS,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ STATE\_UNLOCKING\_LAYERS,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ STATE\_ENABLING\_CONTINUOUS\_LAYERS,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ STATE\_DISABLING\_CONTINUOUS\_LAYERS,}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ STATE\_EXPANDING\_LAYERS,}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ STATE\_COLLAPSING\_LAYERS,}
+\DoxyCodeLine{00099\ \ \ \ \ \};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keyword}{enum}\ DropOp\ \{\ kMove,\ kCopy\ \};}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_timeline}{Timeline}}(\mbox{\hyperlink{classui_1_1_tooltip_manager}{ui::TooltipManager}}*\ tooltipManager);}
+\DoxyCodeLine{00104\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_timeline}{\string~Timeline}}();}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{void}\ updateUsingEditor(\mbox{\hyperlink{classapp_1_1_editor}{Editor}}*\ editor);}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ sprite()\ \{\ \textcolor{keywordflow}{return}\ m\_sprite;\ \}}
+\DoxyCodeLine{00109\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ getLayer()\ \{\ \textcolor{keywordflow}{return}\ m\_layer;\ \}}
+\DoxyCodeLine{00110\ \ \ \ \ frame\_t\ getFrame()\ \{\ \textcolor{keywordflow}{return}\ m\_frame;\ \}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \ \ \mbox{\hyperlink{struct_state}{State}}\ getState()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_state;\ \}}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{bool}\ isMovingCel()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\ range()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_range;\ \}}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_selected_layers}{SelectedLayers}}\&\ selectedLayers()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_range.selectedLayers();\ \}}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_selected_frames}{SelectedFrames}}\&\ selectedFrames()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_range.selectedFrames();\ \}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordtype}{void}\ prepareToMoveRange();}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keywordtype}{void}\ moveRange(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\&\ range);}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordtype}{void}\ setRange(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\&\ range);}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordtype}{void}\ activateClipboardRange();}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{comment}{//\ Drag-\/and-\/drop\ operations.\ These\ actions\ are\ used\ by\ commands}}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{comment}{//\ called\ from\ popup\ menus.}}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keywordtype}{void}\ dropRange(DropOp\ op);}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{comment}{//\ TagProvider\ impl}}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ active\ frame\ tag\ depending\ on\ the\ timeline\ status}}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{comment}{//\ E.g.\ if\ other\ frame\ tags\ are\ collapsed,\ the\ focused\ band\ has}}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{comment}{//\ priority\ and\ tags\ in\ other\ bands\ are\ ignored.}}
+\DoxyCodeLine{00133\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_tag}{Tag}}*\ getTagByFrame(\textcolor{keyword}{const}\ frame\_t\ frame,}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ getLoopTagIfNone)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{comment}{//\ ScrollableViewDelegate\ impl}}
+\DoxyCodeLine{00137\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\ visibleSize()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00138\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ viewScroll()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordtype}{void}\ setViewScroll(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ pt)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keywordtype}{void}\ lockRange();}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{void}\ unlockRange();}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keywordtype}{void}\ clearAndInvalidateRange();}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keywordtype}{bool}\ onProcessMessage(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordtype}{void}\ onInitTheme(\mbox{\hyperlink{classui_1_1_init_theme_event}{ui::InitThemeEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordtype}{void}\ onInvalidateRegion(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ region)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{keywordtype}{void}\ onSizeHint(\mbox{\hyperlink{classui_1_1_size_hint_event}{ui::SizeHintEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keywordtype}{void}\ onResize(\mbox{\hyperlink{classui_1_1_resize_event}{ui::ResizeEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keywordtype}{void}\ onPaint(\mbox{\hyperlink{classui_1_1_paint_event}{ui::PaintEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{comment}{//\ DocObserver\ impl.}}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keywordtype}{void}\ onGeneralUpdate(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordtype}{void}\ onAddLayer(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordtype}{void}\ onBeforeRemoveLayer(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordtype}{void}\ onAfterRemoveLayer(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keywordtype}{void}\ onAddFrame(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keywordtype}{void}\ onRemoveFrame(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordtype}{void}\ onAddCel(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{keywordtype}{void}\ onAfterRemoveCel(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{keywordtype}{void}\ onLayerNameChange(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keywordtype}{void}\ onAddTag(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keywordtype}{void}\ onRemoveTag(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keywordtype}{void}\ onTagChange(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordtype}{void}\ onTagRename(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keywordtype}{void}\ onLayerCollapsedChanged(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{comment}{//\ app::Context\ slots.}}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordtype}{void}\ onBeforeCommandExecution(\mbox{\hyperlink{classapp_1_1_command_execution_event}{CommandExecutionEvent}}\&\ ev);}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordtype}{void}\ onAfterCommandExecution(\mbox{\hyperlink{classapp_1_1_command_execution_event}{CommandExecutionEvent}}\&\ ev);}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ \ \ \textcolor{comment}{//\ ContextObserver\ impl}}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordtype}{void}\ onActiveSiteChange(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_site}{Site}}\&\ site)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{comment}{//\ DocsObserver\ impl.}}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keywordtype}{void}\ onRemoveDocument(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ document)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{comment}{//\ EditorObserver\ impl.}}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordtype}{void}\ onStateChanged(\mbox{\hyperlink{classapp_1_1_editor}{Editor}}*\ editor)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keywordtype}{void}\ onAfterFrameChanged(\mbox{\hyperlink{classapp_1_1_editor}{Editor}}*\ editor)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00183\ \ \ \ \ \textcolor{keywordtype}{void}\ onAfterLayerChanged(\mbox{\hyperlink{classapp_1_1_editor}{Editor}}*\ editor)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{keywordtype}{void}\ onDestroyEditor(\mbox{\hyperlink{classapp_1_1_editor}{Editor}}*\ editor)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{comment}{//\ InputChainElement\ impl}}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordtype}{void}\ onNewInputPriority(\mbox{\hyperlink{classapp_1_1_input_chain_element}{InputChainElement}}*\ element,}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keywordtype}{bool}\ onCanCut(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{keywordtype}{bool}\ onCanCopy(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordtype}{bool}\ onCanPaste(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordtype}{bool}\ onCanClear(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keywordtype}{bool}\ onCut(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordtype}{bool}\ onCopy(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{keywordtype}{bool}\ onPaste(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{keywordtype}{bool}\ onClear(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordtype}{void}\ onCancel(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structapp_1_1_timeline_1_1_draw_cel_data}{DrawCelData}};}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keyword}{struct\ }Hit\ \{}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structpart}{part}};}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ layer\_t\ layer;}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ frame\_t\ frame;}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ ObjectId\ tag;}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ veryBottom;}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ band;}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \ \ Hit(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structpart}{part}}\ =\ 0,}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ layer\_t\ layer\ =\ -\/1,}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ frame\_t\ frame\ =\ 0,}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ ObjectId\ tag\ =\ NullId,}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ band\ =\ -\/1);}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ Hit\&\ other)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_tag}{Tag}}*\ getTag()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00217\ \ \ \ \ \};}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keyword}{struct\ }DropTarget\ \{}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \textcolor{keyword}{enum}\ HHit\ \{}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ HNone,}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ Before,}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ After}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \textcolor{keyword}{enum}\ VHit\ \{}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ VNone,}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ Bottom,}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ Top,}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ FirstChild,}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ VeryBottom}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ DropTarget();}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ DropTarget(\textcolor{keyword}{const}\ DropTarget\&\ o);}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ DropTarget\&\ o)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (hhit\ !=\ o.hhit\ ||}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vhit\ !=\ o.vhit\ ||}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ outside\ !=\ o.outside);}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ HHit\ hhit;}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ VHit\ vhit;}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ outside;}
+\DoxyCodeLine{00242\ \ \ \ \ \};}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keyword}{struct\ }Row\ \{}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ Row();}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ Row(\mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer,}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ level,}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ LayerFlags\ inheritedFlags);}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_layer;\ \}}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ level()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_level;\ \}}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ parentVisible()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ parentEditable()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ m\_layer;}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ m\_level;}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ LayerFlags\ m\_inheritedFlags;}
+\DoxyCodeLine{00260\ \ \ \ \ \};}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{keywordtype}{bool}\ selectedLayersBounds(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_selected_layers}{SelectedLayers}}\&\ layers,}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ layer\_t*\ first,\ layer\_t*\ last)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \ \ \ \ \textcolor{keywordtype}{void}\ setLayer(\mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer);}
+\DoxyCodeLine{00266\ \ \ \ \ \textcolor{keywordtype}{void}\ setFrame(frame\_t\ frame,\ \textcolor{keywordtype}{bool}\ byUser);}
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordtype}{bool}\ allLayersVisible();}
+\DoxyCodeLine{00268\ \ \ \ \ \textcolor{keywordtype}{bool}\ allLayersInvisible();}
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{keywordtype}{bool}\ allLayersLocked();}
+\DoxyCodeLine{00270\ \ \ \ \ \textcolor{keywordtype}{bool}\ allLayersUnlocked();}
+\DoxyCodeLine{00271\ \ \ \ \ \textcolor{keywordtype}{bool}\ allLayersContinuous();}
+\DoxyCodeLine{00272\ \ \ \ \ \textcolor{keywordtype}{bool}\ allLayersDiscontinuous();}
+\DoxyCodeLine{00273\ \ \ \ \ \textcolor{keywordtype}{void}\ detachDocument();}
+\DoxyCodeLine{00274\ \ \ \ \ \textcolor{keywordtype}{void}\ setCursor(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg,\ \textcolor{keyword}{const}\ Hit\&\ hit);}
+\DoxyCodeLine{00275\ \ \ \ \ \textcolor{keywordtype}{void}\ getDrawableLayers(layer\_t*\ firstLayer,\ layer\_t*\ lastLayer);}
+\DoxyCodeLine{00276\ \ \ \ \ \textcolor{keywordtype}{void}\ getDrawableFrames(frame\_t*\ firstFrame,\ frame\_t*\ lastFrame);}
+\DoxyCodeLine{00277\ \ \ \ \ \textcolor{keywordtype}{void}\ drawPart(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string*\ text,}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classui_1_1_style}{ui::Style}}*\ style,}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ is\_active\ =\ \textcolor{keyword}{false},}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ is\_hover\ =\ \textcolor{keyword}{false},}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ is\_clicked\ =\ \textcolor{keyword}{false},}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ is\_disabled\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00284\ \ \ \ \ \textcolor{keywordtype}{void}\ drawTop(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g);}
+\DoxyCodeLine{00285\ \ \ \ \ \textcolor{keywordtype}{void}\ drawHeader(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g);}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordtype}{void}\ drawHeaderFrame(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ frame\_t\ frame);}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordtype}{void}\ drawLayer(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ layer\_t\ layerIdx);}
+\DoxyCodeLine{00288\ \ \ \ \ \textcolor{keywordtype}{void}\ drawCel(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ layer\_t\ layerIdx,\ frame\_t\ frame,\ \mbox{\hyperlink{classdoc_1_1_cel}{Cel}}*\ cel,\ \mbox{\hyperlink{structapp_1_1_timeline_1_1_draw_cel_data}{DrawCelData}}*\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00289\ \ \ \ \ \textcolor{keywordtype}{void}\ drawCelLinkDecorators(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_cel}{Cel}}*\ cel,\ frame\_t\ frame,\ \textcolor{keywordtype}{bool}\ is\_active,\ \textcolor{keywordtype}{bool}\ is\_hover,}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structapp_1_1_timeline_1_1_draw_cel_data}{DrawCelData}}*\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00292\ \ \ \ \ \textcolor{keywordtype}{void}\ drawTags(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g);}
+\DoxyCodeLine{00293\ \ \ \ \ \textcolor{keywordtype}{void}\ drawTagBraces(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gfx::Color\ tagColor,}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ clipBounds);}
+\DoxyCodeLine{00297\ \ \ \ \ \textcolor{keywordtype}{void}\ drawRangeOutline(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g);}
+\DoxyCodeLine{00298\ \ \ \ \ \textcolor{keywordtype}{void}\ drawPaddings(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g);}
+\DoxyCodeLine{00299\ \ \ \ \ \textcolor{keywordtype}{bool}\ drawPart(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structpart}{part}},\ layer\_t\ layer,\ frame\_t\ frame);}
+\DoxyCodeLine{00300\ \ \ \ \ \textcolor{keywordtype}{void}\ drawClipboardRange(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g);}
+\DoxyCodeLine{00301\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getLayerHeadersBounds()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00302\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getFrameHeadersBounds()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00303\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getOnionskinFramesBounds()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00304\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getCelsBounds()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00305\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getPartBounds(\textcolor{keyword}{const}\ Hit\&\ hit)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00306\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getRangeBounds(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\&\ range)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00307\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getRangeClipBounds(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\&\ range)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00308\ \ \ \ \ \textcolor{keywordtype}{void}\ invalidateHit(\textcolor{keyword}{const}\ Hit\&\ hit);}
+\DoxyCodeLine{00309\ \ \ \ \ \textcolor{keywordtype}{void}\ invalidateLayer(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer);}
+\DoxyCodeLine{00310\ \ \ \ \ \textcolor{keywordtype}{void}\ invalidateFrame(\textcolor{keyword}{const}\ frame\_t\ frame);}
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keywordtype}{void}\ invalidateRange();}
+\DoxyCodeLine{00312\ \ \ \ \ \textcolor{keywordtype}{void}\ regenerateRows();}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordtype}{void}\ regenerateTagBands();}
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keywordtype}{int}\ visibleTagBands()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{keywordtype}{void}\ updateScrollBars();}
+\DoxyCodeLine{00316\ \ \ \ \ \textcolor{keywordtype}{void}\ updateByMousePos(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ mousePos);}
+\DoxyCodeLine{00317\ \ \ \ \ Hit\ hitTest(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ mousePos);}
+\DoxyCodeLine{00318\ \ \ \ \ Hit\ hitTestCel(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ mousePos);}
+\DoxyCodeLine{00319\ \ \ \ \ \textcolor{keywordtype}{void}\ setHot(\textcolor{keyword}{const}\ Hit\&\ hit);}
+\DoxyCodeLine{00320\ \ \ \ \ \textcolor{keywordtype}{void}\ showCel(layer\_t\ layer,\ frame\_t\ frame);}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keywordtype}{void}\ showCurrentCel();}
+\DoxyCodeLine{00322\ \ \ \ \ \textcolor{keywordtype}{void}\ focusTagBand(\textcolor{keywordtype}{int}\ band);}
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keywordtype}{void}\ cleanClk();}
+\DoxyCodeLine{00324\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\ getScrollableSize()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00325\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ getMaxScrollablePos()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00326\ \ \ \ \ layer\_t\ getLayerIndex(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00327\ \ \ \ \ \textcolor{keywordtype}{bool}\ isLayerActive(\textcolor{keyword}{const}\ layer\_t\ layerIdx)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00328\ \ \ \ \ \textcolor{keywordtype}{bool}\ isFrameActive(\textcolor{keyword}{const}\ frame\_t\ frame)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00329\ \ \ \ \ \textcolor{keywordtype}{bool}\ isCelActive(\textcolor{keyword}{const}\ layer\_t\ layerIdx,\ \textcolor{keyword}{const}\ frame\_t\ frame)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00330\ \ \ \ \ \textcolor{keywordtype}{bool}\ isCelLooselyActive(\textcolor{keyword}{const}\ layer\_t\ layerIdx,\ \textcolor{keyword}{const}\ frame\_t\ frame)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00331\ \ \ \ \ \textcolor{keywordtype}{void}\ updateStatusBar(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg);}
+\DoxyCodeLine{00332\ \ \ \ \ \textcolor{keywordtype}{void}\ updateStatusBarForFrame(\textcolor{keyword}{const}\ frame\_t\ frame,}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_tag}{Tag}}*\ tag,}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_cel}{Cel}}*\ cel);}
+\DoxyCodeLine{00335\ \ \ \ \ \textcolor{keywordtype}{void}\ updateDropRange(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ pt);}
+\DoxyCodeLine{00336\ \ \ \ \ \textcolor{keywordtype}{void}\ clearClipboardRange();}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \ \ \ \ \textcolor{comment}{//\ The\ layer\ of\ the\ bottom\ (e.g.\ Background\ layer)}}
+\DoxyCodeLine{00339\ \ \ \ \ layer\_t\ firstLayer()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ 0;\ \}}
+\DoxyCodeLine{00340\ \ \ \ \ \textcolor{comment}{//\ The\ layer\ of\ the\ top.}}
+\DoxyCodeLine{00341\ \ \ \ \ layer\_t\ lastLayer()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_rows.size()-\/1;\ \}}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \ \ frame\_t\ firstFrame()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ frame\_t(0);\ \}}
+\DoxyCodeLine{00344\ \ \ \ \ frame\_t\ lastFrame()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_sprite-\/>lastFrame();\ \}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \ \ \ \ \textcolor{keywordtype}{bool}\ validLayer(layer\_t\ layer)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ layer\ >=\ firstLayer()\ \&\&\ layer\ <=\ lastLayer();\ \}}
+\DoxyCodeLine{00347\ \ \ \ \ \textcolor{keywordtype}{bool}\ validFrame(frame\_t\ frame)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ frame\ >=\ firstFrame()\ \&\&\ frame\ <=\ lastFrame();\ \}}
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \ \ \ \ \textcolor{keywordtype}{int}\ topHeight()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \ \ \ \ DocumentPreferences\&\ docPref()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ \ \ \textcolor{comment}{//\ Theme/dimensions}}
+\DoxyCodeLine{00354\ \ \ \ \ \mbox{\hyperlink{classapp_1_1skin_1_1_skin_theme}{skin::SkinTheme}}*\ skinTheme()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00355\ \ \ \ \ \textcolor{keywordtype}{int}\ headerBoxWidth()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keywordtype}{int}\ headerBoxHeight()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00357\ \ \ \ \ \textcolor{keywordtype}{int}\ layerBoxHeight()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00358\ \ \ \ \ \textcolor{keywordtype}{int}\ frameBoxWidth()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordtype}{int}\ outlineWidth()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00360\ \ \ \ \ \textcolor{keywordtype}{int}\ oneTagHeight()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00361\ \ \ \ \ \textcolor{keywordtype}{int}\ calcTagVisibleToFrame(\mbox{\hyperlink{classdoc_1_1_tag}{Tag}}*\ tag)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keywordtype}{void}\ updateCelOverlayBounds(\textcolor{keyword}{const}\ Hit\&\ hit);}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordtype}{void}\ drawCelOverlay(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g);}
+\DoxyCodeLine{00365\ \ \ \ \ \textcolor{keywordtype}{void}\ onThumbnailsPrefChange();}
+\DoxyCodeLine{00366\ \ \ \ \ \textcolor{keywordtype}{void}\ setZoom(\textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ zoom);}
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{keywordtype}{void}\ setZoomAndUpdate(\textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ zoom,}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ updatePref);}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ \ \ \textcolor{keywordtype}{double}\ zoom()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00371\ \ \ \ \ \textcolor{keywordtype}{int}\ tagFramesDuration(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_tag}{Tag}}*\ tag)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00372\ \ \ \ \ \textcolor{comment}{//\ Calculate\ the\ duration\ of\ the\ selected\ range\ of\ frames}}
+\DoxyCodeLine{00373\ \ \ \ \ \textcolor{keywordtype}{int}\ selectedFramesDuration()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \ \ \ \ \textcolor{keywordtype}{void}\ setLayerVisibleFlag(\textcolor{keyword}{const}\ layer\_t\ layer,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}});}
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{keywordtype}{void}\ setLayerEditableFlag(\textcolor{keyword}{const}\ layer\_t\ layer,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}});}
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keywordtype}{void}\ setLayerContinuousFlag(\textcolor{keyword}{const}\ layer\_t\ layer,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}});}
+\DoxyCodeLine{00378\ \ \ \ \ \textcolor{keywordtype}{void}\ setLayerCollapsedFlag(\textcolor{keyword}{const}\ layer\_t\ layer,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}});}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{keywordtype}{int}\ separatorX()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00381\ \ \ \ \ \textcolor{keywordtype}{void}\ setSeparatorX(\textcolor{keywordtype}{int}\ newValue);}
+\DoxyCodeLine{00382\ }
+\DoxyCodeLine{00383\ \ \ \ \ \textcolor{keyword}{static}\ gfx::Color\ highlightColor(\textcolor{keyword}{const}\ gfx::Color\ color);}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \ \ \ \ \mbox{\hyperlink{classui_1_1_scroll_bar}{ui::ScrollBar}}\ m\_hbar;}
+\DoxyCodeLine{00386\ \ \ \ \ \mbox{\hyperlink{classui_1_1_scroll_bar}{ui::ScrollBar}}\ m\_vbar;}
+\DoxyCodeLine{00387\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ m\_viewportArea;}
+\DoxyCodeLine{00388\ \ \ \ \ \textcolor{keywordtype}{double}\ m\_zoom;}
+\DoxyCodeLine{00389\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ m\_context;}
+\DoxyCodeLine{00390\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_editor}{Editor}}*\ m\_editor;}
+\DoxyCodeLine{00391\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_document;}
+\DoxyCodeLine{00392\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ m\_sprite;}
+\DoxyCodeLine{00393\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ m\_layer;}
+\DoxyCodeLine{00394\ \ \ \ \ frame\_t\ m\_frame;}
+\DoxyCodeLine{00395\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_rangeLocks;}
+\DoxyCodeLine{00396\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\ m\_range;}
+\DoxyCodeLine{00397\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\ m\_startRange;}
+\DoxyCodeLine{00398\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_range}{Range}}\ m\_dropRange;}
+\DoxyCodeLine{00399\ \ \ \ \ \mbox{\hyperlink{struct_state}{State}}\ m\_state;}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \ \ \ \ \textcolor{comment}{//\ Version\ of\ the\ sprite\ before\ executing\ a\ command.\ Used\ to\ check}}
+\DoxyCodeLine{00402\ \ \ \ \ \textcolor{comment}{//\ if\ the\ sprite\ was\ modified\ after\ executing\ a\ command\ to\ avoid}}
+\DoxyCodeLine{00403\ \ \ \ \ \textcolor{comment}{//\ regenerating\ all\ rows\ if\ it's\ not\ necessary.}}
+\DoxyCodeLine{00404\ \ \ \ \ doc::ObjectVersion\ m\_savedVersion;}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \ \ \ \ \textcolor{comment}{//\ Data\ used\ to\ display\ each\ row\ in\ the\ timeline}}
+\DoxyCodeLine{00407\ \ \ \ \ std::vector<Row>\ m\_rows;}
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \ \ \ \ \textcolor{comment}{//\ Data\ used\ to\ display\ frame\ tags}}
+\DoxyCodeLine{00410\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_tagBands;}
+\DoxyCodeLine{00411\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_tagFocusBand;}
+\DoxyCodeLine{00412\ \ \ \ \ std::map<Tag*,\ int>\ m\_tagBand;}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_separator\_x;}
+\DoxyCodeLine{00415\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_separator\_w;}
+\DoxyCodeLine{00416\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_origFrames;}
+\DoxyCodeLine{00417\ \ \ \ \ Hit\ m\_hot;\ \ \ \ \ \ \ \textcolor{comment}{//\ The\ 'hot'\ part\ is\ where\ the\ mouse\ is\ on\ top\ of}}
+\DoxyCodeLine{00418\ \ \ \ \ DropTarget\ m\_dropTarget;}
+\DoxyCodeLine{00419\ \ \ \ \ Hit\ m\_clk;\ \textcolor{comment}{//\ The\ 'clk'\ part\ is\ where\ the\ mouse's\ button\ was\ pressed\ (maybe\ for\ a\ drag\ \&\ drop\ operation)}}
+\DoxyCodeLine{00420\ \ \ \ \ \textcolor{comment}{//\ Absolute\ mouse\ positions\ for\ scrolling.}}
+\DoxyCodeLine{00421\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ m\_oldPos;}
+\DoxyCodeLine{00422\ \ \ \ \ \textcolor{comment}{//\ Configure\ timeline}}
+\DoxyCodeLine{00423\ \ \ \ \ std::unique\_ptr<ConfigureTimelinePopup>\ m\_confPopup;}
+\DoxyCodeLine{00424\ \ \ \ \ \mbox{\hyperlink{classobs_1_1scoped__connection}{obs::scoped\_connection}}\ m\_ctxConn1,\ m\_ctxConn2;}
+\DoxyCodeLine{00425\ \ \ \ \ \mbox{\hyperlink{classobs_1_1connection}{obs::connection}}\ m\_firstFrameConn;}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ \ \ \textcolor{comment}{//\ Marching\ ants\ stuff\ to\ show\ the\ range\ in\ the\ clipboard.}}
+\DoxyCodeLine{00428\ \ \ \ \ \textcolor{comment}{//\ TODO\ merge\ this\ with\ the\ marching\ ants\ of\ the\ sprite\ editor\ (ui::Editor)}}
+\DoxyCodeLine{00429\ \ \ \ \ \mbox{\hyperlink{classui_1_1_timer}{ui::Timer}}\ m\_clipboard\_timer;}
+\DoxyCodeLine{00430\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_offset\_count;}
+\DoxyCodeLine{00431\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_redrawMarchingAntsOnly;}
+\DoxyCodeLine{00432\ }
+\DoxyCodeLine{00433\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_scroll;\ \ \ \textcolor{comment}{//\ True\ if\ the\ drag-\/and-\/drop\ operation\ is\ a\ scroll\ operation.}}
+\DoxyCodeLine{00434\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_copy;\ \ \ \ \ \textcolor{comment}{//\ True\ if\ the\ drag-\/and-\/drop\ operation\ is\ a\ copy.}}
+\DoxyCodeLine{00435\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_fromTimeline;}
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_ani_controls}{AniControls}}\ m\_aniControls;}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \ \ \ \ \textcolor{comment}{//\ Data\ used\ for\ thumbnails.}}
+\DoxyCodeLine{00440\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_thumbnailsOverlayVisible;}
+\DoxyCodeLine{00441\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ m\_thumbnailsOverlayBounds;}
+\DoxyCodeLine{00442\ \ \ \ \ Hit\ m\_thumbnailsOverlayHit;}
+\DoxyCodeLine{00443\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ m\_thumbnailsOverlayDirection;}
+\DoxyCodeLine{00444\ \ \ \ \ \mbox{\hyperlink{classobs_1_1connection}{obs::connection}}\ m\_thumbnailsPrefConn;}
+\DoxyCodeLine{00445\ }
+\DoxyCodeLine{00446\ \ \ \ \ \textcolor{comment}{//\ Temporal\ data\ used\ to\ move\ the\ range.}}
+\DoxyCodeLine{00447\ \ \ \ \ \textcolor{keyword}{struct\ }MoveRange\ \{}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ layer\_t\ activeRelativeLayer;}
+\DoxyCodeLine{00449\ \ \ \ \ \ \ frame\_t\ activeRelativeFrame;}
+\DoxyCodeLine{00450\ \ \ \ \ \}\ m\_moveRangeData;}
+\DoxyCodeLine{00451\ }
+\DoxyCodeLine{00452\ \ \ \ \ \textcolor{comment}{//\ Temporal\ data\ used\ to\ move\ tags.}}
+\DoxyCodeLine{00453\ \ \ \ \ \textcolor{keyword}{struct\ }ResizeTag\ \{}
+\DoxyCodeLine{00454\ \ \ \ \ \ \ doc::ObjectId\ tag\ =\ doc::NullId;}
+\DoxyCodeLine{00455\ \ \ \ \ \ \ doc::frame\_t\ from,\ to;}
+\DoxyCodeLine{00456\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ reset()\ \{}
+\DoxyCodeLine{00457\ \ \ \ \ \ \ \ \ tag\ =\ doc::NullId;}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00459\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ reset(\textcolor{keyword}{const}\ doc::ObjectId\ tagId)\ \{}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ tag\ =\ doc::get<doc::Tag>(tagId);}
+\DoxyCodeLine{00461\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (tag)\ \{}
+\DoxyCodeLine{00462\ \ \ \ \ \ \ \ \ \ \ this-\/>tag\ =\ tagId;}
+\DoxyCodeLine{00463\ \ \ \ \ \ \ \ \ \ \ this-\/>from\ =\ tag-\/>fromFrame();}
+\DoxyCodeLine{00464\ \ \ \ \ \ \ \ \ \ \ this-\/>to\ =\ tag-\/>toFrame();}
+\DoxyCodeLine{00465\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00467\ \ \ \ \ \ \ \ \ \ \ this-\/>tag\ =\ doc::NullId;}
+\DoxyCodeLine{00468\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00469\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00470\ \ \ \ \ \}\ m\_resizeTagData;}
+\DoxyCodeLine{00471\ \ \ \};}
+\DoxyCodeLine{00472\ }
+\DoxyCodeLine{00473\ \textcolor{preprocessor}{\#ifdef\ ENABLE\_UI}}
+\DoxyCodeLine{00474\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_lock_timeline_range}{LockTimelineRange}}\ \{}
+\DoxyCodeLine{00475\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00476\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_lock_timeline_range}{LockTimelineRange}}(\mbox{\hyperlink{classapp_1_1_timeline}{Timeline}}*\ timeline)}
+\DoxyCodeLine{00477\ \ \ \ \ \ \ :\ m\_timeline(timeline)\ \{}
+\DoxyCodeLine{00478\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_timeline)}
+\DoxyCodeLine{00479\ \ \ \ \ \ \ \ \ m\_timeline-\/>lockRange();}
+\DoxyCodeLine{00480\ \ \ \ \ \}}
+\DoxyCodeLine{00481\ \ \ \ \ \string~LockTimelineRange()\ \{}
+\DoxyCodeLine{00482\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_timeline)}
+\DoxyCodeLine{00483\ \ \ \ \ \ \ \ \ m\_timeline-\/>unlockRange();}
+\DoxyCodeLine{00484\ \ \ \ \ \}}
+\DoxyCodeLine{00485\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00486\ \ \ \ \ Timeline*\ m\_timeline;}
+\DoxyCodeLine{00487\ \ \ \};}
+\DoxyCodeLine{00488\ \textcolor{preprocessor}{\#else\ \ }\textcolor{comment}{//\ !ENABLE\_UI}}
+\DoxyCodeLine{00489\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_lock_timeline_range}{LockTimelineRange}}\ \{}
+\DoxyCodeLine{00490\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00491\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_lock_timeline_range}{LockTimelineRange}}(\mbox{\hyperlink{classapp_1_1_timeline}{Timeline}}*\ timeline)\ \{\ \}}
+\DoxyCodeLine{00492\ \ \ \};}
+\DoxyCodeLine{00493\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00494\ }
+\DoxyCodeLine{00495\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00496\ }
+\DoxyCodeLine{00497\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

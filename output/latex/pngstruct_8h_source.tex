@@ -1,0 +1,495 @@
+\hypertarget{pngstruct_8h_source}{}\doxysection{pngstruct.\+h}
+\label{pngstruct_8h_source}\index{AseSprite/aseprite/third\_party/libpng/pngstruct.h@{AseSprite/aseprite/third\_party/libpng/pngstruct.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00002\ \textcolor{comment}{/*\ pngstruct.h\ -\/\ header\ file\ for\ PNG\ reference\ library}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Copyright\ (c)\ 2018-\/2019\ Cosmin\ Truta}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ Copyright\ (c)\ 1998-\/2002,2004,2006-\/2018\ Glenn\ Randers-\/Pehrson}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Copyright\ (c)\ 1996-\/1997\ Andreas\ Dilger}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (c)\ 1995-\/1996\ Guy\ Eric\ Schalnat,\ Group\ 42,\ Inc.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ This\ code\ is\ released\ under\ the\ libpng\ license.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ For\ conditions\ of\ distribution\ and\ use,\ see\ the\ disclaimer}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ and\ license\ in\ png.h}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{comment}{/*\ The\ structure\ that\ holds\ the\ information\ to\ read\ and\ write\ PNG\ files.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ The\ only\ people\ who\ need\ to\ care\ about\ what\ is\ inside\ of\ this\ are\ the}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ people\ who\ will\ be\ modifying\ the\ library\ for\ their\ own\ special\ needs.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ It\ should\ NOT\ be\ accessed\ directly\ by\ an\ application.}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#ifndef\ PNGSTRUCT\_H}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#define\ PNGSTRUCT\_H}}
+\DoxyCodeLine{00022\ \textcolor{comment}{/*\ zlib.h\ defines\ the\ structure\ z\_stream,\ an\ instance\ of\ which\ is\ included}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ in\ this\ structure\ and\ is\ required\ for\ decompressing\ the\ LZ\ compressed}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ data\ in\ PNG\ files.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#ifndef\ ZLIB\_CONST}}
+\DoxyCodeLine{00027\ \ \ \ \textcolor{comment}{/*\ We\ must\ ensure\ that\ zlib\ uses\ 'const'\ in\ declarations.\ */}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#\ \ define\ ZLIB\_CONST}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}zlib.h"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#ifdef\ const}}
+\DoxyCodeLine{00032\ \ \ \ \textcolor{comment}{/*\ zlib.h\ sometimes\ \#defines\ const\ to\ nothing,\ undo\ this.\ */}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#\ \ undef\ const}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{/*\ zlib.h\ has\ mediocre\ z\_const\ use\ before\ 1.2.6,\ this\ stuff\ is\ for\ compatibility}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ with\ older\ builds.}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#if\ ZLIB\_VERNUM\ <\ 0x1260}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#\ \ define\ PNGZ\_MSG\_CAST(s)\ png\_constcast(char*,s)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#\ \ define\ PNGZ\_INPUT\_CAST(b)\ png\_constcast(png\_bytep,b)}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#\ \ define\ PNGZ\_MSG\_CAST(s)\ (s)}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#\ \ define\ PNGZ\_INPUT\_CAST(b)\ (b)}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{/*\ zlib.h\ declares\ a\ magic\ type\ 'uInt'\ that\ limits\ the\ amount\ of\ data\ that\ zlib}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ can\ handle\ at\ once.\ \ This\ type\ need\ be\ no\ larger\ than\ 16\ bits\ (so\ maximum\ of}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ 65535),\ this\ define\ allows\ us\ to\ discover\ how\ big\ it\ is,\ but\ limited\ by\ the}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ maximum\ for\ size\_t.\ \ The\ value\ can\ be\ overridden\ in\ a\ library\ build}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ (pngusr.h,\ or\ set\ it\ in\ CPPFLAGS)\ and\ it\ works\ to\ set\ it\ to\ a\ considerably}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ lower\ value\ (e.g.\ 255\ works).\ \ A\ lower\ value\ may\ help\ memory\ usage\ (slightly)}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ and\ may\ even\ improve\ performance\ on\ some\ systems\ (and\ degrade\ it\ on\ others.)}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#ifndef\ ZLIB\_IO\_MAX}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#\ \ define\ ZLIB\_IO\_MAX\ ((uInt)-\/1)}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_SUPPORTED}}
+\DoxyCodeLine{00060\ \textcolor{comment}{/*\ The\ type\ of\ a\ compression\ buffer\ list\ used\ by\ the\ write\ code.\ */}}
+\DoxyCodeLine{00061\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }png\_compression\_buffer}
+\DoxyCodeLine{00062\ \{}
+\DoxyCodeLine{00063\ \ \ \ \textcolor{keyword}{struct\ }png\_compression\_buffer\ *next;}
+\DoxyCodeLine{00064\ \ \ \ png\_byte\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ output[1];\ \textcolor{comment}{/*\ actually\ zbuf\_size\ */}}
+\DoxyCodeLine{00065\ \}\ png\_compression\_buffer,\ *png\_compression\_bufferp;}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#define\ PNG\_COMPRESSION\_BUFFER\_SIZE(pp)\(\backslash\)}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \ (offsetof(png\_compression\_buffer,\ output)\ +\ (pp)-\/>zbuffer\_size)}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{comment}{/*\ Colorspace\ support;\ structures\ used\ in\ png\_struct,\ png\_info\ and\ in\ internal}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ *\ functions\ to\ hold\ and\ communicate\ information\ about\ the\ color\ space.}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ *\ PNG\_COLORSPACE\_SUPPORTED\ is\ only\ required\ if\ the\ application\ will\ perform}}
+\DoxyCodeLine{00075\ \textcolor{comment}{\ *\ colorspace\ corrections,\ otherwise\ all\ the\ colorspace\ information\ can\ be}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ *\ skipped\ and\ the\ size\ of\ libpng\ can\ be\ reduced\ (significantly)\ by\ compiling}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ *\ out\ the\ colorspace\ support.}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#ifdef\ PNG\_COLORSPACE\_SUPPORTED}}
+\DoxyCodeLine{00080\ \textcolor{comment}{/*\ The\ chromaticities\ of\ the\ red,\ green\ and\ blue\ colorants\ and\ the\ chromaticity}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ *\ of\ the\ corresponding\ white\ point\ (i.e.\ of\ rgb(1.0,1.0,1.0)).}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00083\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }png\_xy}
+\DoxyCodeLine{00084\ \{}
+\DoxyCodeLine{00085\ \ \ \ png\_fixed\_point\ redx,\ redy;}
+\DoxyCodeLine{00086\ \ \ \ png\_fixed\_point\ greenx,\ greeny;}
+\DoxyCodeLine{00087\ \ \ \ png\_fixed\_point\ bluex,\ bluey;}
+\DoxyCodeLine{00088\ \ \ \ png\_fixed\_point\ whitex,\ whitey;}
+\DoxyCodeLine{00089\ \}\ png\_xy;}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{/*\ The\ same\ data\ as\ above\ but\ encoded\ as\ CIE\ XYZ\ values.\ \ When\ this\ data\ comes}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ *\ from\ chromaticities\ the\ sum\ of\ the\ Y\ values\ is\ assumed\ to\ be\ 1.0}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00094\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }png\_XYZ}
+\DoxyCodeLine{00095\ \{}
+\DoxyCodeLine{00096\ \ \ \ png\_fixed\_point\ red\_X,\ red\_Y,\ red\_Z;}
+\DoxyCodeLine{00097\ \ \ \ png\_fixed\_point\ green\_X,\ green\_Y,\ green\_Z;}
+\DoxyCodeLine{00098\ \ \ \ png\_fixed\_point\ blue\_X,\ blue\_Y,\ blue\_Z;}
+\DoxyCodeLine{00099\ \}\ png\_XYZ;}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ COLORSPACE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#if\ defined(PNG\_COLORSPACE\_SUPPORTED)\ ||\ defined(PNG\_GAMMA\_SUPPORTED)}}
+\DoxyCodeLine{00103\ \textcolor{comment}{/*\ A\ colorspace\ is\ all\ the\ above\ plus,\ potentially,\ profile\ information;}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ *\ however\ at\ present\ libpng\ does\ not\ use\ the\ profile\ internally\ so\ it\ is\ only}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ *\ stored\ in\ the\ png\_info\ struct\ (if\ iCCP\ is\ supported.)\ \ The\ rendering\ intent}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ *\ is\ retained\ here\ and\ is\ checked.}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ *\ The\ file\ gamma\ encoding\ information\ is\ also\ stored\ here\ and\ gamma\ correction}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ *\ is\ done\ by\ libpng,\ whereas\ color\ correction\ must\ currently\ be\ done\ by\ the}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ *\ application.}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00112\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }png\_colorspace}
+\DoxyCodeLine{00113\ \{}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#ifdef\ PNG\_GAMMA\_SUPPORTED}}
+\DoxyCodeLine{00115\ \ \ \ png\_fixed\_point\ gamma;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ File\ gamma\ */}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#ifdef\ PNG\_COLORSPACE\_SUPPORTED}}
+\DoxyCodeLine{00119\ \ \ \ png\_xy\ \ \ \ \ \ end\_points\_xy;\ \ \ \ \textcolor{comment}{/*\ End\ points\ as\ chromaticities\ */}}
+\DoxyCodeLine{00120\ \ \ \ png\_XYZ\ \ \ \ \ end\_points\_XYZ;\ \ \ \textcolor{comment}{/*\ End\ points\ as\ CIE\ XYZ\ colorant\ values\ */}}
+\DoxyCodeLine{00121\ \ \ \ png\_uint\_16\ rendering\_intent;\ \textcolor{comment}{/*\ Rendering\ intent\ of\ a\ profile\ */}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \textcolor{comment}{/*\ Flags\ are\ always\ defined\ to\ simplify\ the\ code.\ */}}
+\DoxyCodeLine{00125\ \ \ \ png\_uint\_16\ flags;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ As\ defined\ below\ */}}
+\DoxyCodeLine{00126\ \}\ png\_colorspace,\ *\ PNG\_RESTRICT\ png\_colorspacerp;}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ png\_colorspace\ *\ PNG\_RESTRICT\ png\_const\_colorspacerp;}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{comment}{/*\ General\ flags\ for\ the\ 'flags'\ field\ */}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_HAVE\_GAMMA\ \ \ \ \ \ \ \ \ \ \ 0x0001}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_HAVE\_ENDPOINTS\ \ \ \ \ \ \ 0x0002}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_HAVE\_INTENT\ \ \ \ \ \ \ \ \ \ 0x0004}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_FROM\_gAMA\ \ \ \ \ \ \ \ \ \ \ \ 0x0008}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_FROM\_cHRM\ \ \ \ \ \ \ \ \ \ \ \ 0x0010}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_FROM\_sRGB\ \ \ \ \ \ \ \ \ \ \ \ 0x0020}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_ENDPOINTS\_MATCH\_sRGB\ 0x0040}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_MATCHES\_sRGB\ \ \ \ \ \ \ \ \ 0x0080\ }\textcolor{comment}{/*\ exact\ match\ on\ profile\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_INVALID\ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x8000}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#define\ PNG\_COLORSPACE\_CANCEL(flags)\ \ \ \ \ \ \ \ (0xffff\ \string^\ (flags))}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ COLORSPACE\ ||\ GAMMA\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpng__struct__def}{png\_struct\_def}}}
+\DoxyCodeLine{00144\ \{}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#ifdef\ PNG\_SETJMP\_SUPPORTED}}
+\DoxyCodeLine{00146\ \ \ \ jmp\_buf\ jmp\_buf\_local;\ \ \ \ \ \textcolor{comment}{/*\ New\ name\ in\ 1.6.0\ for\ jmp\_buf\ in\ png\_struct\ */}}
+\DoxyCodeLine{00147\ \ \ \ png\_longjmp\_ptr\ longjmp\_fn;\textcolor{comment}{/*\ setjmp\ non-\/local\ goto\ function.\ */}}
+\DoxyCodeLine{00148\ \ \ \ jmp\_buf\ *jmp\_buf\_ptr;\ \ \ \ \ \ \textcolor{comment}{/*\ passed\ to\ longjmp\_fn\ */}}
+\DoxyCodeLine{00149\ \ \ \ \textcolor{keywordtype}{size\_t}\ jmp\_buf\_size;\ \ \ \ \ \ \ \textcolor{comment}{/*\ size\ of\ the\ above,\ if\ allocated\ */}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00151\ \ \ \ png\_error\_ptr\ error\_fn;\ \ \ \ \textcolor{comment}{/*\ function\ for\ printing\ errors\ and\ aborting\ */}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#ifdef\ PNG\_WARNINGS\_SUPPORTED}}
+\DoxyCodeLine{00153\ \ \ \ png\_error\_ptr\ warning\_fn;\ \ \textcolor{comment}{/*\ function\ for\ printing\ warnings\ */}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00155\ \ \ \ png\_voidp\ error\_ptr;\ \ \ \ \ \ \ \textcolor{comment}{/*\ user\ supplied\ struct\ for\ error\ functions\ */}}
+\DoxyCodeLine{00156\ \ \ \ png\_rw\_ptr\ write\_data\_fn;\ \ \textcolor{comment}{/*\ function\ for\ writing\ output\ data\ */}}
+\DoxyCodeLine{00157\ \ \ \ png\_rw\_ptr\ read\_data\_fn;\ \ \ \textcolor{comment}{/*\ function\ for\ reading\ input\ data\ */}}
+\DoxyCodeLine{00158\ \ \ \ png\_voidp\ io\_ptr;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ ptr\ to\ application\ struct\ for\ I/O\ functions\ */}}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_USER\_TRANSFORM\_SUPPORTED}}
+\DoxyCodeLine{00161\ \ \ \ png\_user\_transform\_ptr\ read\_user\_transform\_fn;\ \textcolor{comment}{/*\ user\ read\ transform\ */}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_USER\_TRANSFORM\_SUPPORTED}}
+\DoxyCodeLine{00165\ \ \ \ png\_user\_transform\_ptr\ write\_user\_transform\_fn;\ \textcolor{comment}{/*\ user\ write\ transform\ */}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \textcolor{comment}{/*\ These\ were\ added\ in\ libpng-\/1.0.2\ */}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\#ifdef\ PNG\_USER\_TRANSFORM\_PTR\_SUPPORTED}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#if\ defined(PNG\_READ\_USER\_TRANSFORM\_SUPPORTED)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\ \ \ \ defined(PNG\_WRITE\_USER\_TRANSFORM\_SUPPORTED)}}
+\DoxyCodeLine{00172\ \ \ \ png\_voidp\ user\_transform\_ptr;\ \textcolor{comment}{/*\ user\ supplied\ struct\ for\ user\ transform\ */}}
+\DoxyCodeLine{00173\ \ \ \ png\_byte\ user\_transform\_depth;\ \ \ \ \textcolor{comment}{/*\ bit\ depth\ of\ user\ transformed\ pixels\ */}}
+\DoxyCodeLine{00174\ \ \ \ png\_byte\ user\_transform\_channels;\ \textcolor{comment}{/*\ channels\ in\ user\ transformed\ pixels\ */}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \ png\_uint\_32\ mode;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ tells\ us\ where\ we\ are\ in\ the\ PNG\ file\ */}}
+\DoxyCodeLine{00179\ \ \ \ png\_uint\_32\ flags;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ flags\ indicating\ various\ things\ to\ libpng\ */}}
+\DoxyCodeLine{00180\ \ \ \ png\_uint\_32\ transformations;\ \textcolor{comment}{/*\ which\ transformations\ to\ perform\ */}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ png\_uint\_32\ zowner;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ ID\ (chunk\ type)\ of\ zstream\ owner,\ 0\ if\ none\ */}}
+\DoxyCodeLine{00183\ \ \ \ \mbox{\hyperlink{structz__stream__s}{z\_stream}}\ \ \ \ zstream;\ \ \ \ \ \ \ \textcolor{comment}{/*\ decompression\ structure\ */}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_SUPPORTED}}
+\DoxyCodeLine{00186\ \ \ \ png\_compression\_bufferp\ zbuffer\_list;\ \textcolor{comment}{/*\ Created\ on\ demand\ during\ write\ */}}
+\DoxyCodeLine{00187\ \ \ \ uInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ zbuffer\_size;\ \textcolor{comment}{/*\ size\ of\ the\ actual\ buffer\ */}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_level;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ level\ */}}
+\DoxyCodeLine{00190\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_method;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ method\ */}}
+\DoxyCodeLine{00191\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_window\_bits;\ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ window\ bits\ */}}
+\DoxyCodeLine{00192\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_mem\_level;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ memory\ level\ */}}
+\DoxyCodeLine{00193\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_strategy;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ strategy\ */}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00195\ \textcolor{comment}{/*\ Added\ at\ libpng\ 1.5.4\ */}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_CUSTOMIZE\_ZTXT\_COMPRESSION\_SUPPORTED}}
+\DoxyCodeLine{00197\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_text\_level;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ level\ */}}
+\DoxyCodeLine{00198\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_text\_method;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ method\ */}}
+\DoxyCodeLine{00199\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_text\_window\_bits;\ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ window\ bits\ */}}
+\DoxyCodeLine{00200\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_text\_mem\_level;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ memory\ level\ */}}
+\DoxyCodeLine{00201\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_text\_strategy;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ holds\ zlib\ compression\ strategy\ */}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00203\ \textcolor{comment}{/*\ End\ of\ material\ added\ at\ libpng\ 1.5.4\ */}}
+\DoxyCodeLine{00204\ \textcolor{comment}{/*\ Added\ at\ libpng\ 1.6.0\ */}}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_SUPPORTED}}
+\DoxyCodeLine{00206\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_set\_level;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Actual\ values\ set\ into\ the\ zstream\ on\ write\ */}}
+\DoxyCodeLine{00207\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_set\_method;}
+\DoxyCodeLine{00208\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_set\_window\_bits;}
+\DoxyCodeLine{00209\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_set\_mem\_level;}
+\DoxyCodeLine{00210\ \ \ \ \textcolor{keywordtype}{int}\ zlib\_set\_strategy;}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \ png\_uint\_32\ width;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ width\ of\ image\ in\ pixels\ */}}
+\DoxyCodeLine{00214\ \ \ \ png\_uint\_32\ height;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ height\ of\ image\ in\ pixels\ */}}
+\DoxyCodeLine{00215\ \ \ \ png\_uint\_32\ num\_rows;\ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ rows\ in\ current\ pass\ */}}
+\DoxyCodeLine{00216\ \ \ \ png\_uint\_32\ usr\_width;\ \ \ \ \ \textcolor{comment}{/*\ width\ of\ row\ at\ start\ of\ write\ */}}
+\DoxyCodeLine{00217\ \ \ \ \textcolor{keywordtype}{size\_t}\ rowbytes;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ size\ of\ row\ in\ bytes\ */}}
+\DoxyCodeLine{00218\ \ \ \ png\_uint\_32\ iwidth;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ width\ of\ current\ interlaced\ row\ in\ pixels\ */}}
+\DoxyCodeLine{00219\ \ \ \ png\_uint\_32\ row\_number;\ \ \ \ \textcolor{comment}{/*\ current\ row\ in\ interlace\ pass\ */}}
+\DoxyCodeLine{00220\ \ \ \ png\_uint\_32\ chunk\_name;\ \ \ \ \textcolor{comment}{/*\ PNG\_CHUNK()\ id\ of\ current\ chunk\ */}}
+\DoxyCodeLine{00221\ \ \ \ png\_bytep\ prev\_row;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ buffer\ to\ save\ previous\ (unfiltered)\ row.}}
+\DoxyCodeLine{00222\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ While\ reading\ this\ is\ a\ pointer\ into}}
+\DoxyCodeLine{00223\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ big\_prev\_row;\ while\ writing\ it\ is\ separately}}
+\DoxyCodeLine{00224\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ allocated\ if\ needed.}}
+\DoxyCodeLine{00225\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00226\ \ \ \ png\_bytep\ row\_buf;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ buffer\ to\ save\ current\ (unfiltered)\ row.}}
+\DoxyCodeLine{00227\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ While\ reading,\ this\ is\ a\ pointer\ into}}
+\DoxyCodeLine{00228\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ big\_row\_buf;\ while\ writing\ it\ is\ separately}}
+\DoxyCodeLine{00229\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ allocated.}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_FILTER\_SUPPORTED}}
+\DoxyCodeLine{00232\ \ \ \ png\_bytep\ try\_row;\ \ \ \ \textcolor{comment}{/*\ buffer\ to\ save\ trial\ row\ when\ filtering\ */}}
+\DoxyCodeLine{00233\ \ \ \ png\_bytep\ tst\_row;\ \ \ \ \textcolor{comment}{/*\ buffer\ to\ save\ best\ trial\ row\ when\ filtering\ */}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00235\ \ \ \ \textcolor{keywordtype}{size\_t}\ info\_rowbytes;\ \ \ \ \ \ \textcolor{comment}{/*\ Added\ in\ 1.5.4:\ cache\ of\ updated\ row\ bytes\ */}}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \ png\_uint\_32\ idat\_size;\ \ \ \ \ \textcolor{comment}{/*\ current\ IDAT\ size\ for\ read\ */}}
+\DoxyCodeLine{00238\ \ \ \ png\_uint\_32\ crc;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ chunk\ CRC\ value\ */}}
+\DoxyCodeLine{00239\ \ \ \ \mbox{\hyperlink{structpng__color__struct}{png\_colorp}}\ palette;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ palette\ from\ the\ input\ file\ */}}
+\DoxyCodeLine{00240\ \ \ \ png\_uint\_16\ num\_palette;\ \ \ \textcolor{comment}{/*\ number\ of\ color\ entries\ in\ palette\ */}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \textcolor{comment}{/*\ Added\ at\ libpng-\/1.5.10\ */}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#ifdef\ PNG\_CHECK\_FOR\_INVALID\_INDEX\_SUPPORTED}}
+\DoxyCodeLine{00244\ \ \ \ \textcolor{keywordtype}{int}\ num\_palette\_max;\ \ \ \ \ \ \ \textcolor{comment}{/*\ maximum\ palette\ index\ found\ in\ IDAT\ */}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ png\_uint\_16\ num\_trans;\ \ \ \ \ \textcolor{comment}{/*\ number\ of\ transparency\ values\ */}}
+\DoxyCodeLine{00248\ \ \ \ png\_byte\ compression;\ \ \ \ \ \ \textcolor{comment}{/*\ file\ compression\ type\ (always\ 0)\ */}}
+\DoxyCodeLine{00249\ \ \ \ png\_byte\ filter;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ file\ filter\ type\ (always\ 0)\ */}}
+\DoxyCodeLine{00250\ \ \ \ png\_byte\ interlaced;\ \ \ \ \ \ \ \textcolor{comment}{/*\ PNG\_INTERLACE\_NONE,\ PNG\_INTERLACE\_ADAM7\ */}}
+\DoxyCodeLine{00251\ \ \ \ png\_byte\ pass;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ interlace\ pass\ (0\ -\/\ 6)\ */}}
+\DoxyCodeLine{00252\ \ \ \ png\_byte\ do\_filter;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ row\ filter\ flags\ (see\ PNG\_FILTER\_\ in\ png.h\ )\ */}}
+\DoxyCodeLine{00253\ \ \ \ png\_byte\ \mbox{\hyperlink{structcolor__type}{color\_type}};\ \ \ \ \ \ \ \textcolor{comment}{/*\ color\ type\ of\ file\ */}}
+\DoxyCodeLine{00254\ \ \ \ png\_byte\ bit\_depth;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bit\ depth\ of\ file\ */}}
+\DoxyCodeLine{00255\ \ \ \ png\_byte\ usr\_bit\_depth;\ \ \ \ \textcolor{comment}{/*\ bit\ depth\ of\ users\ row:\ write\ only\ */}}
+\DoxyCodeLine{00256\ \ \ \ png\_byte\ pixel\_depth;\ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ bits\ per\ pixel\ */}}
+\DoxyCodeLine{00257\ \ \ \ png\_byte\ channels;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ channels\ in\ file\ */}}
+\DoxyCodeLine{00258\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_SUPPORTED}}
+\DoxyCodeLine{00259\ \ \ \ png\_byte\ usr\_channels;\ \ \ \ \ \textcolor{comment}{/*\ channels\ at\ start\ of\ write:\ write\ only\ */}}
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00261\ \ \ \ png\_byte\ sig\_bytes;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ magic\ bytes\ read/written\ from\ start\ of\ file\ */}}
+\DoxyCodeLine{00262\ \ \ \ png\_byte\ maximum\_pixel\_depth;}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ pixel\ depth\ used\ for\ the\ row\ buffers\ */}}
+\DoxyCodeLine{00264\ \ \ \ png\_byte\ transformed\_pixel\_depth;}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ pixel\ depth\ after\ read/write\ transforms\ */}}
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\#if\ ZLIB\_VERNUM\ >=\ 0x1240}}
+\DoxyCodeLine{00267\ \ \ \ png\_byte\ zstream\_start;\ \ \ \ \textcolor{comment}{/*\ at\ start\ of\ an\ input\ zlib\ stream\ */}}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ Zlib\ >=\ 1.2.4\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\#if\ defined(PNG\_READ\_FILLER\_SUPPORTED)\ ||\ defined(PNG\_WRITE\_FILLER\_SUPPORTED)}}
+\DoxyCodeLine{00270\ \ \ \ png\_uint\_16\ filler;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ filler\ bytes\ for\ pixel\ expansion\ */}}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\#if\ defined(PNG\_bKGD\_SUPPORTED)\ ||\ defined(PNG\_READ\_BACKGROUND\_SUPPORTED)\ ||\(\backslash\)}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\ \ \ defined(PNG\_READ\_ALPHA\_MODE\_SUPPORTED)}}
+\DoxyCodeLine{00275\ \ \ \ png\_byte\ background\_gamma\_type;}
+\DoxyCodeLine{00276\ \ \ \ png\_fixed\_point\ background\_gamma;}
+\DoxyCodeLine{00277\ \ \ \ \mbox{\hyperlink{structpng__color__16__struct}{png\_color\_16}}\ background;\ \ \ \textcolor{comment}{/*\ background\ color\ in\ screen\ gamma\ space\ */}}
+\DoxyCodeLine{00278\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_GAMMA\_SUPPORTED}}
+\DoxyCodeLine{00279\ \ \ \ \mbox{\hyperlink{structpng__color__16__struct}{png\_color\_16}}\ background\_1;\ \textcolor{comment}{/*\ background\ normalized\ to\ gamma\ 1.0\ */}}
+\DoxyCodeLine{00280\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00281\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ bKGD\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\#ifdef\ PNG\_WRITE\_FLUSH\_SUPPORTED}}
+\DoxyCodeLine{00284\ \ \ \ png\_flush\_ptr\ output\_flush\_fn;\ \textcolor{comment}{/*\ Function\ for\ flushing\ output\ */}}
+\DoxyCodeLine{00285\ \ \ \ png\_uint\_32\ flush\_dist;\ \ \ \ \textcolor{comment}{/*\ how\ many\ rows\ apart\ to\ flush,\ 0\ -\/\ no\ flush\ */}}
+\DoxyCodeLine{00286\ \ \ \ png\_uint\_32\ flush\_rows;\ \ \ \ \textcolor{comment}{/*\ number\ of\ rows\ written\ since\ last\ flush\ */}}
+\DoxyCodeLine{00287\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_GAMMA\_SUPPORTED}}
+\DoxyCodeLine{00290\ \ \ \ \textcolor{keywordtype}{int}\ gamma\_shift;\ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ "{}insignificant"{}\ bits\ in\ 16-\/bit\ gamma\ */}}
+\DoxyCodeLine{00291\ \ \ \ png\_fixed\_point\ screen\_gamma;\ \textcolor{comment}{/*\ screen\ gamma\ value\ (display\_exponent)\ */}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ png\_bytep\ gamma\_table;\ \ \ \ \ \textcolor{comment}{/*\ gamma\ table\ for\ 8-\/bit\ depth\ files\ */}}
+\DoxyCodeLine{00294\ \ \ \ png\_uint\_16pp\ gamma\_16\_table;\ \textcolor{comment}{/*\ gamma\ table\ for\ 16-\/bit\ depth\ files\ */}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\#if\ defined(PNG\_READ\_BACKGROUND\_SUPPORTED)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00296\ \textcolor{preprocessor}{\ \ \ defined(PNG\_READ\_ALPHA\_MODE\_SUPPORTED)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\ \ \ defined(PNG\_READ\_RGB\_TO\_GRAY\_SUPPORTED)}}
+\DoxyCodeLine{00298\ \ \ \ png\_bytep\ gamma\_from\_1;\ \ \ \ \textcolor{comment}{/*\ converts\ from\ 1.0\ to\ screen\ */}}
+\DoxyCodeLine{00299\ \ \ \ png\_bytep\ gamma\_to\_1;\ \ \ \ \ \ \textcolor{comment}{/*\ converts\ from\ file\ to\ 1.0\ */}}
+\DoxyCodeLine{00300\ \ \ \ png\_uint\_16pp\ gamma\_16\_from\_1;\ \textcolor{comment}{/*\ converts\ from\ 1.0\ to\ screen\ */}}
+\DoxyCodeLine{00301\ \ \ \ png\_uint\_16pp\ gamma\_16\_to\_1;\ \textcolor{comment}{/*\ converts\ from\ file\ to\ 1.0\ */}}
+\DoxyCodeLine{00302\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ READ\_BACKGROUND\ ||\ READ\_ALPHA\_MODE\ ||\ RGB\_TO\_GRAY\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00303\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \textcolor{preprocessor}{\#if\ defined(PNG\_READ\_GAMMA\_SUPPORTED)\ ||\ defined(PNG\_sBIT\_SUPPORTED)}}
+\DoxyCodeLine{00306\ \ \ \ \mbox{\hyperlink{structpng__color__8__struct}{png\_color\_8}}\ sig\_bit;\ \ \ \ \ \ \ \textcolor{comment}{/*\ significant\ bits\ in\ each\ available\ channel\ */}}
+\DoxyCodeLine{00307\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \textcolor{preprocessor}{\#if\ defined(PNG\_READ\_SHIFT\_SUPPORTED)\ ||\ defined(PNG\_WRITE\_SHIFT\_SUPPORTED)}}
+\DoxyCodeLine{00310\ \ \ \ \mbox{\hyperlink{structpng__color__8__struct}{png\_color\_8}}\ shift;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ shift\ for\ significant\ bit\ transformation\ */}}
+\DoxyCodeLine{00311\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \textcolor{preprocessor}{\#if\ defined(PNG\_tRNS\_SUPPORTED)\ ||\ defined(PNG\_READ\_BACKGROUND\_SUPPORTED)\ \(\backslash\)}}
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\ ||\ defined(PNG\_READ\_EXPAND\_SUPPORTED)\ ||\ defined(PNG\_READ\_BACKGROUND\_SUPPORTED)}}
+\DoxyCodeLine{00315\ \ \ \ png\_bytep\ trans\_alpha;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ alpha\ values\ for\ paletted\ files\ */}}
+\DoxyCodeLine{00316\ \ \ \ \mbox{\hyperlink{structpng__color__16__struct}{png\_color\_16}}\ trans\_color;\ \ \textcolor{comment}{/*\ transparent\ color\ for\ non-\/paletted\ files\ */}}
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \ \ \ png\_read\_status\_ptr\ read\_row\_fn;\ \ \ \textcolor{comment}{/*\ called\ after\ each\ row\ is\ decoded\ */}}
+\DoxyCodeLine{00320\ \ \ \ png\_write\_status\_ptr\ write\_row\_fn;\ \textcolor{comment}{/*\ called\ after\ each\ row\ is\ encoded\ */}}
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\#ifdef\ PNG\_PROGRESSIVE\_READ\_SUPPORTED}}
+\DoxyCodeLine{00322\ \ \ \ png\_progressive\_info\_ptr\ info\_fn;\ \textcolor{comment}{/*\ called\ after\ header\ data\ fully\ read\ */}}
+\DoxyCodeLine{00323\ \ \ \ png\_progressive\_row\_ptr\ row\_fn;\ \ \ \textcolor{comment}{/*\ called\ after\ a\ prog.\ row\ is\ decoded\ */}}
+\DoxyCodeLine{00324\ \ \ \ png\_progressive\_end\_ptr\ end\_fn;\ \ \ \textcolor{comment}{/*\ called\ after\ image\ is\ complete\ */}}
+\DoxyCodeLine{00325\ \ \ \ png\_bytep\ save\_buffer\_ptr;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ location\ in\ save\_buffer\ */}}
+\DoxyCodeLine{00326\ \ \ \ png\_bytep\ save\_buffer;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ buffer\ for\ previously\ read\ data\ */}}
+\DoxyCodeLine{00327\ \ \ \ png\_bytep\ current\_buffer\_ptr;\ \ \ \ \ \textcolor{comment}{/*\ current\ location\ in\ current\_buffer\ */}}
+\DoxyCodeLine{00328\ \ \ \ png\_bytep\ current\_buffer;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ buffer\ for\ recently\ used\ data\ */}}
+\DoxyCodeLine{00329\ \ \ \ png\_uint\_32\ push\_length;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ size\ of\ current\ input\ chunk\ */}}
+\DoxyCodeLine{00330\ \ \ \ png\_uint\_32\ skip\_length;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bytes\ to\ skip\ in\ input\ data\ */}}
+\DoxyCodeLine{00331\ \ \ \ \textcolor{keywordtype}{size\_t}\ save\_buffer\_size;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ amount\ of\ data\ now\ in\ save\_buffer\ */}}
+\DoxyCodeLine{00332\ \ \ \ \textcolor{keywordtype}{size\_t}\ save\_buffer\_max;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ total\ size\ of\ save\_buffer\ */}}
+\DoxyCodeLine{00333\ \ \ \ \textcolor{keywordtype}{size\_t}\ buffer\_size;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ total\ amount\ of\ available\ input\ data\ */}}
+\DoxyCodeLine{00334\ \ \ \ \textcolor{keywordtype}{size\_t}\ current\_buffer\_size;\ \ \ \ \ \ \ \textcolor{comment}{/*\ amount\ of\ data\ now\ in\ current\_buffer\ */}}
+\DoxyCodeLine{00335\ \ \ \ \textcolor{keywordtype}{int}\ process\_mode;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ what\ push\ library\ is\ currently\ doing\ */}}
+\DoxyCodeLine{00336\ \ \ \ \textcolor{keywordtype}{int}\ cur\_palette;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ push\ library\ palette\ index\ */}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PROGRESSIVE\_READ\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\#if\ defined(\_\_TURBOC\_\_)\ \&\&\ !defined(\_Windows)\ \&\&\ !defined(\_\_FLAT\_\_)}}
+\DoxyCodeLine{00341\ \textcolor{comment}{/*\ For\ the\ Borland\ special\ 64K\ segment\ handler\ */}}
+\DoxyCodeLine{00342\ \ \ \ png\_bytepp\ offset\_table\_ptr;}
+\DoxyCodeLine{00343\ \ \ \ png\_bytep\ offset\_table;}
+\DoxyCodeLine{00344\ \ \ \ png\_uint\_16\ offset\_table\_number;}
+\DoxyCodeLine{00345\ \ \ \ png\_uint\_16\ offset\_table\_count;}
+\DoxyCodeLine{00346\ \ \ \ png\_uint\_16\ offset\_table\_count\_free;}
+\DoxyCodeLine{00347\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_QUANTIZE\_SUPPORTED}}
+\DoxyCodeLine{00350\ \ \ \ png\_bytep\ palette\_lookup;\ \textcolor{comment}{/*\ lookup\ table\ for\ quantizing\ */}}
+\DoxyCodeLine{00351\ \ \ \ png\_bytep\ quantize\_index;\ \textcolor{comment}{/*\ index\ translation\ for\ palette\ files\ */}}
+\DoxyCodeLine{00352\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \textcolor{comment}{/*\ Options\ */}}
+\DoxyCodeLine{00355\ \textcolor{preprocessor}{\#ifdef\ PNG\_SET\_OPTION\_SUPPORTED}}
+\DoxyCodeLine{00356\ \ \ \ png\_uint\_32\ options;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ On/off\ state\ (up\ to\ 16\ options)\ */}}
+\DoxyCodeLine{00357\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \textcolor{preprocessor}{\#if\ PNG\_LIBPNG\_VER\ <\ 10700}}
+\DoxyCodeLine{00360\ \textcolor{comment}{/*\ To\ do:\ remove\ this\ from\ libpng-\/1.7\ */}}
+\DoxyCodeLine{00361\ \textcolor{preprocessor}{\#ifdef\ PNG\_TIME\_RFC1123\_SUPPORTED}}
+\DoxyCodeLine{00362\ \ \ \ \textcolor{keywordtype}{char}\ time\_buffer[29];\ \textcolor{comment}{/*\ String\ to\ hold\ RFC\ 1123\ time\ text\ */}}
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00364\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{comment}{/*\ New\ members\ added\ in\ libpng-\/1.0.6\ */}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \ png\_uint\_32\ free\_me;\ \ \ \ \textcolor{comment}{/*\ flags\ items\ libpng\ is\ responsible\ for\ freeing\ */}}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \textcolor{preprocessor}{\#ifdef\ PNG\_USER\_CHUNKS\_SUPPORTED}}
+\DoxyCodeLine{00371\ \ \ \ png\_voidp\ user\_chunk\_ptr;}
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_USER\_CHUNKS\_SUPPORTED}}
+\DoxyCodeLine{00373\ \ \ \ png\_user\_chunk\_ptr\ read\_user\_chunk\_fn;\ \textcolor{comment}{/*\ user\ read\ chunk\ handler\ */}}
+\DoxyCodeLine{00374\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \textcolor{preprocessor}{\#ifdef\ PNG\_SET\_UNKNOWN\_CHUNKS\_SUPPORTED}}
+\DoxyCodeLine{00378\ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ unknown\_default;\ \textcolor{comment}{/*\ As\ PNG\_HANDLE\_*\ */}}
+\DoxyCodeLine{00379\ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_chunk\_list;\ \ \textcolor{comment}{/*\ Number\ of\ entries\ in\ the\ list\ */}}
+\DoxyCodeLine{00380\ \ \ \ png\_bytep\ \ \ \ chunk\_list;\ \ \ \ \ \ \textcolor{comment}{/*\ List\ of\ png\_byte[5];\ the\ textual\ chunk\ name}}
+\DoxyCodeLine{00381\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ followed\ by\ a\ PNG\_HANDLE\_*\ byte\ */}}
+\DoxyCodeLine{00382\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00383\ }
+\DoxyCodeLine{00384\ \textcolor{comment}{/*\ New\ members\ added\ in\ libpng-\/1.0.3\ */}}
+\DoxyCodeLine{00385\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_RGB\_TO\_GRAY\_SUPPORTED}}
+\DoxyCodeLine{00386\ \ \ \ png\_byte\ rgb\_to\_gray\_status;}
+\DoxyCodeLine{00387\ \ \ \ \textcolor{comment}{/*\ Added\ in\ libpng\ 1.5.5\ to\ record\ setting\ of\ coefficients:\ */}}
+\DoxyCodeLine{00388\ \ \ \ png\_byte\ rgb\_to\_gray\_coefficients\_set;}
+\DoxyCodeLine{00389\ \ \ \ \textcolor{comment}{/*\ These\ were\ changed\ from\ png\_byte\ in\ libpng-\/1.0.6\ */}}
+\DoxyCodeLine{00390\ \ \ \ png\_uint\_16\ rgb\_to\_gray\_red\_coeff;}
+\DoxyCodeLine{00391\ \ \ \ png\_uint\_16\ rgb\_to\_gray\_green\_coeff;}
+\DoxyCodeLine{00392\ \ \ \ \textcolor{comment}{/*\ deleted\ in\ 1.5.5:\ rgb\_to\_gray\_blue\_coeff;\ */}}
+\DoxyCodeLine{00393\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.6.36\ */}}
+\DoxyCodeLine{00396\ \textcolor{preprocessor}{\#if\ defined(PNG\_READ\_EXPAND\_SUPPORTED)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\ \ \ \ defined(PNG\_ARM\_NEON\_IMPLEMENTATION)}}
+\DoxyCodeLine{00398\ \ \ \ png\_bytep\ riffled\_palette;\ \textcolor{comment}{/*\ buffer\ for\ accelerated\ palette\ expansion\ */}}
+\DoxyCodeLine{00399\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.0.4\ (renamed\ in\ 1.0.9)\ */}}
+\DoxyCodeLine{00402\ \textcolor{preprocessor}{\#if\ defined(PNG\_MNG\_FEATURES\_SUPPORTED)}}
+\DoxyCodeLine{00403\ \textcolor{comment}{/*\ Changed\ from\ png\_byte\ to\ png\_uint\_32\ at\ version\ 1.2.0\ */}}
+\DoxyCodeLine{00404\ \ \ \ png\_uint\_32\ mng\_features\_permitted;}
+\DoxyCodeLine{00405\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.0.9,\ ifdef'ed\ out\ in\ 1.0.12,\ enabled\ in\ 1.2.0\ */}}
+\DoxyCodeLine{00408\ \textcolor{preprocessor}{\#ifdef\ PNG\_MNG\_FEATURES\_SUPPORTED}}
+\DoxyCodeLine{00409\ \ \ \ png\_byte\ filter\_type;}
+\DoxyCodeLine{00410\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00411\ }
+\DoxyCodeLine{00412\ \textcolor{comment}{/*\ New\ members\ added\ in\ libpng-\/1.2.0\ */}}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \textcolor{comment}{/*\ New\ members\ added\ in\ libpng-\/1.0.2\ but\ first\ enabled\ by\ default\ in\ 1.2.0\ */}}
+\DoxyCodeLine{00415\ \textcolor{preprocessor}{\#ifdef\ PNG\_USER\_MEM\_SUPPORTED}}
+\DoxyCodeLine{00416\ \ \ \ png\_voidp\ mem\_ptr;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ user\ supplied\ struct\ for\ mem\ functions\ */}}
+\DoxyCodeLine{00417\ \ \ \ png\_malloc\_ptr\ malloc\_fn;\ \ \ \ \ \ \textcolor{comment}{/*\ function\ for\ allocating\ memory\ */}}
+\DoxyCodeLine{00418\ \ \ \ png\_free\_ptr\ free\_fn;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ function\ for\ freeing\ memory\ */}}
+\DoxyCodeLine{00419\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00420\ }
+\DoxyCodeLine{00421\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.0.13\ and\ 1.2.0\ */}}
+\DoxyCodeLine{00422\ \ \ \ png\_bytep\ big\_row\_buf;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ buffer\ to\ save\ current\ (unfiltered)\ row\ */}}
+\DoxyCodeLine{00423\ }
+\DoxyCodeLine{00424\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_QUANTIZE\_SUPPORTED}}
+\DoxyCodeLine{00425\ \textcolor{comment}{/*\ The\ following\ three\ members\ were\ added\ at\ version\ 1.0.14\ and\ 1.2.4\ */}}
+\DoxyCodeLine{00426\ \ \ \ png\_bytep\ quantize\_sort;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ working\ sort\ array\ */}}
+\DoxyCodeLine{00427\ \ \ \ png\_bytep\ index\_to\_palette;\ \ \ \ \ \ \ \textcolor{comment}{/*\ where\ the\ original\ index\ currently\ is}}
+\DoxyCodeLine{00428\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ in\ the\ palette\ */}}
+\DoxyCodeLine{00429\ \ \ \ png\_bytep\ palette\_to\_index;\ \ \ \ \ \ \ \textcolor{comment}{/*\ which\ original\ index\ points\ to\ this}}
+\DoxyCodeLine{00430\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ palette\ color\ */}}
+\DoxyCodeLine{00431\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00432\ }
+\DoxyCodeLine{00433\ \textcolor{comment}{/*\ New\ members\ added\ in\ libpng-\/1.0.16\ and\ 1.2.6\ */}}
+\DoxyCodeLine{00434\ \ \ \ png\_byte\ compression\_type;}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \textcolor{preprocessor}{\#ifdef\ PNG\_USER\_LIMITS\_SUPPORTED}}
+\DoxyCodeLine{00437\ \ \ \ png\_uint\_32\ user\_width\_max;}
+\DoxyCodeLine{00438\ \ \ \ png\_uint\_32\ user\_height\_max;}
+\DoxyCodeLine{00439\ }
+\DoxyCodeLine{00440\ \ \ \ \textcolor{comment}{/*\ Added\ in\ libpng-\/1.4.0:\ Total\ number\ of\ sPLT,\ text,\ and\ unknown}}
+\DoxyCodeLine{00441\ \textcolor{comment}{\ \ \ \ *\ chunks\ that\ can\ be\ stored\ (0\ means\ unlimited).}}
+\DoxyCodeLine{00442\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{00443\ \ \ \ png\_uint\_32\ user\_chunk\_cache\_max;}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \ \ \ \textcolor{comment}{/*\ Total\ memory\ that\ a\ zTXt,\ sPLT,\ iTXt,\ iCCP,\ or\ unknown\ chunk}}
+\DoxyCodeLine{00446\ \textcolor{comment}{\ \ \ \ *\ can\ occupy\ when\ decompressed.\ \ 0\ means\ unlimited.}}
+\DoxyCodeLine{00447\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{00448\ \ \ \ png\_alloc\_size\_t\ user\_chunk\_malloc\_max;}
+\DoxyCodeLine{00449\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00450\ }
+\DoxyCodeLine{00451\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.0.25\ and\ 1.2.17\ */}}
+\DoxyCodeLine{00452\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_UNKNOWN\_CHUNKS\_SUPPORTED}}
+\DoxyCodeLine{00453\ \ \ \ \textcolor{comment}{/*\ Temporary\ storage\ for\ unknown\ chunk\ that\ the\ library\ doesn't\ recognize,}}
+\DoxyCodeLine{00454\ \textcolor{comment}{\ \ \ \ *\ used\ while\ reading\ the\ chunk.}}
+\DoxyCodeLine{00455\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{00456\ \ \ \ png\_unknown\_chunk\ unknown\_chunk;}
+\DoxyCodeLine{00457\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00458\ }
+\DoxyCodeLine{00459\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.2.26\ */}}
+\DoxyCodeLine{00460\ \ \ \ \textcolor{keywordtype}{size\_t}\ old\_big\_row\_buf\_size;}
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_SUPPORTED}}
+\DoxyCodeLine{00463\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.2.30\ */}}
+\DoxyCodeLine{00464\ \ \ png\_bytep\ \ \ \ \ \ \ \ read\_buffer;\ \ \ \ \ \ \textcolor{comment}{/*\ buffer\ for\ reading\ chunk\ data\ */}}
+\DoxyCodeLine{00465\ \ \ png\_alloc\_size\_t\ read\_buffer\_size;\ \textcolor{comment}{/*\ current\ size\ of\ the\ buffer\ */}}
+\DoxyCodeLine{00466\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00467\ \textcolor{preprocessor}{\#ifdef\ PNG\_SEQUENTIAL\_READ\_SUPPORTED}}
+\DoxyCodeLine{00468\ \ \ uInt\ \ \ \ \ \ \ \ \ \ \ \ \ IDAT\_read\_size;\ \ \ \textcolor{comment}{/*\ limit\ on\ read\ buffer\ size\ for\ IDAT\ */}}
+\DoxyCodeLine{00469\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ \textcolor{preprocessor}{\#ifdef\ PNG\_IO\_STATE\_SUPPORTED}}
+\DoxyCodeLine{00472\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.4.0\ */}}
+\DoxyCodeLine{00473\ \ \ \ png\_uint\_32\ io\_state;}
+\DoxyCodeLine{00474\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00475\ }
+\DoxyCodeLine{00476\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.5.6\ */}}
+\DoxyCodeLine{00477\ \ \ \ png\_bytep\ big\_prev\_row;}
+\DoxyCodeLine{00478\ }
+\DoxyCodeLine{00479\ \textcolor{comment}{/*\ New\ member\ added\ in\ libpng-\/1.5.7\ */}}
+\DoxyCodeLine{00480\ \ \ \ void\ (*read\_filter[PNG\_FILTER\_VALUE\_LAST-\/1])(\mbox{\hyperlink{structpng__row__info__struct}{png\_row\_infop}}\ row\_info,}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ png\_bytep\ row,\ png\_const\_bytep\ prev\_row);}
+\DoxyCodeLine{00482\ }
+\DoxyCodeLine{00483\ \textcolor{preprocessor}{\#ifdef\ PNG\_READ\_SUPPORTED}}
+\DoxyCodeLine{00484\ \textcolor{preprocessor}{\#if\ defined(PNG\_COLORSPACE\_SUPPORTED)\ ||\ defined(PNG\_GAMMA\_SUPPORTED)}}
+\DoxyCodeLine{00485\ \ \ \ png\_colorspace\ \ \ colorspace;}
+\DoxyCodeLine{00486\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00487\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00488\ \};}
+\DoxyCodeLine{00489\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PNGSTRUCT\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

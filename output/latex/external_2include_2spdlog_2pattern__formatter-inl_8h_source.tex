@@ -1,0 +1,1438 @@
+\hypertarget{external_2include_2spdlog_2pattern__formatter-inl_8h_source}{}\doxysection{pattern\+\_\+formatter-\/inl.h}
+\label{external_2include_2spdlog_2pattern__formatter-inl_8h_source}\index{Tengu/external/include/spdlog/pattern\_formatter-\/inl.h@{Tengu/external/include/spdlog/pattern\_formatter-\/inl.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#ifndef\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#\ \ \ \ include\ <spdlog/pattern\_formatter.h>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <spdlog/details/fmt\_helper.h>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <spdlog/details/log\_msg.h>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <spdlog/details/os.h>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <spdlog/fmt/fmt.h>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <spdlog/formatter.h>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <array>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <chrono>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <ctime>}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <cctype>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <iterator>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ <utility>}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00031\ \textcolor{keyword}{namespace\ }details\ \{}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{//\ name\ \&\ level\ pattern\ appender}}
+\DoxyCodeLine{00036\ \textcolor{comment}{}}
+\DoxyCodeLine{00037\ \textcolor{keyword}{class\ }scoped\_padder}
+\DoxyCodeLine{00038\ \{}
+\DoxyCodeLine{00039\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00040\ \ \ \ \ scoped\_padder(\textcolor{keywordtype}{size\_t}\ wrapped\_size,\ \textcolor{keyword}{const}\ padding\_info\ \&padinfo,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ :\ padinfo\_(padinfo)}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ ,\ dest\_(dest)}
+\DoxyCodeLine{00043\ \ \ \ \ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ remaining\_pad\_\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{long}\textcolor{keyword}{>}(padinfo.width\_)\ -\/\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{long}\textcolor{keyword}{>}(wrapped\_size);}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remaining\_pad\_\ <=\ 0)}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (padinfo\_.side\_\ ==\ padding\_info::pad\_side::left)}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ pad\_it(remaining\_pad\_);}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ remaining\_pad\_\ =\ 0;}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (padinfo\_.side\_\ ==\ padding\_info::pad\_side::center)}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ half\_pad\ =\ remaining\_pad\_\ /\ 2;}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ reminder\ =\ remaining\_pad\_\ \&\ 1;}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ pad\_it(half\_pad);}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ remaining\_pad\_\ =\ half\_pad\ +\ reminder;\ \textcolor{comment}{//\ for\ the\ right\ side}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00062\ \ \ \ \ \}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count\_digits(T\ n)}
+\DoxyCodeLine{00066\ \ \ \ \ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ fmt\_helper::count\_digits(n);}
+\DoxyCodeLine{00068\ \ \ \ \ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \string~scoped\_padder()}
+\DoxyCodeLine{00071\ \ \ \ \ \{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (remaining\_pad\_\ >=\ 0)}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ pad\_it(remaining\_pad\_);}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (padinfo\_.truncate\_)}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}\ new\_size\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{long}\textcolor{keyword}{>}(dest\_.size())\ +\ remaining\_pad\_;}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ dest\_.resize(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(new\_size));}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00081\ \ \ \ \ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{void}\ pad\_it(\textcolor{keywordtype}{long}\ count)}
+\DoxyCodeLine{00085\ \ \ \ \ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(string\_view\_t(spaces\_.data(),\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(count)),\ dest\_);}
+\DoxyCodeLine{00087\ \ \ \ \ \}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keyword}{const}\ padding\_info\ \&padinfo\_;}
+\DoxyCodeLine{00090\ \ \ \ \ memory\_buf\_t\ \&dest\_;}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{long}\ remaining\_pad\_;}
+\DoxyCodeLine{00092\ \ \ \ \ string\_view\_t\ spaces\_\{\textcolor{stringliteral}{"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}},\ 64\};}
+\DoxyCodeLine{00093\ \};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{struct\ }null\_scoped\_padder}
+\DoxyCodeLine{00096\ \{}
+\DoxyCodeLine{00097\ \ \ \ \ null\_scoped\_padder(\textcolor{keywordtype}{size\_t}\ \textcolor{comment}{/*wrapped\_size*/},\ \textcolor{keyword}{const}\ padding\_info\ \&\ \textcolor{comment}{/*padinfo*/},\ memory\_buf\_t\ \&\ \textcolor{comment}{/*dest*/})\ \{\}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count\_digits(T\ \textcolor{comment}{/*\ number\ */})}
+\DoxyCodeLine{00101\ \ \ \ \ \{}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00103\ \ \ \ \ \}}
+\DoxyCodeLine{00104\ \};}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00107\ \textcolor{keyword}{class\ }name\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00108\ \{}
+\DoxyCodeLine{00109\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keyword}{explicit}\ name\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00112\ \ \ \ \ \{\}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00115\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ ScopedPadder\ p(msg.logger\_name.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(msg.logger\_name,\ dest);}
+\DoxyCodeLine{00118\ \ \ \ \ \}}
+\DoxyCodeLine{00119\ \};}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{comment}{//\ log\ level\ appender}}
+\DoxyCodeLine{00122\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00123\ \textcolor{keyword}{class\ }level\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00124\ \{}
+\DoxyCodeLine{00125\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keyword}{explicit}\ level\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00128\ \ \ \ \ \{\}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00131\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ string\_view\_t\ \&level\_name\ =\ level::to\_string\_view(msg.level);}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ ScopedPadder\ p(level\_name.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(level\_name,\ dest);}
+\DoxyCodeLine{00135\ \ \ \ \ \}}
+\DoxyCodeLine{00136\ \};}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{comment}{//\ short\ log\ level\ appender}}
+\DoxyCodeLine{00139\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00140\ \textcolor{keyword}{class\ }short\_level\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00141\ \{}
+\DoxyCodeLine{00142\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keyword}{explicit}\ short\_level\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00145\ \ \ \ \ \{\}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00148\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ string\_view\_t\ level\_name\{level::to\_short\_c\_str(msg.level)\};}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ ScopedPadder\ p(level\_name.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(level\_name,\ dest);}
+\DoxyCodeLine{00152\ \ \ \ \ \}}
+\DoxyCodeLine{00153\ \};}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00156\ \textcolor{comment}{//\ Date\ time\ pattern\ appenders}}
+\DoxyCodeLine{00158\ \textcolor{comment}{}}
+\DoxyCodeLine{00159\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *ampm(\textcolor{keyword}{const}\ tm\ \&t)}
+\DoxyCodeLine{00160\ \{}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordflow}{return}\ t.tm\_hour\ >=\ 12\ ?\ \textcolor{stringliteral}{"{}PM"{}}\ :\ \textcolor{stringliteral}{"{}AM"{}};}
+\DoxyCodeLine{00162\ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ to12h(\textcolor{keyword}{const}\ tm\ \&t)}
+\DoxyCodeLine{00165\ \{}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keywordflow}{return}\ t.tm\_hour\ >\ 12\ ?\ t.tm\_hour\ -\/\ 12\ :\ t.tm\_hour;}
+\DoxyCodeLine{00167\ \}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \textcolor{comment}{//\ Abbreviated\ weekday\ name}}
+\DoxyCodeLine{00170\ \textcolor{keyword}{static}\ std::array<const\ char\ *,\ 7>\ days\{\{\textcolor{stringliteral}{"{}Sun"{}},\ \textcolor{stringliteral}{"{}Mon"{}},\ \textcolor{stringliteral}{"{}Tue"{}},\ \textcolor{stringliteral}{"{}Wed"{}},\ \textcolor{stringliteral}{"{}Thu"{}},\ \textcolor{stringliteral}{"{}Fri"{}},\ \textcolor{stringliteral}{"{}Sat"{}}\}\};}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00173\ \textcolor{keyword}{class\ }a\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00174\ \{}
+\DoxyCodeLine{00175\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keyword}{explicit}\ a\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00178\ \ \ \ \ \{\}}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00181\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ string\_view\_t\ field\_value\{days[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(tm\_time.tm\_wday)]\};}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_value.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(field\_value,\ dest);}
+\DoxyCodeLine{00185\ \ \ \ \ \}}
+\DoxyCodeLine{00186\ \};}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \textcolor{comment}{//\ Full\ weekday\ name}}
+\DoxyCodeLine{00189\ \textcolor{keyword}{static}\ std::array<const\ char\ *,\ 7>\ full\_days\{\{\textcolor{stringliteral}{"{}Sunday"{}},\ \textcolor{stringliteral}{"{}Monday"{}},\ \textcolor{stringliteral}{"{}Tuesday"{}},\ \textcolor{stringliteral}{"{}Wednesday"{}},\ \textcolor{stringliteral}{"{}Thursday"{}},\ \textcolor{stringliteral}{"{}Friday"{}},\ \textcolor{stringliteral}{"{}Saturday"{}}\}\};}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00192\ \textcolor{keyword}{class\ }A\_formatter\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00193\ \{}
+\DoxyCodeLine{00194\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{keyword}{explicit}\ A\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00197\ \ \ \ \ \{\}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00200\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ string\_view\_t\ field\_value\{full\_days[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(tm\_time.tm\_wday)]\};}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_value.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(field\_value,\ dest);}
+\DoxyCodeLine{00204\ \ \ \ \ \}}
+\DoxyCodeLine{00205\ \};}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{comment}{//\ Abbreviated\ month}}
+\DoxyCodeLine{00208\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ std::array<const\ char\ *,\ 12>\ months\{\{\textcolor{stringliteral}{"{}Jan"{}},\ \textcolor{stringliteral}{"{}Feb"{}},\ \textcolor{stringliteral}{"{}Mar"{}},\ \textcolor{stringliteral}{"{}Apr"{}},\ \textcolor{stringliteral}{"{}May"{}},\ \textcolor{stringliteral}{"{}Jun"{}},\ \textcolor{stringliteral}{"{}Jul"{}},\ \textcolor{stringliteral}{"{}Aug"{}},\ \textcolor{stringliteral}{"{}Sept"{}},\ \textcolor{stringliteral}{"{}Oct"{}},\ \textcolor{stringliteral}{"{}Nov"{}},\ \textcolor{stringliteral}{"{}Dec"{}}\}\};}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00211\ \textcolor{keyword}{class\ }b\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00212\ \{}
+\DoxyCodeLine{00213\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{keyword}{explicit}\ b\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00216\ \ \ \ \ \{\}}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00219\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ string\_view\_t\ field\_value\{months[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(tm\_time.tm\_mon)]\};}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_value.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(field\_value,\ dest);}
+\DoxyCodeLine{00223\ \ \ \ \ \}}
+\DoxyCodeLine{00224\ \};}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \textcolor{comment}{//\ Full\ month\ name}}
+\DoxyCodeLine{00227\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ std::array<const\ char\ *,\ 12>\ full\_months\{}
+\DoxyCodeLine{00228\ \ \ \ \ \{\textcolor{stringliteral}{"{}January"{}},\ \textcolor{stringliteral}{"{}February"{}},\ \textcolor{stringliteral}{"{}March"{}},\ \textcolor{stringliteral}{"{}April"{}},\ \textcolor{stringliteral}{"{}May"{}},\ \textcolor{stringliteral}{"{}June"{}},\ \textcolor{stringliteral}{"{}July"{}},\ \textcolor{stringliteral}{"{}August"{}},\ \textcolor{stringliteral}{"{}September"{}},\ \textcolor{stringliteral}{"{}October"{}},\ \textcolor{stringliteral}{"{}November"{}},\ \textcolor{stringliteral}{"{}December"{}}\}\};}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00231\ \textcolor{keyword}{class\ }B\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00232\ \{}
+\DoxyCodeLine{00233\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keyword}{explicit}\ B\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00236\ \ \ \ \ \{\}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00239\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ string\_view\_t\ field\_value\{full\_months[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(tm\_time.tm\_mon)]\};}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_value.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(field\_value,\ dest);}
+\DoxyCodeLine{00243\ \ \ \ \ \}}
+\DoxyCodeLine{00244\ \};}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \textcolor{comment}{//\ Date\ and\ time\ representation\ (Thu\ Aug\ 23\ 15:35:46\ 2014)}}
+\DoxyCodeLine{00247\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00248\ \textcolor{keyword}{class\ }c\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00249\ \{}
+\DoxyCodeLine{00250\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keyword}{explicit}\ c\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00253\ \ \ \ \ \{\}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00256\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 24;}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(days[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(tm\_time.tm\_wday)],\ dest);}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(months[\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(tm\_time.tm\_mon)],\ dest);}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(tm\_time.tm\_mday,\ dest);}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ time}}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_hour,\ dest);}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_min,\ dest);}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_sec,\ dest);}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(tm\_time.tm\_year\ +\ 1900,\ dest);}
+\DoxyCodeLine{00275\ \ \ \ \ \}}
+\DoxyCodeLine{00276\ \};}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \textcolor{comment}{//\ year\ -\/\ 2\ digit}}
+\DoxyCodeLine{00279\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00280\ \textcolor{keyword}{class\ }C\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00281\ \{}
+\DoxyCodeLine{00282\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keyword}{explicit}\ C\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00285\ \ \ \ \ \{\}}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00288\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_year\ \%\ 100,\ dest);}
+\DoxyCodeLine{00292\ \ \ \ \ \}}
+\DoxyCodeLine{00293\ \};}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \textcolor{comment}{//\ Short\ MM/DD/YY\ date,\ equivalent\ to\ \%m/\%d/\%y\ 08/23/01}}
+\DoxyCodeLine{00296\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00297\ \textcolor{keyword}{class\ }D\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00298\ \{}
+\DoxyCodeLine{00299\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00300\ \ \ \ \ \textcolor{keyword}{explicit}\ D\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00302\ \ \ \ \ \{\}}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00305\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 10;}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_mon\ +\ 1,\ dest);}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'/'});}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_mday,\ dest);}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'/'});}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_year\ \%\ 100,\ dest);}
+\DoxyCodeLine{00314\ \ \ \ \ \}}
+\DoxyCodeLine{00315\ \};}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \textcolor{comment}{//\ year\ -\/\ 4\ digit}}
+\DoxyCodeLine{00318\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00319\ \textcolor{keyword}{class\ }Y\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00320\ \{}
+\DoxyCodeLine{00321\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00322\ \ \ \ \ \textcolor{keyword}{explicit}\ Y\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00324\ \ \ \ \ \{\}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00327\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 4;}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(tm\_time.tm\_year\ +\ 1900,\ dest);}
+\DoxyCodeLine{00331\ \ \ \ \ \}}
+\DoxyCodeLine{00332\ \};}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \textcolor{comment}{//\ month\ 1-\/12}}
+\DoxyCodeLine{00335\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00336\ \textcolor{keyword}{class\ }m\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00337\ \{}
+\DoxyCodeLine{00338\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00339\ \ \ \ \ \textcolor{keyword}{explicit}\ m\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00341\ \ \ \ \ \{\}}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00344\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_mon\ +\ 1,\ dest);}
+\DoxyCodeLine{00348\ \ \ \ \ \}}
+\DoxyCodeLine{00349\ \};}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \textcolor{comment}{//\ day\ of\ month\ 1-\/31}}
+\DoxyCodeLine{00352\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00353\ \textcolor{keyword}{class\ }d\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00354\ \{}
+\DoxyCodeLine{00355\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keyword}{explicit}\ d\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00357\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00358\ \ \ \ \ \{\}}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00361\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_mday,\ dest);}
+\DoxyCodeLine{00365\ \ \ \ \ \}}
+\DoxyCodeLine{00366\ \};}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \textcolor{comment}{//\ hours\ in\ 24\ format\ 0-\/23}}
+\DoxyCodeLine{00369\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00370\ \textcolor{keyword}{class\ }H\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00371\ \{}
+\DoxyCodeLine{00372\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00373\ \ \ \ \ \textcolor{keyword}{explicit}\ H\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00375\ \ \ \ \ \{\}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00378\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_hour,\ dest);}
+\DoxyCodeLine{00382\ \ \ \ \ \}}
+\DoxyCodeLine{00383\ \};}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \textcolor{comment}{//\ hours\ in\ 12\ format\ 1-\/12}}
+\DoxyCodeLine{00386\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00387\ \textcolor{keyword}{class\ }I\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00388\ \{}
+\DoxyCodeLine{00389\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00390\ \ \ \ \ \textcolor{keyword}{explicit}\ I\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00392\ \ \ \ \ \{\}}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00395\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(to12h(tm\_time),\ dest);}
+\DoxyCodeLine{00399\ \ \ \ \ \}}
+\DoxyCodeLine{00400\ \};}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \textcolor{comment}{//\ minutes\ 0-\/59}}
+\DoxyCodeLine{00403\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00404\ \textcolor{keyword}{class\ }M\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00405\ \{}
+\DoxyCodeLine{00406\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00407\ \ \ \ \ \textcolor{keyword}{explicit}\ M\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00409\ \ \ \ \ \{\}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00412\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_min,\ dest);}
+\DoxyCodeLine{00416\ \ \ \ \ \}}
+\DoxyCodeLine{00417\ \};}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \textcolor{comment}{//\ seconds\ 0-\/59}}
+\DoxyCodeLine{00420\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00421\ \textcolor{keyword}{class\ }S\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00422\ \{}
+\DoxyCodeLine{00423\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00424\ \ \ \ \ \textcolor{keyword}{explicit}\ S\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00426\ \ \ \ \ \{\}}
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00429\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_sec,\ dest);}
+\DoxyCodeLine{00433\ \ \ \ \ \}}
+\DoxyCodeLine{00434\ \};}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \textcolor{comment}{//\ milliseconds}}
+\DoxyCodeLine{00437\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00438\ \textcolor{keyword}{class\ }e\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00439\ \{}
+\DoxyCodeLine{00440\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00441\ \ \ \ \ \textcolor{keyword}{explicit}\ e\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00442\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00443\ \ \ \ \ \{\}}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00446\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00447\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ millis\ =\ fmt\_helper::time\_fraction<std::chrono::milliseconds>(msg.time);}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 3;}
+\DoxyCodeLine{00449\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00450\ \ \ \ \ \ \ \ \ fmt\_helper::pad3(\textcolor{keyword}{static\_cast<}uint32\_t\textcolor{keyword}{>}(millis.count()),\ dest);}
+\DoxyCodeLine{00451\ \ \ \ \ \}}
+\DoxyCodeLine{00452\ \};}
+\DoxyCodeLine{00453\ }
+\DoxyCodeLine{00454\ \textcolor{comment}{//\ microseconds}}
+\DoxyCodeLine{00455\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00456\ \textcolor{keyword}{class\ }f\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00457\ \{}
+\DoxyCodeLine{00458\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00459\ \ \ \ \ \textcolor{keyword}{explicit}\ f\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00461\ \ \ \ \ \{\}}
+\DoxyCodeLine{00462\ }
+\DoxyCodeLine{00463\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00464\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00465\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ micros\ =\ fmt\_helper::time\_fraction<std::chrono::microseconds>(msg.time);}
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 6;}
+\DoxyCodeLine{00468\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00469\ \ \ \ \ \ \ \ \ fmt\_helper::pad6(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(micros.count()),\ dest);}
+\DoxyCodeLine{00470\ \ \ \ \ \}}
+\DoxyCodeLine{00471\ \};}
+\DoxyCodeLine{00472\ }
+\DoxyCodeLine{00473\ \textcolor{comment}{//\ nanoseconds}}
+\DoxyCodeLine{00474\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00475\ \textcolor{keyword}{class\ }F\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00476\ \{}
+\DoxyCodeLine{00477\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00478\ \ \ \ \ \textcolor{keyword}{explicit}\ F\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00479\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00480\ \ \ \ \ \{\}}
+\DoxyCodeLine{00481\ }
+\DoxyCodeLine{00482\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00483\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00484\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ ns\ =\ fmt\_helper::time\_fraction<std::chrono::nanoseconds>(msg.time);}
+\DoxyCodeLine{00485\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 9;}
+\DoxyCodeLine{00486\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00487\ \ \ \ \ \ \ \ \ fmt\_helper::pad9(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(ns.count()),\ dest);}
+\DoxyCodeLine{00488\ \ \ \ \ \}}
+\DoxyCodeLine{00489\ \};}
+\DoxyCodeLine{00490\ }
+\DoxyCodeLine{00491\ \textcolor{comment}{//\ seconds\ since\ epoch}}
+\DoxyCodeLine{00492\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00493\ \textcolor{keyword}{class\ }E\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00494\ \{}
+\DoxyCodeLine{00495\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00496\ \ \ \ \ \textcolor{keyword}{explicit}\ E\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00498\ \ \ \ \ \{\}}
+\DoxyCodeLine{00499\ }
+\DoxyCodeLine{00500\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00501\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 10;}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ duration\ =\ msg.time.time\_since\_epoch();}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ seconds\ =\ std::chrono::duration\_cast<std::chrono::seconds>(duration).count();}
+\DoxyCodeLine{00506\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(seconds,\ dest);}
+\DoxyCodeLine{00507\ \ \ \ \ \}}
+\DoxyCodeLine{00508\ \};}
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \textcolor{comment}{//\ AM/PM}}
+\DoxyCodeLine{00511\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00512\ \textcolor{keyword}{class\ }p\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00513\ \{}
+\DoxyCodeLine{00514\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00515\ \ \ \ \ \textcolor{keyword}{explicit}\ p\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00516\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00517\ \ \ \ \ \{\}}
+\DoxyCodeLine{00518\ }
+\DoxyCodeLine{00519\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00520\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00521\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 2;}
+\DoxyCodeLine{00522\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00523\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(ampm(tm\_time),\ dest);}
+\DoxyCodeLine{00524\ \ \ \ \ \}}
+\DoxyCodeLine{00525\ \};}
+\DoxyCodeLine{00526\ }
+\DoxyCodeLine{00527\ \textcolor{comment}{//\ 12\ hour\ clock\ 02:55:02\ pm}}
+\DoxyCodeLine{00528\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00529\ \textcolor{keyword}{class\ }r\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00530\ \{}
+\DoxyCodeLine{00531\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00532\ \ \ \ \ \textcolor{keyword}{explicit}\ r\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00533\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00534\ \ \ \ \ \{\}}
+\DoxyCodeLine{00535\ }
+\DoxyCodeLine{00536\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00537\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00538\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 11;}
+\DoxyCodeLine{00539\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00540\ }
+\DoxyCodeLine{00541\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(to12h(tm\_time),\ dest);}
+\DoxyCodeLine{00542\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_min,\ dest);}
+\DoxyCodeLine{00544\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00545\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_sec,\ dest);}
+\DoxyCodeLine{00546\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00547\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(ampm(tm\_time),\ dest);}
+\DoxyCodeLine{00548\ \ \ \ \ \}}
+\DoxyCodeLine{00549\ \};}
+\DoxyCodeLine{00550\ }
+\DoxyCodeLine{00551\ \textcolor{comment}{//\ 24-\/hour\ HH:MM\ time,\ equivalent\ to\ \%H:\%M}}
+\DoxyCodeLine{00552\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00553\ \textcolor{keyword}{class\ }R\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00554\ \{}
+\DoxyCodeLine{00555\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00556\ \ \ \ \ \textcolor{keyword}{explicit}\ R\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00557\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00558\ \ \ \ \ \{\}}
+\DoxyCodeLine{00559\ }
+\DoxyCodeLine{00560\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00561\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00562\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 5;}
+\DoxyCodeLine{00563\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00564\ }
+\DoxyCodeLine{00565\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_hour,\ dest);}
+\DoxyCodeLine{00566\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00567\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_min,\ dest);}
+\DoxyCodeLine{00568\ \ \ \ \ \}}
+\DoxyCodeLine{00569\ \};}
+\DoxyCodeLine{00570\ }
+\DoxyCodeLine{00571\ \textcolor{comment}{//\ ISO\ 8601\ time\ format\ (HH:MM:SS),\ equivalent\ to\ \%H:\%M:\%S}}
+\DoxyCodeLine{00572\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00573\ \textcolor{keyword}{class\ }T\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00574\ \{}
+\DoxyCodeLine{00575\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00576\ \ \ \ \ \textcolor{keyword}{explicit}\ T\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00577\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00578\ \ \ \ \ \{\}}
+\DoxyCodeLine{00579\ }
+\DoxyCodeLine{00580\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00581\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00582\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 8;}
+\DoxyCodeLine{00583\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_hour,\ dest);}
+\DoxyCodeLine{00586\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00587\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_min,\ dest);}
+\DoxyCodeLine{00588\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00589\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_sec,\ dest);}
+\DoxyCodeLine{00590\ \ \ \ \ \}}
+\DoxyCodeLine{00591\ \};}
+\DoxyCodeLine{00592\ }
+\DoxyCodeLine{00593\ \textcolor{comment}{//\ ISO\ 8601\ offset\ from\ UTC\ in\ timezone\ (+-\/HH:MM)}}
+\DoxyCodeLine{00594\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00595\ \textcolor{keyword}{class\ }z\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00596\ \{}
+\DoxyCodeLine{00597\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00598\ \ \ \ \ \textcolor{keyword}{explicit}\ z\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00600\ \ \ \ \ \{\}}
+\DoxyCodeLine{00601\ }
+\DoxyCodeLine{00602\ \ \ \ \ z\_formatter()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00603\ \ \ \ \ z\_formatter(\textcolor{keyword}{const}\ z\_formatter\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00604\ \ \ \ \ z\_formatter\ \&operator=(\textcolor{keyword}{const}\ z\_formatter\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00605\ }
+\DoxyCodeLine{00606\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00607\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00608\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ field\_size\ =\ 6;}
+\DoxyCodeLine{00609\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00610\ }
+\DoxyCodeLine{00611\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ total\_minutes\ =\ get\_cached\_offset(msg,\ tm\_time);}
+\DoxyCodeLine{00612\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_negative\ =\ total\_minutes\ <\ 0;}
+\DoxyCodeLine{00613\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_negative)}
+\DoxyCodeLine{00614\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00615\ \ \ \ \ \ \ \ \ \ \ \ \ total\_minutes\ =\ -\/total\_minutes;}
+\DoxyCodeLine{00616\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'-\/'});}
+\DoxyCodeLine{00617\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00618\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00619\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'+'});}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00622\ }
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(total\_minutes\ /\ 60,\ dest);\ \textcolor{comment}{//\ hours}}
+\DoxyCodeLine{00624\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00625\ \ \ \ \ \ \ \ \ fmt\_helper::pad2(total\_minutes\ \%\ 60,\ dest);\ \textcolor{comment}{//\ minutes}}
+\DoxyCodeLine{00626\ \ \ \ \ \}}
+\DoxyCodeLine{00627\ }
+\DoxyCodeLine{00628\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00629\ \ \ \ \ log\_clock::time\_point\ last\_update\_\{std::chrono::seconds(0)\};}
+\DoxyCodeLine{00630\ \ \ \ \ \textcolor{keywordtype}{int}\ offset\_minutes\_\{0\};}
+\DoxyCodeLine{00631\ }
+\DoxyCodeLine{00632\ \ \ \ \ \textcolor{keywordtype}{int}\ get\_cached\_offset(\textcolor{keyword}{const}\ log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time)}
+\DoxyCodeLine{00633\ \ \ \ \ \{}
+\DoxyCodeLine{00634\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ refresh\ every\ 10\ seconds}}
+\DoxyCodeLine{00635\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg.time\ -\/\ last\_update\_\ >=\ std::chrono::seconds(10))}
+\DoxyCodeLine{00636\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00637\ \ \ \ \ \ \ \ \ \ \ \ \ offset\_minutes\_\ =\ os::utc\_minutes\_offset(tm\_time);}
+\DoxyCodeLine{00638\ \ \ \ \ \ \ \ \ \ \ \ \ last\_update\_\ =\ msg.time;}
+\DoxyCodeLine{00639\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00640\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ offset\_minutes\_;}
+\DoxyCodeLine{00641\ \ \ \ \ \}}
+\DoxyCodeLine{00642\ \};}
+\DoxyCodeLine{00643\ }
+\DoxyCodeLine{00644\ \textcolor{comment}{//\ Thread\ id}}
+\DoxyCodeLine{00645\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00646\ \textcolor{keyword}{class\ }t\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00647\ \{}
+\DoxyCodeLine{00648\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00649\ \ \ \ \ \textcolor{keyword}{explicit}\ t\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00650\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00651\ \ \ \ \ \{\}}
+\DoxyCodeLine{00652\ }
+\DoxyCodeLine{00653\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00654\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00655\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ field\_size\ =\ ScopedPadder::count\_digits(msg.thread\_id);}
+\DoxyCodeLine{00656\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00657\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(msg.thread\_id,\ dest);}
+\DoxyCodeLine{00658\ \ \ \ \ \}}
+\DoxyCodeLine{00659\ \};}
+\DoxyCodeLine{00660\ }
+\DoxyCodeLine{00661\ \textcolor{comment}{//\ Current\ pid}}
+\DoxyCodeLine{00662\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00663\ \textcolor{keyword}{class\ }pid\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00664\ \{}
+\DoxyCodeLine{00665\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00666\ \ \ \ \ \textcolor{keyword}{explicit}\ pid\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00667\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00668\ \ \ \ \ \{\}}
+\DoxyCodeLine{00669\ }
+\DoxyCodeLine{00670\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00671\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00672\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ pid\ =\ \textcolor{keyword}{static\_cast<}uint32\_t\textcolor{keyword}{>}(details::os::pid());}
+\DoxyCodeLine{00673\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ field\_size\ =\ ScopedPadder::count\_digits(pid);}
+\DoxyCodeLine{00674\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00675\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(pid,\ dest);}
+\DoxyCodeLine{00676\ \ \ \ \ \}}
+\DoxyCodeLine{00677\ \};}
+\DoxyCodeLine{00678\ }
+\DoxyCodeLine{00679\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00680\ \textcolor{keyword}{class\ }v\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00681\ \{}
+\DoxyCodeLine{00682\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00683\ \ \ \ \ \textcolor{keyword}{explicit}\ v\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00684\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00685\ \ \ \ \ \{\}}
+\DoxyCodeLine{00686\ }
+\DoxyCodeLine{00687\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00688\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00689\ \ \ \ \ \ \ \ \ ScopedPadder\ p(msg.payload.size(),\ padinfo\_,\ dest);}
+\DoxyCodeLine{00690\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(msg.payload,\ dest);}
+\DoxyCodeLine{00691\ \ \ \ \ \}}
+\DoxyCodeLine{00692\ \};}
+\DoxyCodeLine{00693\ }
+\DoxyCodeLine{00694\ \textcolor{keyword}{class\ }ch\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00695\ \{}
+\DoxyCodeLine{00696\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00697\ \ \ \ \ \textcolor{keyword}{explicit}\ ch\_formatter(\textcolor{keywordtype}{char}\ ch)}
+\DoxyCodeLine{00698\ \ \ \ \ \ \ \ \ :\ ch\_(ch)}
+\DoxyCodeLine{00699\ \ \ \ \ \{\}}
+\DoxyCodeLine{00700\ }
+\DoxyCodeLine{00701\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00702\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00703\ \ \ \ \ \ \ \ \ dest.push\_back(ch\_);}
+\DoxyCodeLine{00704\ \ \ \ \ \}}
+\DoxyCodeLine{00705\ }
+\DoxyCodeLine{00706\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00707\ \ \ \ \ \textcolor{keywordtype}{char}\ ch\_;}
+\DoxyCodeLine{00708\ \};}
+\DoxyCodeLine{00709\ }
+\DoxyCodeLine{00710\ \textcolor{comment}{//\ aggregate\ user\ chars\ to\ display\ as\ is}}
+\DoxyCodeLine{00711\ \textcolor{keyword}{class\ }aggregate\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00712\ \{}
+\DoxyCodeLine{00713\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00714\ \ \ \ \ aggregate\_formatter()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00715\ }
+\DoxyCodeLine{00716\ \ \ \ \ \textcolor{keywordtype}{void}\ add\_ch(\textcolor{keywordtype}{char}\ ch)}
+\DoxyCodeLine{00717\ \ \ \ \ \{}
+\DoxyCodeLine{00718\ \ \ \ \ \ \ \ \ str\_\ +=\ ch;}
+\DoxyCodeLine{00719\ \ \ \ \ \}}
+\DoxyCodeLine{00720\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00721\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00722\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(str\_,\ dest);}
+\DoxyCodeLine{00723\ \ \ \ \ \}}
+\DoxyCodeLine{00724\ }
+\DoxyCodeLine{00725\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00726\ \ \ \ \ std::string\ str\_;}
+\DoxyCodeLine{00727\ \};}
+\DoxyCodeLine{00728\ }
+\DoxyCodeLine{00729\ \textcolor{comment}{//\ mark\ the\ color\ range.\ expect\ it\ to\ be\ in\ the\ form\ of\ "{}\%\string^colored\ text\%\$"{}}}
+\DoxyCodeLine{00730\ \textcolor{keyword}{class\ }color\_start\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00731\ \{}
+\DoxyCodeLine{00732\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00733\ \ \ \ \ \textcolor{keyword}{explicit}\ color\_start\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00734\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00735\ \ \ \ \ \{\}}
+\DoxyCodeLine{00736\ }
+\DoxyCodeLine{00737\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00738\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00739\ \ \ \ \ \ \ \ \ msg.color\_range\_start\ =\ dest.size();}
+\DoxyCodeLine{00740\ \ \ \ \ \}}
+\DoxyCodeLine{00741\ \};}
+\DoxyCodeLine{00742\ }
+\DoxyCodeLine{00743\ \textcolor{keyword}{class\ }color\_stop\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00744\ \{}
+\DoxyCodeLine{00745\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00746\ \ \ \ \ \textcolor{keyword}{explicit}\ color\_stop\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00747\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00748\ \ \ \ \ \{\}}
+\DoxyCodeLine{00749\ }
+\DoxyCodeLine{00750\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00751\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00752\ \ \ \ \ \ \ \ \ msg.color\_range\_end\ =\ dest.size();}
+\DoxyCodeLine{00753\ \ \ \ \ \}}
+\DoxyCodeLine{00754\ \};}
+\DoxyCodeLine{00755\ }
+\DoxyCodeLine{00756\ \textcolor{comment}{//\ print\ source\ location}}
+\DoxyCodeLine{00757\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00758\ \textcolor{keyword}{class\ }source\_location\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00759\ \{}
+\DoxyCodeLine{00760\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00761\ \ \ \ \ \textcolor{keyword}{explicit}\ source\_location\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00762\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00763\ \ \ \ \ \{\}}
+\DoxyCodeLine{00764\ }
+\DoxyCodeLine{00765\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00766\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00767\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg.source.empty())}
+\DoxyCodeLine{00768\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00769\ \ \ \ \ \ \ \ \ \ \ \ \ ScopedPadder\ p(0,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00770\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00771\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00772\ }
+\DoxyCodeLine{00773\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ text\_size;}
+\DoxyCodeLine{00774\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (padinfo\_.enabled())}
+\DoxyCodeLine{00775\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00776\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ calc\ text\ size\ for\ padding\ based\ on\ "{}filename:line"{}}}
+\DoxyCodeLine{00777\ \ \ \ \ \ \ \ \ \ \ \ \ text\_size\ =\ std::char\_traits<char>::length(msg.source.filename)\ +\ ScopedPadder::count\_digits(msg.source.line)\ +\ 1;}
+\DoxyCodeLine{00778\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00779\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00780\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00781\ \ \ \ \ \ \ \ \ \ \ \ \ text\_size\ =\ 0;}
+\DoxyCodeLine{00782\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00783\ }
+\DoxyCodeLine{00784\ \ \ \ \ \ \ \ \ ScopedPadder\ p(text\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00785\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(msg.source.filename,\ dest);}
+\DoxyCodeLine{00786\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00787\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(msg.source.line,\ dest);}
+\DoxyCodeLine{00788\ \ \ \ \ \}}
+\DoxyCodeLine{00789\ \};}
+\DoxyCodeLine{00790\ }
+\DoxyCodeLine{00791\ \textcolor{comment}{//\ print\ source\ filename}}
+\DoxyCodeLine{00792\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00793\ \textcolor{keyword}{class\ }source\_filename\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00794\ \{}
+\DoxyCodeLine{00795\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00796\ \ \ \ \ \textcolor{keyword}{explicit}\ source\_filename\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00797\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00798\ \ \ \ \ \{\}}
+\DoxyCodeLine{00799\ }
+\DoxyCodeLine{00800\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00801\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00802\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg.source.empty())}
+\DoxyCodeLine{00803\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00804\ \ \ \ \ \ \ \ \ \ \ \ \ ScopedPadder\ p(0,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00805\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00806\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00807\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ text\_size\ =\ padinfo\_.enabled()\ ?\ std::char\_traits<char>::length(msg.source.filename)\ :\ 0;}
+\DoxyCodeLine{00808\ \ \ \ \ \ \ \ \ ScopedPadder\ p(text\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00809\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(msg.source.filename,\ dest);}
+\DoxyCodeLine{00810\ \ \ \ \ \}}
+\DoxyCodeLine{00811\ \};}
+\DoxyCodeLine{00812\ }
+\DoxyCodeLine{00813\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00814\ \textcolor{keyword}{class\ }short\_filename\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00815\ \{}
+\DoxyCodeLine{00816\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00817\ \ \ \ \ \textcolor{keyword}{explicit}\ short\_filename\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00818\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00819\ \ \ \ \ \{\}}
+\DoxyCodeLine{00820\ }
+\DoxyCodeLine{00821\ \textcolor{preprocessor}{\#ifdef\ \_MSC\_VER}}
+\DoxyCodeLine{00822\ \textcolor{preprocessor}{\#\ \ \ \ pragma\ warning(push)}}
+\DoxyCodeLine{00823\ \textcolor{preprocessor}{\#\ \ \ \ pragma\ warning(disable\ :\ 4127)\ }\textcolor{comment}{//\ consider\ using\ 'if\ constexpr'\ instead}}
+\DoxyCodeLine{00824\ \textcolor{preprocessor}{\#endif\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ \_MSC\_VER}}
+\DoxyCodeLine{00825\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *basename(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *filename)}
+\DoxyCodeLine{00826\ \ \ \ \ \{}
+\DoxyCodeLine{00827\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ the\ size\ is\ 2\ (1\ character\ +\ null\ terminator)\ we\ can\ use\ the\ more\ efficient\ strrchr}}
+\DoxyCodeLine{00828\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ the\ branch\ will\ be\ elided\ by\ optimizations}}
+\DoxyCodeLine{00829\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}(os::folder\_seps)\ ==\ 2)}
+\DoxyCodeLine{00830\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00831\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *rv\ =\ std::strrchr(filename,\ os::folder\_seps[0]);}
+\DoxyCodeLine{00832\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ rv\ !=\ \textcolor{keyword}{nullptr}\ ?\ rv\ +\ 1\ :\ filename;}
+\DoxyCodeLine{00833\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00834\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00835\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00836\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::reverse\_iterator<const\ char\ *>\ begin(filename\ +\ std::strlen(filename));}
+\DoxyCodeLine{00837\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::reverse\_iterator<const\ char\ *>\ end(filename);}
+\DoxyCodeLine{00838\ }
+\DoxyCodeLine{00839\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ it\ =\ std::find\_first\_of(begin,\ end,\ std::begin(os::folder\_seps),\ std::end(os::folder\_seps)\ -\/\ 1);}
+\DoxyCodeLine{00840\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ it\ !=\ end\ ?\ it.base()\ :\ filename;}
+\DoxyCodeLine{00841\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00842\ \ \ \ \ \}}
+\DoxyCodeLine{00843\ \textcolor{preprocessor}{\#ifdef\ \_MSC\_VER}}
+\DoxyCodeLine{00844\ \textcolor{preprocessor}{\#\ \ \ \ pragma\ warning(pop)}}
+\DoxyCodeLine{00845\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \_MSC\_VER}}
+\DoxyCodeLine{00846\ }
+\DoxyCodeLine{00847\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00848\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00849\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg.source.empty())}
+\DoxyCodeLine{00850\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00851\ \ \ \ \ \ \ \ \ \ \ \ \ ScopedPadder\ p(0,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00852\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00853\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00854\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ filename\ =\ basename(msg.source.filename);}
+\DoxyCodeLine{00855\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ text\_size\ =\ padinfo\_.enabled()\ ?\ std::char\_traits<char>::length(filename)\ :\ 0;}
+\DoxyCodeLine{00856\ \ \ \ \ \ \ \ \ ScopedPadder\ p(text\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00857\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(filename,\ dest);}
+\DoxyCodeLine{00858\ \ \ \ \ \}}
+\DoxyCodeLine{00859\ \};}
+\DoxyCodeLine{00860\ }
+\DoxyCodeLine{00861\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00862\ \textcolor{keyword}{class\ }source\_linenum\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00863\ \{}
+\DoxyCodeLine{00864\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00865\ \ \ \ \ \textcolor{keyword}{explicit}\ source\_linenum\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00866\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00867\ \ \ \ \ \{\}}
+\DoxyCodeLine{00868\ }
+\DoxyCodeLine{00869\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00870\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00871\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg.source.empty())}
+\DoxyCodeLine{00872\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00873\ \ \ \ \ \ \ \ \ \ \ \ \ ScopedPadder\ p(0,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00874\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00875\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00876\ }
+\DoxyCodeLine{00877\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ field\_size\ =\ ScopedPadder::count\_digits(msg.source.line);}
+\DoxyCodeLine{00878\ \ \ \ \ \ \ \ \ ScopedPadder\ p(field\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00879\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(msg.source.line,\ dest);}
+\DoxyCodeLine{00880\ \ \ \ \ \}}
+\DoxyCodeLine{00881\ \};}
+\DoxyCodeLine{00882\ }
+\DoxyCodeLine{00883\ \textcolor{comment}{//\ print\ source\ funcname}}
+\DoxyCodeLine{00884\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder>}
+\DoxyCodeLine{00885\ \textcolor{keyword}{class\ }source\_funcname\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00886\ \{}
+\DoxyCodeLine{00887\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00888\ \ \ \ \ \textcolor{keyword}{explicit}\ source\_funcname\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00889\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00890\ \ \ \ \ \{\}}
+\DoxyCodeLine{00891\ }
+\DoxyCodeLine{00892\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00893\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00894\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg.source.empty())}
+\DoxyCodeLine{00895\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00896\ \ \ \ \ \ \ \ \ \ \ \ \ ScopedPadder\ p(0,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00897\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00898\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00899\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ text\_size\ =\ padinfo\_.enabled()\ ?\ std::char\_traits<char>::length(msg.source.funcname)\ :\ 0;}
+\DoxyCodeLine{00900\ \ \ \ \ \ \ \ \ ScopedPadder\ p(text\_size,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00901\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(msg.source.funcname,\ dest);}
+\DoxyCodeLine{00902\ \ \ \ \ \}}
+\DoxyCodeLine{00903\ \};}
+\DoxyCodeLine{00904\ }
+\DoxyCodeLine{00905\ \textcolor{comment}{//\ print\ elapsed\ time\ since\ last\ message}}
+\DoxyCodeLine{00906\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ScopedPadder,\ \textcolor{keyword}{typename}\ Units>}
+\DoxyCodeLine{00907\ \textcolor{keyword}{class\ }elapsed\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00908\ \{}
+\DoxyCodeLine{00909\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00910\ \ \ \ \ \textcolor{keyword}{using\ }DurationUnits\ =\ Units;}
+\DoxyCodeLine{00911\ }
+\DoxyCodeLine{00912\ \ \ \ \ \textcolor{keyword}{explicit}\ elapsed\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00913\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00914\ \ \ \ \ \ \ \ \ ,\ last\_message\_time\_(log\_clock::now())}
+\DoxyCodeLine{00915\ \ \ \ \ \{\}}
+\DoxyCodeLine{00916\ }
+\DoxyCodeLine{00917\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00918\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00919\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ delta\ =\ (std::max)(msg.time\ -\/\ last\_message\_time\_,\ log\_clock::duration::zero());}
+\DoxyCodeLine{00920\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ delta\_units\ =\ std::chrono::duration\_cast<DurationUnits>(delta);}
+\DoxyCodeLine{00921\ \ \ \ \ \ \ \ \ last\_message\_time\_\ =\ msg.time;}
+\DoxyCodeLine{00922\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ delta\_count\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(delta\_units.count());}
+\DoxyCodeLine{00923\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ n\_digits\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(ScopedPadder::count\_digits(delta\_count));}
+\DoxyCodeLine{00924\ \ \ \ \ \ \ \ \ ScopedPadder\ p(n\_digits,\ padinfo\_,\ dest);}
+\DoxyCodeLine{00925\ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(delta\_count,\ dest);}
+\DoxyCodeLine{00926\ \ \ \ \ \}}
+\DoxyCodeLine{00927\ }
+\DoxyCodeLine{00928\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00929\ \ \ \ \ log\_clock::time\_point\ last\_message\_time\_;}
+\DoxyCodeLine{00930\ \};}
+\DoxyCodeLine{00931\ }
+\DoxyCodeLine{00932\ \textcolor{comment}{//\ Full\ info\ formatter}}
+\DoxyCodeLine{00933\ \textcolor{comment}{//\ pattern:\ [\%Y-\/\%m-\/\%d\ \%H:\%M:\%S.\%e]\ [\%n]\ [\%l]\ [\%s:\%\#]\ \%v}}
+\DoxyCodeLine{00934\ \textcolor{keyword}{class\ }full\_formatter\ final\ :\ \textcolor{keyword}{public}\ flag\_formatter}
+\DoxyCodeLine{00935\ \{}
+\DoxyCodeLine{00936\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00937\ \ \ \ \ \textcolor{keyword}{explicit}\ full\_formatter(padding\_info\ padinfo)}
+\DoxyCodeLine{00938\ \ \ \ \ \ \ \ \ :\ flag\_formatter(padinfo)}
+\DoxyCodeLine{00939\ \ \ \ \ \{\}}
+\DoxyCodeLine{00940\ }
+\DoxyCodeLine{00941\ \ \ \ \ \textcolor{keywordtype}{void}\ format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ \textcolor{keyword}{const}\ std::tm\ \&tm\_time,\ memory\_buf\_t\ \&dest)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00942\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00943\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ }std::chrono::duration\_cast;}
+\DoxyCodeLine{00944\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ }std::chrono::milliseconds;}
+\DoxyCodeLine{00945\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ }std::chrono::seconds;}
+\DoxyCodeLine{00946\ }
+\DoxyCodeLine{00947\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ cache\ the\ date/time\ part\ for\ the\ next\ second.}}
+\DoxyCodeLine{00948\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ duration\ =\ msg.time.time\_since\_epoch();}
+\DoxyCodeLine{00949\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ secs\ =\ duration\_cast<seconds>(duration);}
+\DoxyCodeLine{00950\ }
+\DoxyCodeLine{00951\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (cache\_timestamp\_\ !=\ secs\ ||\ cached\_datetime\_.size()\ ==\ 0)}
+\DoxyCodeLine{00952\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00953\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.clear();}
+\DoxyCodeLine{00954\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.push\_back(\textcolor{charliteral}{'['});}
+\DoxyCodeLine{00955\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(tm\_time.tm\_year\ +\ 1900,\ cached\_datetime\_);}
+\DoxyCodeLine{00956\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.push\_back(\textcolor{charliteral}{'-\/'});}
+\DoxyCodeLine{00957\ }
+\DoxyCodeLine{00958\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_mon\ +\ 1,\ cached\_datetime\_);}
+\DoxyCodeLine{00959\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.push\_back(\textcolor{charliteral}{'-\/'});}
+\DoxyCodeLine{00960\ }
+\DoxyCodeLine{00961\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_mday,\ cached\_datetime\_);}
+\DoxyCodeLine{00962\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00963\ }
+\DoxyCodeLine{00964\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_hour,\ cached\_datetime\_);}
+\DoxyCodeLine{00965\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00966\ }
+\DoxyCodeLine{00967\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_min,\ cached\_datetime\_);}
+\DoxyCodeLine{00968\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{00969\ }
+\DoxyCodeLine{00970\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::pad2(tm\_time.tm\_sec,\ cached\_datetime\_);}
+\DoxyCodeLine{00971\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_datetime\_.push\_back(\textcolor{charliteral}{'.'});}
+\DoxyCodeLine{00972\ }
+\DoxyCodeLine{00973\ \ \ \ \ \ \ \ \ \ \ \ \ cache\_timestamp\_\ =\ secs;}
+\DoxyCodeLine{00974\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00975\ \ \ \ \ \ \ \ \ dest.append(cached\_datetime\_.begin(),\ cached\_datetime\_.end());}
+\DoxyCodeLine{00976\ }
+\DoxyCodeLine{00977\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ millis\ =\ fmt\_helper::time\_fraction<milliseconds>(msg.time);}
+\DoxyCodeLine{00978\ \ \ \ \ \ \ \ \ fmt\_helper::pad3(\textcolor{keyword}{static\_cast<}uint32\_t\textcolor{keyword}{>}(millis.count()),\ dest);}
+\DoxyCodeLine{00979\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{']'});}
+\DoxyCodeLine{00980\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00981\ }
+\DoxyCodeLine{00982\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ append\ logger\ name\ if\ exists}}
+\DoxyCodeLine{00983\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg.logger\_name.size()\ >\ 0)}
+\DoxyCodeLine{00984\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00985\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'['});}
+\DoxyCodeLine{00986\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(msg.logger\_name,\ dest);}
+\DoxyCodeLine{00987\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{']'});}
+\DoxyCodeLine{00988\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00989\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00990\ }
+\DoxyCodeLine{00991\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'['});}
+\DoxyCodeLine{00992\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ wrap\ the\ level\ name\ with\ color}}
+\DoxyCodeLine{00993\ \ \ \ \ \ \ \ \ msg.color\_range\_start\ =\ dest.size();}
+\DoxyCodeLine{00994\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ fmt\_helper::append\_string\_view(level::to\_c\_str(msg.level),\ dest);}}
+\DoxyCodeLine{00995\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(level::to\_string\_view(msg.level),\ dest);}
+\DoxyCodeLine{00996\ \ \ \ \ \ \ \ \ msg.color\_range\_end\ =\ dest.size();}
+\DoxyCodeLine{00997\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{']'});}
+\DoxyCodeLine{00998\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00999\ }
+\DoxyCodeLine{01000\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ add\ source\ location\ if\ present}}
+\DoxyCodeLine{01001\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!msg.source.empty())}
+\DoxyCodeLine{01002\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01003\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'['});}
+\DoxyCodeLine{01004\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *filename\ =\ details::short\_filename\_formatter<details::null\_scoped\_padder>::basename(msg.source.filename);}
+\DoxyCodeLine{01005\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(filename,\ dest);}
+\DoxyCodeLine{01006\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{':'});}
+\DoxyCodeLine{01007\ \ \ \ \ \ \ \ \ \ \ \ \ fmt\_helper::append\_int(msg.source.line,\ dest);}
+\DoxyCodeLine{01008\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{']'});}
+\DoxyCodeLine{01009\ \ \ \ \ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{01010\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01011\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ fmt\_helper::append\_string\_view(msg.msg(),\ dest);}}
+\DoxyCodeLine{01012\ \ \ \ \ \ \ \ \ fmt\_helper::append\_string\_view(msg.payload,\ dest);}
+\DoxyCodeLine{01013\ \ \ \ \ \}}
+\DoxyCodeLine{01014\ }
+\DoxyCodeLine{01015\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{01016\ \ \ \ \ std::chrono::seconds\ cache\_timestamp\_\{0\};}
+\DoxyCodeLine{01017\ \ \ \ \ memory\_buf\_t\ cached\_datetime\_;}
+\DoxyCodeLine{01018\ \};}
+\DoxyCodeLine{01019\ }
+\DoxyCodeLine{01020\ \}\ \textcolor{comment}{//\ namespace\ details}}
+\DoxyCodeLine{01021\ }
+\DoxyCodeLine{01022\ SPDLOG\_INLINE\ pattern\_formatter::pattern\_formatter(}
+\DoxyCodeLine{01023\ \ \ \ \ std::string\ pattern,\ pattern\_time\_type\ time\_type,\ std::string\ eol,\ custom\_flags\ custom\_user\_flags)}
+\DoxyCodeLine{01024\ \ \ \ \ :\ pattern\_(std::move(pattern))}
+\DoxyCodeLine{01025\ \ \ \ \ ,\ eol\_(std::move(eol))}
+\DoxyCodeLine{01026\ \ \ \ \ ,\ pattern\_time\_type\_(time\_type)}
+\DoxyCodeLine{01027\ \ \ \ \ ,\ need\_localtime\_(false)}
+\DoxyCodeLine{01028\ \ \ \ \ ,\ last\_log\_secs\_(0)}
+\DoxyCodeLine{01029\ \ \ \ \ ,\ custom\_handlers\_(std::move(custom\_user\_flags))}
+\DoxyCodeLine{01030\ \{}
+\DoxyCodeLine{01031\ \ \ \ \ std::memset(\&cached\_tm\_,\ 0,\ \textcolor{keyword}{sizeof}(cached\_tm\_));}
+\DoxyCodeLine{01032\ \ \ \ \ compile\_pattern\_(pattern\_);}
+\DoxyCodeLine{01033\ \}}
+\DoxyCodeLine{01034\ }
+\DoxyCodeLine{01035\ \textcolor{comment}{//\ use\ by\ default\ full\ formatter\ for\ if\ pattern\ is\ not\ given}}
+\DoxyCodeLine{01036\ SPDLOG\_INLINE\ pattern\_formatter::pattern\_formatter(pattern\_time\_type\ time\_type,\ std::string\ eol)}
+\DoxyCodeLine{01037\ \ \ \ \ :\ pattern\_(\textcolor{stringliteral}{"{}\%+"{}})}
+\DoxyCodeLine{01038\ \ \ \ \ ,\ eol\_(std::move(eol))}
+\DoxyCodeLine{01039\ \ \ \ \ ,\ pattern\_time\_type\_(time\_type)}
+\DoxyCodeLine{01040\ \ \ \ \ ,\ need\_localtime\_(true)}
+\DoxyCodeLine{01041\ \ \ \ \ ,\ last\_log\_secs\_(0)}
+\DoxyCodeLine{01042\ \{}
+\DoxyCodeLine{01043\ \ \ \ \ std::memset(\&cached\_tm\_,\ 0,\ \textcolor{keyword}{sizeof}(cached\_tm\_));}
+\DoxyCodeLine{01044\ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::full\_formatter>(details::padding\_info\{\}));}
+\DoxyCodeLine{01045\ \}}
+\DoxyCodeLine{01046\ }
+\DoxyCodeLine{01047\ SPDLOG\_INLINE\ std::unique\_ptr<formatter>\ pattern\_formatter::clone()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01048\ \textcolor{keyword}{}\{}
+\DoxyCodeLine{01049\ \ \ \ \ custom\_flags\ cloned\_custom\_formatters;}
+\DoxyCodeLine{01050\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \&it\ :\ custom\_handlers\_)}
+\DoxyCodeLine{01051\ \ \ \ \ \{}
+\DoxyCodeLine{01052\ \ \ \ \ \ \ \ \ cloned\_custom\_formatters[it.first]\ =\ it.second-\/>clone();}
+\DoxyCodeLine{01053\ \ \ \ \ \}}
+\DoxyCodeLine{01054\ \ \ \ \ \textcolor{keyword}{auto}\ cloned\ =\ details::make\_unique<pattern\_formatter>(pattern\_,\ pattern\_time\_type\_,\ eol\_,\ std::move(cloned\_custom\_formatters));}
+\DoxyCodeLine{01055\ \ \ \ \ cloned-\/>need\_localtime(need\_localtime\_);}
+\DoxyCodeLine{01056\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)\ \&\&\ \_\_GNUC\_\_\ <\ 5}}
+\DoxyCodeLine{01057\ \ \ \ \ \textcolor{keywordflow}{return}\ std::move(cloned);}
+\DoxyCodeLine{01058\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{01059\ \ \ \ \ \textcolor{keywordflow}{return}\ cloned;}
+\DoxyCodeLine{01060\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01061\ \}}
+\DoxyCodeLine{01062\ }
+\DoxyCodeLine{01063\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ pattern\_formatter::format(\textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{01064\ \{}
+\DoxyCodeLine{01065\ \ \ \ \ \textcolor{keywordflow}{if}\ (need\_localtime\_)}
+\DoxyCodeLine{01066\ \ \ \ \ \{}
+\DoxyCodeLine{01067\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ secs\ =\ std::chrono::duration\_cast<std::chrono::seconds>(msg.time.time\_since\_epoch());}
+\DoxyCodeLine{01068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (secs\ !=\ last\_log\_secs\_)}
+\DoxyCodeLine{01069\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01070\ \ \ \ \ \ \ \ \ \ \ \ \ cached\_tm\_\ =\ get\_time\_(msg);}
+\DoxyCodeLine{01071\ \ \ \ \ \ \ \ \ \ \ \ \ last\_log\_secs\_\ =\ secs;}
+\DoxyCodeLine{01072\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01073\ \ \ \ \ \}}
+\DoxyCodeLine{01074\ }
+\DoxyCodeLine{01075\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \&f\ :\ formatters\_)}
+\DoxyCodeLine{01076\ \ \ \ \ \{}
+\DoxyCodeLine{01077\ \ \ \ \ \ \ \ \ f-\/>format(msg,\ cached\_tm\_,\ dest);}
+\DoxyCodeLine{01078\ \ \ \ \ \}}
+\DoxyCodeLine{01079\ \ \ \ \ \textcolor{comment}{//\ write\ eol}}
+\DoxyCodeLine{01080\ \ \ \ \ details::fmt\_helper::append\_string\_view(eol\_,\ dest);}
+\DoxyCodeLine{01081\ \}}
+\DoxyCodeLine{01082\ }
+\DoxyCodeLine{01083\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ pattern\_formatter::set\_pattern(std::string\ pattern)}
+\DoxyCodeLine{01084\ \{}
+\DoxyCodeLine{01085\ \ \ \ \ pattern\_\ =\ std::move(pattern);}
+\DoxyCodeLine{01086\ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01087\ \ \ \ \ compile\_pattern\_(pattern\_);}
+\DoxyCodeLine{01088\ \}}
+\DoxyCodeLine{01089\ }
+\DoxyCodeLine{01090\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ pattern\_formatter::need\_localtime(\textcolor{keywordtype}{bool}\ need)}
+\DoxyCodeLine{01091\ \{}
+\DoxyCodeLine{01092\ \ \ \ \ need\_localtime\_\ =\ need;}
+\DoxyCodeLine{01093\ \}}
+\DoxyCodeLine{01094\ }
+\DoxyCodeLine{01095\ SPDLOG\_INLINE\ std::tm\ pattern\_formatter::get\_time\_(\textcolor{keyword}{const}\ details::log\_msg\ \&msg)}
+\DoxyCodeLine{01096\ \{}
+\DoxyCodeLine{01097\ \ \ \ \ \textcolor{keywordflow}{if}\ (pattern\_time\_type\_\ ==\ pattern\_time\_type::local)}
+\DoxyCodeLine{01098\ \ \ \ \ \{}
+\DoxyCodeLine{01099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ details::os::localtime(log\_clock::to\_time\_t(msg.time));}
+\DoxyCodeLine{01100\ \ \ \ \ \}}
+\DoxyCodeLine{01101\ \ \ \ \ \textcolor{keywordflow}{return}\ details::os::gmtime(log\_clock::to\_time\_t(msg.time));}
+\DoxyCodeLine{01102\ \}}
+\DoxyCodeLine{01103\ }
+\DoxyCodeLine{01104\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Padder>}
+\DoxyCodeLine{01105\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ pattern\_formatter::handle\_flag\_(\textcolor{keywordtype}{char}\ flag,\ details::padding\_info\ padding)}
+\DoxyCodeLine{01106\ \{}
+\DoxyCodeLine{01107\ \ \ \ \ \textcolor{comment}{//\ process\ custom\ flags}}
+\DoxyCodeLine{01108\ \ \ \ \ \textcolor{keyword}{auto}\ it\ =\ custom\_handlers\_.find(flag);}
+\DoxyCodeLine{01109\ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ !=\ custom\_handlers\_.end())}
+\DoxyCodeLine{01110\ \ \ \ \ \{}
+\DoxyCodeLine{01111\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ custom\_handler\ =\ it-\/>second-\/>clone();}
+\DoxyCodeLine{01112\ \ \ \ \ \ \ \ \ custom\_handler-\/>set\_padding\_info(padding);}
+\DoxyCodeLine{01113\ \ \ \ \ \ \ \ \ formatters\_.push\_back(std::move(custom\_handler));}
+\DoxyCodeLine{01114\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01115\ \ \ \ \ \}}
+\DoxyCodeLine{01116\ }
+\DoxyCodeLine{01117\ \ \ \ \ \textcolor{comment}{//\ process\ built-\/in\ flags}}
+\DoxyCodeLine{01118\ \ \ \ \ \textcolor{keywordflow}{switch}\ (flag)}
+\DoxyCodeLine{01119\ \ \ \ \ \{}
+\DoxyCodeLine{01120\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'+'}):\ \textcolor{comment}{//\ default\ formatter}}
+\DoxyCodeLine{01121\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::full\_formatter>(padding));}
+\DoxyCodeLine{01122\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01123\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01124\ }
+\DoxyCodeLine{01125\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'n'}:\ \textcolor{comment}{//\ logger\ name}}
+\DoxyCodeLine{01126\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::name\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01127\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01128\ }
+\DoxyCodeLine{01129\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'l'}:\ \textcolor{comment}{//\ level}}
+\DoxyCodeLine{01130\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::level\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01131\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01132\ }
+\DoxyCodeLine{01133\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'L'}:\ \textcolor{comment}{//\ short\ level}}
+\DoxyCodeLine{01134\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::short\_level\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01135\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01136\ }
+\DoxyCodeLine{01137\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'t'}):\ \textcolor{comment}{//\ thread\ id}}
+\DoxyCodeLine{01138\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::t\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01140\ }
+\DoxyCodeLine{01141\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'v'}):\ \textcolor{comment}{//\ the\ message\ text}}
+\DoxyCodeLine{01142\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::v\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01143\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01144\ }
+\DoxyCodeLine{01145\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'a'}):\ \textcolor{comment}{//\ weekday}}
+\DoxyCodeLine{01146\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::a\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01147\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01148\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01149\ }
+\DoxyCodeLine{01150\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'A'}):\ \textcolor{comment}{//\ short\ weekday}}
+\DoxyCodeLine{01151\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::A\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01152\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01153\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01154\ }
+\DoxyCodeLine{01155\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'b'}):}
+\DoxyCodeLine{01156\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'h'}):\ \textcolor{comment}{//\ month}}
+\DoxyCodeLine{01157\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::b\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01158\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01159\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01160\ }
+\DoxyCodeLine{01161\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'B'}):\ \textcolor{comment}{//\ short\ month}}
+\DoxyCodeLine{01162\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::B\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01163\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01164\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01165\ }
+\DoxyCodeLine{01166\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'c'}):\ \textcolor{comment}{//\ datetime}}
+\DoxyCodeLine{01167\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::c\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01168\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01169\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01170\ }
+\DoxyCodeLine{01171\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'C'}):\ \textcolor{comment}{//\ year\ 2\ digits}}
+\DoxyCodeLine{01172\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::C\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01173\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01174\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01175\ }
+\DoxyCodeLine{01176\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'Y'}):\ \textcolor{comment}{//\ year\ 4\ digits}}
+\DoxyCodeLine{01177\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::Y\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01178\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01179\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01180\ }
+\DoxyCodeLine{01181\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'D'}):}
+\DoxyCodeLine{01182\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'x'}):\ \textcolor{comment}{//\ datetime\ MM/DD/YY}}
+\DoxyCodeLine{01183\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::D\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01184\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01185\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01186\ }
+\DoxyCodeLine{01187\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'m'}):\ \textcolor{comment}{//\ month\ 1-\/12}}
+\DoxyCodeLine{01188\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::m\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01189\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01190\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01191\ }
+\DoxyCodeLine{01192\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'d'}):\ \textcolor{comment}{//\ day\ of\ month\ 1-\/31}}
+\DoxyCodeLine{01193\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::d\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01194\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01195\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01196\ }
+\DoxyCodeLine{01197\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'H'}):\ \textcolor{comment}{//\ hours\ 24}}
+\DoxyCodeLine{01198\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::H\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01199\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01200\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01201\ }
+\DoxyCodeLine{01202\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'I'}):\ \textcolor{comment}{//\ hours\ 12}}
+\DoxyCodeLine{01203\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::I\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01204\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01205\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01206\ }
+\DoxyCodeLine{01207\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'M'}):\ \textcolor{comment}{//\ minutes}}
+\DoxyCodeLine{01208\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::M\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01209\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01210\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01211\ }
+\DoxyCodeLine{01212\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'S'}):\ \textcolor{comment}{//\ seconds}}
+\DoxyCodeLine{01213\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::S\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01214\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01215\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01216\ }
+\DoxyCodeLine{01217\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'e'}):\ \textcolor{comment}{//\ milliseconds}}
+\DoxyCodeLine{01218\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::e\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01219\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01220\ }
+\DoxyCodeLine{01221\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'f'}):\ \textcolor{comment}{//\ microseconds}}
+\DoxyCodeLine{01222\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::f\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01223\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01224\ }
+\DoxyCodeLine{01225\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'F'}):\ \textcolor{comment}{//\ nanoseconds}}
+\DoxyCodeLine{01226\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::F\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01227\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01228\ }
+\DoxyCodeLine{01229\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'E'}):\ \textcolor{comment}{//\ seconds\ since\ epoch}}
+\DoxyCodeLine{01230\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::E\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01231\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01232\ }
+\DoxyCodeLine{01233\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'p'}):\ \textcolor{comment}{//\ am/pm}}
+\DoxyCodeLine{01234\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::p\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01235\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01236\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01237\ }
+\DoxyCodeLine{01238\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'r'}):\ \textcolor{comment}{//\ 12\ hour\ clock\ 02:55:02\ pm}}
+\DoxyCodeLine{01239\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::r\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01240\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01241\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01242\ }
+\DoxyCodeLine{01243\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'R'}):\ \textcolor{comment}{//\ 24-\/hour\ HH:MM\ time}}
+\DoxyCodeLine{01244\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::R\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01245\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01246\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01247\ }
+\DoxyCodeLine{01248\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'T'}):}
+\DoxyCodeLine{01249\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'X'}):\ \textcolor{comment}{//\ ISO\ 8601\ time\ format\ (HH:MM:SS)}}
+\DoxyCodeLine{01250\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::T\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01251\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01252\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01253\ }
+\DoxyCodeLine{01254\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'z'}):\ \textcolor{comment}{//\ timezone}}
+\DoxyCodeLine{01255\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::z\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01256\ \ \ \ \ \ \ \ \ need\_localtime\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01257\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01258\ }
+\DoxyCodeLine{01259\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'P'}):\ \textcolor{comment}{//\ pid}}
+\DoxyCodeLine{01260\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::pid\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01261\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01262\ }
+\DoxyCodeLine{01263\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'\string^'}):\ \textcolor{comment}{//\ color\ range\ start}}
+\DoxyCodeLine{01264\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::color\_start\_formatter>(padding));}
+\DoxyCodeLine{01265\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01266\ }
+\DoxyCodeLine{01267\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'\$'}):\ \textcolor{comment}{//\ color\ range\ end}}
+\DoxyCodeLine{01268\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::color\_stop\_formatter>(padding));}
+\DoxyCodeLine{01269\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01270\ }
+\DoxyCodeLine{01271\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'@'}):\ \textcolor{comment}{//\ source\ location\ (filename:filenumber)}}
+\DoxyCodeLine{01272\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::source\_location\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01273\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01274\ }
+\DoxyCodeLine{01275\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'s'}):\ \textcolor{comment}{//\ short\ source\ filename\ -\/\ without\ directory\ name}}
+\DoxyCodeLine{01276\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::short\_filename\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01277\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01278\ }
+\DoxyCodeLine{01279\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'g'}):\ \textcolor{comment}{//\ full\ source\ filename}}
+\DoxyCodeLine{01280\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::source\_filename\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01281\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01282\ }
+\DoxyCodeLine{01283\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'\#'}):\ \textcolor{comment}{//\ source\ line\ number}}
+\DoxyCodeLine{01284\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::source\_linenum\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01285\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01286\ }
+\DoxyCodeLine{01287\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'!'}):\ \textcolor{comment}{//\ source\ funcname}}
+\DoxyCodeLine{01288\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::source\_funcname\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01289\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01290\ }
+\DoxyCodeLine{01291\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'\%'}):\ \textcolor{comment}{//\ \%\ char}}
+\DoxyCodeLine{01292\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::ch\_formatter>(\textcolor{charliteral}{'\%'}));}
+\DoxyCodeLine{01293\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01294\ }
+\DoxyCodeLine{01295\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'u'}):\ \textcolor{comment}{//\ elapsed\ time\ since\ last\ log\ message\ in\ nanos}}
+\DoxyCodeLine{01296\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::elapsed\_formatter<Padder,\ std::chrono::nanoseconds>>(padding));}
+\DoxyCodeLine{01297\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01298\ }
+\DoxyCodeLine{01299\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'i'}):\ \textcolor{comment}{//\ elapsed\ time\ since\ last\ log\ message\ in\ micros}}
+\DoxyCodeLine{01300\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::elapsed\_formatter<Padder,\ std::chrono::microseconds>>(padding));}
+\DoxyCodeLine{01301\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01302\ }
+\DoxyCodeLine{01303\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'o'}):\ \textcolor{comment}{//\ elapsed\ time\ since\ last\ log\ message\ in\ millis}}
+\DoxyCodeLine{01304\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::elapsed\_formatter<Padder,\ std::chrono::milliseconds>>(padding));}
+\DoxyCodeLine{01305\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01306\ }
+\DoxyCodeLine{01307\ \ \ \ \ \textcolor{keywordflow}{case}\ (\textcolor{charliteral}{'O'}):\ \textcolor{comment}{//\ elapsed\ time\ since\ last\ log\ message\ in\ seconds}}
+\DoxyCodeLine{01308\ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::elapsed\_formatter<Padder,\ std::chrono::seconds>>(padding));}
+\DoxyCodeLine{01309\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01310\ }
+\DoxyCodeLine{01311\ \ \ \ \ \textcolor{keywordflow}{default}:\ \textcolor{comment}{//\ Unknown\ flag\ appears\ as\ is}}
+\DoxyCodeLine{01312\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ unknown\_flag\ =\ details::make\_unique<details::aggregate\_formatter>();}
+\DoxyCodeLine{01313\ }
+\DoxyCodeLine{01314\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!padding.truncate\_)}
+\DoxyCodeLine{01315\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01316\ \ \ \ \ \ \ \ \ \ \ \ \ unknown\_flag-\/>add\_ch(\textcolor{charliteral}{'\%'});}
+\DoxyCodeLine{01317\ \ \ \ \ \ \ \ \ \ \ \ \ unknown\_flag-\/>add\_ch(flag);}
+\DoxyCodeLine{01318\ \ \ \ \ \ \ \ \ \ \ \ \ formatters\_.push\_back((std::move(unknown\_flag)));}
+\DoxyCodeLine{01319\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01320\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ fix\ issue\ \#1617\ (prev\ char\ was\ '!'\ and\ should\ have\ been\ treated\ as\ funcname\ flag\ instead\ of\ truncating\ flag)}}
+\DoxyCodeLine{01321\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ spdlog::set\_pattern("{}[\%10!]\ \%v"{})\ =>\ "{}[\ \ \ \ \ \ main]\ some\ message"{}}}
+\DoxyCodeLine{01322\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ spdlog::set\_pattern("{}[\%3!!]\ \%v"{})\ =>\ "{}[mai]\ some\ message"{}}}
+\DoxyCodeLine{01323\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01324\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01325\ \ \ \ \ \ \ \ \ \ \ \ \ padding.truncate\_\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01326\ \ \ \ \ \ \ \ \ \ \ \ \ formatters\_.push\_back(details::make\_unique<details::source\_funcname\_formatter<Padder>>(padding));}
+\DoxyCodeLine{01327\ \ \ \ \ \ \ \ \ \ \ \ \ unknown\_flag-\/>add\_ch(flag);}
+\DoxyCodeLine{01328\ \ \ \ \ \ \ \ \ \ \ \ \ formatters\_.push\_back((std::move(unknown\_flag)));}
+\DoxyCodeLine{01329\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01330\ }
+\DoxyCodeLine{01331\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01332\ \ \ \ \ \}}
+\DoxyCodeLine{01333\ \}}
+\DoxyCodeLine{01334\ }
+\DoxyCodeLine{01335\ \textcolor{comment}{//\ Extract\ given\ pad\ spec\ (e.g.\ \%8X,\ \%=8X,\ \%-\/8!X,\ \%8!X,\ \%=8!X,\ \%-\/8!X,\ \%+8!X)}}
+\DoxyCodeLine{01336\ \textcolor{comment}{//\ Advance\ the\ given\ it\ pass\ the\ end\ of\ the\ padding\ spec\ found\ (if\ any)}}
+\DoxyCodeLine{01337\ \textcolor{comment}{//\ Return\ padding.}}
+\DoxyCodeLine{01338\ SPDLOG\_INLINE\ details::padding\_info\ pattern\_formatter::handle\_padspec\_(std::string::const\_iterator\ \&it,\ std::string::const\_iterator\ end)}
+\DoxyCodeLine{01339\ \{}
+\DoxyCodeLine{01340\ \ \ \ \ \textcolor{keyword}{using\ }details::padding\_info;}
+\DoxyCodeLine{01341\ \ \ \ \ \textcolor{keyword}{using\ }details::scoped\_padder;}
+\DoxyCodeLine{01342\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ max\_width\ =\ 64;}
+\DoxyCodeLine{01343\ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ ==\ end)}
+\DoxyCodeLine{01344\ \ \ \ \ \{}
+\DoxyCodeLine{01345\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ padding\_info\{\};}
+\DoxyCodeLine{01346\ \ \ \ \ \}}
+\DoxyCodeLine{01347\ }
+\DoxyCodeLine{01348\ \ \ \ \ padding\_info::pad\_side\ side;}
+\DoxyCodeLine{01349\ \ \ \ \ \textcolor{keywordflow}{switch}\ (*it)}
+\DoxyCodeLine{01350\ \ \ \ \ \{}
+\DoxyCodeLine{01351\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'-\/'}:}
+\DoxyCodeLine{01352\ \ \ \ \ \ \ \ \ side\ =\ padding\_info::pad\_side::right;}
+\DoxyCodeLine{01353\ \ \ \ \ \ \ \ \ ++it;}
+\DoxyCodeLine{01354\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01355\ \ \ \ \ \textcolor{keywordflow}{case}\ \textcolor{charliteral}{'='}:}
+\DoxyCodeLine{01356\ \ \ \ \ \ \ \ \ side\ =\ padding\_info::pad\_side::center;}
+\DoxyCodeLine{01357\ \ \ \ \ \ \ \ \ ++it;}
+\DoxyCodeLine{01358\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01359\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01360\ \ \ \ \ \ \ \ \ side\ =\ details::padding\_info::pad\_side::left;}
+\DoxyCodeLine{01361\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01362\ \ \ \ \ \}}
+\DoxyCodeLine{01363\ }
+\DoxyCodeLine{01364\ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ ==\ end\ ||\ !std::isdigit(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\textcolor{keyword}{>}(*it)))}
+\DoxyCodeLine{01365\ \ \ \ \ \{}
+\DoxyCodeLine{01366\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ padding\_info\{\};\ \textcolor{comment}{//\ no\ padding\ if\ no\ digit\ found\ here}}
+\DoxyCodeLine{01367\ \ \ \ \ \}}
+\DoxyCodeLine{01368\ }
+\DoxyCodeLine{01369\ \ \ \ \ \textcolor{keyword}{auto}\ width\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(*it)\ -\/\ \textcolor{charliteral}{'0'};}
+\DoxyCodeLine{01370\ \ \ \ \ \textcolor{keywordflow}{for}\ (++it;\ it\ !=\ end\ \&\&\ std::isdigit(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\textcolor{keyword}{>}(*it));\ ++it)}
+\DoxyCodeLine{01371\ \ \ \ \ \{}
+\DoxyCodeLine{01372\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ digit\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(*it)\ -\/\ \textcolor{charliteral}{'0'};}
+\DoxyCodeLine{01373\ \ \ \ \ \ \ \ \ width\ =\ width\ *\ 10\ +\ digit;}
+\DoxyCodeLine{01374\ \ \ \ \ \}}
+\DoxyCodeLine{01375\ }
+\DoxyCodeLine{01376\ \ \ \ \ \textcolor{comment}{//\ search\ for\ the\ optional\ truncate\ marker\ '!'}}
+\DoxyCodeLine{01377\ \ \ \ \ \textcolor{keywordtype}{bool}\ truncate;}
+\DoxyCodeLine{01378\ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ !=\ end\ \&\&\ *it\ ==\ \textcolor{charliteral}{'!'})}
+\DoxyCodeLine{01379\ \ \ \ \ \{}
+\DoxyCodeLine{01380\ \ \ \ \ \ \ \ \ truncate\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01381\ \ \ \ \ \ \ \ \ ++it;}
+\DoxyCodeLine{01382\ \ \ \ \ \}}
+\DoxyCodeLine{01383\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01384\ \ \ \ \ \{}
+\DoxyCodeLine{01385\ \ \ \ \ \ \ \ \ truncate\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01386\ \ \ \ \ \}}
+\DoxyCodeLine{01387\ \ \ \ \ \textcolor{keywordflow}{return}\ details::padding\_info\{std::min<size\_t>(width,\ max\_width),\ side,\ truncate\};}
+\DoxyCodeLine{01388\ \}}
+\DoxyCodeLine{01389\ }
+\DoxyCodeLine{01390\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ pattern\_formatter::compile\_pattern\_(\textcolor{keyword}{const}\ std::string\ \&pattern)}
+\DoxyCodeLine{01391\ \{}
+\DoxyCodeLine{01392\ \ \ \ \ \textcolor{keyword}{auto}\ end\ =\ pattern.end();}
+\DoxyCodeLine{01393\ \ \ \ \ std::unique\_ptr<details::aggregate\_formatter>\ user\_chars;}
+\DoxyCodeLine{01394\ \ \ \ \ formatters\_.clear();}
+\DoxyCodeLine{01395\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ it\ =\ pattern.begin();\ it\ !=\ end;\ ++it)}
+\DoxyCodeLine{01396\ \ \ \ \ \{}
+\DoxyCodeLine{01397\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (*it\ ==\ \textcolor{charliteral}{'\%'})}
+\DoxyCodeLine{01398\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01399\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (user\_chars)\ \textcolor{comment}{//\ append\ user\ chars\ found\ so\ far}}
+\DoxyCodeLine{01400\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ formatters\_.push\_back(std::move(user\_chars));}
+\DoxyCodeLine{01402\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01403\ }
+\DoxyCodeLine{01404\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ padding\ =\ handle\_padspec\_(++it,\ end);}
+\DoxyCodeLine{01405\ }
+\DoxyCodeLine{01406\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ !=\ end)}
+\DoxyCodeLine{01407\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (padding.enabled())}
+\DoxyCodeLine{01409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ handle\_flag\_<details::scoped\_padder>(*it,\ padding);}
+\DoxyCodeLine{01411\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01412\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01413\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ handle\_flag\_<details::null\_scoped\_padder>(*it,\ padding);}
+\DoxyCodeLine{01415\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01416\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01417\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01418\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01419\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01420\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01421\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01422\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{//\ chars\ not\ following\ the\ \%\ sign\ should\ be\ displayed\ as\ is}}
+\DoxyCodeLine{01423\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01424\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!user\_chars)}
+\DoxyCodeLine{01425\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01426\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ user\_chars\ =\ details::make\_unique<details::aggregate\_formatter>();}
+\DoxyCodeLine{01427\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01428\ \ \ \ \ \ \ \ \ \ \ \ \ user\_chars-\/>add\_ch(*it);}
+\DoxyCodeLine{01429\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01430\ \ \ \ \ \}}
+\DoxyCodeLine{01431\ \ \ \ \ \textcolor{keywordflow}{if}\ (user\_chars)\ \textcolor{comment}{//\ append\ raw\ chars\ found\ so\ far}}
+\DoxyCodeLine{01432\ \ \ \ \ \{}
+\DoxyCodeLine{01433\ \ \ \ \ \ \ \ \ formatters\_.push\_back(std::move(user\_chars));}
+\DoxyCodeLine{01434\ \ \ \ \ \}}
+\DoxyCodeLine{01435\ \}}
+\DoxyCodeLine{01436\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

@@ -1,0 +1,181 @@
+\hypertarget{filter__manager__impl_8h_source}{}\doxysection{filter\+\_\+manager\+\_\+impl.\+h}
+\label{filter__manager__impl_8h_source}\index{AseSprite/aseprite/src/app/commands/filters/filter\_manager\_impl.h@{AseSprite/aseprite/src/app/commands/filters/filter\_manager\_impl.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_COMMANDS\_FILTERS\_FILTER\_MANAGER\_IMPL\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_COMMANDS\_FILTERS\_FILTER\_MANAGER\_IMPL\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/commands/filters/cels\_target.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/context\_access.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/site.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/tx.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}base/exception.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}doc/image\_impl.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/image\_ref.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}doc/pixel\_format.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}filters/filter\_indexed\_data.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}filters/filter\_manager.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}gfx/rect.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{class\ }Cel;}
+\DoxyCodeLine{00030\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{class\ }Layer;}
+\DoxyCodeLine{00032\ \ \ \textcolor{keyword}{class\ }Mask;}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00034\ \}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{keyword}{namespace\ }filters\ \{}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{class\ }Filter;}
+\DoxyCodeLine{00038\ \}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{class\ }Doc;}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{class\ }Editor;}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{keyword}{using\ namespace\ }filters;}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_invalid_area_exception}{InvalidAreaException}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}\ \{}
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_invalid_area_exception}{InvalidAreaException}}()\ \textcolor{keywordflow}{throw}()}
+\DoxyCodeLine{00050\ \ \ \ \ :\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}(\textcolor{stringliteral}{"{}The\ active\ selection\ to\ apply\ the\ effect\ is\ out\ of\ the\ canvas."{}})\ \{\ \}}
+\DoxyCodeLine{00051\ \ \ \};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_no_image_exception}{NoImageException}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}\ \{}
+\DoxyCodeLine{00054\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00055\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_no_image_exception}{NoImageException}}()\ \textcolor{keywordflow}{throw}()}
+\DoxyCodeLine{00056\ \ \ \ \ :\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}(\textcolor{stringliteral}{"{}There\ is\ not\ an\ active\ image\ to\ apply\ the\ effect.\(\backslash\)n"{}}}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Please\ select\ a\ layer/cel\ with\ an\ image\ and\ try\ again."{}})\ \{\ \}}
+\DoxyCodeLine{00058\ \ \ \};}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_filter_manager_impl}{FilterManagerImpl}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classfilters_1_1_filter_manager}{FilterManager}}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ,\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classfilters_1_1_filter_indexed_data}{FilterIndexedData}}\ \{}
+\DoxyCodeLine{00062\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ Interface\ to\ report\ progress\ to\ the\ user\ and\ take\ input\ from\ him}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{comment}{//\ to\ cancel\ the\ whole\ process.}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_filter_manager_impl_1_1_i_progress_delegate}{IProgressDelegate}}\ \{}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_filter_manager_impl_1_1_i_progress_delegate}{\string~IProgressDelegate}}()\ \{\ \}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \textcolor{comment}{//\ Called\ to\ report\ the\ progress\ of\ the\ filter\ (with\ progress\ from\ 0.0\ to\ 1.0).}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ reportProgress(\textcolor{keywordtype}{float}\ progress)\ =\ 0;}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{comment}{//\ Should\ return\ true\ if\ the\ user\ wants\ to\ cancel\ the\ filter.}}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ isCancelled()\ =\ 0;}
+\DoxyCodeLine{00074\ \ \ \ \ \};}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_filter_manager_impl}{FilterManagerImpl}}(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,\ \mbox{\hyperlink{classfilters_1_1_filter}{Filter}}*\ filter);}
+\DoxyCodeLine{00077\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_filter_manager_impl}{\string~FilterManagerImpl}}();}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{void}\ setProgressDelegate(\mbox{\hyperlink{classapp_1_1_filter_manager_impl_1_1_i_progress_delegate}{IProgressDelegate}}*\ progressDelegate);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{void}\ setTarget(Target\ target);}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{void}\ setCelsTarget(CelsTarget\ celsTarget);}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{void}\ begin();}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#ifdef\ ENABLE\_UI}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keywordtype}{void}\ beginForPreview();}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{void}\ end();}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{bool}\ applyStep();}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keywordtype}{void}\ applyToTarget();}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordtype}{void}\ initTransaction();}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordtype}{bool}\ isTransaction()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordtype}{void}\ commitTransaction();}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ document();}
+\DoxyCodeLine{00097\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_sprite}{doc::Sprite}}*\ sprite()\ \{\ \textcolor{keywordflow}{return}\ m\_site.sprite();\ \}}
+\DoxyCodeLine{00098\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_layer}{doc::Layer}}*\ layer()\ \{\ \textcolor{keywordflow}{return}\ m\_site.layer();\ \}}
+\DoxyCodeLine{00099\ \ \ \ \ doc::frame\_t\ frame()\ \{\ \textcolor{keywordflow}{return}\ m\_site.frame();\ \}}
+\DoxyCodeLine{00100\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ destinationImage()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_dst.get();\ \}}
+\DoxyCodeLine{00101\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ position()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(0,\ 0);\ \}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#ifdef\ ENABLE\_UI}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ Updates\ the\ current\ editor\ to\ show\ the\ progress\ of\ the\ preview.}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{void}\ flush();}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{void}\ disablePreview();}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{comment}{//\ FilterManager\ implementation}}
+\DoxyCodeLine{00110\ \ \ \ \ doc::PixelFormat\ pixelFormat()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*\ getSourceAddress()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordtype}{void}*\ getDestinationAddress()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{int}\ getWidth()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_bounds.w;\ \}}
+\DoxyCodeLine{00114\ \ \ \ \ Target\ getTarget()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_target;\ \}}
+\DoxyCodeLine{00115\ \ \ \ \ \mbox{\hyperlink{classfilters_1_1_filter_indexed_data}{FilterIndexedData}}*\ getIndexedData()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keywordtype}{bool}\ skipPixel()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ getSourceImage()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_src.get();\ \}}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordtype}{int}\ x()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_bounds.x;\ \}}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordtype}{int}\ y()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_bounds.y+m\_row;\ \}}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keywordtype}{bool}\ isFirstRow()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_row\ ==\ 0;\ \}}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordtype}{bool}\ isMaskActive()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{comment}{//\ FilterIndexedData\ implementation}}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{doc::Palette}}*\ getPalette()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{doc::RgbMap}}*\ getRgbMap()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00126\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_palette}{doc::Palette}}*\ getNewPalette()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00127\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_palette_picks}{doc::PalettePicks}}\ getPalettePicks()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordtype}{void}\ init(\mbox{\hyperlink{classdoc_1_1_cel}{doc::Cel}}*\ cel);}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordtype}{void}\ apply();}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordtype}{void}\ applyToCel(\mbox{\hyperlink{classdoc_1_1_cel}{doc::Cel}}*\ cel);}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{bool}\ updateBounds(\mbox{\hyperlink{classdoc_1_1_mask}{doc::Mask}}*\ mask);}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ palette\ was\ changed\ (true\ when\ the\ filter}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{comment}{//\ modifies\ the\ palette).}}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordtype}{bool}\ paletteHasChanged();}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keywordtype}{void}\ restoreSpritePalette();}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordtype}{void}\ applyToPaletteIfNeeded();}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#ifdef\ ENABLE\_UI}}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{void}\ redrawColorPalette();}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \ \ ContextReader\ m\_reader;}
+\DoxyCodeLine{00146\ \ \ \ \ std::unique\_ptr<ContextWriter>\ m\_writer;}
+\DoxyCodeLine{00147\ \ \ \ \ Site\&\ m\_site;}
+\DoxyCodeLine{00148\ \ \ \ \ \mbox{\hyperlink{classfilters_1_1_filter}{Filter}}*\ m\_filter;}
+\DoxyCodeLine{00149\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_cel}{doc::Cel}}*\ m\_cel;}
+\DoxyCodeLine{00150\ \ \ \ \ doc::ImageRef\ m\_src;}
+\DoxyCodeLine{00151\ \ \ \ \ doc::ImageRef\ m\_dst;}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_row;}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\#ifdef\ ENABLE\_UI}}
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_nextRowToFlush;}
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00156\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ m\_bounds;}
+\DoxyCodeLine{00157\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_mask}{doc::Mask}}*\ m\_mask;}
+\DoxyCodeLine{00158\ \ \ \ \ std::unique\_ptr<doc::Mask>\ m\_previewMask;}
+\DoxyCodeLine{00159\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_bits}{doc::ImageBits<doc::BitmapTraits>}}\ m\_maskBits;}
+\DoxyCodeLine{00160\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator}{doc::ImageBits<doc::BitmapTraits>::iterator}}\ m\_maskIterator;}
+\DoxyCodeLine{00161\ \ \ \ \ Target\ m\_targetOrig;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Original\ targets}}
+\DoxyCodeLine{00162\ \ \ \ \ Target\ m\_target;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Filtered\ targets}}
+\DoxyCodeLine{00163\ \ \ \ \ CelsTarget\ m\_celsTarget;}
+\DoxyCodeLine{00164\ \ \ \ \ std::unique\_ptr<doc::Palette>\ m\_oldPalette;}
+\DoxyCodeLine{00165\ \ \ \ \ std::unique\_ptr<Tx>\ m\_tx;}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{comment}{//\ Hooks}}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_progressBase;}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_progressWidth;}
+\DoxyCodeLine{00170\ \ \ \ \ IProgressDelegate*\ m\_progressDelegate;}
+\DoxyCodeLine{00171\ \ \ \};}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

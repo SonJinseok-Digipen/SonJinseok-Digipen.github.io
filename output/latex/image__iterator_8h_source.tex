@@ -1,0 +1,422 @@
+\hypertarget{image__iterator_8h_source}{}\doxysection{image\+\_\+iterator.\+h}
+\label{image__iterator_8h_source}\index{AseSprite/aseprite/src/doc/image\_iterator.h@{AseSprite/aseprite/src/doc/image\_iterator.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ Document\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2019-\/2022\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (c)\ 2001-\/2015\ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ DOC\_IMAGE\_ITERATOR\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ DOC\_IMAGE\_ITERATOR\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}doc/color.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}doc/primitives\_fast.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}gfx/point.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}gfx/rect.h"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <cstdlib>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <iostream>}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits,}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ PointerType,}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ReferenceType>}
+\DoxyCodeLine{00028\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\ \{}
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{using\ }iterator\_category\ =\ std::forward\_iterator\_tag;}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ \textcolor{keyword}{typename}\ ImageTraits::pixel\_t;}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keyword}{using\ }difference\_type\ =\ std::ptrdiff\_t;}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keyword}{using\ }pointer\ =\ PointerType;}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keyword}{using\ }reference\ =\ ReferenceType;}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}()\ :\ m\_ptr(\textcolor{keyword}{nullptr})\ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\ :}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ m\_image(other.m\_image),}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ m\_ptr(other.m\_ptr),}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ m\_x(other.m\_x),}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ m\_y(other.m\_y),}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ m\_xbegin(other.m\_xbegin),}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ m\_xend(other.m\_xend)}
+\DoxyCodeLine{00046\ \ \ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ image,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ :}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ m\_image(\textcolor{keyword}{const\_cast<}\mbox{\hyperlink{classdoc_1_1_image}{Image}}*\textcolor{keyword}{>}(image)),}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ m\_ptr(get\_pixel\_address\_fast<ImageTraits>(image,\ x,\ y)),}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ m\_x(x),}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ m\_y(y),}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ m\_xbegin(bounds.x),}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ m\_xend(bounds.x\ +\ bounds.w)}
+\DoxyCodeLine{00056\ \ \ \ \ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ ASSERT(bounds.contains(\mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(x,\ y)));}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ ASSERT(image-\/>bounds().contains(bounds));}
+\DoxyCodeLine{00059\ \ \ \ \ \}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ m\_image\ =\ other.m\_image;}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ m\_ptr\ =\ other.m\_ptr;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ m\_x\ =\ other.m\_x;}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ m\_y\ =\ other.m\_y;}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ m\_xbegin\ =\ other.m\_xbegin;}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ m\_xend\ =\ other.m\_xend;}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00069\ \ \ \ \ \}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr\ ==\ other.m\_ptr)\ \{}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ ==\ other.m\_x\ \&\&\ m\_y\ ==\ other.m\_y);}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ !=\ other.m\_x\ ||\ m\_y\ !=\ other.m\_y);}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_ptr\ ==\ other.m\_ptr;}
+\DoxyCodeLine{00079\ \ \ \ \ \}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr\ !=\ other.m\_ptr)\ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ !=\ other.m\_x\ ||\ m\_y\ !=\ other.m\_y);}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ ==\ other.m\_x\ \&\&\ m\_y\ ==\ other.m\_y);}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_ptr\ !=\ other.m\_ptr;}
+\DoxyCodeLine{00088\ \ \ \ \ \}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator<(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ <\ other.m\_ptr;\ \}}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator>(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ >\ other.m\_ptr;\ \}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator<=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ <=\ other.m\_ptr;\ \}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator>=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ >=\ other.m\_ptr;\ \}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ operator++()\ \{}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ ASSERT(m\_image-\/>bounds().contains(\mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(m\_x,\ m\_y)));}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \ \ ++m\_ptr;}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ ++m\_x;}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_x\ ==\ m\_xend)\ \{}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ m\_x\ =\ m\_xbegin;}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ ++m\_y;}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_y\ <\ m\_image-\/>height())}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ m\_ptr\ =\ get\_pixel\_address\_fast<ImageTraits>(m\_image,\ m\_x,\ m\_y);}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00109\ \ \ \ \ \}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ operator+=(\textcolor{keywordtype}{int}\ diff)\ \{}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (diff-\/-\/\ >\ 0)}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ operator++();}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00115\ \ \ \ \ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\ operator++(\textcolor{keywordtype}{int})\ \{}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\ tmp(*\textcolor{keyword}{this});}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ operator++();}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tmp;}
+\DoxyCodeLine{00121\ \ \ \ \ \}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ reference\ operator*()\ \{\ \textcolor{keywordflow}{return}\ *m\_ptr;\ \}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordtype}{int}\ x()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_x;\ \}}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordtype}{int}\ y()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_y;\ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00129\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_image;}
+\DoxyCodeLine{00130\ \ \ \ \ pointer\ m\_ptr;}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_x,\ m\_y;}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_xbegin;}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_xend;}
+\DoxyCodeLine{00134\ \ \ \};}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00137\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_image_iterator}{ImageIterator}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<ImageTraits,}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ typename\ ImageTraits::pixel\_t\ *,}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ typename\ ImageTraits::pixel\_t\&>\ \{}
+\DoxyCodeLine{00140\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00141\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator}{ImageIterator}}()\ \{}
+\DoxyCodeLine{00142\ \ \ \ \ \}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator}{ImageIterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ image,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ :}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<ImageTraits,}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ImageIterator::pointer,}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ImageIterator::reference>(image,\ bounds,\ x,\ y)\ \{}
+\DoxyCodeLine{00148\ \ \ \ \ \}}
+\DoxyCodeLine{00149\ \ \ \};}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00152\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_image_const_iterator}{ImageConstIterator}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<ImageTraits,}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ typename\ ImageTraits::pixel\_t\ const\ *,}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ typename\ ImageTraits::pixel\_t\ const\ \&>\ \{}
+\DoxyCodeLine{00155\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00156\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_const_iterator}{ImageConstIterator}}()\ \{}
+\DoxyCodeLine{00157\ \ \ \ \ \}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_const_iterator}{ImageConstIterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ image,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ :}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<ImageTraits,}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ImageConstIterator::pointer,}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ImageConstIterator::reference>(image,\ bounds,\ x,\ y)\ \{}
+\DoxyCodeLine{00163\ \ \ \ \ \}}
+\DoxyCodeLine{00164\ \ \ \};}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00167\ \ \ \textcolor{comment}{//\ Iterator\ for\ BitmapTraits}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\ \{}
+\DoxyCodeLine{00170\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00171\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}()\ :}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ m\_ptr(\textcolor{keyword}{nullptr}),}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ m\_bit(0)\ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keywordtype}{void}\ reset(BitmapTraits::address\_t\ ptr,\ \textcolor{keywordtype}{int}\ bit)\ \{}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ m\_ptr\ =\ ptr;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ m\_bit\ =\ bit;}
+\DoxyCodeLine{00179\ \ \ \ \ \}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordtype}{void}\ reset(BitmapTraits::pixel\_t\ \textcolor{keyword}{const}*\ ptr,\ \textcolor{keywordtype}{int}\ bit)\ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ m\_ptr\ =\ \textcolor{keyword}{const\_cast<}BitmapTraits::address\_t\textcolor{keyword}{>}(ptr);}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ m\_bit\ =\ bit;}
+\DoxyCodeLine{00184\ \ \ \ \ \}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keyword}{operator}\ \mbox{\hyperlink{structcolor__t}{color\_t}}()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (*m\_ptr\ \&\ m\_bit)\ ?\ 1:\ 0;}
+\DoxyCodeLine{00188\ \ \ \ \ \}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&\ operator=(\mbox{\hyperlink{structcolor__t}{color\_t}}\ \mbox{\hyperlink{classvalue}{value}})\ \{}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{classvalue}{value}})}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ *m\_ptr\ |=\ m\_bit;}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ *m\_ptr\ \&=\ \string~m\_bit;}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00196\ \ \ \ \ \}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{comment}{//\ It\ doesn't\ copy\ the\ BitPixelAccess,\ it\ must\ copy\ the\ bit\ from}}
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{comment}{//\ "{}other"{}\ to\ "{}this"{}.}}
+\DoxyCodeLine{00200\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&\ other)\ \{}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>operator=((\mbox{\hyperlink{structcolor__t}{color\_t}})other);}
+\DoxyCodeLine{00202\ \ \ \ \ \}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keywordtype}{int}\ b)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(*\textcolor{keyword}{this})\ ==\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00206\ \ \ \ \ \}}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\mbox{\hyperlink{structcolor__t}{color\_t}}\ b)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(*\textcolor{keyword}{this})\ ==\ b);}
+\DoxyCodeLine{00210\ \ \ \ \ \}}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&\ b)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(*\textcolor{keyword}{this})\ ==\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00214\ \ \ \ \ \}}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keywordtype}{int}\ b)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(*\textcolor{keyword}{this})\ !=\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00218\ \ \ \ \ \}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\mbox{\hyperlink{structcolor__t}{color\_t}}\ b)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(*\textcolor{keyword}{this})\ !=\ b);}
+\DoxyCodeLine{00222\ \ \ \ \ \}}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&\ b)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(*\textcolor{keyword}{this})\ !=\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00226\ \ \ \ \ \}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{comment}{//\ Non-\/copyable\ by\ copy\ constructor.}}
+\DoxyCodeLine{00230\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&\ other);}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ BitmapTraits::address\_t\ m\_ptr;}
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_bit;}
+\DoxyCodeLine{00234\ \ \ \};}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&\ b)\ \{}
+\DoxyCodeLine{00237\ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(\mbox{\hyperlink{structa}{a}})\ ==\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00238\ \ \ \}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator==(\mbox{\hyperlink{structcolor__t}{color\_t}}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ BitPixelAccess\&\ b)\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structa}{a}}\ ==\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00242\ \ \ \}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ BitPixelAccess\&\ b)\ \{}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}}(\mbox{\hyperlink{structa}{a}})\ !=\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00246\ \ \ \}}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator!=(\mbox{\hyperlink{structcolor__t}{color\_t}}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ BitPixelAccess\&\ b)\ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structa}{a}}\ !=\ \mbox{\hyperlink{structcolor__t}{color\_t}}(b));}
+\DoxyCodeLine{00250\ \ \ \}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ PointerType,}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ReferenceType>}
+\DoxyCodeLine{00254\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<\mbox{\hyperlink{structdoc_1_1_bitmap_traits}{BitmapTraits}},\ PointerType,\ ReferenceType>\ \{}
+\DoxyCodeLine{00255\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keyword}{using\ }iterator\_category\ =\ std::forward\_iterator\_tag;}
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{keyword}{using\ }value\_type\ =\ BitmapTraits::pixel\_t;}
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{keyword}{using\ }difference\_type\ =\ std::ptrdiff\_t;}
+\DoxyCodeLine{00259\ \ \ \ \ \textcolor{keyword}{using\ }pointer\ =\ PointerType;}
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{keyword}{using\ }reference\ =\ ReferenceType;}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{keyword}{enum}\ \{\ pixels\_per\_byte\ =\ BitmapTraits::pixels\_per\_byte\ \};}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}()\ :\ m\_ptr(\textcolor{keyword}{nullptr})\ \{}
+\DoxyCodeLine{00265\ \ \ \ \ \}}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\ :}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ m\_image(other.m\_image),}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ m\_ptr(other.m\_ptr),}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ m\_x(other.m\_x),}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ m\_y(other.m\_y),}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ m\_subPixel(other.m\_subPixel),}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ m\_xbegin(other.m\_xbegin),}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ m\_xend(other.m\_xend)}
+\DoxyCodeLine{00275\ \ \ \ \ \{}
+\DoxyCodeLine{00276\ \ \ \ \ \}}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ image,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ :}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ m\_image(\textcolor{keyword}{const\_cast<}\mbox{\hyperlink{classdoc_1_1_image}{Image}}*\textcolor{keyword}{>}(image)),}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ m\_ptr(get\_pixel\_address\_fast<BitmapTraits>(image,\ x,\ y)),}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ m\_x(x),}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ m\_y(y),}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ m\_subPixel(x\ \%\ 8),}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ m\_xbegin(bounds.x),}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ m\_xend(bounds.x\ +\ bounds.w)}
+\DoxyCodeLine{00286\ \ \ \ \ \{}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ ASSERT(bounds.contains(\mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(x,\ y)));}
+\DoxyCodeLine{00288\ \ \ \ \ \}}
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\ \{}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ m\_image\ =\ other.m\_image;}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ m\_ptr\ =\ other.m\_ptr;}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ m\_x\ =\ other.m\_x;}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ m\_y\ =\ other.m\_y;}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ m\_subPixel\ =\ other.m\_subPixel;}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ m\_xbegin\ =\ other.m\_xbegin;}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ m\_xend\ =\ other.m\_xend;}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00299\ \ \ \ \ \}}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr\ ==\ other.m\_ptr\ \&\&}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \ \ m\_subPixel\ ==\ other.m\_subPixel)\ \{}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ ==\ other.m\_x\ \&\&\ m\_y\ ==\ other.m\_y);}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ !=\ other.m\_x\ ||\ m\_y\ !=\ other.m\_y);}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_ptr\ ==\ other.m\_ptr;}
+\DoxyCodeLine{00310\ \ \ \ \ \}}
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ other)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr\ !=\ other.m\_ptr\ ||}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ m\_subPixel\ !=\ other.m\_subPixel)\ \{}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ !=\ other.m\_x\ ||\ m\_y\ !=\ other.m\_y);}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ ASSERT(m\_x\ ==\ other.m\_x\ \&\&\ m\_y\ ==\ other.m\_y);}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_ptr\ !=\ other.m\_ptr;}
+\DoxyCodeLine{00320\ \ \ \ \ \}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ operator++()\ \{}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ ASSERT(m\_image-\/>bounds().contains(\mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(m\_x,\ m\_y)));}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \ \ \ \ ++m\_x;}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ ++m\_subPixel;}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_x\ ==\ m\_xend)\ \{}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ m\_x\ =\ m\_xbegin;}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ m\_subPixel\ =\ m\_x\ \%\ 8;}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ ++m\_y;}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_y\ <\ m\_image-\/>height())}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ \ \ m\_ptr\ =\ get\_pixel\_address\_fast<BitmapTraits>(m\_image,\ m\_x,\ m\_y);}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \ \ ++m\_ptr;}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (m\_subPixel\ ==\ 8)\ \{}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ m\_subPixel\ =\ 0;}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ ++m\_ptr;}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00344\ \ \ \ \ \}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\&\ operator+=(\textcolor{keywordtype}{int}\ diff)\ \{}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (diff-\/-\/\ >\ 0)}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ operator++();}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00350\ \ \ \ \ \}}
+\DoxyCodeLine{00351\ }
+\DoxyCodeLine{00352\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\ operator++(\textcolor{keywordtype}{int})\ \{}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}\ tmp(*\textcolor{keyword}{this});}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ operator++();}
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tmp;}
+\DoxyCodeLine{00356\ \ \ \ \ \}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \ \ reference\ operator*()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00359\ \ \ \ \ \ \ m\_access.reset(m\_ptr,\ 1\ <<\ m\_subPixel);}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_access;}
+\DoxyCodeLine{00361\ \ \ \ \ \}}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \ \ \ \ reference\ operator*()\ \{}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ m\_access.reset(m\_ptr,\ 1\ <<\ m\_subPixel);}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_access;}
+\DoxyCodeLine{00366\ \ \ \ \ \}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \ \ \textcolor{keywordtype}{int}\ x()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_x;\ \}}
+\DoxyCodeLine{00369\ \ \ \ \ \textcolor{keywordtype}{int}\ y()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_y;\ \}}
+\DoxyCodeLine{00370\ }
+\DoxyCodeLine{00371\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00372\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_image;}
+\DoxyCodeLine{00373\ \ \ \ \ pointer\ m\_ptr;}
+\DoxyCodeLine{00374\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_x,\ m\_y;}
+\DoxyCodeLine{00375\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_subPixel;}
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_xbegin;}
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_xend;}
+\DoxyCodeLine{00378\ \ \ \ \ \textcolor{keyword}{mutable}\ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\ m\_access;}
+\DoxyCodeLine{00379\ \ \ \};}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00382\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_image_iterator}{ImageIterator}}<\mbox{\hyperlink{structdoc_1_1_bitmap_traits}{BitmapTraits}}>\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<BitmapTraits,}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*,}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BitPixelAccess\&>\ \{}
+\DoxyCodeLine{00385\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00386\ \ \ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<\mbox{\hyperlink{structdoc_1_1_bitmap_traits}{BitmapTraits}},}
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*,}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&>\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{Base}};}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator}{ImageIterator}}()\ \{}
+\DoxyCodeLine{00391\ \ \ \ \ \}}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator}{ImageIterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ image,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ :}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{Base}}(image,\ bounds,\ x,\ y)\ \{}
+\DoxyCodeLine{00395\ \ \ \ \ \}}
+\DoxyCodeLine{00396\ \ \ \};}
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00399\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_image_const_iterator}{ImageConstIterator}}<\mbox{\hyperlink{structdoc_1_1_bitmap_traits}{BitmapTraits}}>\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<BitmapTraits,}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ const*,}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ BitPixelAccess\&>\ \{}
+\DoxyCodeLine{00402\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00403\ \ \ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{ImageIteratorT}}<\mbox{\hyperlink{structdoc_1_1_bitmap_traits}{BitmapTraits}},}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ \textcolor{keyword}{const}*,}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_bit_pixel_access}{BitPixelAccess}}\&>\ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{Base}};}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_const_iterator}{ImageConstIterator}}()\ \{}
+\DoxyCodeLine{00408\ \ \ \ \ \}}
+\DoxyCodeLine{00409\ }
+\DoxyCodeLine{00410\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_const_iterator}{ImageConstIterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ image,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ :}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_iterator_t}{Base}}(image,\ bounds,\ x,\ y)\ \{}
+\DoxyCodeLine{00412\ \ \ \ \ \}}
+\DoxyCodeLine{00413\ \ \ \};}
+\DoxyCodeLine{00414\ }
+\DoxyCodeLine{00415\ \}\ \textcolor{comment}{//\ namespace\ doc}}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

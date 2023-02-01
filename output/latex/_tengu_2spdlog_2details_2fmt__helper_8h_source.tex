@@ -1,0 +1,170 @@
+\hypertarget{_tengu_2spdlog_2details_2fmt__helper_8h_source}{}\doxysection{fmt\+\_\+helper.\+h}
+\label{_tengu_2spdlog_2details_2fmt__helper_8h_source}\index{Tengu/Tengu/spdlog/details/fmt\_helper.h@{Tengu/Tengu/spdlog/details/fmt\_helper.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <chrono>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <type\_traits>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <iterator>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <spdlog/fmt/fmt.h>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <spdlog/common.h>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_USE\_STD\_FORMAT}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#\ \ \ \ include\ <charconv>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#\ \ \ \ include\ <limits>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{comment}{//\ Some\ fmt\ helpers\ to\ efficiently\ format\ and\ pad\ ints\ and\ strings}}
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00018\ \textcolor{keyword}{namespace\ }details\ \{}
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }fmt\_helper\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ append\_string\_view(spdlog::string\_view\_t\ \mbox{\hyperlink{structview}{view}},\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00022\ \{}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keyword}{auto}\ *buf\_ptr\ =\ \mbox{\hyperlink{structview}{view}}.data();}
+\DoxyCodeLine{00024\ \ \ \ \ dest.append(buf\_ptr,\ buf\_ptr\ +\ \mbox{\hyperlink{structview}{view}}.size());}
+\DoxyCodeLine{00025\ \}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_USE\_STD\_FORMAT}}
+\DoxyCodeLine{00028\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00029\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ append\_int(T\ n,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00030\ \{}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{comment}{//\ Buffer\ should\ be\ large\ enough\ to\ hold\ all\ digits\ (digits10\ +\ 1)\ and\ a\ sign}}
+\DoxyCodeLine{00032\ \ \ \ \ SPDLOG\_CONSTEXPR\ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ BUF\_SIZE\ =\ std::numeric\_limits<T>::digits10\ +\ 2;}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[BUF\_SIZE];}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{auto}\ [ptr,\ ec]\ =\ std::to\_chars(\mbox{\hyperlink{structbuf}{buf}},\ \mbox{\hyperlink{structbuf}{buf}}\ +\ BUF\_SIZE,\ n,\ 10);}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordflow}{if}\ (ec\ ==\ std::errc())}
+\DoxyCodeLine{00037\ \ \ \ \ \{}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ dest.append(\mbox{\hyperlink{structbuf}{buf}},\ ptr);}
+\DoxyCodeLine{00039\ \ \ \ \ \}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00041\ \ \ \ \ \{}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ throw\_spdlog\_ex(\textcolor{stringliteral}{"{}Failed\ to\ format\ int"{}},\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{int}\textcolor{keyword}{>}(ec));}
+\DoxyCodeLine{00043\ \ \ \ \ \}}
+\DoxyCodeLine{00044\ \}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00046\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00047\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ append\_int(T\ n,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00048\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ fmt::format\_int\ i(n);}
+\DoxyCodeLine{00050\ \ \ \ \ dest.append(i.data(),\ i.data()\ +\ i.size());}
+\DoxyCodeLine{00051\ \}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00055\ SPDLOG\_CONSTEXPR\_FUNC\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count\_digits\_fallback(T\ n)}
+\DoxyCodeLine{00056\ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{comment}{//\ taken\ from\ fmt:\ https://github.com/fmtlib/fmt/blob/8.0.1/include/fmt/format.h\#L899-\/L912}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count\ =\ 1;}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordflow}{for}\ (;;)}
+\DoxyCodeLine{00060\ \ \ \ \ \{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Integer\ division\ is\ slow\ so\ do\ it\ for\ a\ group\ of\ four\ digits\ instead}}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ of\ for\ every\ digit.\ The\ idea\ comes\ from\ the\ talk\ by\ Alexandrescu}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ "{}Three\ Optimization\ Tips\ for\ C++"{}.\ See\ speed-\/test\ for\ a\ comparison.}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <\ 10)}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ count;}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <\ 100)}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ count\ +\ 1;}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <\ 1000)}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ count\ +\ 2;}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <\ 10000)}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ count\ +\ 3;}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ n\ /=\ 10000u;}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ count\ +=\ 4;}
+\DoxyCodeLine{00074\ \ \ \ \ \}}
+\DoxyCodeLine{00075\ \}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00078\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count\_digits(T\ n)}
+\DoxyCodeLine{00079\ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keyword}{using\ }count\_type\ =\ \textcolor{keyword}{typename}\ std::conditional<(\textcolor{keyword}{sizeof}(T)\ >\ \textcolor{keyword}{sizeof}(uint32\_t)),\ uint64\_t,\ uint32\_t>::type;}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_USE\_STD\_FORMAT}}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordflow}{return}\ count\_digits\_fallback(\textcolor{keyword}{static\_cast<}count\_type\textcolor{keyword}{>}(n));}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\textcolor{keyword}{>}(fmt::}
+\DoxyCodeLine{00085\ \textcolor{comment}{//\ fmt\ 7.0.0\ renamed\ the\ internal\ namespace\ to\ detail.}}
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ See:\ https://github.com/fmtlib/fmt/issues/1538}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#\ \ \ \ if\ FMT\_VERSION\ <\ 70000}}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ internal}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#\ \ \ \ else}}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ detail}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ ::count\_digits(\textcolor{keyword}{static\_cast<}count\_type\textcolor{keyword}{>}(n)));}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00094\ \}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ pad2(\textcolor{keywordtype}{int}\ n,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00097\ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ >=\ 0\ \&\&\ n\ <\ 100)\ \textcolor{comment}{//\ 0-\/99}}
+\DoxyCodeLine{00099\ \ \ \ \ \{}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}\textcolor{keyword}{>}(\textcolor{charliteral}{'0'}\ +\ n\ /\ 10));}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}\textcolor{keyword}{>}(\textcolor{charliteral}{'0'}\ +\ n\ \%\ 10));}
+\DoxyCodeLine{00102\ \ \ \ \ \}}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{//\ unlikely,\ but\ just\ in\ case,\ let\ fmt\ deal\ with\ it}}
+\DoxyCodeLine{00104\ \ \ \ \ \{}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ fmt\_lib::format\_to(std::back\_inserter(dest),\ SPDLOG\_FMT\_STRING(\textcolor{stringliteral}{"{}\{:02\}"{}}),\ n);}
+\DoxyCodeLine{00106\ \ \ \ \ \}}
+\DoxyCodeLine{00107\ \}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00110\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ pad\_uint(T\ n,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ width,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00111\ \{}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keyword}{static\_assert}(std::is\_unsigned<T>::value,\ \textcolor{stringliteral}{"{}pad\_uint\ must\ get\ unsigned\ T"{}});}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ digits\ =\ count\_digits(n);\ digits\ <\ width;\ digits++)}
+\DoxyCodeLine{00114\ \ \ \ \ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{charliteral}{'0'});}
+\DoxyCodeLine{00116\ \ \ \ \ \}}
+\DoxyCodeLine{00117\ \ \ \ \ append\_int(n,\ dest);}
+\DoxyCodeLine{00118\ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00121\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ pad3(T\ n,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00122\ \{}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keyword}{static\_assert}(std::is\_unsigned<T>::value,\ \textcolor{stringliteral}{"{}pad3\ must\ get\ unsigned\ T"{}});}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ <\ 1000)}
+\DoxyCodeLine{00125\ \ \ \ \ \{}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}\textcolor{keyword}{>}(n\ /\ 100\ +\ \textcolor{charliteral}{'0'}));}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ n\ =\ n\ \%\ 100;}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}\textcolor{keyword}{>}((n\ /\ 10)\ +\ \textcolor{charliteral}{'0'}));}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ dest.push\_back(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}\textcolor{keyword}{>}((n\ \%\ 10)\ +\ \textcolor{charliteral}{'0'}));}
+\DoxyCodeLine{00130\ \ \ \ \ \}}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00132\ \ \ \ \ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ append\_int(n,\ dest);}
+\DoxyCodeLine{00134\ \ \ \ \ \}}
+\DoxyCodeLine{00135\ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00138\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ pad6(T\ n,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00139\ \{}
+\DoxyCodeLine{00140\ \ \ \ \ pad\_uint(n,\ 6,\ dest);}
+\DoxyCodeLine{00141\ \}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00144\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ pad9(T\ n,\ memory\_buf\_t\ \&dest)}
+\DoxyCodeLine{00145\ \{}
+\DoxyCodeLine{00146\ \ \ \ \ pad\_uint(n,\ 9,\ dest);}
+\DoxyCodeLine{00147\ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{comment}{//\ return\ fraction\ of\ a\ second\ of\ the\ given\ time\_point.}}
+\DoxyCodeLine{00150\ \textcolor{comment}{//\ e.g.}}
+\DoxyCodeLine{00151\ \textcolor{comment}{//\ fraction<std::milliseconds>(tp)\ -\/>\ will\ return\ the\ millis\ part\ of\ the\ second}}
+\DoxyCodeLine{00152\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ToDuration>}
+\DoxyCodeLine{00153\ \textcolor{keyword}{inline}\ ToDuration\ time\_fraction(log\_clock::time\_point\ tp)}
+\DoxyCodeLine{00154\ \{}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keyword}{using\ }std::chrono::duration\_cast;}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keyword}{using\ }std::chrono::seconds;}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keyword}{auto}\ duration\ =\ tp.time\_since\_epoch();}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keyword}{auto}\ secs\ =\ duration\_cast<seconds>(duration);}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keywordflow}{return}\ duration\_cast<ToDuration>(duration)\ -\/\ duration\_cast<ToDuration>(secs);}
+\DoxyCodeLine{00160\ \}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \}\ \textcolor{comment}{//\ namespace\ fmt\_helper}}
+\DoxyCodeLine{00163\ \}\ \textcolor{comment}{//\ namespace\ details}}
+\DoxyCodeLine{00164\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

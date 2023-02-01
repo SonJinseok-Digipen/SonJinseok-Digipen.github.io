@@ -1,0 +1,160 @@
+\hypertarget{color__selector_8h_source}{}\doxysection{color\+\_\+selector.\+h}
+\label{color__selector_8h_source}\index{AseSprite/aseprite/src/app/ui/color\_selector.h@{AseSprite/aseprite/src/app/ui/color\_selector.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2016-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_UI\_COLOR\_SELECTOR\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_UI\_COLOR\_SELECTOR\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/color.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/ui/color\_source.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}obs/connection.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}obs/signal.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}os/surface.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}ui/mouse\_button.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}ui/timer.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}ui/widget.h"{}}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <cmath>}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{comment}{//\ TODO\ We\ should\ wrap\ the\ SkRuntimeEffect\ in\ laf-\/os,\ SkRuntimeEffect}}
+\DoxyCodeLine{00025\ \textcolor{comment}{//\ \ \ \ \ \ and\ SkRuntimeShaderBuilder\ might\ change\ in\ future\ Skia}}
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ \ \ \ \ \ versions.}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#if\ SK\_ENABLE\_SKSL}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \#include\ "{}include/effects/SkRuntimeEffect.h"{}}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{//\ TODO\ move\ this\ to\ laf::base}}
+\DoxyCodeLine{00032\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ cs\_double\_diff(\textcolor{keywordtype}{double}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{double}\ b)\ \{}
+\DoxyCodeLine{00033\ \ \ \textcolor{keywordflow}{return}\ std::fabs((\mbox{\hyperlink{structa}{a}})-\/(b))\ >\ 0.001;}
+\DoxyCodeLine{00034\ \}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_color_selector}{ColorSelector}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classui_1_1_widget}{ui::Widget}}}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ,\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_i_color_source}{IColorSource}}\ \{}
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_color_selector_1_1_painter}{Painter}};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_color_selector}{ColorSelector}}();}
+\DoxyCodeLine{00044\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_color_selector}{\string~ColorSelector}}();}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{void}\ selectColor(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\&\ color);}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{comment}{//\ IColorSource\ impl}}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ getColorByPosition(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ pos)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{//\ Signals}}
+\DoxyCodeLine{00052\ \ \ \ \ \mbox{\hyperlink{classobs_1_1signal}{obs::signal}}<void(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\&,\ ui::MouseButton)>\ ColorChange;}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{comment}{//\ paintFlags\ for\ onPaintSurfaceInBgThread\ and\ return\ value\ of}}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//\ onNeedsSurfaceRepaint().}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ MainAreaFlag\ \ =\ 1,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ BottomBarFlag\ =\ 2,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ AlphaBarFlag\ \ =\ 4,}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ AllAreasFlag\ \ =\ MainAreaFlag\ |\ BottomBarFlag\ |\ AlphaBarFlag,}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ DoneFlag\ \ \ \ \ \ =\ 8,}
+\DoxyCodeLine{00063\ \ \ \ \ \};}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{void}\ onSizeHint(\mbox{\hyperlink{classui_1_1_size_hint_event}{ui::SizeHintEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{bool}\ onProcessMessage(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}\ onInitTheme(\mbox{\hyperlink{classui_1_1_init_theme_event}{ui::InitThemeEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{void}\ onResize(\mbox{\hyperlink{classui_1_1_resize_event}{ui::ResizeEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keywordtype}{void}\ onPaint(\mbox{\hyperlink{classui_1_1_paint_event}{ui::PaintEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ getMainAreaShader()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};\ \}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ getBottomBarShader()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};\ \}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#if\ SK\_ENABLE\_SKSL}}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setShaderParams(SkRuntimeShaderBuilder\&\ builder,\ \textcolor{keywordtype}{bool}\ main)\ \{\ \}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ getMainAreaColor(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ u,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ umax,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ v,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ vmax)\ =\ 0;}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ getBottomBarColor(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ u,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ umax)\ =\ 0;}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onPaintMainArea(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ rc)\ =\ 0;}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onPaintBottomBar(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ rc)\ =\ 0;}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onPaintSurfaceInBgThread(\mbox{\hyperlink{classos_1_1_surface}{os::Surface}}*\ s,}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ main,}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bottom,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ alpha,}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\&\ stop);}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ onNeedsSurfaceRepaint(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\&\ newColor);}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ subColorPicked()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};\ \}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{void}\ paintColorIndicator(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ pos,}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ white);}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ 255\ if\ m\_color\ is\ the\ mask\ color,\ or\ the}}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{comment}{//\ m\_color.getAlpha()\ if\ it's\ really\ a\ color.}}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keywordtype}{int}\ getCurrentAlphaForNewColor()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasCaptureInMainArea()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_capturedInMain;\ \}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ m\_color;}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{comment}{//\ These\ flags\ indicate\ which\ areas\ must\ be\ redrawed\ in\ the}}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{comment}{//\ background\ thread.\ Equal\ to\ DoneFlag\ when\ the\ surface\ is}}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{comment}{//\ already\ painted\ in\ the\ background\ thread\ surface.\ This\ must\ be}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ atomic\ because\ we\ need\ atomic\ bitwise\ operations.}}
+\DoxyCodeLine{00105\ \ \ \ \ std::atomic<int>\ m\_paintFlags;}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#if\ SK\_ENABLE\_SKSL}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{void}\ resetBottomEffect();}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00113\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ getAlphaBarColor(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ u,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ umax);}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordtype}{void}\ onPaintAlphaBar(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}*\ g,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ rc);}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ bottomBarBounds()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00117\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ alphaBarBounds()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordtype}{void}\ updateColorSpace();}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#if\ SK\_ENABLE\_SKSL}}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ getAlphaBarShader();}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordtype}{bool}\ buildEffects();}
+\DoxyCodeLine{00124\ \ \ \ \ sk\_sp<SkRuntimeEffect>\ buildEffect(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \mbox{\hyperlink{structcode}{code}});}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{comment}{//\ Internal\ flag\ used\ to\ lock\ the\ modification\ of\ m\_color.}}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{comment}{//\ E.g.\ When\ the\ user\ picks\ a\ color\ harmony,\ we\ don't\ want\ to}}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{comment}{//\ change\ the\ main\ color.}}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_lockColor;}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{comment}{//\ True\ when\ the\ user\ pressed\ the\ mouse\ button\ in\ the\ bottom}}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{comment}{//\ slider.\ It's\ used\ to\ avoid\ swapping\ in\ both\ areas\ (main\ color}}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{comment}{//\ area\ vs\ bottom\ slider)\ when\ we\ drag\ the\ mouse\ above\ this}}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{comment}{//\ widget.}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_capturedInBottom\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_capturedInAlpha\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_capturedInMain\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \ \ \mbox{\hyperlink{classui_1_1_timer}{ui::Timer}}\ m\_timer;}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \mbox{\hyperlink{classobs_1_1scoped__connection}{obs::scoped\_connection}}\ m\_appConn;}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\#if\ SK\_ENABLE\_SKSL}}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{comment}{//\ Shaders}}
+\DoxyCodeLine{00146\ \ \ \ \ sk\_sp<SkRuntimeEffect>\ m\_mainEffect;}
+\DoxyCodeLine{00147\ \ \ \ \ sk\_sp<SkRuntimeEffect>\ m\_bottomEffect;}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keyword}{static}\ sk\_sp<SkRuntimeEffect>\ m\_alphaEffect;}
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00150\ \ \ \};}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

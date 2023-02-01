@@ -1,0 +1,366 @@
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1375}{}\doxysection{Synopsis of dlg.\+h}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1375}
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1376}{}\doxysubsection{Config macros with default and semantics\+:}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1376}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{//\ Define\ this\ macro\ to\ make\ all\ dlg\ macros\ have\ no\ effect\ at\ all}}
+\DoxyCodeLine{\textcolor{comment}{//\ \#define\ DLG\_DISABLE}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ the\ log/assertion\ levels\ below\ which\ logs/assertions\ are\ ignored}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ DLG\_LOG\_LEVEL\ dlg\_level\_trace}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ DLG\_ASSERT\_LEVEL\ dlg\_level\_trace}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ the\ assert\ level\ of\ dlg\_assert}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ DLG\_DEFAULT\_ASSERT\ dlg\_level\_error}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ evaluated\ to\ the\ 'file'\ member\ in\ dlg\_origin}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ DLG\_FILE\ dlg\_\_strip\_root\_path(\_\_FILE\_\_,\ DLG\_BASE\_PATH)}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ the\ base\ path\ stripped\ from\ \_\_FILE\_\_.\ If\ you\ don't\ override\ DLG\_FILE\ set\ this\ to}}
+\DoxyCodeLine{\textcolor{comment}{//\ the\ project\ root\ to\ make\ 'main.c'\ from\ '/some/bullshit/main.c'}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ DLG\_BASE\_PATH\ "{}"{}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Default\ tags\ applied\ to\ all\ logs/assertions\ (in\ the\ defining\ file).}}
+\DoxyCodeLine{\textcolor{comment}{//\ Must\ be\ in\ format\ ```\#define\ DLG\_DEFAULT\_TAGS\ "{}tag1"{},\ "{}tag2"{}}}
+
+\end{DoxyCode}
+ // or just nothing (as defaulted here) \#define DLG\+\_\+\+DEFAULT\+\_\+\+TAGS
+
+// The function used for formatting. Can have any signature, but must be callable with // the arguments the log/assertions macros are called with. Must return a const char$\ast$ // that will not be freed by dlg, the formatting function must keep track of it. // The formatting function might use dlg\+\_\+thread\+\_\+buffer or a custom owned buffer. // The returned const char$\ast$ has to be valid until the dlg log/assertion ends. // Usually a c function with ... (i.\+e. using va\+\_\+list) or a variadic c++ template do // allow formatting. \#define DLG\+\_\+\+FMT\+\_\+\+FUNC $<$function with printf-\/like semantics$>$ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\#\#\ Core\ macros:}
+\DoxyCodeLine{}
+\DoxyCodeLine{```c}
+\DoxyCodeLine{//\ Tagged/Untagged\ logging\ with\ variable\ level}
+\DoxyCodeLine{//\ Tags\ must\ always\ be\ in\ the\ format\ `("{}tag1"{},\ "{}tag2"{})`\ (including\ brackets)}
+\DoxyCodeLine{\#define\ dlg\_log(level,\ ...)}
+\DoxyCodeLine{\#define\ dlg\_logt(level,\ tags,\ ...)}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Dynamic\ level\ assert\ macros\ in\ various\ versions\ for\ additional\ arguments}
+\DoxyCodeLine{\#define\ dlg\_assertl(level,\ expr)\ //\ assert\ without\ tags/message}
+\DoxyCodeLine{\#define\ dlg\_assertlt(level,\ tags,\ expr)\ //\ assert\ with\ tags}
+\DoxyCodeLine{\#define\ dlg\_assertlm(level,\ expr,\ ...)\ //\ assert\ with\ message}
+\DoxyCodeLine{\#define\ dlg\_assertltm(level,\ tags,\ expr,\ ...)\ //\ assert\ with\ tags\ \&\ message}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Static\ leveled\ logging}
+\DoxyCodeLine{\#define\ dlg\_trace(...)}
+\DoxyCodeLine{\#define\ dlg\_debug(...)}
+\DoxyCodeLine{\#define\ dlg\_info(...)}
+\DoxyCodeLine{\#define\ dlg\_warn(...)}
+\DoxyCodeLine{\#define\ dlg\_error(...)}
+\DoxyCodeLine{\#define\ dlg\_fatal(...)}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Tagged\ leveled\ logging}
+\DoxyCodeLine{\#define\ dlg\_tracet(tags,\ ...)}
+\DoxyCodeLine{\#define\ dlg\_debugt(tags,\ ...)}
+\DoxyCodeLine{\#define\ dlg\_infot(tags,\ ...)}
+\DoxyCodeLine{\#define\ dlg\_warnt(tags,\ ...)}
+\DoxyCodeLine{\#define\ dlg\_errort(tags,\ ...)}
+\DoxyCodeLine{\#define\ dlg\_fatalt(tags,\ ...)}
+\DoxyCodeLine{}
+\DoxyCodeLine{//\ Assert\ macros\ useing\ DLG\_DEFAULT\_ASSERT\ as\ level}
+\DoxyCodeLine{\#define\ dlg\_assert(expr)}
+\DoxyCodeLine{\#define\ dlg\_assertt(tags,\ expr)}
+\DoxyCodeLine{\#define\ dlg\_assertm(expr,\ ...)}
+\DoxyCodeLine{\#define\ dlg\_asserttm(tags,\ expr,\ ...)}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1377}{}\doxysubsection{Other}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1377}
+The tag order in which they are stored in origin.\+tags (all of them preserved in order)\+:
+
+
+\begin{DoxyItemize}
+\item DLG\+\_\+\+DEFAULT\+\_\+\+TAGS
+\item current tags set via dlg\+\_\+add\+\_\+tag
+\item tags used in the specific call
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{//\ Represents\ the\ importance\ of\ a\ log/assertion\ call.}}
+\DoxyCodeLine{\textcolor{keyword}{enum}\ dlg\_level\ \{}
+\DoxyCodeLine{\ \ \ \ dlg\_level\_trace\ =\ 0,\ \textcolor{comment}{//\ temporary\ used\ debug,\ e.g.\ to\ check\ if\ control\ reaches\ function}}
+\DoxyCodeLine{\ \ \ \ dlg\_level\_debug,\ \textcolor{comment}{//\ general\ debugging,\ prints\ e.g.\ all\ major\ events}}
+\DoxyCodeLine{\ \ \ \ dlg\_level\_info,\ \textcolor{comment}{//\ general\ useful\ information}}
+\DoxyCodeLine{\ \ \ \ dlg\_level\_warn,\ \textcolor{comment}{//\ warning,\ something\ went\ wrong\ but\ might\ have\ no\ (really\ bad)\ side\ effect}}
+\DoxyCodeLine{\ \ \ \ dlg\_level\_error,\ \textcolor{comment}{//\ something\ really\ went\ wrong;\ expect\ serious\ issues}}
+\DoxyCodeLine{\ \ \ \ dlg\_level\_fatal\ \textcolor{comment}{//\ critical\ error;\ application\ is\ likely\ to\ crash/exit}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Holds\ various\ information\ associated\ with\ a\ log/assertion\ call.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Forwarded\ to\ the\ output\ handler.}}
+\DoxyCodeLine{\textcolor{keyword}{struct\ }\mbox{\hyperlink{structdlg__origin}{dlg\_origin}}\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \mbox{\hyperlink{structfile}{file}};}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ line;}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ func;}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{enum}\ dlg\_level\ level;}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}**\ tags;\ \textcolor{comment}{//\ null-\/terminated}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ expr;\ \textcolor{comment}{//\ assertion\ expression,\ otherwise\ null}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Type\ of\ the\ output\ handler,\ see\ dlg\_set\_handler.}}
+\DoxyCodeLine{\textcolor{keyword}{typedef}\ void(*dlg\_handler)(\textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdlg__origin}{dlg\_origin}}*\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ string,\ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Sets\ the\ handler\ that\ is\ responsible\ for\ formatting\ and\ outputting\ log\ calls.}}
+\DoxyCodeLine{\textcolor{comment}{//\ This\ function\ is\ not\ thread\ safe\ and\ the\ handler\ is\ set\ globally.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ handler\ itself\ must\ not\ change\ dlg\ tags\ or\ call\ a\ dlg\ macro.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ handler\ can\ also\ be\ used\ for\ various\ other\ things\ such\ as\ dealing}}
+\DoxyCodeLine{\textcolor{comment}{//\ with\ failed\ assertions\ or\ filtering\ calls\ based\ on\ the\ passed\ tags.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ default\ handler\ is\ dlg\_default\_output\ (see\ its\ doc\ for\ more\ info).}}
+\DoxyCodeLine{\textcolor{comment}{//\ If\ using\ c++\ make\ sure\ the\ registered\ handler\ cannot\ throw\ e.g.\ by}}
+\DoxyCodeLine{\textcolor{comment}{//\ wrapping\ everything\ into\ a\ try-\/catch\ blog.}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ dlg\_set\_handler(dlg\_handler\ handler,\ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Returns\ the\ currently\ active\ dlg\ handler\ and\ sets\ `data`\ to}}
+\DoxyCodeLine{\textcolor{comment}{//\ its\ user\ data\ pointer.\ `data`\ must\ not\ be\ NULL.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Useful\ to\ create\ handler\ chains.}}
+\DoxyCodeLine{\textcolor{comment}{//\ This\ function\ is\ not\ threadsafe,\ i.e.\ retrieving\ the\ handler\ while}}
+\DoxyCodeLine{\textcolor{comment}{//\ changing\ it\ from\ another\ thread\ is\ unsafe.}}
+\DoxyCodeLine{\textcolor{comment}{//\ See\ `dlg\_set\_handler`.}}
+\DoxyCodeLine{dlg\_handler\ dlg\_get\_handler(\textcolor{keywordtype}{void}**\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ default\ output\ handler.\ Pass\ a\ valid\ FILE*\ as\ stream\ or\ NULL\ to\ use\ stderr/stdout.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Simply\ calls\ dlg\_generic\_output\ from\ dlg/output.h\ with\ the\ file\_line\ feature\ enabled,}}
+\DoxyCodeLine{\textcolor{comment}{//\ the\ style\ feature\ enabled\ if\ the\ stream\ is\ a\ console\ (and\ if\ on\ windows\ ansi\ mode\ could}}
+\DoxyCodeLine{\textcolor{comment}{//\ be\ set)\ and\ dlg\_default\_output\_styles\ as\ styles.}}
+\DoxyCodeLine{\textcolor{comment}{//\ It\ also\ flushes\ the\ stream\ used.}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ dlg\_default\_output(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}*\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{string},\ \textcolor{keywordtype}{void}*\ stream);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Adds\ the\ given\ tag\ associated\ with\ the\ given\ function\ to\ the\ thread\ specific\ list.}}
+\DoxyCodeLine{\textcolor{comment}{//\ If\ func\ is\ not\ NULL\ the\ tag\ will\ only\ applied\ to\ calls\ from\ the\ same\ function.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Remove\ the\ tag\ again\ calling\ dlg\_remove\_tag\ (with\ exactly\ the\ same\ pointers!).}}
+\DoxyCodeLine{\textcolor{comment}{//\ Does\ not\ check\ if\ the\ tag\ is\ already\ present.}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ dlg\_add\_tag(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ tag,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ func);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Removes\ a\ tag\ added\ with\ dlg\_add\_tag\ (has\ no\ effect\ for\ tags\ no\ present).}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ pointers\ must\ be\ exactly\ the\ same\ pointers\ that\ were\ supplied\ to\ dlg\_add\_tag,}}
+\DoxyCodeLine{\textcolor{comment}{//\ this\ function\ will\ not\ check\ using\ strcmp.\ When\ the\ same\ tag/func\ combination}}
+\DoxyCodeLine{\textcolor{comment}{//\ is\ added\ multiple\ times,\ this\ function\ remove\ exactly\ one\ candidate,\ it\ is}}
+\DoxyCodeLine{\textcolor{comment}{//\ undefined\ which.\ Returns\ whether\ a\ tag\ was\ found\ (and\ removed).}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ dlg\_remove\_tag(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ tag,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ func);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Returns\ the\ thread-\/specific\ buffer\ and\ its\ size\ for\ dlg.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ buffer\ should\ only\ be\ used\ by\ formatting\ functions.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ buffer\ can\ be\ reallocated\ and\ the\ size\ changed,\ just\ make\ sure}}
+\DoxyCodeLine{\textcolor{comment}{//\ to\ update\ both\ values\ correctly.}}
+\DoxyCodeLine{\textcolor{keywordtype}{char}**\ dlg\_thread\_buffer(\textcolor{keywordtype}{size\_t}**\ size);}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1378}{}\doxysection{Synopsis of output.\+h}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1378}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{//\ Text\ style}}
+\DoxyCodeLine{\textcolor{keyword}{enum}\ dlg\_text\_style\ \{}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_reset\ \ \ \ \ =\ 0,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_bold\ \ \ \ \ \ =\ 1,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_dim\ \ \ \ \ \ \ =\ 2,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_italic\ \ \ \ =\ 3,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_underline\ =\ 4,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_blink\ \ \ \ \ =\ 5,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_rblink\ \ \ \ =\ 6,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_reversed\ \ =\ 7,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_conceal\ \ \ =\ 8,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_crossed\ \ \ =\ 9,}
+\DoxyCodeLine{\ \ \ \ dlg\_text\_style\_none,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Text\ color}}
+\DoxyCodeLine{\textcolor{keyword}{enum}\ dlg\_color\ \{}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_black\ =\ 0,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_red,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_green,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_yellow,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_blue,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_magenta,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_cyan,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_gray,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_reset\ =\ 9,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_black2\ =\ 60,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_red2,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_green2,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_yellow2,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_blue2,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_magenta2,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_cyan2,}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_gray2,}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ dlg\_color\_none\ =\ 69,}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{struct\ }\mbox{\hyperlink{structdlg__style}{dlg\_style}}\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{enum}\ dlg\_text\_style\ style;}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{enum}\ dlg\_color\ fg;}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{enum}\ dlg\_color\ bg;}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Like\ fprintf\ but\ fixes\ utf-\/8\ output\ to\ console\ on\ windows.}}
+\DoxyCodeLine{\textcolor{comment}{//\ On\ non-\/windows\ sytems\ just\ uses\ the\ corresponding\ standard\ library}}
+\DoxyCodeLine{\textcolor{comment}{//\ functions.\ On\ windows,\ if\ dlg\ was\ compiled\ with\ the\ win\_console\ option,}}
+\DoxyCodeLine{\textcolor{comment}{//\ will\ first\ try\ to\ output\ it\ in\ a\ way\ that\ allows\ the\ default\ console}}
+\DoxyCodeLine{\textcolor{comment}{//\ to\ display\ utf-\/8.\ If\ that\ fails,\ will\ fall\ back\ to\ the\ standard}}
+\DoxyCodeLine{\textcolor{comment}{//\ library\ functions.}}
+\DoxyCodeLine{\textcolor{keywordtype}{int}\ dlg\_fprintf(FILE*\ stream,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ format,\ ...);}
+\DoxyCodeLine{\textcolor{keywordtype}{int}\ dlg\_vfprintf(FILE*\ stream,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ format,\ va\_list\ list);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Like\ dlg\_printf,\ but\ also\ applies\ the\ given\ style\ to\ this\ output.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ style\ will\ always\ be\ applied\ (using\ escape\ sequences),\ independent\ of\ the\ given\ stream.}}
+\DoxyCodeLine{\textcolor{comment}{//\ On\ windows\ escape\ sequences\ don't\ work\ out\ of\ the\ box,\ see\ dlg\_win\_init\_ansi().}}
+\DoxyCodeLine{\textcolor{keywordtype}{int}\ dlg\_styled\_fprintf(FILE*\ stream,\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ style,}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ format,\ ...);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Features\ to\ output\ from\ the\ generic\ output\ handler.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Some\ features\ might\ have\ only\ an\ effect\ in\ the\ specializations.}}
+\DoxyCodeLine{\textcolor{keyword}{enum}\ dlg\_output\_feature\ \{}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_tags\ =\ 1,\ \textcolor{comment}{//\ output\ tags\ list}}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_time\ =\ 2,\ \textcolor{comment}{//\ output\ time\ of\ log\ call\ (hour:minute:second)}}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_style\ =\ 4,\ \textcolor{comment}{//\ whether\ to\ use\ the\ supplied\ styles}}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_func\ =\ 8,\ \textcolor{comment}{//\ output\ function}}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_file\_line\ =\ 16,\ \textcolor{comment}{//\ output\ file:line,}}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_newline\ =\ 32,\ \textcolor{comment}{//\ output\ a\ newline\ at\ the\ end}}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_threadsafe\ =\ 64,\ \textcolor{comment}{//\ locks\ stream\ before\ printing}}
+\DoxyCodeLine{\ \ \ \ dlg\_output\_time\_msecs\ =\ 128\ \textcolor{comment}{//\ output\ micro\ seconds\ (ms\ on\ windows)}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ default\ level-\/dependent\ output\ styles.\ The\ array\ values\ represent\ the\ styles}}
+\DoxyCodeLine{\textcolor{comment}{//\ to\ be\ used\ for\ the\ associated\ level\ (i.e.\ [0]\ for\ trace\ level).}}
+\DoxyCodeLine{\textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdlg__style}{dlg\_style}}\ dlg\_default\_output\_styles[6];}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Generic\ output\ function.\ Used\ by\ the\ default\ output\ handler\ and\ might\ be\ useful}}
+\DoxyCodeLine{\textcolor{comment}{//\ for\ custom\ output\ handlers\ (that\ don't\ want\ to\ manually\ format\ the\ output).}}
+\DoxyCodeLine{\textcolor{comment}{//\ Will\ call\ the\ given\ output\ func\ with\ the\ given\ data\ (and\ format\ +\ args\ to\ print)}}
+\DoxyCodeLine{\textcolor{comment}{//\ for\ everything\ it\ has\ to\ print\ in\ printf\ format.}}
+\DoxyCodeLine{\textcolor{comment}{//\ See\ also\ the\ *\_stream\ and\ *\_buf\ specializations\ for\ common\ usage.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ given\ output\ function\ must\ not\ be\ NULL.}}
+\DoxyCodeLine{\textcolor{keyword}{typedef}\ void(*dlg\_generic\_output\_handler)(\textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ format,\ ...);}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ dlg\_generic\_output(dlg\_generic\_output\_handler\ output,\ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ features,\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}*\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{string},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ styles[6]);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Generic\ output\ function.\ Used\ by\ the\ default\ output\ handler\ and\ might\ be\ useful}}
+\DoxyCodeLine{\textcolor{comment}{//\ for\ custom\ output\ handlers\ (that\ don't\ want\ to\ manually\ format\ the\ output).}}
+\DoxyCodeLine{\textcolor{comment}{//\ If\ stream\ is\ NULL\ uses\ stdout.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Automatically\ uses\ dlg\_fprintf\ to\ assure\ correct\ utf-\/8\ even\ on\ windows\ consoles.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Locks\ the\ stream\ (i.e.\ assures\ threadsafe\ access)\ when\ the\ associated\ feature}}
+\DoxyCodeLine{\textcolor{comment}{//\ is\ passed\ (note\ that\ stdout/stderr\ might\ still\ mix\ from\ multiple\ threads).}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ dlg\_generic\_output\_stream(FILE*\ stream,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ features,}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}*\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{string},}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ styles[6]);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Generic\ output\ function\ (see\ dlg\_generic\_output)\ that\ uses\ a\ buffer\ instead\ of}}
+\DoxyCodeLine{\textcolor{comment}{//\ a\ stream.\ buf\ must\ at\ least\ point\ to\ *size\ bytes.\ Will\ set\ *size\ to\ the\ number}}
+\DoxyCodeLine{\textcolor{comment}{//\ of\ bytes\ written\ (capped\ to\ the\ given\ size),\ if\ buf\ ==\ NULL\ will\ set\ *size}}
+\DoxyCodeLine{\textcolor{comment}{//\ to\ the\ needed\ size.\ The\ size\ parameter\ must\ not\ be\ NULL.}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ dlg\_generic\_output\_buf(\textcolor{keywordtype}{char}*\ \mbox{\hyperlink{structbuf}{buf}},\ \textcolor{keywordtype}{size\_t}*\ size,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ features,}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}*\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{string},}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ styles[6]);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Returns\ if\ the\ given\ stream\ is\ a\ tty.\ Useful\ for\ custom\ output\ handlers}}
+\DoxyCodeLine{\textcolor{comment}{//\ e.g.\ to\ determine\ whether\ to\ use\ color.}}
+\DoxyCodeLine{\textcolor{comment}{//\ NOTE:\ Due\ to\ windows\ limitations\ currently\ returns\ false\ for\ wsl\ ttys.}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ dlg\_is\_tty(FILE*\ stream);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Returns\ the\ null-\/terminated\ escape\ sequence\ for\ the\ given\ style\ into\ buf.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Undefined\ behvaiour\ if\ any\ member\ of\ style\ has\ a\ value\ outside\ its\ enum\ range\ (will}}
+\DoxyCodeLine{\textcolor{comment}{//\ probably\ result\ in\ a\ buffer\ overflow\ or\ garbage\ being\ printed).}}
+\DoxyCodeLine{\textcolor{comment}{//\ If\ all\ member\ of\ style\ are\ 'none'\ will\ simply\ nullterminate\ the\ first\ buf\ char.}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ dlg\_escape\_sequence(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ style,\ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[12]);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ reset\ style\ escape\ sequence.}}
+\DoxyCodeLine{\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ dlg\_reset\_sequence;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Just\ returns\ true\ without\ other\ effect\ on\ non-\/windows\ systems\ or\ if\ dlg}}
+\DoxyCodeLine{\textcolor{comment}{//\ was\ compiled\ without\ the\ win\_console\ option.}}
+\DoxyCodeLine{\textcolor{comment}{//\ On\ windows\ tries\ to\ set\ the\ console\ mode\ to\ ansi\ to\ make\ escape\ sequences\ work.}}
+\DoxyCodeLine{\textcolor{comment}{//\ This\ works\ only\ on\ newer\ windows\ 10\ versions.\ Returns\ false\ on\ error.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Only\ the\ first\ call\ to\ it\ will\ have\ an\ effect,\ following\ calls\ just\ return\ the\ result.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ function\ is\ threadsafe.\ Automatically\ called\ by\ the\ default\ output\ handler.}}
+\DoxyCodeLine{\textcolor{comment}{//\ This\ will\ only\ be\ able\ to\ set\ the\ mode\ for\ the\ stdout\ and\ stderr\ consoles,\ so}}
+\DoxyCodeLine{\textcolor{comment}{//\ other\ streams\ to\ consoles\ will\ still\ not\ work.}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ dlg\_win\_init\_ansi(\textcolor{keywordtype}{void});}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1379}{}\doxysection{Synopsis of dlg.\+hpp}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_api_autotoc_md1379}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{//\ By\ default\ this\ header\ automatically\ uses\ a\ different,\ typesafe\ formatting}}
+\DoxyCodeLine{\textcolor{comment}{//\ function.\ Make\ sure\ to\ never\ include\ dlg.h\ in\ your\ translation\ unit\ before}}
+\DoxyCodeLine{\textcolor{comment}{//\ including\ dlg.hpp\ to\ make\ this\ work.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ new\ formatting\ function\ works\ like\ a\ type-\/safe\ version\ of\ printf,\ see\ dlg::format.}}
+\DoxyCodeLine{\textcolor{comment}{//\ It\ can\ also\ be\ called\ with\ only\ an\ object\ (e.g.\ dlg\_info(42))\ which\ will}}
+\DoxyCodeLine{\textcolor{comment}{//\ then\ simply\ output\ the\ object.}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#ifndef\ DLG\_FMT\_FUNC}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ DLG\_FMT\_FUNC\ <format\ function\ with\ dlg::format\ like\ semantics>}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ default\ string\ to\ replace\ by\ the\ dlg::*format\ functions.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Used\ as\ default\ by\ tlformat\ (set\ as\ new\ DLG\_FMT\_FUNC)\ or\ dlg::format.}}
+\DoxyCodeLine{\textcolor{comment}{//\ If\ a\ custom\ replace\ string\ is\ required\ in\ certain\ situations\ without}}
+\DoxyCodeLine{\textcolor{comment}{//\ overriding\ this\ macro,\ use\ dlg::rformat\ or\ dlg::gformat.}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#ifndef\ DLG\_FORMAT\_DEFAULT\_REPLACE}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ DLG\_FORMAT\_DEFAULT\_REPLACE\ "{}\{\}"{}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{namespace\ }dlg\ \{}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Sets\ dlg\ tags\ on\ its\ construction\ and\ removes\ them\ on\ its\ destruction.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Instead\ of\ explicitly\ constructing\ an\ object,\ just\ use\ the\ dlg\_tags\ and}}
+\DoxyCodeLine{\textcolor{comment}{//\ dlg\_tags\_global\ macros\ which\ will\ construct\ one\ in\ the\ current\ scope.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Just\ forwards\ the\ arguments\ on\ construction\ to\ dlg\_add\_tag,\ so\ if\ func}}
+\DoxyCodeLine{\textcolor{comment}{//\ is\ nullptr\ the\ tags\ will\ be\ applied\ even\ to\ called\ functions\ from\ the\ current}}
+\DoxyCodeLine{\textcolor{comment}{//\ scope,\ otherwise\ only\ to\ calls\ coming\ directly\ from\ the\ current\ function.}}
+\DoxyCodeLine{\textcolor{keyword}{class\ }TagsGuard\ \{}
+\DoxyCodeLine{\textcolor{keyword}{public}:}
+\DoxyCodeLine{\ \ \ \ TagsGuard(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}**\ tags,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ func);}
+\DoxyCodeLine{\ \ \ \ \string~TagsGuard();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{protected}:}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}**\ tags\_;}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ func\_;}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Constructs\ a\ dlg::TagsGuard\ in\ the\ current\ scope,\ passing\ correctly\ the}}
+\DoxyCodeLine{\textcolor{comment}{//\ current\ function,\ i.e.\ only\ dlg\ calls\ made\ from\ other\ functions}}
+\DoxyCodeLine{\textcolor{comment}{//\ that\ are\ called\ in\ the\ current\ scope\ will\ not\ use\ the\ given\ tags.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Expects\ the\ tags\ to\ be\ set\ as\ parameters\ like\ this:}}
+\DoxyCodeLine{\textcolor{comment}{//\ ```dlg\_tags("{}tag1"{},\ "{}tag2"{})```.}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ dlg\_tags(...)}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Constructs\ a\ dlg::TagsGuard\ in\ the\ current\ scope,\ passing\ nullptr\ as\ func.}}
+\DoxyCodeLine{\textcolor{comment}{//\ This\ means\ that\ even\ dlg\ calls\ made\ from\ other\ functions\ called\ in\ the\ current}}
+\DoxyCodeLine{\textcolor{comment}{//\ scope\ will\ use\ those\ tags.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Expects\ the\ tags\ to\ be\ set\ as\ parameters\ like\ this:}}
+\DoxyCodeLine{\textcolor{comment}{//\ ```dlg\_tags\_global("{}tag1"{},\ "{}tag2"{})```.}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ dlg\_tags\_global(...)}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Executes\ the\ given\ block\ only\ if\ dlg\ checking\ is\ enabled}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ dlg\_check(code)}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Executes\ the\ given\ blocks\ with\ the\ given\ tags\ only\ if\ dlg\ checking\ is\ enabled}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ tags\ must\ have\ the\ default\ `("{}tag1"{},\ "{}tag2"{})`\ format.}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ dlg\_checkt(tags,\ code)}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{using\ }Handler\ =\ std::function<void(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}\&\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ str)>;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Allows\ to\ set\ a\ std::function\ as\ dlg\ handler.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ handler\ should\ not\ throw,\ all\ exceptions\ (and\ non-\/exceptions)\ are\ caught}}
+\DoxyCodeLine{\textcolor{comment}{//\ in\ a\ wrapper\ since\ they\ must\ not\ be\ passed\ through\ dlg\ (since\ it's\ c\ and\ dlg}}
+\DoxyCodeLine{\textcolor{comment}{//\ might\ be\ called\ from\ c\ code).}}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ set\_handler(Handler\ handler);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{\textcolor{keywordtype}{void}\ gformat(std::ostream\&\ os,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ replace,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ fmt,\ Args\&\&...\ args);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Arg,\ \textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{std::string\ rformat(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ replace,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ fmt,\ Args\&\&...\ args);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{std::string\ format(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ fmt,\ Args\&\&...\ args);}
+\DoxyCodeLine{}
+\DoxyCodeLine{std::string\ generic\_output(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ features,}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}\&\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keywordtype}{string},}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ styles[6]\ =\ dlg\_default\_output\_styles);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\}\ \textcolor{comment}{//\ namespace\ dlg}}
+
+\end{DoxyCode}
+ 

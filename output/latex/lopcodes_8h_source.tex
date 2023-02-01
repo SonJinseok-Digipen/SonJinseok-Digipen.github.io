@@ -1,0 +1,398 @@
+\hypertarget{lopcodes_8h_source}{}\doxysection{lopcodes.\+h}
+\label{lopcodes_8h_source}\index{AseSprite/aseprite/third\_party/lua/lopcodes.h@{AseSprite/aseprite/third\_party/lua/lopcodes.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{**\ \$Id:\ lopcodes.h\ \$}}
+\DoxyCodeLine{00003\ \textcolor{comment}{**\ Opcodes\ for\ Lua\ virtual\ machine}}
+\DoxyCodeLine{00004\ \textcolor{comment}{**\ See\ Copyright\ Notice\ in\ lua.h}}
+\DoxyCodeLine{00005\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ lopcodes\_h}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ lopcodes\_h}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}llimits.h"{}}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{comment}{/*===========================================================================}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ \ We\ assume\ that\ instructions\ are\ unsigned\ 32-\/bit\ integers.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ \ All\ instructions\ have\ an\ opcode\ in\ the\ first\ 7\ bits.}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ \ Instructions\ can\ have\ the\ following\ formats:}}
+\DoxyCodeLine{00017\ \textcolor{comment}{}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ \ \ \ \ \ \ \ 3\ 3\ 2\ 2\ 2\ 2\ 2\ 2\ 2\ 2\ 2\ 2\ 1\ 1\ 1\ 1\ 1\ 1\ 1\ 1\ 1\ 1\ 0\ 0\ 0\ 0\ 0\ 0\ 0\ 0\ 0\ 0}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ \ \ \ \ \ \ \ 1\ 0\ 9\ 8\ 7\ 6\ 5\ 4\ 3\ 2\ 1\ 0\ 9\ 8\ 7\ 6\ 5\ 4\ 3\ 2\ 1\ 0\ 9\ 8\ 7\ 6\ 5\ 4\ 3\ 2\ 1\ 0}}
+\DoxyCodeLine{00020\ \textcolor{comment}{iABC\ \ \ \ \ \ \ \ \ \ C(8)\ \ \ \ \ |\ \ \ \ \ \ B(8)\ \ \ \ \ |k|\ \ \ \ \ A(8)\ \ \ \ \ \ |\ \ \ Op(7)\ \ \ \ \ |}}
+\DoxyCodeLine{00021\ \textcolor{comment}{iABx\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Bx(17)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ \ \ A(8)\ \ \ \ \ \ |\ \ \ Op(7)\ \ \ \ \ |}}
+\DoxyCodeLine{00022\ \textcolor{comment}{iAsBx\ \ \ \ \ \ \ \ \ \ \ \ \ \ sBx\ (signed)(17)\ \ \ \ \ \ |\ \ \ \ \ A(8)\ \ \ \ \ \ |\ \ \ Op(7)\ \ \ \ \ |}}
+\DoxyCodeLine{00023\ \textcolor{comment}{iAx\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ax(25)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ Op(7)\ \ \ \ \ |}}
+\DoxyCodeLine{00024\ \textcolor{comment}{isJ\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sJ(25)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ \ \ Op(7)\ \ \ \ \ |}}
+\DoxyCodeLine{00025\ \textcolor{comment}{}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ A\ signed\ argument\ is\ represented\ in\ excess\ K:\ the\ represented\ value\ is}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ the\ written\ unsigned\ value\ minus\ K,\ where\ K\ is\ half\ the\ maximum\ for\ the}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ \ corresponding\ unsigned\ argument.}}
+\DoxyCodeLine{00029\ \textcolor{comment}{===========================================================================*/}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{enum}\ OpMode\ \{iABC,\ iABx,\ iAsBx,\ iAx,\ isJ\};\ \ \textcolor{comment}{/*\ basic\ instruction\ formats\ */}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00036\ \textcolor{comment}{**\ size\ and\ position\ of\ opcode\ arguments.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ SIZE\_C\ \ \ \ \ \ 8}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ SIZE\_B\ \ \ \ \ \ 8}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ SIZE\_Bx\ \ \ \ \ (SIZE\_C\ +\ SIZE\_B\ +\ 1)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ SIZE\_A\ \ \ \ \ \ 8}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ SIZE\_Ax\ \ \ \ \ (SIZE\_Bx\ +\ SIZE\_A)}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ SIZE\_sJ\ \ \ \ \ (SIZE\_Bx\ +\ SIZE\_A)}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ SIZE\_OP\ \ \ \ \ 7}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ POS\_OP\ \ \ \ \ \ 0}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ POS\_A\ \ \ \ \ \ \ (POS\_OP\ +\ SIZE\_OP)}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#define\ POS\_k\ \ \ \ \ \ \ (POS\_A\ +\ SIZE\_A)}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ POS\_B\ \ \ \ \ \ \ (POS\_k\ +\ 1)}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ POS\_C\ \ \ \ \ \ \ (POS\_B\ +\ SIZE\_B)}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ POS\_Bx\ \ \ \ \ \ POS\_k}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ POS\_Ax\ \ \ \ \ \ POS\_A}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ POS\_sJ\ \ \ \ \ \ POS\_A}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00062\ \textcolor{comment}{**\ limits\ for\ opcode\ arguments.}}
+\DoxyCodeLine{00063\ \textcolor{comment}{**\ we\ use\ (signed)\ 'int'\ to\ manipulate\ most\ arguments,}}
+\DoxyCodeLine{00064\ \textcolor{comment}{**\ so\ they\ must\ fit\ in\ ints.}}
+\DoxyCodeLine{00065\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{/*\ Check\ whether\ type\ 'int'\ has\ at\ least\ 'b'\ bits\ ('b'\ <\ 32)\ */}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#define\ L\_INTHASBITS(b)\ \ \ \ \ ((UINT\_MAX\ >>\ ((b)\ -\/\ 1))\ >=\ 1)}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#if\ L\_INTHASBITS(SIZE\_Bx)}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#define\ MAXARG\_Bx\ \ \ ((1<<SIZE\_Bx)-\/1)}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ MAXARG\_Bx\ \ \ MAX\_INT}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ OFFSET\_sBx\ \ (MAXARG\_Bx>>1)\ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ 'sBx'\ is\ signed\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#if\ L\_INTHASBITS(SIZE\_Ax)}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#define\ MAXARG\_Ax\ \ \ ((1<<SIZE\_Ax)-\/1)}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#define\ MAXARG\_Ax\ \ \ MAX\_INT}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#if\ L\_INTHASBITS(SIZE\_sJ)}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ MAXARG\_sJ\ \ \ ((1\ <<\ SIZE\_sJ)\ -\/\ 1)}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ MAXARG\_sJ\ \ \ MAX\_INT}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#define\ OFFSET\_sJ\ \ \ (MAXARG\_sJ\ >>\ 1)}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#define\ MAXARG\_A\ \ \ \ ((1<<SIZE\_A)-\/1)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#define\ MAXARG\_B\ \ \ \ ((1<<SIZE\_B)-\/1)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#define\ MAXARG\_C\ \ \ \ ((1<<SIZE\_C)-\/1)}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#define\ OFFSET\_sC\ \ \ (MAXARG\_C\ >>\ 1)}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#define\ int2sC(i)\ \ \ ((i)\ +\ OFFSET\_sC)}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#define\ sC2int(i)\ \ \ ((i)\ -\/\ OFFSET\_sC)}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{comment}{/*\ creates\ a\ mask\ with\ 'n'\ 1\ bits\ at\ position\ 'p'\ */}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ MASK1(n,p)\ \ ((\string~((\string~(Instruction)0)<<(n)))<<(p))}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{comment}{/*\ creates\ a\ mask\ with\ 'n'\ 0\ bits\ at\ position\ 'p'\ */}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#define\ MASK0(n,p)\ \ (\string~MASK1(n,p))}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00111\ \textcolor{comment}{**\ the\ following\ macros\ help\ to\ manipulate\ instructions}}
+\DoxyCodeLine{00112\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#define\ GET\_OPCODE(i)\ \ \ (cast(OpCode,\ ((i)>>POS\_OP)\ \&\ MASK1(SIZE\_OP,0)))}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ SET\_OPCODE(i,o)\ ((i)\ =\ (((i)\&MASK0(SIZE\_OP,POS\_OP))\ |\ \(\backslash\)}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ((cast(Instruction,\ o)<<POS\_OP)\&MASK1(SIZE\_OP,POS\_OP))))}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ checkopm(i,m)\ \ \ (getOpMode(GET\_OPCODE(i))\ ==\ m)}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#define\ getarg(i,pos,size)\ \ (cast\_int(((i)>>(pos))\ \&\ MASK1(size,0)))}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#define\ setarg(i,v,pos,size)\ \ \ \ ((i)\ =\ (((i)\&MASK0(size,pos))\ |\ \(\backslash\)}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((cast(Instruction,\ v)<<pos)\&MASK1(size,pos))))}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#define\ GETARG\_A(i)\ getarg(i,\ POS\_A,\ SIZE\_A)}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#define\ SETARG\_A(i,v)\ \ \ setarg(i,\ v,\ POS\_A,\ SIZE\_A)}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#define\ GETARG\_B(i)\ check\_exp(checkopm(i,\ iABC),\ getarg(i,\ POS\_B,\ SIZE\_B))}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ GETARG\_sB(i)\ \ \ \ sC2int(GETARG\_B(i))}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#define\ SETARG\_B(i,v)\ \ \ setarg(i,\ v,\ POS\_B,\ SIZE\_B)}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#define\ GETARG\_C(i)\ check\_exp(checkopm(i,\ iABC),\ getarg(i,\ POS\_C,\ SIZE\_C))}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ GETARG\_sC(i)\ \ \ \ sC2int(GETARG\_C(i))}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#define\ SETARG\_C(i,v)\ \ \ setarg(i,\ v,\ POS\_C,\ SIZE\_C)}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#define\ TESTARG\_k(i)\ \ \ \ check\_exp(checkopm(i,\ iABC),\ (cast\_int(((i)\ \&\ (1u\ <<\ POS\_k)))))}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#define\ GETARG\_k(i)\ check\_exp(checkopm(i,\ iABC),\ getarg(i,\ POS\_k,\ 1))}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#define\ SETARG\_k(i,v)\ \ \ setarg(i,\ v,\ POS\_k,\ 1)}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#define\ GETARG\_Bx(i)\ \ \ \ check\_exp(checkopm(i,\ iABx),\ getarg(i,\ POS\_Bx,\ SIZE\_Bx))}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#define\ SETARG\_Bx(i,v)\ \ setarg(i,\ v,\ POS\_Bx,\ SIZE\_Bx)}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#define\ GETARG\_Ax(i)\ \ \ \ check\_exp(checkopm(i,\ iAx),\ getarg(i,\ POS\_Ax,\ SIZE\_Ax))}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\#define\ SETARG\_Ax(i,v)\ \ setarg(i,\ v,\ POS\_Ax,\ SIZE\_Ax)}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\#define\ GETARG\_sBx(i)\ \ \(\backslash\)}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\ \ \ \ check\_exp(checkopm(i,\ iAsBx),\ getarg(i,\ POS\_Bx,\ SIZE\_Bx)\ -\/\ OFFSET\_sBx)}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\#define\ SETARG\_sBx(i,b)\ SETARG\_Bx((i),cast\_uint((b)+OFFSET\_sBx))}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#define\ GETARG\_sJ(i)\ \ \(\backslash\)}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\ \ \ \ check\_exp(checkopm(i,\ isJ),\ getarg(i,\ POS\_sJ,\ SIZE\_sJ)\ -\/\ OFFSET\_sJ)}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#define\ SETARG\_sJ(i,j)\ \(\backslash\)}}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\ \ \ \ setarg(i,\ cast\_uint((j)+OFFSET\_sJ),\ POS\_sJ,\ SIZE\_sJ)}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#define\ CREATE\_ABCk(o,a,b,c,k)\ \ ((cast(Instruction,\ o)<<POS\_OP)\ \(\backslash\)}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ a)<<POS\_A)\ \(\backslash\)}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ b)<<POS\_B)\ \(\backslash\)}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ c)<<POS\_C)\ \(\backslash\)}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ k)<<POS\_k))}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#define\ CREATE\_ABx(o,a,bc)\ \ ((cast(Instruction,\ o)<<POS\_OP)\ \(\backslash\)}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ a)<<POS\_A)\ \(\backslash\)}}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ bc)<<POS\_Bx))}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\#define\ CREATE\_Ax(o,a)\ \ \ \ \ \ ((cast(Instruction,\ o)<<POS\_OP)\ \(\backslash\)}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ a)<<POS\_Ax))}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\#define\ CREATE\_sJ(o,j,k)\ \ \ \ ((cast(Instruction,\ o)\ <<\ POS\_OP)\ \(\backslash\)}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ j)\ <<\ POS\_sJ)\ \(\backslash\)}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ |\ (cast(Instruction,\ k)\ <<\ POS\_k))}}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#if\ !defined(MAXINDEXRK)\ \ }\textcolor{comment}{/*\ (for\ debugging\ only)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#define\ MAXINDEXRK\ \ MAXARG\_B}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00180\ \textcolor{comment}{**\ invalid\ register\ that\ fits\ in\ 8\ bits}}
+\DoxyCodeLine{00181\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\#define\ NO\_REG\ \ \ \ \ \ MAXARG\_A}}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00186\ \textcolor{comment}{**\ R[x]\ -\/\ register}}
+\DoxyCodeLine{00187\ \textcolor{comment}{**\ K[x]\ -\/\ constant\ (in\ constant\ table)}}
+\DoxyCodeLine{00188\ \textcolor{comment}{**\ RK(x)\ ==\ if\ k(i)\ then\ K[x]\ else\ R[x]}}
+\DoxyCodeLine{00189\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00193\ \textcolor{comment}{**\ grep\ "{}ORDER\ OP"{}\ if\ you\ change\ these\ enums}}
+\DoxyCodeLine{00194\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00197\ \textcolor{comment}{/*-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ name\ \ \ \ \ \ args\ \ \ \ description}}
+\DoxyCodeLine{00199\ \textcolor{comment}{-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/*/}}
+\DoxyCodeLine{00200\ OP\_MOVE,\textcolor{comment}{/*\ \ A\ B\ R[A]\ :=\ R[B]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00201\ OP\_LOADI,\textcolor{comment}{/*\ A\ sBx\ \ \ R[A]\ :=\ sBx\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00202\ OP\_LOADF,\textcolor{comment}{/*\ A\ sBx\ \ \ R[A]\ :=\ (lua\_Number)sBx\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00203\ OP\_LOADK,\textcolor{comment}{/*\ A\ Bx\ \ \ \ R[A]\ :=\ K[Bx]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00204\ OP\_LOADKX,\textcolor{comment}{/*\ \ \ \ A\ \ \ R[A]\ :=\ K[extra\ arg]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00205\ OP\_LOADFALSE,\textcolor{comment}{/*\ A\ \ \ R[A]\ :=\ false\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00206\ OP\_LFALSESKIP,\textcolor{comment}{/*A\ \ \ R[A]\ :=\ false;\ pc++\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00207\ OP\_LOADTRUE,\textcolor{comment}{/*\ \ A\ \ \ R[A]\ :=\ true\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00208\ OP\_LOADNIL,\textcolor{comment}{/*\ \ \ A\ B\ R[A],\ R[A+1],\ ...,\ R[A+B]\ :=\ nil\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00209\ OP\_GETUPVAL,\textcolor{comment}{/*\ \ A\ B\ R[A]\ :=\ UpValue[B]\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00210\ OP\_SETUPVAL,\textcolor{comment}{/*\ \ A\ B\ UpValue[B]\ :=\ R[A]\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ OP\_GETTABUP,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ UpValue[B][K[C]:string]\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00213\ OP\_GETTABLE,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B][R[C]]\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00214\ OP\_GETI,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B][C]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00215\ OP\_GETFIELD,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B][K[C]:string]\ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ OP\_SETTABUP,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ UpValue[A][K[B]:string]\ :=\ RK(C)\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00218\ OP\_SETTABLE,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A][R[B]]\ :=\ RK(C)\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00219\ OP\_SETI,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A][B]\ :=\ RK(C)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00220\ OP\_SETFIELD,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A][K[B]:string]\ :=\ RK(C)\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ OP\_NEWTABLE,\textcolor{comment}{/*\ \ A\ B\ C\ k\ R[A]\ :=\ \{\}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ OP\_SELF,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A+1]\ :=\ R[B];\ R[A]\ :=\ R[B][RK(C):string]\ \ */}}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ OP\_ADDI,\textcolor{comment}{/*\ \ A\ B\ sC\ \ R[A]\ :=\ R[B]\ +\ sC\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ OP\_ADDK,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ +\ K[C]:number\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00229\ OP\_SUBK,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ -\/\ K[C]:number\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00230\ OP\_MULK,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ *\ K[C]:number\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00231\ OP\_MODK,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \%\ K[C]:number\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00232\ OP\_POWK,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \string^\ K[C]:number\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00233\ OP\_DIVK,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ /\ K[C]:number\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00234\ OP\_IDIVK,\textcolor{comment}{/*\ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ //\ K[C]:number\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ OP\_BANDK,\textcolor{comment}{/*\ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \&\ K[C]:integer\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00237\ OP\_BORK,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ |\ K[C]:integer\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00238\ OP\_BXORK,\textcolor{comment}{/*\ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \string~\ K[C]:integer\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ OP\_SHRI,\textcolor{comment}{/*\ \ A\ B\ sC\ \ R[A]\ :=\ R[B]\ >>\ sC\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00241\ OP\_SHLI,\textcolor{comment}{/*\ \ A\ B\ sC\ \ R[A]\ :=\ sC\ <<\ R[B]\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ OP\_ADD,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ +\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00244\ OP\_SUB,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ -\/\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00245\ OP\_MUL,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ *\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00246\ OP\_MOD,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \%\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00247\ OP\_POW,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \string^\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00248\ OP\_DIV,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ /\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00249\ OP\_IDIV,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ //\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ OP\_BAND,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \&\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00252\ OP\_BOR,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ |\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00253\ OP\_BXOR,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ \string~\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00254\ OP\_SHL,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ <<\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00255\ OP\_SHR,\textcolor{comment}{/*\ \ \ A\ B\ C\ \ \ R[A]\ :=\ R[B]\ >>\ R[C]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ OP\_MMBIN,\textcolor{comment}{/*\ A\ B\ C\ \ \ call\ C\ metamethod\ over\ R[A]\ and\ R[B]\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00258\ OP\_MMBINI,\textcolor{comment}{/*\ \ \ \ A\ sB\ C\ k\ \ \ \ call\ C\ metamethod\ over\ R[A]\ and\ sB\ \ */}}
+\DoxyCodeLine{00259\ OP\_MMBINK,\textcolor{comment}{/*\ \ \ \ A\ B\ C\ k\ \ \ \ \ call\ C\ metamethod\ over\ R[A]\ and\ K[B]\ \ \ \ */}}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ OP\_UNM,\textcolor{comment}{/*\ \ \ A\ B\ R[A]\ :=\ -\/R[B]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00262\ OP\_BNOT,\textcolor{comment}{/*\ \ A\ B\ R[A]\ :=\ \string~R[B]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00263\ OP\_NOT,\textcolor{comment}{/*\ \ \ A\ B\ R[A]\ :=\ not\ R[B]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00264\ OP\_LEN,\textcolor{comment}{/*\ \ \ A\ B\ R[A]\ :=\ \#R[B]\ (length\ operator)\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ OP\_CONCAT,\textcolor{comment}{/*\ \ \ \ A\ B\ R[A]\ :=\ R[A]..\ ...\ ..R[A\ +\ B\ -\/\ 1]\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ OP\_CLOSE,\textcolor{comment}{/*\ A\ \ \ close\ all\ upvalues\ >=\ R[A]\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00269\ OP\_TBC,\textcolor{comment}{/*\ \ \ A\ \ \ mark\ variable\ A\ "{}to\ be\ closed"{}\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00270\ OP\_JMP,\textcolor{comment}{/*\ \ \ sJ\ \ pc\ +=\ sJ\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00271\ OP\_EQ,\textcolor{comment}{/*\ \ \ \ A\ B\ k\ \ \ if\ ((R[A]\ ==\ R[B])\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ */}}
+\DoxyCodeLine{00272\ OP\_LT,\textcolor{comment}{/*\ \ \ \ A\ B\ k\ \ \ if\ ((R[A]\ <\ \ R[B])\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ */}}
+\DoxyCodeLine{00273\ OP\_LE,\textcolor{comment}{/*\ \ \ \ A\ B\ k\ \ \ if\ ((R[A]\ <=\ R[B])\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ */}}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ OP\_EQK,\textcolor{comment}{/*\ \ \ A\ B\ k\ \ \ if\ ((R[A]\ ==\ K[B])\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ */}}
+\DoxyCodeLine{00276\ OP\_EQI,\textcolor{comment}{/*\ \ \ A\ sB\ k\ \ if\ ((R[A]\ ==\ sB)\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00277\ OP\_LTI,\textcolor{comment}{/*\ \ \ A\ sB\ k\ \ if\ ((R[A]\ <\ sB)\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00278\ OP\_LEI,\textcolor{comment}{/*\ \ \ A\ sB\ k\ \ if\ ((R[A]\ <=\ sB)\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00279\ OP\_GTI,\textcolor{comment}{/*\ \ \ A\ sB\ k\ \ if\ ((R[A]\ >\ sB)\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00280\ OP\_GEI,\textcolor{comment}{/*\ \ \ A\ sB\ k\ \ if\ ((R[A]\ >=\ sB)\ \string~=\ k)\ then\ pc++\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ OP\_TEST,\textcolor{comment}{/*\ \ A\ k\ if\ (not\ R[A]\ ==\ k)\ then\ pc++\ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00283\ OP\_TESTSET,\textcolor{comment}{/*\ \ \ A\ B\ k\ \ \ if\ (not\ R[B]\ ==\ k)\ then\ pc++\ else\ R[A]\ :=\ R[B]\ \ */}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ OP\_CALL,\textcolor{comment}{/*\ \ A\ B\ C\ \ \ R[A],\ ...\ ,R[A+C-\/2]\ :=\ R[A](R[A+1],\ ...\ ,R[A+B-\/1])\ */}}
+\DoxyCodeLine{00286\ OP\_TAILCALL,\textcolor{comment}{/*\ \ A\ B\ C\ k\ return\ R[A](R[A+1],\ ...\ ,R[A+B-\/1])\ \ \ \ \ \ */}}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ OP\_RETURN,\textcolor{comment}{/*\ \ \ \ A\ B\ C\ k\ return\ R[A],\ ...\ ,R[A+B-\/2]\ \ (see\ note)\ \ */}}
+\DoxyCodeLine{00289\ OP\_RETURN0,\textcolor{comment}{/*\ \ \ \ \ \ \ return\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00290\ OP\_RETURN1,\textcolor{comment}{/*\ \ \ A\ \ \ return\ R[A]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ OP\_FORLOOP,\textcolor{comment}{/*\ \ \ A\ Bx\ \ \ \ update\ counters;\ if\ loop\ continues\ then\ pc-\/=Bx;\ */}}
+\DoxyCodeLine{00293\ OP\_FORPREP,\textcolor{comment}{/*\ \ \ A\ Bx\ \ \ \ <check\ values\ and\ prepare\ counters>;}}
+\DoxyCodeLine{00294\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ not\ to\ run\ then\ pc+=Bx+1;\ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ OP\_TFORPREP,\textcolor{comment}{/*\ \ A\ Bx\ \ \ \ create\ upvalue\ for\ R[A\ +\ 3];\ pc+=Bx\ \ \ \ \ */}}
+\DoxyCodeLine{00297\ OP\_TFORCALL,\textcolor{comment}{/*\ \ A\ C\ R[A+4],\ ...\ ,R[A+3+C]\ :=\ R[A](R[A+1],\ R[A+2]);\ \ */}}
+\DoxyCodeLine{00298\ OP\_TFORLOOP,\textcolor{comment}{/*\ \ A\ Bx\ \ \ \ if\ R[A+2]\ \string~=\ nil\ then\ \{\ R[A]=R[A+2];\ pc\ -\/=\ Bx\ \}\ */}}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ OP\_SETLIST,\textcolor{comment}{/*\ \ \ A\ B\ C\ k\ R[A][C+i]\ :=\ R[A+i],\ 1\ <=\ i\ <=\ B\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ OP\_CLOSURE,\textcolor{comment}{/*\ \ \ A\ Bx\ \ \ \ R[A]\ :=\ closure(KPROTO[Bx])\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ OP\_VARARG,\textcolor{comment}{/*\ \ \ \ A\ C\ R[A],\ R[A+1],\ ...,\ R[A+C-\/2]\ =\ vararg\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ OP\_VARARGPREP,\textcolor{comment}{/*A\ \ \ (adjust\ vararg\ parameters)\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ OP\_EXTRAARG\textcolor{comment}{/*\ \ \ Ax\ \ extra\ (larger)\ argument\ for\ previous\ opcode\ */}}
+\DoxyCodeLine{00309\ \}\ OpCode;}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ }
+\DoxyCodeLine{00312\ \textcolor{preprocessor}{\#define\ NUM\_OPCODES\ ((int)(OP\_EXTRAARG)\ +\ 1)}}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ }
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \textcolor{comment}{/*===========================================================================}}
+\DoxyCodeLine{00317\ \textcolor{comment}{\ \ Notes:}}
+\DoxyCodeLine{00318\ \textcolor{comment}{\ \ (*)\ In\ OP\_CALL,\ if\ (B\ ==\ 0)\ then\ B\ =\ top\ -\/\ A.\ If\ (C\ ==\ 0),\ then}}
+\DoxyCodeLine{00319\ \textcolor{comment}{\ \ 'top'\ is\ set\ to\ last\_result+1,\ so\ next\ open\ instruction\ (OP\_CALL,}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ \ OP\_RETURN*,\ OP\_SETLIST)\ may\ use\ 'top'.}}
+\DoxyCodeLine{00321\ \textcolor{comment}{}}
+\DoxyCodeLine{00322\ \textcolor{comment}{\ \ (*)\ In\ OP\_VARARG,\ if\ (C\ ==\ 0)\ then\ use\ actual\ number\ of\ varargs\ and}}
+\DoxyCodeLine{00323\ \textcolor{comment}{\ \ set\ top\ (like\ in\ OP\_CALL\ with\ C\ ==\ 0).}}
+\DoxyCodeLine{00324\ \textcolor{comment}{}}
+\DoxyCodeLine{00325\ \textcolor{comment}{\ \ (*)\ In\ OP\_RETURN,\ if\ (B\ ==\ 0)\ then\ return\ up\ to\ 'top'.}}
+\DoxyCodeLine{00326\ \textcolor{comment}{}}
+\DoxyCodeLine{00327\ \textcolor{comment}{\ \ (*)\ In\ OP\_LOADKX\ and\ OP\_NEWTABLE,\ the\ next\ instruction\ is\ always}}
+\DoxyCodeLine{00328\ \textcolor{comment}{\ \ OP\_EXTRAARG.}}
+\DoxyCodeLine{00329\ \textcolor{comment}{}}
+\DoxyCodeLine{00330\ \textcolor{comment}{\ \ (*)\ In\ OP\_SETLIST,\ if\ (B\ ==\ 0)\ then\ real\ B\ =\ 'top';\ if\ k,\ then}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ \ real\ C\ =\ EXTRAARG\ \_\ C\ (the\ bits\ of\ EXTRAARG\ concatenated\ with\ the}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ \ bits\ of\ C).}}
+\DoxyCodeLine{00333\ \textcolor{comment}{}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ (*)\ In\ OP\_NEWTABLE,\ B\ is\ log2\ of\ the\ hash\ size\ (which\ is\ always\ a}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ \ power\ of\ 2)\ plus\ 1,\ or\ zero\ for\ size\ zero.\ If\ not\ k,\ the\ array\ size}}
+\DoxyCodeLine{00336\ \textcolor{comment}{\ \ is\ C.\ Otherwise,\ the\ array\ size\ is\ EXTRAARG\ \_\ C.}}
+\DoxyCodeLine{00337\ \textcolor{comment}{}}
+\DoxyCodeLine{00338\ \textcolor{comment}{\ \ (*)\ For\ comparisons,\ k\ specifies\ what\ condition\ the\ test\ should\ accept}}
+\DoxyCodeLine{00339\ \textcolor{comment}{\ \ (true\ or\ false).}}
+\DoxyCodeLine{00340\ \textcolor{comment}{}}
+\DoxyCodeLine{00341\ \textcolor{comment}{\ \ (*)\ In\ OP\_MMBINI/OP\_MMBINK,\ k\ means\ the\ arguments\ were\ flipped}}
+\DoxyCodeLine{00342\ \textcolor{comment}{\ \ \ (the\ constant\ is\ the\ first\ operand).}}
+\DoxyCodeLine{00343\ \textcolor{comment}{}}
+\DoxyCodeLine{00344\ \textcolor{comment}{\ \ (*)\ All\ 'skips'\ (pc++)\ assume\ that\ next\ instruction\ is\ a\ jump.}}
+\DoxyCodeLine{00345\ \textcolor{comment}{}}
+\DoxyCodeLine{00346\ \textcolor{comment}{\ \ (*)\ In\ instructions\ OP\_RETURN/OP\_TAILCALL,\ 'k'\ specifies\ that\ the}}
+\DoxyCodeLine{00347\ \textcolor{comment}{\ \ function\ builds\ upvalues,\ which\ may\ need\ to\ be\ closed.\ C\ >\ 0\ means}}
+\DoxyCodeLine{00348\ \textcolor{comment}{\ \ the\ function\ is\ vararg,\ so\ that\ its\ 'func'\ must\ be\ corrected\ before}}
+\DoxyCodeLine{00349\ \textcolor{comment}{\ \ returning;\ in\ this\ case,\ (C\ -\/\ 1)\ is\ its\ number\ of\ fixed\ parameters.}}
+\DoxyCodeLine{00350\ \textcolor{comment}{}}
+\DoxyCodeLine{00351\ \textcolor{comment}{\ \ (*)\ In\ comparisons\ with\ an\ immediate\ operand,\ C\ signals\ whether\ the}}
+\DoxyCodeLine{00352\ \textcolor{comment}{\ \ original\ operand\ was\ a\ float.\ (It\ must\ be\ corrected\ in\ case\ of}}
+\DoxyCodeLine{00353\ \textcolor{comment}{\ \ metamethods.)}}
+\DoxyCodeLine{00354\ \textcolor{comment}{}}
+\DoxyCodeLine{00355\ \textcolor{comment}{===========================================================================*/}}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00359\ \textcolor{comment}{**\ masks\ for\ instruction\ properties.\ The\ format\ is:}}
+\DoxyCodeLine{00360\ \textcolor{comment}{**\ bits\ 0-\/2:\ op\ mode}}
+\DoxyCodeLine{00361\ \textcolor{comment}{**\ bit\ 3:\ instruction\ set\ register\ A}}
+\DoxyCodeLine{00362\ \textcolor{comment}{**\ bit\ 4:\ operator\ is\ a\ test\ (next\ instruction\ must\ be\ a\ jump)}}
+\DoxyCodeLine{00363\ \textcolor{comment}{**\ bit\ 5:\ instruction\ uses\ 'L-\/>top'\ set\ by\ previous\ instruction\ (when\ B\ ==\ 0)}}
+\DoxyCodeLine{00364\ \textcolor{comment}{**\ bit\ 6:\ instruction\ sets\ 'L-\/>top'\ for\ next\ instruction\ (when\ C\ ==\ 0)}}
+\DoxyCodeLine{00365\ \textcolor{comment}{**\ bit\ 7:\ instruction\ is\ an\ MM\ instruction\ (call\ a\ metamethod)}}
+\DoxyCodeLine{00366\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ LUAI\_DDEC(\textcolor{keyword}{const}\ lu\_byte\ luaP\_opmodes[NUM\_OPCODES];)}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \#define\ getOpMode(m)\ \ \ \ (cast(\textcolor{keyword}{enum}\ OpMode,\ luaP\_opmodes[m]\ \&\ 7))}
+\DoxyCodeLine{00371\ \#define\ testAMode(m)\ \ \ \ (luaP\_opmodes[m]\ \&\ (1\ <<\ 3))}
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\#define\ testTMode(m)\ \ \ \ (luaP\_opmodes[m]\ \&\ (1\ <<\ 4))}}
+\DoxyCodeLine{00373\ \textcolor{preprocessor}{\#define\ testITMode(m)\ \ \ (luaP\_opmodes[m]\ \&\ (1\ <<\ 5))}}
+\DoxyCodeLine{00374\ \textcolor{preprocessor}{\#define\ testOTMode(m)\ \ \ (luaP\_opmodes[m]\ \&\ (1\ <<\ 6))}}
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\#define\ testMMMode(m)\ \ \ (luaP\_opmodes[m]\ \&\ (1\ <<\ 7))}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \textcolor{comment}{/*\ "{}out\ top"{}\ (set\ top\ for\ next\ instruction)\ */}}
+\DoxyCodeLine{00378\ \textcolor{preprocessor}{\#define\ isOT(i)\ \ \(\backslash\)}}
+\DoxyCodeLine{00379\ \textcolor{preprocessor}{\ \ \ \ ((testOTMode(GET\_OPCODE(i))\ \&\&\ GETARG\_C(i)\ ==\ 0)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00380\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ GET\_OPCODE(i)\ ==\ OP\_TAILCALL)}}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \textcolor{comment}{/*\ "{}in\ top"{}\ (uses\ top\ from\ previous\ instruction)\ */}}
+\DoxyCodeLine{00383\ \textcolor{preprocessor}{\#define\ isIT(i)\ \ \ \ \ (testITMode(GET\_OPCODE(i))\ \&\&\ GETARG\_B(i)\ ==\ 0)}}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \textcolor{preprocessor}{\#define\ opmode(mm,ot,it,t,a,m)\ \ \(\backslash\)}}
+\DoxyCodeLine{00386\ \textcolor{preprocessor}{\ \ \ \ (((mm)\ <<\ 7)\ |\ ((ot)\ <<\ 6)\ |\ ((it)\ <<\ 5)\ |\ ((t)\ <<\ 4)\ |\ ((a)\ <<\ 3)\ |\ (m))}}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ }
+\DoxyCodeLine{00389\ \textcolor{comment}{/*\ number\ of\ list\ items\ to\ accumulate\ before\ a\ SETLIST\ instruction\ */}}
+\DoxyCodeLine{00390\ \textcolor{preprocessor}{\#define\ LFIELDS\_PER\_FLUSH\ \ \ 50}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

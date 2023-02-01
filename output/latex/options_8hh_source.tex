@@ -1,0 +1,250 @@
+\hypertarget{options_8hh_source}{}\doxysection{options.\+hh}
+\label{options_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/util/options.hh@{AseSprite/aseprite/third\_party/harfbuzz/util/options.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2011\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ OPTIONS\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ OPTIONS\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ <stddef.h>}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#include\ <locale.h>}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#include\ <errno.h>}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#include\ <fcntl.h>}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#ifdef\ HAVE\_UNISTD\_H}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#include\ <unistd.h>}\ \textcolor{comment}{/*\ for\ isatty()\ */}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#if\ defined(\_WIN32)\ ||\ defined(\_\_CYGWIN\_\_)}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#include\ <io.h>}\ \textcolor{comment}{/*\ for\ setmode()\ under\ Windows\ */}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#include\ <hb.h>}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#include\ <hb-\/ot.h>}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#include\ <glib.h>}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#include\ <glib/gprintf.h>}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ fail\ (hb\_bool\_t\ suggest\_help,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *format,\ ...)\ G\_GNUC\_NORETURN\ G\_GNUC\_PRINTF\ (2,\ 3);}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ static\ inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00057\ fail\ (hb\_bool\_t\ suggest\_help,\ const\ \textcolor{keywordtype}{char}\ *format,\ ...)}
+\DoxyCodeLine{00058\ \{}
+\DoxyCodeLine{00059\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *msg;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ va\_list\ vap;}
+\DoxyCodeLine{00062\ \ \ va\_start\ (vap,\ format);}
+\DoxyCodeLine{00063\ \ \ msg\ =\ g\_strdup\_vprintf\ (format,\ vap);}
+\DoxyCodeLine{00064\ \ \ va\_end\ (vap);}
+\DoxyCodeLine{00065\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *prgname\ =\ g\_get\_prgname\ ();}
+\DoxyCodeLine{00066\ \ \ g\_printerr\ (\textcolor{stringliteral}{"{}\%s:\ \%s\(\backslash\)n"{}},\ prgname,\ msg);}
+\DoxyCodeLine{00067\ \ \ \textcolor{keywordflow}{if}\ (suggest\_help)}
+\DoxyCodeLine{00068\ \ \ \ \ g\_printerr\ (\textcolor{stringliteral}{"{}Try\ `\%s\ -\/-\/help'\ for\ more\ information.\(\backslash\)n"{}},\ prgname);}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ exit\ (1);}
+\DoxyCodeLine{00071\ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structoption__parser__t}{option\_parser\_t}}}
+\DoxyCodeLine{00074\ \{}
+\DoxyCodeLine{00075\ \ \ \mbox{\hyperlink{structoption__parser__t}{option\_parser\_t}}\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *parameter\_string\ =\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00076\ \ \ :\ context\ (g\_option\_context\_new\ (parameter\_string)),}
+\DoxyCodeLine{00077\ \ \ \ \ to\_free\ (g\_ptr\_array\_new\ ())}
+\DoxyCodeLine{00078\ \ \ \{\}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \_g\_free\_g\_func\ (\textcolor{keywordtype}{void}\ *p,\ \textcolor{keywordtype}{void}\ *\ G\_GNUC\_UNUSED)\ \{\ g\_free\ (p);\ \}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \mbox{\hyperlink{structoption__parser__t}{\string~option\_parser\_t}}\ ()}
+\DoxyCodeLine{00083\ \ \ \{}
+\DoxyCodeLine{00084\ \ \ \ \ g\_option\_context\_free\ (context);}
+\DoxyCodeLine{00085\ \ \ \ \ g\_ptr\_array\_foreach\ (to\_free,\ \_g\_free\_g\_func,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00086\ \ \ \ \ g\_ptr\_array\_free\ (to\_free,\ TRUE);}
+\DoxyCodeLine{00087\ \ \ \}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \textcolor{keywordtype}{void}\ add\_options\ ();}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00092\ \ \ post\_parse\_\ (\textcolor{keywordtype}{void}\ *thiz,\ GError\ **error)\ \{\}}
+\DoxyCodeLine{00093\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00094\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00095\ \ \ post\_parse\_\ (Type\ *thiz,\ GError\ **error)\ -\/>\ \textcolor{keyword}{decltype}\ (thiz-\/>post\_parse\ (error))}
+\DoxyCodeLine{00096\ \ \ \{\ thiz-\/>post\_parse\ (error);\ \}}
+\DoxyCodeLine{00097\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00098\ \ \ \textcolor{keyword}{static}\ gboolean}
+\DoxyCodeLine{00099\ \ \ post\_parse\ (GOptionContext\ *context\ G\_GNUC\_UNUSED,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ GOptionGroup\ *\mbox{\hyperlink{structgroup}{group}}\ G\_GNUC\_UNUSED,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ gpointer\ \mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ GError\ **error)}
+\DoxyCodeLine{00103\ \ \ \{}
+\DoxyCodeLine{00104\ \ \ \ \ option\_parser\_t::post\_parse\_\ (\textcolor{keyword}{static\_cast<}Type\ *\textcolor{keyword}{>}\ (\mbox{\hyperlink{structdata}{data}}),\ error);}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordflow}{return}\ !*error;}
+\DoxyCodeLine{00106\ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00109\ \ \ \textcolor{keywordtype}{void}\ add\_group\ (GOptionEntry\ \ \ *entries,}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ gchar\ \ \ \ *name,}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ gchar\ \ \ \ *description,}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ gchar\ \ \ \ *help\_description,}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ Type\ \ \ \ \ \ \ \ \ \ \ *closure,}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ add\_parse\_hooks\ =\ \textcolor{keyword}{true})}
+\DoxyCodeLine{00115\ \ \ \{}
+\DoxyCodeLine{00116\ \ \ \ \ GOptionGroup\ *\mbox{\hyperlink{structgroup}{group}}\ =\ g\_option\_group\_new\ (name,\ description,\ help\_description,}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}gpointer\textcolor{keyword}{>}(closure),\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00118\ \ \ \ \ g\_option\_group\_add\_entries\ (\mbox{\hyperlink{structgroup}{group}},\ entries);}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordflow}{if}\ (add\_parse\_hooks)}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ g\_option\_group\_set\_parse\_hooks\ (\mbox{\hyperlink{structgroup}{group}},\ \textcolor{keyword}{nullptr},\ post\_parse<Type>);}
+\DoxyCodeLine{00121\ \ \ \ \ g\_option\_context\_add\_group\ (context,\ \mbox{\hyperlink{structgroup}{group}});}
+\DoxyCodeLine{00122\ \ \ \}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00125\ \ \ \textcolor{keywordtype}{void}\ add\_main\_group\ (GOptionEntry\ \ \ *entries,}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Type\ \ \ \ \ \ \ \ \ \ \ *closure)}
+\DoxyCodeLine{00127\ \ \ \{}
+\DoxyCodeLine{00128\ \ \ \ \ GOptionGroup\ *\mbox{\hyperlink{structgroup}{group}}\ =\ g\_option\_group\_new\ (\textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr},}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}gpointer\textcolor{keyword}{>}(closure),\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00130\ \ \ \ \ g\_option\_group\_add\_entries\ (\mbox{\hyperlink{structgroup}{group}},\ entries);}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{comment}{/*\ https://gitlab.gnome.org/GNOME/glib/-\//issues/2460\ */}}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{comment}{//g\_option\_group\_set\_parse\_hooks\ (group,\ nullptr,\ post\_parse<Type>);}}
+\DoxyCodeLine{00133\ \ \ \ \ g\_option\_context\_set\_main\_group\ (context,\ \mbox{\hyperlink{structgroup}{group}});}
+\DoxyCodeLine{00134\ \ \ \}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \textcolor{keywordtype}{void}\ set\_summary\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *summary)}
+\DoxyCodeLine{00137\ \ \ \{}
+\DoxyCodeLine{00138\ \ \ \ \ g\_option\_context\_set\_summary\ (context,\ summary);}
+\DoxyCodeLine{00139\ \ \ \}}
+\DoxyCodeLine{00140\ \ \ \textcolor{keywordtype}{void}\ set\_description\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *description)}
+\DoxyCodeLine{00141\ \ \ \{}
+\DoxyCodeLine{00142\ \ \ \ \ g\_option\_context\_set\_description\ (context,\ description);}
+\DoxyCodeLine{00143\ \ \ \}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \textcolor{keywordtype}{void}\ free\_later\ (\textcolor{keywordtype}{char}\ *p)\ \{}
+\DoxyCodeLine{00146\ \ \ \ \ g\_ptr\_array\_add\ (to\_free,\ p);}
+\DoxyCodeLine{00147\ \ \ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \textcolor{keywordtype}{bool}\ parse\ (\textcolor{keywordtype}{int}\ *argc,\ \textcolor{keywordtype}{char}\ ***argv,\ \textcolor{keywordtype}{bool}\ ignore\_error\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ GOptionContext\ *context;}
+\DoxyCodeLine{00152\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00153\ \ \ GPtrArray\ *to\_free;}
+\DoxyCodeLine{00154\ \};}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ gchar\ *}
+\DoxyCodeLine{00158\ shapers\_to\_string\ ()}
+\DoxyCodeLine{00159\ \{}
+\DoxyCodeLine{00160\ \ \ GString\ *shapers\ =\ g\_string\_new\ (\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00161\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ **shaper\_list\ =\ hb\_shape\_list\_shapers\ ();}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \textcolor{keywordflow}{for}\ (;\ *shaper\_list;\ shaper\_list++)\ \{}
+\DoxyCodeLine{00164\ \ \ \ \ g\_string\_append\ (shapers,\ *shaper\_list);}
+\DoxyCodeLine{00165\ \ \ \ \ g\_string\_append\_c\ (shapers,\ \textcolor{charliteral}{','});}
+\DoxyCodeLine{00166\ \ \ \}}
+\DoxyCodeLine{00167\ \ \ g\_string\_truncate\ (shapers,\ MAX\ (0,\ (gint)shapers-\/>len\ -\/\ 1));}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \textcolor{keywordflow}{return}\ g\_string\_free\ (shapers,\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00170\ \}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{keyword}{static}\ G\_GNUC\_NORETURN\ gboolean}
+\DoxyCodeLine{00173\ show\_version\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *name\ G\_GNUC\_UNUSED,}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *arg\ G\_GNUC\_UNUSED,}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ gpointer\ \ \ \ \mbox{\hyperlink{structdata}{data}}\ G\_GNUC\_UNUSED,}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ GError\ \ \ \ **error\ G\_GNUC\_UNUSED)}
+\DoxyCodeLine{00177\ \{}
+\DoxyCodeLine{00178\ \ \ g\_printf\ (\textcolor{stringliteral}{"{}\%s\ (\%s)\ \%s\(\backslash\)n"{}},\ g\_get\_prgname\ (),\ PACKAGE\_NAME,\ PACKAGE\_VERSION);}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \textcolor{keywordtype}{char}\ *shapers\ =\ shapers\_to\_string\ ();}
+\DoxyCodeLine{00181\ \ \ g\_printf\ (\textcolor{stringliteral}{"{}Available\ shapers:\ \%s\(\backslash\)n"{}},\ shapers);}
+\DoxyCodeLine{00182\ \ \ g\_free\ (shapers);}
+\DoxyCodeLine{00183\ \ \ \textcolor{keywordflow}{if}\ (strcmp\ (HB\_VERSION\_STRING,\ hb\_version\_string\ ()))}
+\DoxyCodeLine{00184\ \ \ \ \ g\_printf\ (\textcolor{stringliteral}{"{}Linked\ HarfBuzz\ library\ has\ a\ different\ version:\ \%s\(\backslash\)n"{}},\ hb\_version\_string\ ());}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ exit(0);}
+\DoxyCodeLine{00187\ \}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00190\ option\_parser\_t::add\_options\ ()}
+\DoxyCodeLine{00191\ \{}
+\DoxyCodeLine{00192\ \ \ GOptionEntry\ entries[]\ =}
+\DoxyCodeLine{00193\ \ \ \{}
+\DoxyCodeLine{00194\ \ \ \ \ \{\textcolor{stringliteral}{"{}version"{}},\ \ \ \ \ 0,\ G\_OPTION\_FLAG\_NO\_ARG,}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ G\_OPTION\_ARG\_CALLBACK,\ \ \ \ (gpointer)\ \&show\_version,\ \ \ \textcolor{stringliteral}{"{}Show\ version\ numbers"{}},\ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr}\},}
+\DoxyCodeLine{00196\ \ \ \ \ \{\textcolor{keyword}{nullptr}\}}
+\DoxyCodeLine{00197\ \ \ \};}
+\DoxyCodeLine{00198\ \ \ g\_option\_context\_add\_main\_entries\ (context,\ entries,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00199\ \}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00202\ option\_parser\_t::parse\ (\textcolor{keywordtype}{int}\ *argc,\ \textcolor{keywordtype}{char}\ ***argv,\ \textcolor{keywordtype}{bool}\ ignore\_error)}
+\DoxyCodeLine{00203\ \{}
+\DoxyCodeLine{00204\ \ \ setlocale\ (LC\_ALL,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ GError\ *parse\_error\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00207\ \ \ \textcolor{keywordflow}{if}\ (!g\_option\_context\_parse\ (context,\ argc,\ argv,\ \&parse\_error))}
+\DoxyCodeLine{00208\ \ \ \{}
+\DoxyCodeLine{00209\ \ \ \ \ \textcolor{keywordflow}{if}\ (parse\_error)}
+\DoxyCodeLine{00210\ \ \ \ \ \{}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!ignore\_error)}
+\DoxyCodeLine{00212\ \ \ \ \ fail\ (\textcolor{keyword}{true},\ \textcolor{stringliteral}{"{}\%s"{}},\ parse\_error-\/>message);}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ g\_error\_free\ (parse\_error);}
+\DoxyCodeLine{00214\ \ \ \ \ \}}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00216\ \ \ \ \ \{}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!ignore\_error)}
+\DoxyCodeLine{00218\ \ \ \ \ fail\ (\textcolor{keyword}{true},\ \textcolor{stringliteral}{"{}Option\ parse\ error"{}});}
+\DoxyCodeLine{00219\ \ \ \ \ \}}
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00221\ \ \ \}}
+\DoxyCodeLine{00222\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00223\ \}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \textcolor{comment}{/*\ fallback\ implementation\ for\ scalbn()/scalbnf()\ for\ pre-\/2013\ MSVC\ */}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#if\ defined\ (\_MSC\_VER)\ \&\&\ (\_MSC\_VER\ <\ 1800)}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#ifndef\ FLT\_RADIX}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#define\ FLT\_RADIX\ 2}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \_\_inline\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{double}\ scalbn\ (\textcolor{keywordtype}{long}\ \textcolor{keywordtype}{double}\ x,\ \textcolor{keywordtype}{int}\ exp)}
+\DoxyCodeLine{00234\ \{}
+\DoxyCodeLine{00235\ \ \ \textcolor{keywordflow}{return}\ x\ *\ (pow\ ((\textcolor{keywordtype}{long}\ \textcolor{keywordtype}{double})\ FLT\_RADIX,\ exp));}
+\DoxyCodeLine{00236\ \}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \_\_inline\ \textcolor{keywordtype}{float}\ scalbnf\ (\textcolor{keywordtype}{float}\ x,\ \textcolor{keywordtype}{int}\ exp)}
+\DoxyCodeLine{00239\ \{}
+\DoxyCodeLine{00240\ \ \ \textcolor{keywordflow}{return}\ x\ *\ (pow\ ((\textcolor{keywordtype}{float})\ FLT\_RADIX,\ exp));}
+\DoxyCodeLine{00241\ \}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,96 @@
+\hypertarget{thread__utils_8h_source}{}\doxysection{thread\+\_\+utils.\+h}
+\label{thread__utils_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/utils/thread\_utils.h@{AseSprite/aseprite/third\_party/libwebp/src/utils/thread\_utils.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2011\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Multi-\/threaded\ worker}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_UTILS\_THREAD\_UTILS\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_UTILS\_THREAD\_UTILS\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifdef\ HAVE\_CONFIG\_H}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}src/webp/config.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00024\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ State\ of\ the\ worker\ thread\ object}}
+\DoxyCodeLine{00028\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00029\ \ \ NOT\_OK\ =\ 0,\ \ \ \textcolor{comment}{//\ object\ is\ unusable}}
+\DoxyCodeLine{00030\ \ \ OK,\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ ready\ to\ work}}
+\DoxyCodeLine{00031\ \ \ WORK\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ busy\ finishing\ the\ current\ task}}
+\DoxyCodeLine{00032\ \}\ WebPWorkerStatus;}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{//\ Function\ to\ be\ called\ by\ the\ worker\ thread.\ Takes\ two\ opaque\ pointers\ as}}
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ arguments\ (data1\ and\ data2),\ and\ should\ return\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00036\ \textcolor{keyword}{typedef}\ int\ (*WebPWorkerHook)(\textcolor{keywordtype}{void}*,\ \textcolor{keywordtype}{void}*);}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ Synchronization\ object\ used\ to\ launch\ job\ in\ the\ worker\ thread}}
+\DoxyCodeLine{00039\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00040\ \ \ \textcolor{keywordtype}{void}*\ impl\_;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ platform-\/dependent\ implementation\ worker\ details}}
+\DoxyCodeLine{00041\ \ \ WebPWorkerStatus\ status\_;}
+\DoxyCodeLine{00042\ \ \ WebPWorkerHook\ hook;\ \ \ \ \textcolor{comment}{//\ hook\ to\ call}}
+\DoxyCodeLine{00043\ \ \ \textcolor{keywordtype}{void}*\ data1;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ first\ argument\ passed\ to\ 'hook'}}
+\DoxyCodeLine{00044\ \ \ \textcolor{keywordtype}{void}*\ data2;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ second\ argument\ passed\ to\ 'hook'}}
+\DoxyCodeLine{00045\ \ \ \textcolor{keywordtype}{int}\ had\_error;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ return\ value\ of\ the\ last\ call\ to\ 'hook'}}
+\DoxyCodeLine{00046\ \}\ \mbox{\hyperlink{struct_web_p_worker}{WebPWorker}};}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{comment}{//\ The\ interface\ for\ all\ thread-\/worker\ related\ functions.\ All\ these\ functions}}
+\DoxyCodeLine{00049\ \textcolor{comment}{//\ must\ be\ implemented.}}
+\DoxyCodeLine{00050\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00051\ \ \ \textcolor{comment}{//\ Must\ be\ called\ first,\ before\ any\ other\ method.}}
+\DoxyCodeLine{00052\ \ \ void\ (*Init)(\mbox{\hyperlink{struct_web_p_worker}{WebPWorker}}*\ \textcolor{keyword}{const}\ worker);}
+\DoxyCodeLine{00053\ \ \ \textcolor{comment}{//\ Must\ be\ called\ to\ initialize\ the\ object\ and\ spawn\ the\ thread.\ Re-\/entrant.}}
+\DoxyCodeLine{00054\ \ \ \textcolor{comment}{//\ Will\ potentially\ launch\ the\ thread.\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00055\ \ \ int\ (*Reset)(\mbox{\hyperlink{struct_web_p_worker}{WebPWorker}}*\ \textcolor{keyword}{const}\ worker);}
+\DoxyCodeLine{00056\ \ \ \textcolor{comment}{//\ Makes\ sure\ the\ previous\ work\ is\ finished.\ Returns\ true\ if\ worker-\/>had\_error}}
+\DoxyCodeLine{00057\ \ \ \textcolor{comment}{//\ was\ not\ set\ and\ no\ error\ condition\ was\ triggered\ by\ the\ working\ thread.}}
+\DoxyCodeLine{00058\ \ \ int\ (*Sync)(\mbox{\hyperlink{struct_web_p_worker}{WebPWorker}}*\ \textcolor{keyword}{const}\ worker);}
+\DoxyCodeLine{00059\ \ \ \textcolor{comment}{//\ Triggers\ the\ thread\ to\ call\ hook()\ with\ data1\ and\ data2\ arguments.\ These}}
+\DoxyCodeLine{00060\ \ \ \textcolor{comment}{//\ hook/data1/data2\ values\ can\ be\ changed\ at\ any\ time\ before\ calling\ this}}
+\DoxyCodeLine{00061\ \ \ \textcolor{comment}{//\ function,\ but\ not\ be\ changed\ afterward\ until\ the\ next\ call\ to\ Sync().}}
+\DoxyCodeLine{00062\ \ \ void\ (*Launch)(\mbox{\hyperlink{struct_web_p_worker}{WebPWorker}}*\ \textcolor{keyword}{const}\ worker);}
+\DoxyCodeLine{00063\ \ \ \textcolor{comment}{//\ This\ function\ is\ similar\ to\ Launch()\ except\ that\ it\ calls\ the}}
+\DoxyCodeLine{00064\ \ \ \textcolor{comment}{//\ hook\ directly\ instead\ of\ using\ a\ thread.\ Convenient\ to\ bypass\ the\ thread}}
+\DoxyCodeLine{00065\ \ \ \textcolor{comment}{//\ mechanism\ while\ still\ using\ the\ WebPWorker\ structs.\ Sync()\ must}}
+\DoxyCodeLine{00066\ \ \ \textcolor{comment}{//\ still\ be\ called\ afterward\ (for\ error\ reporting).}}
+\DoxyCodeLine{00067\ \ \ void\ (*Execute)(\mbox{\hyperlink{struct_web_p_worker}{WebPWorker}}*\ \textcolor{keyword}{const}\ worker);}
+\DoxyCodeLine{00068\ \ \ \textcolor{comment}{//\ Kill\ the\ thread\ and\ terminate\ the\ object.\ To\ use\ the\ object\ again,\ one}}
+\DoxyCodeLine{00069\ \ \ \textcolor{comment}{//\ must\ call\ Reset()\ again.}}
+\DoxyCodeLine{00070\ \ \ void\ (*End)(\mbox{\hyperlink{struct_web_p_worker}{WebPWorker}}*\ \textcolor{keyword}{const}\ worker);}
+\DoxyCodeLine{00071\ \}\ \mbox{\hyperlink{struct_web_p_worker_interface}{WebPWorkerInterface}};}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{comment}{//\ Install\ a\ new\ set\ of\ threading\ functions,\ overriding\ the\ defaults.\ This}}
+\DoxyCodeLine{00074\ \textcolor{comment}{//\ should\ be\ done\ before\ any\ workers\ are\ started,\ i.e.,\ before\ any\ encoding\ or}}
+\DoxyCodeLine{00075\ \textcolor{comment}{//\ decoding\ takes\ place.\ The\ contents\ of\ the\ interface\ struct\ are\ copied,\ it}}
+\DoxyCodeLine{00076\ \textcolor{comment}{//\ is\ safe\ to\ free\ the\ corresponding\ memory\ after\ this\ call.\ This\ function\ is}}
+\DoxyCodeLine{00077\ \textcolor{comment}{//\ not\ thread-\/safe.\ Return\ false\ in\ case\ of\ invalid\ pointer\ or\ methods.}}
+\DoxyCodeLine{00078\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPSetWorkerInterface(}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_worker_interface}{WebPWorkerInterface}}*\ \textcolor{keyword}{const}\ winterface);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{comment}{//\ Retrieve\ the\ currently\ set\ thread\ worker\ interface.}}
+\DoxyCodeLine{00082\ WEBP\_EXTERN\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_worker_interface}{WebPWorkerInterface}}*\ WebPGetWorkerInterface(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00087\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_UTILS\_THREAD\_UTILS\_H\_}}
+
+\end{DoxyCode}

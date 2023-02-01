@@ -1,0 +1,972 @@
+\hypertarget{pixman-arm-simd-asm_8h_source}{}\doxysection{pixman-\/arm-\/simd-\/asm.h}
+\label{pixman-arm-simd-asm_8h_source}\index{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/arm-\/simd-\/asm.h@{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/arm-\/simd-\/asm.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012\ Raspberry\ Pi\ Foundation}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012\ RISC\ OS\ Open\ Ltd}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ Permission\ to\ use,\ copy,\ modify,\ distribute,\ and\ sell\ this\ software\ and\ its}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ documentation\ for\ any\ purpose\ is\ hereby\ granted\ without\ fee,\ provided\ that}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ the\ above\ copyright\ notice\ appear\ in\ all\ copies\ and\ that\ both\ that}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ copyright\ notice\ and\ this\ permission\ notice\ appear\ in\ supporting}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ documentation,\ and\ that\ the\ name\ of\ the\ copyright\ holders\ not\ be\ used\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ advertising\ or\ publicity\ pertaining\ to\ distribution\ of\ the\ software\ without}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ specific,\ written\ prior\ permission.\ \ The\ copyright\ holders\ make\ no}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ representations\ about\ the\ suitability\ of\ this\ software\ for\ any\ purpose.\ \ It}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ is\ provided\ "{}as\ is"{}\ without\ express\ or\ implied\ warranty.}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDERS\ DISCLAIM\ ALL\ WARRANTIES\ WITH\ REGARD\ TO\ THIS}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ SOFTWARE,\ INCLUDING\ ALL\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ FITNESS,\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDERS\ BE\ LIABLE\ FOR\ ANY}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ SPECIAL,\ INDIRECT\ OR\ CONSEQUENTIAL\ DAMAGES\ OR\ ANY\ DAMAGES}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ WHATSOEVER\ RESULTING\ FROM\ LOSS\ OF\ USE,\ DATA\ OR\ PROFITS,\ WHETHER\ IN}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ AN\ ACTION\ OF\ CONTRACT,\ NEGLIGENCE\ OR\ OTHER\ TORTIOUS\ ACTION,\ ARISING}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ OUT\ OF\ OR\ IN\ CONNECTION\ WITH\ THE\ USE\ OR\ PERFORMANCE\ OF\ THIS}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ SOFTWARE.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Author:\ \ Ben\ Avison\ (bavison@riscosopen.org)}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ Because\ the\ alignment\ of\ pixel\ data\ to\ cachelines,\ and\ even\ the\ number\ of}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *\ cachelines\ per\ row\ can\ vary\ from\ row\ to\ row,\ and\ because\ of\ the\ need\ to}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ preload\ each\ scanline\ once\ and\ only\ once,\ this\ prefetch\ strategy\ treats}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ each\ row\ of\ pixels\ independently.\ When\ a\ pixel\ row\ is\ long\ enough,\ there}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ are\ three\ distinct\ phases\ of\ prefetch:}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ *\ an\ inner\ loop\ section,\ where\ each\ time\ a\ cacheline\ of\ data\ is}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ \ \ \ processed,\ another\ cacheline\ is\ preloaded\ (the\ exact\ distance\ ahead\ is}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ \ \ \ determined\ empirically\ using\ profiling\ results\ from\ lowlevel-\/blt-\/bench)}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ *\ a\ leading\ section,\ where\ enough\ cachelines\ are\ preloaded\ to\ ensure\ no}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ \ \ \ cachelines\ escape\ being\ preloaded\ when\ the\ inner\ loop\ starts}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ *\ a\ trailing\ section,\ where\ a\ limited\ number\ (0\ or\ more)\ of\ cachelines}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ \ \ \ are\ preloaded\ to\ deal\ with\ data\ (if\ any)\ that\ hangs\ off\ the\ end\ of\ the}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ \ \ \ last\ iteration\ of\ the\ inner\ loop,\ plus\ any\ trailing\ bytes\ that\ were\ not}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ \ \ \ enough\ to\ make\ up\ one\ whole\ iteration\ of\ the\ inner\ loop}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ }}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ There\ are\ (in\ general)\ three\ distinct\ code\ paths,\ selected\ between}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ depending\ upon\ how\ long\ the\ pixel\ row\ is.\ If\ it\ is\ long\ enough\ that\ there}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ is\ at\ least\ one\ iteration\ of\ the\ inner\ loop\ (as\ described\ above)\ then}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *\ this\ is\ described\ as\ the\ "{}wide"{}\ case.\ If\ it\ is\ shorter\ than\ that,\ but}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ there\ are\ still\ enough\ bytes\ output\ that\ there\ is\ at\ least\ one\ 16-\/byte-\/}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ long,\ 16-\/byte-\/aligned\ write\ to\ the\ destination\ (the\ optimum\ type\ of}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ write),\ then\ this\ is\ the\ "{}medium"{}\ case.\ If\ it\ is\ not\ even\ this\ long,\ then}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ this\ is\ the\ "{}narrow"{}\ case,\ and\ there\ is\ no\ attempt\ to\ align\ writes\ to}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ 16-\/byte\ boundaries.\ In\ the\ "{}medium"{}\ and\ "{}narrow"{}\ cases,\ all\ the}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ cachelines\ containing\ data\ from\ the\ pixel\ row\ are\ prefetched\ up-\/front.}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ *\ Determine\ whether\ we\ put\ the\ arguments\ on\ the\ stack\ for\ debugging.}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#undef\ DEBUG\_PARAMS}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ *\ Bit\ flags\ for\ 'generate\_composite\_function'\ macro\ which\ are\ used}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ *\ to\ tune\ generated\ functions\ behavior.}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00065\ .set\ FLAG\_DST\_WRITEONLY,\ \ \ \ \ \ \ \ \ 0}
+\DoxyCodeLine{00066\ .set\ FLAG\_DST\_READWRITE,\ \ \ \ \ \ \ \ \ 1}
+\DoxyCodeLine{00067\ .set\ FLAG\_COND\_EXEC,\ \ \ \ \ \ \ \ \ \ \ \ \ 0}
+\DoxyCodeLine{00068\ .set\ FLAG\_BRANCH\_OVER,\ \ \ \ \ \ \ \ \ \ \ 2}
+\DoxyCodeLine{00069\ .set\ FLAG\_PROCESS\_PRESERVES\_PSR,\ 0}
+\DoxyCodeLine{00070\ .set\ FLAG\_PROCESS\_CORRUPTS\_PSR,\ \ 4}
+\DoxyCodeLine{00071\ .set\ FLAG\_PROCESS\_DOESNT\_STORE,\ \ 0}
+\DoxyCodeLine{00072\ .set\ FLAG\_PROCESS\_DOES\_STORE,\ \ \ \ 8\ \textcolor{comment}{/*\ usually\ because\ it\ needs\ to\ conditionally\ skip\ it\ */}}
+\DoxyCodeLine{00073\ .set\ FLAG\_NO\_SPILL\_LINE\_VARS,\ \ \ \ \ \ \ \ 0}
+\DoxyCodeLine{00074\ .set\ FLAG\_SPILL\_LINE\_VARS\_WIDE,\ \ \ \ \ \ 16}
+\DoxyCodeLine{00075\ .set\ FLAG\_SPILL\_LINE\_VARS\_NON\_WIDE,\ \ 32}
+\DoxyCodeLine{00076\ .set\ FLAG\_SPILL\_LINE\_VARS,\ \ \ \ \ \ \ \ \ \ \ 48}
+\DoxyCodeLine{00077\ .set\ FLAG\_PROCESS\_CORRUPTS\_SCRATCH,\ \ 0}
+\DoxyCodeLine{00078\ .set\ FLAG\_PROCESS\_PRESERVES\_SCRATCH,\ 64}
+\DoxyCodeLine{00079\ .set\ FLAG\_PROCESS\_PRESERVES\_WK0,\ \ \ \ \ 0}
+\DoxyCodeLine{00080\ .set\ FLAG\_PROCESS\_CORRUPTS\_WK0,\ \ \ \ \ \ 128\ \textcolor{comment}{/*\ if\ possible,\ use\ the\ specified\ register(s)\ instead\ so\ WK0\ can\ hold\ number\ of\ leading\ pixels\ */}}
+\DoxyCodeLine{00081\ .set\ FLAG\_PRELOAD\_DST,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0}
+\DoxyCodeLine{00082\ .set\ FLAG\_NO\_PRELOAD\_DST,\ \ \ \ \ \ \ \ \ \ \ \ 256}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ *\ Number\ of\ bytes\ by\ which\ to\ adjust\ preload\ offset\ of\ destination}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ *\ buffer\ (allows\ preload\ instruction\ to\ be\ moved\ before\ the\ load(s))}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00088\ .set\ DST\_PRELOAD\_BIAS,\ 0}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ *\ Offset\ into\ stack\ where\ mask\ and\ source\ pointer/stride\ can\ be\ accessed.}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#ifdef\ DEBUG\_PARAMS}}
+\DoxyCodeLine{00094\ .set\ ARGS\_STACK\_OFFSET,\ \ \ \ \ \ \ \ (9*4+9*4)}
+\DoxyCodeLine{00095\ \#\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00096\ .set\ ARGS\_STACK\_OFFSET,\ \ \ \ \ \ \ \ (9*4)}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ *\ Offset\ into\ stack\ where\ space\ allocated\ during\ init\ macro\ can\ be\ accessed.}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00102\ .set\ LOCALS\_STACK\_OFFSET,\ \ \ \ \ 0}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ *\ Constants\ for\ selecting\ preferable\ prefetch\ type.}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00107\ .set\ PREFETCH\_TYPE\_NONE,\ \ \ \ \ \ \ 0}
+\DoxyCodeLine{00108\ .set\ PREFETCH\_TYPE\_STANDARD,\ \ \ 1}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ *\ Definitions\ of\ macros\ for\ load/store\ of\ pixel\ data.}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ .macro\ pixldst\ op,\ cond=al,\ numbytes,\ reg0,\ reg1,\ reg2,\ reg3,\ base,\ unaligned=0}
+\DoxyCodeLine{00115\ \ .if\ numbytes\ ==\ 16}
+\DoxyCodeLine{00116\ \ \ .if\ unaligned\ ==\ 1}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ op\&r\&cond\ \ \ \ WK\&reg0,\ [base],\ \#4}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ op\&r\&cond\ \ \ \ WK\&reg1,\ [base],\ \#4}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ op\&r\&cond\ \ \ \ WK\&reg2,\ [base],\ \#4}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ op\&r\&cond\ \ \ \ WK\&reg3,\ [base],\ \#4}
+\DoxyCodeLine{00121\ \ \ .else}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ op\&m\&cond\&ia\ base!,\ \{WK\&reg0,WK\&reg1,WK\&reg2,WK\&reg3\}}
+\DoxyCodeLine{00123\ \ \ .endif}
+\DoxyCodeLine{00124\ \ .elseif\ numbytes\ ==\ 8}
+\DoxyCodeLine{00125\ \ \ .if\ unaligned\ ==\ 1}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ op\&r\&cond\ \ \ \ WK\&reg0,\ [base],\ \#4}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ op\&r\&cond\ \ \ \ WK\&reg1,\ [base],\ \#4}
+\DoxyCodeLine{00128\ \ \ .else}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ op\&m\&cond\&ia\ base!,\ \{WK\&reg0,WK\&reg1\}}
+\DoxyCodeLine{00130\ \ \ .endif}
+\DoxyCodeLine{00131\ \ .elseif\ numbytes\ ==\ 4}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ op\&r\&cond\ \ \ \ WK\&reg0,\ [base],\ \#4}
+\DoxyCodeLine{00133\ \ .elseif\ numbytes\ ==\ 2}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ op\&r\&cond\&h\ \ WK\&reg0,\ [base],\ \#2}
+\DoxyCodeLine{00135\ \ .elseif\ numbytes\ ==\ 1}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ op\&r\&cond\&b\ \ WK\&reg0,\ [base],\ \#1}
+\DoxyCodeLine{00137\ \ .else}
+\DoxyCodeLine{00138\ \ \ .error\ \textcolor{stringliteral}{"{}unsupported\ size:\ numbytes"{}}}
+\DoxyCodeLine{00139\ \ .endif}
+\DoxyCodeLine{00140\ .endm}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ .macro\ pixst\_baseupdated\ cond,\ numbytes,\ reg0,\ reg1,\ reg2,\ reg3,\ base}
+\DoxyCodeLine{00143\ \ .if\ numbytes\ ==\ 16}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ stm\&cond\&db\ base,\ \{WK\&reg0,WK\&reg1,WK\&reg2,WK\&reg3\}}
+\DoxyCodeLine{00145\ \ .elseif\ numbytes\ ==\ 8}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ stm\&cond\&db\ base,\ \{WK\&reg0,WK\&reg1\}}
+\DoxyCodeLine{00147\ \ .elseif\ numbytes\ ==\ 4}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ str\&cond\ \ \ \ WK\&reg0,\ [base,\ \#-\/4]}
+\DoxyCodeLine{00149\ \ .elseif\ numbytes\ ==\ 2}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ str\&cond\&h\ \ WK\&reg0,\ [base,\ \#-\/2]}
+\DoxyCodeLine{00151\ \ .elseif\ numbytes\ ==\ 1}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ str\&cond\&b\ \ WK\&reg0,\ [base,\ \#-\/1]}
+\DoxyCodeLine{00153\ \ .else}
+\DoxyCodeLine{00154\ \ \ .error\ \textcolor{stringliteral}{"{}unsupported\ size:\ numbytes"{}}}
+\DoxyCodeLine{00155\ \ .endif}
+\DoxyCodeLine{00156\ .endm}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ .macro\ pixld\ cond,\ numbytes,\ firstreg,\ base,\ unaligned}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ pixldst\ ld,\ cond,\ numbytes,\ \%(firstreg+0),\ \%(firstreg+1),\ \%(firstreg+2),\ \%(firstreg+3),\ base,\ unaligned}
+\DoxyCodeLine{00160\ .endm}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ .macro\ pixst\ cond,\ numbytes,\ firstreg,\ base}
+\DoxyCodeLine{00163\ \ .if\ (flags)\ \&\ FLAG\_DST\_READWRITE}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ pixst\_baseupdated\ cond,\ numbytes,\ \%(firstreg+0),\ \%(firstreg+1),\ \%(firstreg+2),\ \%(firstreg+3),\ base}
+\DoxyCodeLine{00165\ \ .else}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ pixldst\ st,\ cond,\ numbytes,\ \%(firstreg+0),\ \%(firstreg+1),\ \%(firstreg+2),\ \%(firstreg+3),\ base}
+\DoxyCodeLine{00167\ \ .endif}
+\DoxyCodeLine{00168\ .endm}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ .macro\ PF\ \mbox{\hyperlink{structa}{a}},\ x:vararg}
+\DoxyCodeLine{00171\ \ .if\ (PREFETCH\_TYPE\_CURRENT\ ==\ PREFETCH\_TYPE\_STANDARD)}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ x}
+\DoxyCodeLine{00173\ \ .endif}
+\DoxyCodeLine{00174\ .endm}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ .macro\ preload\_leading\_step1\ \ bpp,\ ptr,\ base}
+\DoxyCodeLine{00178\ \textcolor{comment}{/*\ If\ the\ destination\ is\ already\ 16-\/byte\ aligned,\ then\ we\ need\ to\ preload}}
+\DoxyCodeLine{00179\ \textcolor{comment}{\ *\ between\ 0\ and\ prefetch\_distance\ (inclusive)\ cache\ lines\ ahead\ so\ there}}
+\DoxyCodeLine{00180\ \textcolor{comment}{\ *\ are\ no\ gaps\ when\ the\ inner\ loop\ starts.}}
+\DoxyCodeLine{00181\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00182\ \ .if\ bpp\ >\ 0}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ ptr,\ base,\ \#31}
+\DoxyCodeLine{00184\ \ \ .set\ OFFSET,\ 0}
+\DoxyCodeLine{00185\ \ \ .rept\ prefetch\_distance+1}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [ptr,\ \#OFFSET]}
+\DoxyCodeLine{00187\ \ \ \ .set\ OFFSET,\ OFFSET+32}
+\DoxyCodeLine{00188\ \ \ .endr}
+\DoxyCodeLine{00189\ \ .endif}
+\DoxyCodeLine{00190\ .endm}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ .macro\ preload\_leading\_step2\ \ bpp,\ bpp\_shift,\ ptr,\ base}
+\DoxyCodeLine{00193\ \textcolor{comment}{/*\ However,\ if\ the\ destination\ is\ not\ 16-\/byte\ aligned,\ we\ may\ need\ to}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ *\ preload\ more\ cache\ lines\ than\ that.\ The\ question\ we\ need\ to\ ask\ is:}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ *\ are\ the\ bytes\ corresponding\ to\ the\ leading\ pixels\ more\ than\ the\ amount}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ *\ by\ which\ the\ source\ pointer\ will\ be\ rounded\ down\ for\ preloading,\ and\ if}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ *\ so,\ by\ how\ many\ cache\ lines?\ Effectively,\ we\ want\ to\ calculate}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ *\ \ \ \ \ leading\_bytes\ =\ ((-\/dst)\&15)*src\_bpp/dst\_bpp}}
+\DoxyCodeLine{00199\ \textcolor{comment}{\ *\ \ \ \ \ inner\_loop\_offset\ =\ (src+leading\_bytes)\&31}}
+\DoxyCodeLine{00200\ \textcolor{comment}{\ *\ \ \ \ \ extra\_needed\ =\ leading\_bytes\ -\/\ inner\_loop\_offset}}
+\DoxyCodeLine{00201\ \textcolor{comment}{\ *\ and\ test\ if\ extra\_needed\ is\ <=\ 0,\ <=\ 32,\ or\ >\ 32\ (where\ >\ 32\ is\ only}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ *\ possible\ when\ there\ are\ 4\ src\ bytes\ for\ every\ 1\ dst\ byte).}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00204\ \ .if\ bpp\ >\ 0}
+\DoxyCodeLine{00205\ \ \ .ifc\ base,DST}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ test\ can\ be\ simplified\ further\ when\ preloading\ the\ destination\ */}}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ PF\ \ tst,\ \ \ \ base,\ \#16}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ PF\ \ beq,\ \ \ \ 61f}
+\DoxyCodeLine{00209\ \ \ .else}
+\DoxyCodeLine{00210\ \ \ \ .if\ bpp/dst\_w\_bpp\ ==\ 4}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ PF\ \ add,\ \ \ \ SCRATCH,\ base,\ WK0,\ lsl\ \#bpp\_shift-\/dst\_bpp\_shift}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ PF\ \ and,\ \ \ \ SCRATCH,\ SCRATCH,\ \#31}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ PF\ \ rsb,\ \ \ \ SCRATCH,\ SCRATCH,\ WK0,\ lsl\ \#bpp\_shift-\/dst\_bpp\_shift}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ PF\ \ sub,\ \ \ \ SCRATCH,\ SCRATCH,\ \#1\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ so\ now\ ranges\ are\ -\/16..-\/1\ /\ 0..31\ /\ 32..63\ */}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ PF\ \ movs,\ \ \ SCRATCH,\ SCRATCH,\ lsl\ \#32-\/6\ \textcolor{comment}{/*\ so\ this\ sets\ \ \ \ \ \ \ \ \ NC\ \ \ /\ \ nc\ \ \ /\ \ \ Nc\ \ \ */}}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ PF\ \ bcs,\ \ \ \ 61f}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ PF\ \ bpl,\ \ \ \ 60f}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [ptr,\ \#32*(prefetch\_distance+2)]}
+\DoxyCodeLine{00219\ \ \ \ .\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ PF\ \ mov,\ \ \ \ SCRATCH,\ base,\ lsl\ \#32-\/5}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ PF\ \ add,\ \ \ \ SCRATCH,\ SCRATCH,\ WK0,\ lsl\ \#32-\/5+bpp\_shift-\/dst\_bpp\_shift}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ PF\ \ rsbs,\ \ \ SCRATCH,\ SCRATCH,\ WK0,\ lsl\ \#32-\/5+bpp\_shift-\/dst\_bpp\_shift}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ PF\ \ bls,\ \ \ \ 61f}
+\DoxyCodeLine{00224\ \ \ \ .endif}
+\DoxyCodeLine{00225\ \ \ .endif}
+\DoxyCodeLine{00226\ 60:\ \ \ \ \ PF\ \ pld,\ \ \ \ [ptr,\ \#32*(prefetch\_distance+1)]}
+\DoxyCodeLine{00227\ 61:}
+\DoxyCodeLine{00228\ \ .endif}
+\DoxyCodeLine{00229\ .endm}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#define\ IS\_END\_OF\_GROUP(INDEX,SIZE)\ ((SIZE)\ <\ 2\ ||\ ((INDEX)\ \&\ \string~((INDEX)+1))\ \&\ ((SIZE)/2))}}
+\DoxyCodeLine{00232\ .macro\ preload\_middle\ \ \ bpp,\ base,\ scratch\_holds\_offset}
+\DoxyCodeLine{00233\ \ .if\ bpp\ >\ 0}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ prefetch\ distance\ =\ 256/bpp,\ stm\ distance\ =\ 128/dst\_w\_bpp\ */}}
+\DoxyCodeLine{00235\ \ \ .if\ IS\_END\_OF\_GROUP(SUBBLOCK,256/128*dst\_w\_bpp/bpp)}
+\DoxyCodeLine{00236\ \ \ \ .if\ scratch\_holds\_offset}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [base,\ SCRATCH]}
+\DoxyCodeLine{00238\ \ \ \ .else}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ SCRATCH,\ base,\ \#31}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [SCRATCH,\ \#32*prefetch\_distance]}
+\DoxyCodeLine{00241\ \ \ \ .endif}
+\DoxyCodeLine{00242\ \ \ .endif}
+\DoxyCodeLine{00243\ \ .endif}
+\DoxyCodeLine{00244\ .endm}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ .macro\ preload\_trailing\ \ bpp,\ bpp\_shift,\ base}
+\DoxyCodeLine{00247\ \ .if\ bpp\ >\ 0}
+\DoxyCodeLine{00248\ \ \ .if\ bpp*pix\_per\_block\ >\ 256}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Calculations\ are\ more\ complex\ if\ more\ than\ one\ fetch\ per\ block\ */}}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ PF\ \ and,\ \ \ \ WK1,\ base,\ \#31}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ PF\ \ add,\ \ \ \ WK1,\ WK1,\ WK0,\ lsl\ \#bpp\_shift}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ PF\ \ add,\ \ \ \ WK1,\ WK1,\ \#32*(bpp*pix\_per\_block/256-\/1)*(prefetch\_distance+1)}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ SCRATCH,\ base,\ \#31}
+\DoxyCodeLine{00254\ 80:\ \ \ \ \ PF\ \ pld,\ \ \ \ [SCRATCH,\ \#32*(prefetch\_distance+1)]}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ PF\ \ add,\ \ \ \ SCRATCH,\ SCRATCH,\ \#32}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ PF\ \ subs,\ \ \ WK1,\ WK1,\ \#32}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ PF\ \ bhi,\ \ \ \ 80b}
+\DoxyCodeLine{00258\ \ \ .\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ exactly\ one\ fetch\ per\ block,\ then\ we\ need\ either\ 0,\ 1\ or\ 2\ extra\ preloads\ */}}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ PF\ \ mov,\ \ \ \ SCRATCH,\ base,\ lsl\ \#32-\/5}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ PF\ \ adds,\ \ \ SCRATCH,\ SCRATCH,\ X,\ lsl\ \#32-\/5+bpp\_shift}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ PF\ \ adceqs,\ SCRATCH,\ SCRATCH,\ \#0}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ instruction\ above\ has\ two\ effects:\ ensures\ Z\ is\ only}}
+\DoxyCodeLine{00264\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ set\ if\ C\ was\ clear\ (so\ Z\ indicates\ that\ both\ shifted\ quantities}}
+\DoxyCodeLine{00265\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ were\ 0),\ and\ clears\ C\ if\ Z\ was\ set\ (so\ C\ indicates\ that\ the\ sum}}
+\DoxyCodeLine{00266\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ of\ the\ shifted\ quantities\ was\ greater\ and\ not\ equal\ to\ 32)\ */}}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ PF\ \ beq,\ \ \ \ 82f}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ SCRATCH,\ base,\ \#31}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ PF\ \ bcc,\ \ \ \ 81f}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [SCRATCH,\ \#32*(prefetch\_distance+2)]}
+\DoxyCodeLine{00271\ 81:\ \ \ \ \ PF\ \ pld,\ \ \ \ [SCRATCH,\ \#32*(prefetch\_distance+1)]}
+\DoxyCodeLine{00272\ 82:}
+\DoxyCodeLine{00273\ \ \ .endif}
+\DoxyCodeLine{00274\ \ .endif}
+\DoxyCodeLine{00275\ .endm}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ .macro\ preload\_line\ \ \ \ narrow\_case,\ bpp,\ bpp\_shift,\ base}
+\DoxyCodeLine{00279\ \textcolor{comment}{/*\ "{}narrow\_case"{}\ -\/\ just\ means\ that\ the\ macro\ was\ invoked\ from\ the\ "{}narrow"{}}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ *\ \ \ \ code\ path\ rather\ than\ the\ "{}medium"{}\ one\ -\/\ because\ in\ the\ narrow\ case,}}
+\DoxyCodeLine{00281\ \textcolor{comment}{\ *\ \ \ \ the\ row\ of\ pixels\ is\ known\ to\ output\ no\ more\ than\ 30\ bytes,\ then}}
+\DoxyCodeLine{00282\ \textcolor{comment}{\ *\ \ \ \ (assuming\ the\ source\ pixels\ are\ no\ wider\ than\ the\ the\ destination}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ *\ \ \ \ pixels)\ they\ cannot\ possibly\ straddle\ more\ than\ 2\ 32-\/byte\ cachelines,}}
+\DoxyCodeLine{00284\ \textcolor{comment}{\ *\ \ \ \ meaning\ there's\ no\ need\ for\ a\ loop.}}
+\DoxyCodeLine{00285\ \textcolor{comment}{\ *\ "{}bpp"{}\ -\/\ number\ of\ bits\ per\ pixel\ in\ the\ channel\ (source,\ mask\ or}}
+\DoxyCodeLine{00286\ \textcolor{comment}{\ *\ \ \ \ destination)\ that's\ being\ preloaded,\ or\ 0\ if\ this\ channel\ is\ not\ used}}
+\DoxyCodeLine{00287\ \textcolor{comment}{\ *\ \ \ \ for\ reading}}
+\DoxyCodeLine{00288\ \textcolor{comment}{\ *\ "{}bpp\_shift"{}\ -\/\ log2\ of\ ("{}bpp"{}/8)\ (except\ if\ "{}bpp"{}=0\ of\ course)}}
+\DoxyCodeLine{00289\ \textcolor{comment}{\ *\ "{}base"{}\ -\/\ base\ address\ register\ of\ channel\ to\ preload\ (SRC,\ MASK\ or\ DST)}}
+\DoxyCodeLine{00290\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00291\ \ .\textcolor{keywordflow}{if}\ bpp\ >\ 0}
+\DoxyCodeLine{00292\ \ \ .\textcolor{keywordflow}{if}\ narrow\_case\ \&\&\ (bpp\ <=\ dst\_w\_bpp)}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ In\ these\ cases,\ each\ line\ for\ each\ channel\ is\ in\ either\ 1\ or\ 2\ cache\ lines\ */}}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ WK0,\ base,\ \#31}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [WK0]}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ PF\ \ add,\ \ \ \ WK1,\ base,\ X,\ LSL\ \#bpp\_shift}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ PF\ \ sub,\ \ \ \ WK1,\ WK1,\ \#1}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ WK1,\ WK1,\ \#31}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ PF\ \ cmp,\ \ \ \ WK1,\ WK0}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ PF\ \ beq,\ \ \ \ 90f}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [WK1]}
+\DoxyCodeLine{00302\ 90:}
+\DoxyCodeLine{00303\ \ \ .else}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ WK0,\ base,\ \#31}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [WK0]}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ PF\ \ add,\ \ \ \ WK1,\ base,\ X,\ lsl\ \#bpp\_shift}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ PF\ \ sub,\ \ \ \ WK1,\ WK1,\ \#1}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ PF\ \ bic,\ \ \ \ WK1,\ WK1,\ \#31}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ PF\ \ cmp,\ \ \ \ WK1,\ WK0}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ PF\ \ beq,\ \ \ \ 92f}
+\DoxyCodeLine{00311\ 91:\ \ \ \ \ PF\ \ add,\ \ \ \ WK0,\ WK0,\ \#32}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ PF\ \ cmp,\ \ \ \ WK0,\ WK1}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [WK0]}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ PF\ \ bne,\ \ \ \ 91b}
+\DoxyCodeLine{00315\ 92:}
+\DoxyCodeLine{00316\ \ \ .endif}
+\DoxyCodeLine{00317\ \ .endif}
+\DoxyCodeLine{00318\ .endm}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ .macro\ conditional\_process1\_helper\ \ cond,\ process\_head,\ process\_tail,\ numbytes,\ firstreg,\ unaligned\_src,\ unaligned\_mask,\ decrementx}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ process\_head\ \ cond,\ numbytes,\ firstreg,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00323\ \ .if\ decrementx}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \ \ sub\&cond\ X,\ X,\ \#8*numbytes/dst\_w\_bpp}
+\DoxyCodeLine{00325\ \ .endif}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ process\_tail\ \ cond,\ numbytes,\ firstreg}
+\DoxyCodeLine{00327\ \ .if\ !((flags)\ \&\ FLAG\_PROCESS\_DOES\_STORE)}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ pixst\ \ \ cond,\ numbytes,\ firstreg,\ DST}
+\DoxyCodeLine{00329\ \ .endif}
+\DoxyCodeLine{00330\ .endm}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ .macro\ conditional\_process1\ \ cond,\ process\_head,\ process\_tail,\ numbytes,\ firstreg,\ unaligned\_src,\ unaligned\_mask,\ decrementx}
+\DoxyCodeLine{00333\ \ .if\ (flags)\ \&\ FLAG\_BRANCH\_OVER}
+\DoxyCodeLine{00334\ \ \ .ifc\ cond,mi}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ bpl\ \ \ \ \ 100f}
+\DoxyCodeLine{00336\ \ \ .endif}
+\DoxyCodeLine{00337\ \ \ .ifc\ cond,cs}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ bcc\ \ \ \ \ 100f}
+\DoxyCodeLine{00339\ \ \ .endif}
+\DoxyCodeLine{00340\ \ \ .ifc\ cond,ne}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ beq\ \ \ \ \ 100f}
+\DoxyCodeLine{00342\ \ \ .endif}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ conditional\_process1\_helper\ \ ,\ process\_head,\ process\_tail,\ numbytes,\ firstreg,\ unaligned\_src,\ unaligned\_mask,\ decrementx}
+\DoxyCodeLine{00344\ 100:}
+\DoxyCodeLine{00345\ \ .else}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ conditional\_process1\_helper\ \ cond,\ process\_head,\ process\_tail,\ numbytes,\ firstreg,\ unaligned\_src,\ unaligned\_mask,\ decrementx}
+\DoxyCodeLine{00347\ \ .endif}
+\DoxyCodeLine{00348\ .endm}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ .macro\ conditional\_process2\ \ \mbox{\hyperlink{structtest}{test}},\ cond1,\ cond2,\ process\_head,\ process\_tail,\ numbytes1,\ numbytes2,\ firstreg1,\ firstreg2,\ unaligned\_src,\ unaligned\_mask,\ decrementx}
+\DoxyCodeLine{00351\ \ .if\ (flags)\ \&\ (FLAG\_DST\_READWRITE\ |\ FLAG\_BRANCH\_OVER\ |\ FLAG\_PROCESS\_CORRUPTS\_PSR\ |\ FLAG\_PROCESS\_DOES\_STORE)}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Can't\ interleave\ reads\ and\ writes\ */}}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtest}{test}}}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ conditional\_process1\ \ cond1,\ process\_head,\ process\_tail,\ numbytes1,\ firstreg1,\ unaligned\_src,\ unaligned\_mask,\ decrementx}
+\DoxyCodeLine{00355\ \ \ .\textcolor{keywordflow}{if}\ (flags)\ \&\ FLAG\_PROCESS\_CORRUPTS\_PSR}
+\DoxyCodeLine{00356\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtest}{test}}}
+\DoxyCodeLine{00357\ \ \ .endif}
+\DoxyCodeLine{00358\ \ \ \ \ \ \ \ \ conditional\_process1\ \ cond2,\ process\_head,\ process\_tail,\ numbytes2,\ firstreg2,\ unaligned\_src,\ unaligned\_mask,\ decrementx}
+\DoxyCodeLine{00359\ \ .else}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Can\ interleave\ reads\ and\ writes\ for\ better\ scheduling\ */}}
+\DoxyCodeLine{00361\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtest}{test}}}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ process\_head\ \ cond1,\ numbytes1,\ firstreg1,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ process\_head\ \ cond2,\ numbytes2,\ firstreg2,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00364\ \ \ .if\ decrementx}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \ \ sub\&cond1\ X,\ X,\ \#8*numbytes1/dst\_w\_bpp}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ sub\&cond2\ X,\ X,\ \#8*numbytes2/dst\_w\_bpp}
+\DoxyCodeLine{00367\ \ \ .endif}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ process\_tail\ \ cond1,\ numbytes1,\ firstreg1}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \ \ process\_tail\ \ cond2,\ numbytes2,\ firstreg2}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \ \ pixst\ \ \ cond1,\ numbytes1,\ firstreg1,\ DST}
+\DoxyCodeLine{00371\ \ \ \ \ \ \ \ \ pixst\ \ \ cond2,\ numbytes2,\ firstreg2,\ DST}
+\DoxyCodeLine{00372\ \ .endif}
+\DoxyCodeLine{00373\ .endm}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ .macro\ test\_bits\_1\_0\_ptr}
+\DoxyCodeLine{00377\ \ .if\ (flags)\ \&\ FLAG\_PROCESS\_CORRUPTS\_WK0}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ movs\ \ \ \ SCRATCH,\ X,\ lsl\ \#32-\/1\ \ \textcolor{comment}{/*\ C,N\ =\ bits\ 1,0\ of\ DST\ */}}
+\DoxyCodeLine{00379\ \ .else}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \ \ movs\ \ \ \ SCRATCH,\ WK0,\ lsl\ \#32-\/1\ \ \textcolor{comment}{/*\ C,N\ =\ bits\ 1,0\ of\ DST\ */}}
+\DoxyCodeLine{00381\ \ .endif}
+\DoxyCodeLine{00382\ .endm}
+\DoxyCodeLine{00383\ }
+\DoxyCodeLine{00384\ .macro\ test\_bits\_3\_2\_ptr}
+\DoxyCodeLine{00385\ \ .if\ (flags)\ \&\ FLAG\_PROCESS\_CORRUPTS\_WK0}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \ \ movs\ \ \ \ SCRATCH,\ X,\ lsl\ \#32-\/3\ \ \textcolor{comment}{/*\ C,N\ =\ bits\ 3,\ 2\ of\ DST\ */}}
+\DoxyCodeLine{00387\ \ .else}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ movs\ \ \ \ SCRATCH,\ WK0,\ lsl\ \#32-\/3\ \ \textcolor{comment}{/*\ C,N\ =\ bits\ 3,\ 2\ of\ DST\ */}}
+\DoxyCodeLine{00389\ \ .endif}
+\DoxyCodeLine{00390\ .endm}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ .macro\ leading\_15bytes\ \ process\_head,\ process\_tail}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ On\ entry,\ WK0\ bits\ 0-\/3\ =\ number\ of\ bytes\ until\ destination\ is\ 16-\/byte\ aligned\ */}}
+\DoxyCodeLine{00394\ \ .set\ DECREMENT\_X,\ 1}
+\DoxyCodeLine{00395\ \ .if\ (flags)\ \&\ FLAG\_PROCESS\_CORRUPTS\_WK0}
+\DoxyCodeLine{00396\ \ \ .set\ DECREMENT\_X,\ 0}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ X,\ X,\ WK0,\ lsr\ \#dst\_bpp\_shift}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ str\ \ \ \ \ X,\ [sp,\ \#LINE\_SAVED\_REG\_COUNT*4]}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ mov\ \ \ \ \ X,\ WK0}
+\DoxyCodeLine{00400\ \ .endif}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Use\ unaligned\ loads\ in\ all\ cases\ for\ simplicity\ */}}
+\DoxyCodeLine{00402\ \ .if\ dst\_w\_bpp\ ==\ 8}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ conditional\_process2\ \ test\_bits\_1\_0\_ptr,\ mi,\ cs,\ process\_head,\ process\_tail,\ 1,\ 2,\ 1,\ 2,\ 1,\ 1,\ DECREMENT\_X}
+\DoxyCodeLine{00404\ \ .elseif\ dst\_w\_bpp\ ==\ 16}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \ \ test\_bits\_1\_0\_ptr}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ conditional\_process1\ \ cs,\ process\_head,\ process\_tail,\ 2,\ 2,\ 1,\ 1,\ DECREMENT\_X}
+\DoxyCodeLine{00407\ \ .endif}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ conditional\_process2\ \ test\_bits\_3\_2\_ptr,\ mi,\ cs,\ process\_head,\ process\_tail,\ 4,\ 8,\ 1,\ 2,\ 1,\ 1,\ DECREMENT\_X}
+\DoxyCodeLine{00409\ \ .if\ (flags)\ \&\ FLAG\_PROCESS\_CORRUPTS\_WK0}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ ldr\ \ \ \ \ X,\ [sp,\ \#LINE\_SAVED\_REG\_COUNT*4]}
+\DoxyCodeLine{00411\ \ .endif}
+\DoxyCodeLine{00412\ .endm}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ .macro\ test\_bits\_3\_2\_pix}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ movs\ \ \ \ SCRATCH,\ X,\ lsl\ \#dst\_bpp\_shift+32-\/3}
+\DoxyCodeLine{00416\ .endm}
+\DoxyCodeLine{00417\ }
+\DoxyCodeLine{00418\ .macro\ test\_bits\_1\_0\_pix}
+\DoxyCodeLine{00419\ \ .if\ dst\_w\_bpp\ ==\ 8}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ \ \ movs\ \ \ \ SCRATCH,\ X,\ lsl\ \#dst\_bpp\_shift+32-\/1}
+\DoxyCodeLine{00421\ \ .else}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ movs\ \ \ \ SCRATCH,\ X,\ lsr\ \#1}
+\DoxyCodeLine{00423\ \ .endif}
+\DoxyCodeLine{00424\ .endm}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ .macro\ trailing\_15bytes\ \ process\_head,\ process\_tail,\ unaligned\_src,\ unaligned\_mask}
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \ \ conditional\_process2\ \ test\_bits\_3\_2\_pix,\ cs,\ mi,\ process\_head,\ process\_tail,\ 8,\ 4,\ 0,\ 2,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00428\ \ .if\ dst\_w\_bpp\ ==\ 16}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ test\_bits\_1\_0\_pix}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ conditional\_process1\ \ cs,\ process\_head,\ process\_tail,\ 2,\ 0,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00431\ \ .elseif\ dst\_w\_bpp\ ==\ 8}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ conditional\_process2\ \ test\_bits\_1\_0\_pix,\ cs,\ mi,\ process\_head,\ process\_tail,\ 2,\ 1,\ 0,\ 1,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00433\ \ .endif}
+\DoxyCodeLine{00434\ .endm}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ .macro\ wide\_case\_inner\_loop\ \ process\_head,\ process\_tail,\ unaligned\_src,\ unaligned\_mask,\ dst\_alignment}
+\DoxyCodeLine{00438\ 110:}
+\DoxyCodeLine{00439\ \ .set\ SUBBLOCK,\ 0\ \textcolor{comment}{/*\ this\ is\ a\ count\ of\ STMs;\ there\ can\ be\ up\ to\ 8\ STMs\ per\ block\ */}}
+\DoxyCodeLine{00440\ \ .rept\ pix\_per\_block*dst\_w\_bpp/128}
+\DoxyCodeLine{00441\ \ \ \ \ \ \ \ \ process\_head\ \ ,\ 16,\ 0,\ unaligned\_src,\ unaligned\_mask,\ 1}
+\DoxyCodeLine{00442\ \ \ .if\ (src\_bpp\ >\ 0)\ \&\&\ (mask\_bpp\ ==\ 0)\ \&\&\ ((flags)\ \&\ FLAG\_PROCESS\_PRESERVES\_SCRATCH)}
+\DoxyCodeLine{00443\ \ \ \ \ \ \ \ \ preload\_middle\ \ src\_bpp,\ SRC,\ 1}
+\DoxyCodeLine{00444\ \ \ .elseif\ (src\_bpp\ ==\ 0)\ \&\&\ (mask\_bpp\ >\ 0)\ \&\&\ ((flags)\ \&\ FLAG\_PROCESS\_PRESERVES\_SCRATCH)}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ \ \ preload\_middle\ \ mask\_bpp,\ MASK,\ 1}
+\DoxyCodeLine{00446\ \ \ .\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00447\ \ \ \ \ \ \ \ \ preload\_middle\ \ src\_bpp,\ SRC,\ 0}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ \ \ preload\_middle\ \ mask\_bpp,\ MASK,\ 0}
+\DoxyCodeLine{00449\ \ \ .endif}
+\DoxyCodeLine{00450\ \ \ .\textcolor{keywordflow}{if}\ (dst\_r\_bpp\ >\ 0)\ \&\&\ ((SUBBLOCK\ \%\ 2)\ ==\ 0)\ \&\&\ (((flags)\ \&\ FLAG\_NO\_PRELOAD\_DST)\ ==\ 0)}
+\DoxyCodeLine{00451\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Because\ we\ know\ that\ writes\ are\ 16-\/byte\ aligned,\ it's\ relatively\ easy\ to\ ensure\ that}}
+\DoxyCodeLine{00452\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ destination\ prefetches\ are\ 32-\/byte\ aligned.\ It's\ also\ the\ easiest\ channel\ to\ offset}}
+\DoxyCodeLine{00453\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ preloads\ for,\ to\ achieve\ staggered\ prefetches\ for\ multiple\ channels,\ because\ there\ are}}
+\DoxyCodeLine{00454\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ always\ two\ STMs\ per\ prefetch,\ so\ there\ is\ always\ an\ opposite\ STM\ on\ which\ to\ put\ the}}
+\DoxyCodeLine{00455\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ preload.\ Note,\ no\ need\ to\ BIC\ the\ base\ register\ here\ */}}
+\DoxyCodeLine{00456\ \ \ \ \ \ \ \ \ PF\ \ pld,\ \ \ \ [DST,\ \#32*prefetch\_distance\ -\/\ dst\_alignment]}
+\DoxyCodeLine{00457\ \ \ .endif}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ \ \ process\_tail\ \ ,\ 16,\ 0}
+\DoxyCodeLine{00459\ \ \ .\textcolor{keywordflow}{if}\ !((flags)\ \&\ FLAG\_PROCESS\_DOES\_STORE)}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \ \ pixst\ \ \ ,\ 16,\ 0,\ DST}
+\DoxyCodeLine{00461\ \ \ .endif}
+\DoxyCodeLine{00462\ \ \ .set\ SUBBLOCK,\ SUBBLOCK+1}
+\DoxyCodeLine{00463\ \ .endr}
+\DoxyCodeLine{00464\ \ \ \ \ \ \ \ \ subs\ \ \ \ X,\ X,\ \#pix\_per\_block}
+\DoxyCodeLine{00465\ \ \ \ \ \ \ \ \ bhs\ \ \ \ \ 110b}
+\DoxyCodeLine{00466\ .endm}
+\DoxyCodeLine{00467\ }
+\DoxyCodeLine{00468\ .macro\ wide\_case\_inner\_loop\_and\_trailing\_pixels\ \ process\_head,\ process\_tail,\ process\_inner\_loop,\ exit\_label,\ unaligned\_src,\ unaligned\_mask}
+\DoxyCodeLine{00469\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Destination\ now\ 16-\/byte\ aligned;\ we\ have\ at\ least\ one\ block\ before\ we\ have\ to\ stop\ preloading\ */}}
+\DoxyCodeLine{00470\ \ .\textcolor{keywordflow}{if}\ dst\_r\_bpp\ >\ 0}
+\DoxyCodeLine{00471\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ DST,\ \#16}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ bne\ \ \ \ \ 111f}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ \ \ process\_inner\_loop\ \ process\_head,\ process\_tail,\ unaligned\_src,\ unaligned\_mask,\ 16\ +\ DST\_PRELOAD\_BIAS}
+\DoxyCodeLine{00474\ \ \ \ \ \ \ \ \ b\ \ \ \ \ \ \ 112f}
+\DoxyCodeLine{00475\ 111:}
+\DoxyCodeLine{00476\ \ .endif}
+\DoxyCodeLine{00477\ \ \ \ \ \ \ \ \ process\_inner\_loop\ \ process\_head,\ process\_tail,\ unaligned\_src,\ unaligned\_mask,\ 0\ +\ DST\_PRELOAD\_BIAS}
+\DoxyCodeLine{00478\ 112:}
+\DoxyCodeLine{00479\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Just\ before\ the\ final\ (prefetch\_distance+1)\ 32-\/byte\ blocks,\ deal\ with\ final\ preloads\ */}}
+\DoxyCodeLine{00480\ \ .\textcolor{keywordflow}{if}\ (src\_bpp*pix\_per\_block\ >\ 256)\ ||\ (mask\_bpp*pix\_per\_block\ >\ 256)\ ||\ (dst\_r\_bpp*pix\_per\_block\ >\ 256)}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ \ \ PF\ \ and,\ \ \ \ WK0,\ X,\ \#pix\_per\_block-\/1}
+\DoxyCodeLine{00482\ \ .endif}
+\DoxyCodeLine{00483\ \ \ \ \ \ \ \ \ preload\_trailing\ \ src\_bpp,\ src\_bpp\_shift,\ SRC}
+\DoxyCodeLine{00484\ \ \ \ \ \ \ \ \ preload\_trailing\ \ mask\_bpp,\ mask\_bpp\_shift,\ MASK}
+\DoxyCodeLine{00485\ \ .if\ ((flags)\ \&\ FLAG\_NO\_PRELOAD\_DST)\ ==\ 0}
+\DoxyCodeLine{00486\ \ \ \ \ \ \ \ \ preload\_trailing\ \ dst\_r\_bpp,\ dst\_bpp\_shift,\ DST}
+\DoxyCodeLine{00487\ \ .endif}
+\DoxyCodeLine{00488\ \ \ \ \ \ \ \ \ add\ \ \ \ \ X,\ X,\ \#(prefetch\_distance+2)*pix\_per\_block\ -\/\ 128/dst\_w\_bpp}
+\DoxyCodeLine{00489\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ remainder\ of\ the\ line\ is\ handled\ identically\ to\ the\ medium\ case\ */}}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ \ \ medium\_case\_inner\_loop\_and\_trailing\_pixels\ \ process\_head,\ process\_tail,,\ exit\_label,\ unaligned\_src,\ unaligned\_mask}
+\DoxyCodeLine{00491\ .endm}
+\DoxyCodeLine{00492\ }
+\DoxyCodeLine{00493\ .macro\ medium\_case\_inner\_loop\_and\_trailing\_pixels\ \ process\_head,\ process\_tail,\ unused,\ exit\_label,\ unaligned\_src,\ unaligned\_mask}
+\DoxyCodeLine{00494\ 120:}
+\DoxyCodeLine{00495\ \ \ \ \ \ \ \ \ process\_head\ \ ,\ 16,\ 0,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00496\ \ \ \ \ \ \ \ \ process\_tail\ \ ,\ 16,\ 0}
+\DoxyCodeLine{00497\ \ .if\ !((flags)\ \&\ FLAG\_PROCESS\_DOES\_STORE)}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \ \ pixst\ \ \ ,\ 16,\ 0,\ DST}
+\DoxyCodeLine{00499\ \ .endif}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \ \ subs\ \ \ \ X,\ X,\ \#128/dst\_w\_bpp}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \ \ bhs\ \ \ \ \ 120b}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Trailing\ pixels\ */}}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ X,\ \#128/dst\_w\_bpp\ -\/\ 1}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \ \ beq\ \ \ \ \ exit\_label}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \ \ trailing\_15bytes\ \ process\_head,\ process\_tail,\ unaligned\_src,\ unaligned\_mask}
+\DoxyCodeLine{00506\ .endm}
+\DoxyCodeLine{00507\ }
+\DoxyCodeLine{00508\ .macro\ narrow\_case\_inner\_loop\_and\_trailing\_pixels\ \ process\_head,\ process\_tail,\ unused,\ exit\_label,\ unaligned\_src,\ unaligned\_mask}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ X,\ \#16*8/dst\_w\_bpp}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \ \ conditional\_process1\ \ ne,\ process\_head,\ process\_tail,\ 16,\ 0,\ unaligned\_src,\ unaligned\_mask,\ 0}
+\DoxyCodeLine{00511\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Trailing\ pixels\ */}}
+\DoxyCodeLine{00512\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ In\ narrow\ case,\ it's\ relatively\ unlikely\ to\ be\ aligned,\ so\ let's\ do\ without\ a\ branch\ here\ */}}
+\DoxyCodeLine{00513\ \ \ \ \ \ \ \ \ trailing\_15bytes\ \ process\_head,\ process\_tail,\ unaligned\_src,\ unaligned\_mask}
+\DoxyCodeLine{00514\ .endm}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ .macro\ switch\_on\_alignment\ \ action,\ process\_head,\ process\_tail,\ process\_inner\_loop,\ exit\_label}
+\DoxyCodeLine{00517\ \ \textcolor{comment}{/*\ Note\ that\ if\ we're\ reading\ the\ destination,\ it's\ already\ guaranteed\ to\ be\ aligned\ at\ this\ point\ */}}
+\DoxyCodeLine{00518\ \ .if\ mask\_bpp\ ==\ 8\ ||\ mask\_bpp\ ==\ 16}
+\DoxyCodeLine{00519\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ MASK,\ \#3}
+\DoxyCodeLine{00520\ \ \ \ \ \ \ \ \ bne\ \ \ \ \ 141f}
+\DoxyCodeLine{00521\ \ .endif}
+\DoxyCodeLine{00522\ \ \ .if\ src\_bpp\ ==\ 8\ ||\ src\_bpp\ ==\ 16}
+\DoxyCodeLine{00523\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ SRC,\ \#3}
+\DoxyCodeLine{00524\ \ \ \ \ \ \ \ \ bne\ \ \ \ \ 140f}
+\DoxyCodeLine{00525\ \ \ .endif}
+\DoxyCodeLine{00526\ \ \ \ \ \ \ \ \ action\ \ process\_head,\ process\_tail,\ process\_inner\_loop,\ exit\_label,\ 0,\ 0}
+\DoxyCodeLine{00527\ \ \ .if\ src\_bpp\ ==\ 8\ ||\ src\_bpp\ ==\ 16}
+\DoxyCodeLine{00528\ \ \ \ \ \ \ \ \ b\ \ \ \ \ \ \ exit\_label}
+\DoxyCodeLine{00529\ 140:}
+\DoxyCodeLine{00530\ \ \ \ \ \ \ \ \ action\ \ process\_head,\ process\_tail,\ process\_inner\_loop,\ exit\_label,\ 1,\ 0}
+\DoxyCodeLine{00531\ \ \ .endif}
+\DoxyCodeLine{00532\ \ .if\ mask\_bpp\ ==\ 8\ ||\ mask\_bpp\ ==\ 16}
+\DoxyCodeLine{00533\ \ \ \ \ \ \ \ \ b\ \ \ \ \ \ \ exit\_label}
+\DoxyCodeLine{00534\ 141:}
+\DoxyCodeLine{00535\ \ \ .if\ src\_bpp\ ==\ 8\ ||\ src\_bpp\ ==\ 16}
+\DoxyCodeLine{00536\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ SRC,\ \#3}
+\DoxyCodeLine{00537\ \ \ \ \ \ \ \ \ bne\ \ \ \ \ 142f}
+\DoxyCodeLine{00538\ \ \ .endif}
+\DoxyCodeLine{00539\ \ \ \ \ \ \ \ \ action\ \ process\_head,\ process\_tail,\ process\_inner\_loop,\ exit\_label,\ 0,\ 1}
+\DoxyCodeLine{00540\ \ \ .if\ src\_bpp\ ==\ 8\ ||\ src\_bpp\ ==\ 16}
+\DoxyCodeLine{00541\ \ \ \ \ \ \ \ \ b\ \ \ \ \ \ \ exit\_label}
+\DoxyCodeLine{00542\ 142:}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ action\ \ process\_head,\ process\_tail,\ process\_inner\_loop,\ exit\_label,\ 1,\ 1}
+\DoxyCodeLine{00544\ \ \ .endif}
+\DoxyCodeLine{00545\ \ .endif}
+\DoxyCodeLine{00546\ .endm}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ }
+\DoxyCodeLine{00549\ .macro\ end\_of\_line\ \ \ \ \ \ restore\_x,\ vars\_spilled,\ loop\_label,\ last\_one}
+\DoxyCodeLine{00550\ \ .if\ vars\_spilled}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Sadly,\ GAS\ doesn't\ seem\ have\ an\ equivalent\ of\ the\ DCI\ directive?\ */}}
+\DoxyCodeLine{00552\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ is\ ldmia\ sp,\{\}\ */}}
+\DoxyCodeLine{00553\ \ \ \ \ \ \ \ \ .word\ \ \ 0xE89D0000\ |\ LINE\_SAVED\_REGS}
+\DoxyCodeLine{00554\ \ .endif}
+\DoxyCodeLine{00555\ \ \ \ \ \ \ \ \ subs\ \ \ \ Y,\ Y,\ \#1}
+\DoxyCodeLine{00556\ \ .if\ vars\_spilled}
+\DoxyCodeLine{00557\ \ \ .if\ (LINE\_SAVED\_REGS)\ \&\ (1<<1)}
+\DoxyCodeLine{00558\ \ \ \ \ \ \ \ \ str\ \ \ \ \ Y,\ [sp]}
+\DoxyCodeLine{00559\ \ \ .endif}
+\DoxyCodeLine{00560\ \ .endif}
+\DoxyCodeLine{00561\ \ \ \ \ \ \ \ \ add\ \ \ \ \ DST,\ DST,\ STRIDE\_D}
+\DoxyCodeLine{00562\ \ .\textcolor{keywordflow}{if}\ src\_bpp\ >\ 0}
+\DoxyCodeLine{00563\ \ \ \ \ \ \ \ \ add\ \ \ \ \ SRC,\ SRC,\ STRIDE\_S}
+\DoxyCodeLine{00564\ \ .endif}
+\DoxyCodeLine{00565\ \ .\textcolor{keywordflow}{if}\ mask\_bpp\ >\ 0}
+\DoxyCodeLine{00566\ \ \ \ \ \ \ \ \ add\ \ \ \ \ MASK,\ MASK,\ STRIDE\_M}
+\DoxyCodeLine{00567\ \ .endif}
+\DoxyCodeLine{00568\ \ .\textcolor{keywordflow}{if}\ restore\_x}
+\DoxyCodeLine{00569\ \ \ \ \ \ \ \ \ mov\ \ \ \ \ X,\ ORIG\_W}
+\DoxyCodeLine{00570\ \ .endif}
+\DoxyCodeLine{00571\ \ \ \ \ \ \ \ \ bhs\ \ \ \ \ loop\_label}
+\DoxyCodeLine{00572\ \ .ifc\ \textcolor{stringliteral}{"{}last\_one"{}},\textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{00573\ \ \ .\textcolor{keywordflow}{if}\ vars\_spilled}
+\DoxyCodeLine{00574\ \ \ \ \ \ \ \ \ b\ \ \ \ \ \ \ 197f}
+\DoxyCodeLine{00575\ \ \ .\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00576\ \ \ \ \ \ \ \ \ b\ \ \ \ \ \ \ 198f}
+\DoxyCodeLine{00577\ \ \ .endif}
+\DoxyCodeLine{00578\ \ .\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00579\ \ \ .\textcolor{keywordflow}{if}\ (!vars\_spilled)\ \&\&\ ((flags)\ \&\ FLAG\_SPILL\_LINE\_VARS)}
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \ \ b\ \ \ \ \ \ \ 198f}
+\DoxyCodeLine{00581\ \ \ .endif}
+\DoxyCodeLine{00582\ \ .endif}
+\DoxyCodeLine{00583\ .endm}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ }
+\DoxyCodeLine{00586\ .macro\ generate\_composite\_function\ fname,\ \(\backslash\)}
+\DoxyCodeLine{00587\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_bpp\_,\ \(\backslash\)}
+\DoxyCodeLine{00588\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\_bpp\_,\ \(\backslash\)}
+\DoxyCodeLine{00589\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_w\_bpp\_,\ \(\backslash\)}
+\DoxyCodeLine{00590\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ flags\_,\ \(\backslash\)}
+\DoxyCodeLine{00591\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ prefetch\_distance\_,\ \(\backslash\)}
+\DoxyCodeLine{00592\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ init,\ \(\backslash\)}
+\DoxyCodeLine{00593\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ newline,\ \(\backslash\)}
+\DoxyCodeLine{00594\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cleanup,\ \(\backslash\)}
+\DoxyCodeLine{00595\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ process\_head,\ \(\backslash\)}
+\DoxyCodeLine{00596\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ process\_tail,\ \(\backslash\)}
+\DoxyCodeLine{00597\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ process\_inner\_loop}
+\DoxyCodeLine{00598\ }
+\DoxyCodeLine{00599\ \ \ \ \ pixman\_asm\_function\ fname}
+\DoxyCodeLine{00600\ }
+\DoxyCodeLine{00601\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00602\ \textcolor{comment}{\ *\ Make\ some\ macro\ arguments\ globally\ visible\ and\ accessible}}
+\DoxyCodeLine{00603\ \textcolor{comment}{\ *\ from\ other\ macros}}
+\DoxyCodeLine{00604\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00605\ \ .set\ src\_bpp,\ src\_bpp\_}
+\DoxyCodeLine{00606\ \ .set\ mask\_bpp,\ mask\_bpp\_}
+\DoxyCodeLine{00607\ \ .set\ dst\_w\_bpp,\ dst\_w\_bpp\_}
+\DoxyCodeLine{00608\ \ .set\ flags,\ flags\_}
+\DoxyCodeLine{00609\ \ .set\ prefetch\_distance,\ prefetch\_distance\_}
+\DoxyCodeLine{00610\ }
+\DoxyCodeLine{00611\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00612\ \textcolor{comment}{\ *\ Select\ prefetch\ type\ for\ this\ function.}}
+\DoxyCodeLine{00613\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00614\ \ .if\ prefetch\_distance\ ==\ 0}
+\DoxyCodeLine{00615\ \ \ .set\ PREFETCH\_TYPE\_CURRENT,\ PREFETCH\_TYPE\_NONE}
+\DoxyCodeLine{00616\ \ .else}
+\DoxyCodeLine{00617\ \ \ .set\ PREFETCH\_TYPE\_CURRENT,\ PREFETCH\_TYPE\_STANDARD}
+\DoxyCodeLine{00618\ \ .endif}
+\DoxyCodeLine{00619\ }
+\DoxyCodeLine{00620\ \ .if\ src\_bpp\ ==\ 32}
+\DoxyCodeLine{00621\ \ \ .set\ src\_bpp\_shift,\ 2}
+\DoxyCodeLine{00622\ \ .elseif\ src\_bpp\ ==\ 24}
+\DoxyCodeLine{00623\ \ \ .set\ src\_bpp\_shift,\ 0}
+\DoxyCodeLine{00624\ \ .elseif\ src\_bpp\ ==\ 16}
+\DoxyCodeLine{00625\ \ \ .set\ src\_bpp\_shift,\ 1}
+\DoxyCodeLine{00626\ \ .elseif\ src\_bpp\ ==\ 8}
+\DoxyCodeLine{00627\ \ \ .set\ src\_bpp\_shift,\ 0}
+\DoxyCodeLine{00628\ \ .elseif\ src\_bpp\ ==\ 0}
+\DoxyCodeLine{00629\ \ \ .set\ src\_bpp\_shift,\ -\/1}
+\DoxyCodeLine{00630\ \ .else}
+\DoxyCodeLine{00631\ \ \ .error\ \textcolor{stringliteral}{"{}requested\ src\ bpp\ (src\_bpp)\ is\ not\ supported"{}}}
+\DoxyCodeLine{00632\ \ .endif}
+\DoxyCodeLine{00633\ }
+\DoxyCodeLine{00634\ \ .if\ mask\_bpp\ ==\ 32}
+\DoxyCodeLine{00635\ \ \ .set\ mask\_bpp\_shift,\ 2}
+\DoxyCodeLine{00636\ \ .elseif\ mask\_bpp\ ==\ 24}
+\DoxyCodeLine{00637\ \ \ .set\ mask\_bpp\_shift,\ 0}
+\DoxyCodeLine{00638\ \ .elseif\ mask\_bpp\ ==\ 8}
+\DoxyCodeLine{00639\ \ \ .set\ mask\_bpp\_shift,\ 0}
+\DoxyCodeLine{00640\ \ .elseif\ mask\_bpp\ ==\ 0}
+\DoxyCodeLine{00641\ \ \ .set\ mask\_bpp\_shift,\ -\/1}
+\DoxyCodeLine{00642\ \ .else}
+\DoxyCodeLine{00643\ \ \ .error\ \textcolor{stringliteral}{"{}requested\ mask\ bpp\ (mask\_bpp)\ is\ not\ supported"{}}}
+\DoxyCodeLine{00644\ \ .endif}
+\DoxyCodeLine{00645\ }
+\DoxyCodeLine{00646\ \ .if\ dst\_w\_bpp\ ==\ 32}
+\DoxyCodeLine{00647\ \ \ .set\ dst\_bpp\_shift,\ 2}
+\DoxyCodeLine{00648\ \ .elseif\ dst\_w\_bpp\ ==\ 24}
+\DoxyCodeLine{00649\ \ \ .set\ dst\_bpp\_shift,\ 0}
+\DoxyCodeLine{00650\ \ .elseif\ dst\_w\_bpp\ ==\ 16}
+\DoxyCodeLine{00651\ \ \ .set\ dst\_bpp\_shift,\ 1}
+\DoxyCodeLine{00652\ \ .elseif\ dst\_w\_bpp\ ==\ 8}
+\DoxyCodeLine{00653\ \ \ .set\ dst\_bpp\_shift,\ 0}
+\DoxyCodeLine{00654\ \ .else}
+\DoxyCodeLine{00655\ \ \ .error\ \textcolor{stringliteral}{"{}requested\ dst\ bpp\ (dst\_w\_bpp)\ is\ not\ supported"{}}}
+\DoxyCodeLine{00656\ \ .endif}
+\DoxyCodeLine{00657\ }
+\DoxyCodeLine{00658\ \ .if\ (((flags)\ \&\ FLAG\_DST\_READWRITE)\ !=\ 0)}
+\DoxyCodeLine{00659\ \ \ .set\ dst\_r\_bpp,\ dst\_w\_bpp}
+\DoxyCodeLine{00660\ \ .else}
+\DoxyCodeLine{00661\ \ \ .set\ dst\_r\_bpp,\ 0}
+\DoxyCodeLine{00662\ \ .endif}
+\DoxyCodeLine{00663\ }
+\DoxyCodeLine{00664\ \ .set\ pix\_per\_block,\ 16*8/dst\_w\_bpp}
+\DoxyCodeLine{00665\ \ .if\ src\_bpp\ !=\ 0}
+\DoxyCodeLine{00666\ \ \ .if\ 32*8/src\_bpp\ >\ pix\_per\_block}
+\DoxyCodeLine{00667\ \ \ \ .set\ pix\_per\_block,\ 32*8/src\_bpp}
+\DoxyCodeLine{00668\ \ \ .endif}
+\DoxyCodeLine{00669\ \ .endif}
+\DoxyCodeLine{00670\ \ .if\ mask\_bpp\ !=\ 0}
+\DoxyCodeLine{00671\ \ \ .if\ 32*8/mask\_bpp\ >\ pix\_per\_block}
+\DoxyCodeLine{00672\ \ \ \ .set\ pix\_per\_block,\ 32*8/mask\_bpp}
+\DoxyCodeLine{00673\ \ \ .endif}
+\DoxyCodeLine{00674\ \ .endif}
+\DoxyCodeLine{00675\ \ .if\ dst\_r\_bpp\ !=\ 0}
+\DoxyCodeLine{00676\ \ \ .if\ 32*8/dst\_r\_bpp\ >\ pix\_per\_block}
+\DoxyCodeLine{00677\ \ \ \ .set\ pix\_per\_block,\ 32*8/dst\_r\_bpp}
+\DoxyCodeLine{00678\ \ \ .endif}
+\DoxyCodeLine{00679\ \ .endif}
+\DoxyCodeLine{00680\ }
+\DoxyCodeLine{00681\ \textcolor{comment}{/*\ The\ standard\ entry\ conditions\ set\ up\ by\ pixman-\/arm-\/common.h\ are:}}
+\DoxyCodeLine{00682\ \textcolor{comment}{\ *\ r0\ =\ width\ (pixels)}}
+\DoxyCodeLine{00683\ \textcolor{comment}{\ *\ r1\ =\ height\ (rows)}}
+\DoxyCodeLine{00684\ \textcolor{comment}{\ *\ r2\ =\ pointer\ to\ top-\/left\ pixel\ of\ destination}}
+\DoxyCodeLine{00685\ \textcolor{comment}{\ *\ r3\ =\ destination\ stride\ (pixels)}}
+\DoxyCodeLine{00686\ \textcolor{comment}{\ *\ [sp]\ =\ source\ pixel\ value,\ or\ pointer\ to\ top-\/left\ pixel\ of\ source}}
+\DoxyCodeLine{00687\ \textcolor{comment}{\ *\ [sp,\#4]\ =\ 0\ or\ source\ stride\ (pixels)}}
+\DoxyCodeLine{00688\ \textcolor{comment}{\ *\ The\ following\ arguments\ are\ unused\ for\ non-\/mask\ operations}}
+\DoxyCodeLine{00689\ \textcolor{comment}{\ *\ [sp,\#8]\ =\ mask\ pixel\ value,\ or\ pointer\ to\ top-\/left\ pixel\ of\ mask}}
+\DoxyCodeLine{00690\ \textcolor{comment}{\ *\ [sp,\#12]\ =\ 0\ or\ mask\ stride\ (pixels)}}
+\DoxyCodeLine{00691\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00692\ }
+\DoxyCodeLine{00693\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00694\ \textcolor{comment}{\ *\ Assign\ symbolic\ names\ to\ registers}}
+\DoxyCodeLine{00695\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00696\ \ \ \ \ X\ \ \ \ \ \ \ \ \ \ \ .req\ \ \ \ r0\ \ \textcolor{comment}{/*\ pixels\ to\ go\ on\ this\ line\ */}}
+\DoxyCodeLine{00697\ \ \ \ \ Y\ \ \ \ \ \ \ \ \ \ \ .req\ \ \ \ r1\ \ \textcolor{comment}{/*\ lines\ to\ go\ */}}
+\DoxyCodeLine{00698\ \ \ \ \ DST\ \ \ \ \ \ \ \ \ .req\ \ \ \ r2\ \ \textcolor{comment}{/*\ destination\ pixel\ pointer\ */}}
+\DoxyCodeLine{00699\ \ \ \ \ STRIDE\_D\ \ \ \ .req\ \ \ \ r3\ \ \textcolor{comment}{/*\ destination\ stride\ (bytes,\ minus\ width)\ */}}
+\DoxyCodeLine{00700\ \ \ \ \ SRC\ \ \ \ \ \ \ \ \ .req\ \ \ \ r4\ \ \textcolor{comment}{/*\ source\ pixel\ pointer\ */}}
+\DoxyCodeLine{00701\ \ \ \ \ STRIDE\_S\ \ \ \ .req\ \ \ \ r5\ \ \textcolor{comment}{/*\ source\ stride\ (bytes,\ minus\ width)\ */}}
+\DoxyCodeLine{00702\ \ \ \ \ MASK\ \ \ \ \ \ \ \ .req\ \ \ \ r6\ \ \textcolor{comment}{/*\ mask\ pixel\ pointer\ (if\ applicable)\ */}}
+\DoxyCodeLine{00703\ \ \ \ \ STRIDE\_M\ \ \ \ .req\ \ \ \ r7\ \ \textcolor{comment}{/*\ mask\ stride\ (bytes,\ minus\ width)\ */}}
+\DoxyCodeLine{00704\ \ \ \ \ WK0\ \ \ \ \ \ \ \ \ .req\ \ \ \ r8\ \ \textcolor{comment}{/*\ pixel\ data\ registers\ */}}
+\DoxyCodeLine{00705\ \ \ \ \ WK1\ \ \ \ \ \ \ \ \ .req\ \ \ \ r9}
+\DoxyCodeLine{00706\ \ \ \ \ WK2\ \ \ \ \ \ \ \ \ .req\ \ \ \ r10}
+\DoxyCodeLine{00707\ \ \ \ \ WK3\ \ \ \ \ \ \ \ \ .req\ \ \ \ r11}
+\DoxyCodeLine{00708\ \ \ \ \ SCRATCH\ \ \ \ \ .req\ \ \ \ r12}
+\DoxyCodeLine{00709\ \ \ \ \ ORIG\_W\ \ \ \ \ \ .req\ \ \ \ r14\ \textcolor{comment}{/*\ width\ (pixels)\ */}}
+\DoxyCodeLine{00710\ }
+\DoxyCodeLine{00711\ \ \ \ \ \ \ \ \ push\ \ \ \ \{r4-\/r11,\ lr\}\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ save\ all\ registers\ */}}
+\DoxyCodeLine{00712\ }
+\DoxyCodeLine{00713\ \ \ \ \ \ \ \ \ subs\ \ \ \ Y,\ Y,\ \#1}
+\DoxyCodeLine{00714\ \ \ \ \ \ \ \ \ blo\ \ \ \ \ 199f}
+\DoxyCodeLine{00715\ }
+\DoxyCodeLine{00716\ \textcolor{preprocessor}{\#ifdef\ DEBUG\_PARAMS}}
+\DoxyCodeLine{00717\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ sp,\ sp,\ \#9*4}
+\DoxyCodeLine{00718\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00719\ }
+\DoxyCodeLine{00720\ \ .if\ src\_bpp\ >\ 0}
+\DoxyCodeLine{00721\ \ \ \ \ \ \ \ \ ldr\ \ \ \ \ SRC,\ [sp,\ \#ARGS\_STACK\_OFFSET]}
+\DoxyCodeLine{00722\ \ \ \ \ \ \ \ \ ldr\ \ \ \ \ STRIDE\_S,\ [sp,\ \#ARGS\_STACK\_OFFSET+4]}
+\DoxyCodeLine{00723\ \ .endif}
+\DoxyCodeLine{00724\ \ .if\ mask\_bpp\ >\ 0}
+\DoxyCodeLine{00725\ \ \ \ \ \ \ \ \ ldr\ \ \ \ \ MASK,\ [sp,\ \#ARGS\_STACK\_OFFSET+8]}
+\DoxyCodeLine{00726\ \ \ \ \ \ \ \ \ ldr\ \ \ \ \ STRIDE\_M,\ [sp,\ \#ARGS\_STACK\_OFFSET+12]}
+\DoxyCodeLine{00727\ \ .endif}
+\DoxyCodeLine{00728\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00729\ \textcolor{preprocessor}{\#ifdef\ DEBUG\_PARAMS}}
+\DoxyCodeLine{00730\ \ \ \ \ \ \ \ \ add\ \ \ \ \ Y,\ Y,\ \#1}
+\DoxyCodeLine{00731\ \ \ \ \ \ \ \ \ stmia\ \ \ sp,\ \{r0-\/r7,pc\}}
+\DoxyCodeLine{00732\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ Y,\ Y,\ \#1}
+\DoxyCodeLine{00733\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00734\ }
+\DoxyCodeLine{00735\ \ \ \ \ \ \ \ \ init}
+\DoxyCodeLine{00736\ }
+\DoxyCodeLine{00737\ \ .if\ (flags)\ \&\ FLAG\_PROCESS\_CORRUPTS\_WK0}
+\DoxyCodeLine{00738\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Reserve\ a\ word\ in\ which\ to\ store\ X\ during\ leading\ pixels\ */}}
+\DoxyCodeLine{00739\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ sp,\ sp,\ \#4}
+\DoxyCodeLine{00740\ \ \ .set\ ARGS\_STACK\_OFFSET,\ ARGS\_STACK\_OFFSET+4}
+\DoxyCodeLine{00741\ \ \ .set\ LOCALS\_STACK\_OFFSET,\ LOCALS\_STACK\_OFFSET+4}
+\DoxyCodeLine{00742\ \ .endif}
+\DoxyCodeLine{00743\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00744\ \ \ \ \ \ \ \ \ lsl\ \ \ \ \ STRIDE\_D,\ \#dst\_bpp\_shift\ \textcolor{comment}{/*\ stride\ in\ bytes\ */}}
+\DoxyCodeLine{00745\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ STRIDE\_D,\ STRIDE\_D,\ X,\ lsl\ \#dst\_bpp\_shift}
+\DoxyCodeLine{00746\ \ .if\ src\_bpp\ >\ 0}
+\DoxyCodeLine{00747\ \ \ \ \ \ \ \ \ lsl\ \ \ \ \ STRIDE\_S,\ \#src\_bpp\_shift}
+\DoxyCodeLine{00748\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ STRIDE\_S,\ STRIDE\_S,\ X,\ lsl\ \#src\_bpp\_shift}
+\DoxyCodeLine{00749\ \ .endif}
+\DoxyCodeLine{00750\ \ .if\ mask\_bpp\ >\ 0}
+\DoxyCodeLine{00751\ \ \ \ \ \ \ \ \ lsl\ \ \ \ \ STRIDE\_M,\ \#mask\_bpp\_shift}
+\DoxyCodeLine{00752\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ STRIDE\_M,\ STRIDE\_M,\ X,\ lsl\ \#mask\_bpp\_shift}
+\DoxyCodeLine{00753\ \ .endif}
+\DoxyCodeLine{00754\ \ }
+\DoxyCodeLine{00755\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Are\ we\ not\ even\ wide\ enough\ to\ have\ one\ 16-\/byte\ aligned\ 16-\/byte\ block\ write?\ */}}
+\DoxyCodeLine{00756\ \ \ \ \ \ \ \ \ cmp\ \ \ \ \ X,\ \#2*16*8/dst\_w\_bpp\ -\/\ 1}
+\DoxyCodeLine{00757\ \ \ \ \ \ \ \ \ blo\ \ \ \ \ 170f}
+\DoxyCodeLine{00758\ \ .if\ src\_bpp\ ||\ mask\_bpp\ ||\ dst\_r\_bpp\ \textcolor{comment}{/*\ Wide\ and\ medium\ cases\ are\ the\ same\ for\ fill\ */}}
+\DoxyCodeLine{00759\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ To\ preload\ ahead\ on\ the\ current\ line,\ we\ need\ at\ least\ (prefetch\_distance+2)\ 32-\/byte\ blocks\ on\ all\ prefetch\ channels\ */}}
+\DoxyCodeLine{00760\ \ \ \ \ \ \ \ \ cmp\ \ \ \ \ X,\ \#(prefetch\_distance+3)*pix\_per\_block\ -\/\ 1}
+\DoxyCodeLine{00761\ \ \ \ \ \ \ \ \ blo\ \ \ \ \ 160f}
+\DoxyCodeLine{00762\ }
+\DoxyCodeLine{00763\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Wide\ case\ */}}
+\DoxyCodeLine{00764\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Adjust\ X\ so\ that\ the\ decrement\ instruction\ can\ also\ test\ for}}
+\DoxyCodeLine{00765\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ inner\ loop\ termination.\ We\ want\ it\ to\ stop\ when\ there\ are}}
+\DoxyCodeLine{00766\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ (prefetch\_distance+1)\ complete\ blocks\ to\ go.\ */}}
+\DoxyCodeLine{00767\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ X,\ X,\ \#(prefetch\_distance+2)*pix\_per\_block}
+\DoxyCodeLine{00768\ \ \ \ \ \ \ \ \ mov\ \ \ \ \ ORIG\_W,\ X}
+\DoxyCodeLine{00769\ \ \ .if\ (flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_WIDE}
+\DoxyCodeLine{00770\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ is\ stmdb\ sp!,\{\}\ */}}
+\DoxyCodeLine{00771\ \ \ \ \ \ \ \ \ .word\ \ \ 0xE92D0000\ |\ LINE\_SAVED\_REGS}
+\DoxyCodeLine{00772\ \ \ \ .set\ ARGS\_STACK\_OFFSET,\ ARGS\_STACK\_OFFSET\ +\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00773\ \ \ \ .set\ LOCALS\_STACK\_OFFSET,\ LOCALS\_STACK\_OFFSET\ +\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00774\ \ \ .endif}
+\DoxyCodeLine{00775\ 151:\ \ \ \ \textcolor{comment}{/*\ New\ line\ */}}
+\DoxyCodeLine{00776\ \ \ \ \ \ \ \ \ newline}
+\DoxyCodeLine{00777\ \ \ \ \ \ \ \ \ preload\_leading\_step1\ \ src\_bpp,\ WK1,\ SRC}
+\DoxyCodeLine{00778\ \ \ \ \ \ \ \ \ preload\_leading\_step1\ \ mask\_bpp,\ WK2,\ MASK}
+\DoxyCodeLine{00779\ \ \ .if\ ((flags)\ \&\ FLAG\_NO\_PRELOAD\_DST)\ ==\ 0}
+\DoxyCodeLine{00780\ \ \ \ \ \ \ \ \ preload\_leading\_step1\ \ dst\_r\_bpp,\ WK3,\ DST}
+\DoxyCodeLine{00781\ \ \ .endif}
+\DoxyCodeLine{00782\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00783\ \ \ \ \ \ \ \ \ ands\ \ \ \ WK0,\ DST,\ \#15}
+\DoxyCodeLine{00784\ \ \ \ \ \ \ \ \ beq\ \ \ \ \ 154f}
+\DoxyCodeLine{00785\ \ \ \ \ \ \ \ \ rsb\ \ \ \ \ WK0,\ WK0,\ \#16\ \textcolor{comment}{/*\ number\ of\ leading\ bytes\ until\ destination\ aligned\ */}}
+\DoxyCodeLine{00786\ }
+\DoxyCodeLine{00787\ \ \ \ \ \ \ \ \ preload\_leading\_step2\ \ src\_bpp,\ src\_bpp\_shift,\ WK1,\ SRC}
+\DoxyCodeLine{00788\ \ \ \ \ \ \ \ \ preload\_leading\_step2\ \ mask\_bpp,\ mask\_bpp\_shift,\ WK2,\ MASK}
+\DoxyCodeLine{00789\ \ \ .\textcolor{keywordflow}{if}\ ((flags)\ \&\ FLAG\_NO\_PRELOAD\_DST)\ ==\ 0}
+\DoxyCodeLine{00790\ \ \ \ \ \ \ \ \ preload\_leading\_step2\ \ dst\_r\_bpp,\ dst\_bpp\_shift,\ WK3,\ DST}
+\DoxyCodeLine{00791\ \ \ .endif}
+\DoxyCodeLine{00792\ }
+\DoxyCodeLine{00793\ \ \ \ \ \ \ \ \ leading\_15bytes\ \ process\_head,\ process\_tail}
+\DoxyCodeLine{00794\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00795\ 154:\ \ \ \ \textcolor{comment}{/*\ Destination\ now\ 16-\/byte\ aligned;\ we\ have\ at\ least\ one\ prefetch\ on\ each\ channel\ as\ well\ as\ at\ least\ one\ 16-\/byte\ output\ block\ */}}
+\DoxyCodeLine{00796\ \ \ .\textcolor{keywordflow}{if}\ (src\_bpp\ >\ 0)\ \&\&\ (mask\_bpp\ ==\ 0)\ \&\&\ ((flags)\ \&\ FLAG\_PROCESS\_PRESERVES\_SCRATCH)}
+\DoxyCodeLine{00797\ \ \ \ \ \ \ \ \ and\ \ \ \ \ SCRATCH,\ SRC,\ \#31}
+\DoxyCodeLine{00798\ \ \ \ \ \ \ \ \ rsb\ \ \ \ \ SCRATCH,\ SCRATCH,\ \#32*prefetch\_distance}
+\DoxyCodeLine{00799\ \ \ .elseif\ (src\_bpp\ ==\ 0)\ \&\&\ (mask\_bpp\ >\ 0)\ \&\&\ ((flags)\ \&\ FLAG\_PROCESS\_PRESERVES\_SCRATCH)}
+\DoxyCodeLine{00800\ \ \ \ \ \ \ \ \ and\ \ \ \ \ SCRATCH,\ MASK,\ \#31}
+\DoxyCodeLine{00801\ \ \ \ \ \ \ \ \ rsb\ \ \ \ \ SCRATCH,\ SCRATCH,\ \#32*prefetch\_distance}
+\DoxyCodeLine{00802\ \ \ .endif}
+\DoxyCodeLine{00803\ \ \ .ifc\ \textcolor{stringliteral}{"{}process\_inner\_loop"{}},\textcolor{stringliteral}{"{}"{}}}
+\DoxyCodeLine{00804\ \ \ \ \ \ \ \ \ switch\_on\_alignment\ \ wide\_case\_inner\_loop\_and\_trailing\_pixels,\ process\_head,\ process\_tail,\ wide\_case\_inner\_loop,\ 157f}
+\DoxyCodeLine{00805\ \ \ .\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00806\ \ \ \ \ \ \ \ \ switch\_on\_alignment\ \ wide\_case\_inner\_loop\_and\_trailing\_pixels,\ process\_head,\ process\_tail,\ process\_inner\_loop,\ 157f}
+\DoxyCodeLine{00807\ \ \ .endif}
+\DoxyCodeLine{00808\ }
+\DoxyCodeLine{00809\ 157:\ \ \ \ \textcolor{comment}{/*\ Check\ for\ another\ line\ */}}
+\DoxyCodeLine{00810\ \ \ \ \ \ \ \ \ end\_of\_line\ 1,\ \%((flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_WIDE),\ 151b}
+\DoxyCodeLine{00811\ \ \ .\textcolor{keywordflow}{if}\ (flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_WIDE}
+\DoxyCodeLine{00812\ \ \ \ .set\ ARGS\_STACK\_OFFSET,\ ARGS\_STACK\_OFFSET\ -\/\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00813\ \ \ \ .set\ LOCALS\_STACK\_OFFSET,\ LOCALS\_STACK\_OFFSET\ -\/\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00814\ \ \ .endif}
+\DoxyCodeLine{00815\ \ .endif}
+\DoxyCodeLine{00816\ }
+\DoxyCodeLine{00817\ \ .ltorg}
+\DoxyCodeLine{00818\ }
+\DoxyCodeLine{00819\ 160:\ \ \ \ \textcolor{comment}{/*\ Medium\ case\ */}}
+\DoxyCodeLine{00820\ \ \ \ \ \ \ \ \ mov\ \ \ \ \ ORIG\_W,\ X}
+\DoxyCodeLine{00821\ \ .if\ (flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_NON\_WIDE}
+\DoxyCodeLine{00822\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ is\ stmdb\ sp!,\{\}\ */}}
+\DoxyCodeLine{00823\ \ \ \ \ \ \ \ \ .word\ \ \ 0xE92D0000\ |\ LINE\_SAVED\_REGS}
+\DoxyCodeLine{00824\ \ \ .set\ ARGS\_STACK\_OFFSET,\ ARGS\_STACK\_OFFSET\ +\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00825\ \ \ .set\ LOCALS\_STACK\_OFFSET,\ LOCALS\_STACK\_OFFSET\ +\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00826\ \ .endif}
+\DoxyCodeLine{00827\ 161:\ \ \ \ \textcolor{comment}{/*\ New\ line\ */}}
+\DoxyCodeLine{00828\ \ \ \ \ \ \ \ \ newline}
+\DoxyCodeLine{00829\ \ \ \ \ \ \ \ \ preload\_line\ 0,\ src\_bpp,\ src\_bpp\_shift,\ SRC\ \ \textcolor{comment}{/*\ in:\ X,\ corrupts:\ WK0-\/WK1\ */}}
+\DoxyCodeLine{00830\ \ \ \ \ \ \ \ \ preload\_line\ 0,\ mask\_bpp,\ mask\_bpp\_shift,\ MASK}
+\DoxyCodeLine{00831\ \ .if\ ((flags)\ \&\ FLAG\_NO\_PRELOAD\_DST)\ ==\ 0}
+\DoxyCodeLine{00832\ \ \ \ \ \ \ \ \ preload\_line\ 0,\ dst\_r\_bpp,\ dst\_bpp\_shift,\ DST}
+\DoxyCodeLine{00833\ \ .endif}
+\DoxyCodeLine{00834\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00835\ \ \ \ \ \ \ \ \ sub\ \ \ \ \ X,\ X,\ \#128/dst\_w\_bpp\ \ \ \ \ \textcolor{comment}{/*\ simplifies\ inner\ loop\ termination\ */}}
+\DoxyCodeLine{00836\ \ \ \ \ \ \ \ \ ands\ \ \ \ WK0,\ DST,\ \#15}
+\DoxyCodeLine{00837\ \ \ \ \ \ \ \ \ beq\ \ \ \ \ 164f}
+\DoxyCodeLine{00838\ \ \ \ \ \ \ \ \ rsb\ \ \ \ \ WK0,\ WK0,\ \#16\ \textcolor{comment}{/*\ number\ of\ leading\ bytes\ until\ destination\ aligned\ */}}
+\DoxyCodeLine{00839\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00840\ \ \ \ \ \ \ \ \ leading\_15bytes\ \ process\_head,\ process\_tail}
+\DoxyCodeLine{00841\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00842\ 164:\ \ \ \ \textcolor{comment}{/*\ Destination\ now\ 16-\/byte\ aligned;\ we\ have\ at\ least\ one\ 16-\/byte\ output\ block\ */}}
+\DoxyCodeLine{00843\ \ \ \ \ \ \ \ \ switch\_on\_alignment\ \ medium\_case\_inner\_loop\_and\_trailing\_pixels,\ process\_head,\ process\_tail,,\ 167f}
+\DoxyCodeLine{00844\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00845\ 167:\ \ \ \ \textcolor{comment}{/*\ Check\ for\ another\ line\ */}}
+\DoxyCodeLine{00846\ \ \ \ \ \ \ \ \ end\_of\_line\ 1,\ \%((flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_NON\_WIDE),\ 161b}
+\DoxyCodeLine{00847\ }
+\DoxyCodeLine{00848\ \ .ltorg}
+\DoxyCodeLine{00849\ }
+\DoxyCodeLine{00850\ 170:\ \ \ \ \textcolor{comment}{/*\ Narrow\ case,\ less\ than\ 31\ bytes,\ so\ no\ guarantee\ of\ at\ least\ one\ 16-\/byte\ block\ */}}
+\DoxyCodeLine{00851\ \ .\textcolor{keywordflow}{if}\ dst\_w\_bpp\ <\ 32}
+\DoxyCodeLine{00852\ \ \ \ \ \ \ \ \ mov\ \ \ \ \ ORIG\_W,\ X}
+\DoxyCodeLine{00853\ \ .endif}
+\DoxyCodeLine{00854\ \ .\textcolor{keywordflow}{if}\ (flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_NON\_WIDE}
+\DoxyCodeLine{00855\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ This\ is\ stmdb\ sp!,\{\}\ */}}
+\DoxyCodeLine{00856\ \ \ \ \ \ \ \ \ .word\ \ \ 0xE92D0000\ |\ LINE\_SAVED\_REGS}
+\DoxyCodeLine{00857\ \ .endif}
+\DoxyCodeLine{00858\ 171:\ \ \ \ \textcolor{comment}{/*\ New\ line\ */}}
+\DoxyCodeLine{00859\ \ \ \ \ \ \ \ \ newline}
+\DoxyCodeLine{00860\ \ \ \ \ \ \ \ \ preload\_line\ 1,\ src\_bpp,\ src\_bpp\_shift,\ SRC\ \ \textcolor{comment}{/*\ in:\ X,\ corrupts:\ WK0-\/WK1\ */}}
+\DoxyCodeLine{00861\ \ \ \ \ \ \ \ \ preload\_line\ 1,\ mask\_bpp,\ mask\_bpp\_shift,\ MASK}
+\DoxyCodeLine{00862\ \ .if\ ((flags)\ \&\ FLAG\_NO\_PRELOAD\_DST)\ ==\ 0}
+\DoxyCodeLine{00863\ \ \ \ \ \ \ \ \ preload\_line\ 1,\ dst\_r\_bpp,\ dst\_bpp\_shift,\ DST}
+\DoxyCodeLine{00864\ \ .endif}
+\DoxyCodeLine{00865\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00866\ \ .\textcolor{keywordflow}{if}\ dst\_w\_bpp\ ==\ 8}
+\DoxyCodeLine{00867\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ DST,\ \#3}
+\DoxyCodeLine{00868\ \ \ \ \ \ \ \ \ beq\ \ \ \ \ 174f}
+\DoxyCodeLine{00869\ 172:\ \ \ \ subs\ \ \ \ X,\ X,\ \#1}
+\DoxyCodeLine{00870\ \ \ \ \ \ \ \ \ blo\ \ \ \ \ 177f}
+\DoxyCodeLine{00871\ \ \ \ \ \ \ \ \ process\_head\ \ ,\ 1,\ 0,\ 1,\ 1,\ 0}
+\DoxyCodeLine{00872\ \ \ \ \ \ \ \ \ process\_tail\ \ ,\ 1,\ 0}
+\DoxyCodeLine{00873\ \ \ .\textcolor{keywordflow}{if}\ !((flags)\ \&\ FLAG\_PROCESS\_DOES\_STORE)}
+\DoxyCodeLine{00874\ \ \ \ \ \ \ \ \ pixst\ \ \ ,\ 1,\ 0,\ DST}
+\DoxyCodeLine{00875\ \ \ .endif}
+\DoxyCodeLine{00876\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ DST,\ \#3}
+\DoxyCodeLine{00877\ \ \ \ \ \ \ \ \ bne\ \ \ \ \ 172b}
+\DoxyCodeLine{00878\ \ .elseif\ dst\_w\_bpp\ ==\ 16}
+\DoxyCodeLine{00879\ \ \ \ \ \ \ \ \ tst\ \ \ \ \ DST,\ \#2}
+\DoxyCodeLine{00880\ \ \ \ \ \ \ \ \ beq\ \ \ \ \ 174f}
+\DoxyCodeLine{00881\ \ \ \ \ \ \ \ \ subs\ \ \ \ X,\ X,\ \#1}
+\DoxyCodeLine{00882\ \ \ \ \ \ \ \ \ blo\ \ \ \ \ 177f}
+\DoxyCodeLine{00883\ \ \ \ \ \ \ \ \ process\_head\ \ ,\ 2,\ 0,\ 1,\ 1,\ 0}
+\DoxyCodeLine{00884\ \ \ \ \ \ \ \ \ process\_tail\ \ ,\ 2,\ 0}
+\DoxyCodeLine{00885\ \ \ .\textcolor{keywordflow}{if}\ !((flags)\ \&\ FLAG\_PROCESS\_DOES\_STORE)}
+\DoxyCodeLine{00886\ \ \ \ \ \ \ \ \ pixst\ \ \ ,\ 2,\ 0,\ DST}
+\DoxyCodeLine{00887\ \ \ .endif}
+\DoxyCodeLine{00888\ \ .endif}
+\DoxyCodeLine{00889\ }
+\DoxyCodeLine{00890\ 174:\ \ \ \ \textcolor{comment}{/*\ Destination\ now\ 4-\/byte\ aligned;\ we\ have\ 0\ or\ more\ output\ bytes\ to\ go\ */}}
+\DoxyCodeLine{00891\ \ \ \ \ \ \ \ \ switch\_on\_alignment\ \ narrow\_case\_inner\_loop\_and\_trailing\_pixels,\ process\_head,\ process\_tail,,\ 177f}
+\DoxyCodeLine{00892\ }
+\DoxyCodeLine{00893\ 177:\ \ \ \ \textcolor{comment}{/*\ Check\ for\ another\ line\ */}}
+\DoxyCodeLine{00894\ \ \ \ \ \ \ \ \ end\_of\_line\ \%(dst\_w\_bpp\ <\ 32),\ \%((flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_NON\_WIDE),\ 171b,\ last\_one}
+\DoxyCodeLine{00895\ \ .if\ (flags)\ \&\ FLAG\_SPILL\_LINE\_VARS\_NON\_WIDE}
+\DoxyCodeLine{00896\ \ \ .set\ ARGS\_STACK\_OFFSET,\ ARGS\_STACK\_OFFSET\ -\/\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00897\ \ \ .set\ LOCALS\_STACK\_OFFSET,\ LOCALS\_STACK\_OFFSET\ -\/\ LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00898\ \ .endif}
+\DoxyCodeLine{00899\ }
+\DoxyCodeLine{00900\ 197:}
+\DoxyCodeLine{00901\ \ .if\ (flags)\ \&\ FLAG\_SPILL\_LINE\_VARS}
+\DoxyCodeLine{00902\ \ \ \ \ \ \ \ \ add\ \ \ \ \ sp,\ sp,\ \#LINE\_SAVED\_REG\_COUNT*4}
+\DoxyCodeLine{00903\ \ .endif}
+\DoxyCodeLine{00904\ 198:}
+\DoxyCodeLine{00905\ \ .if\ (flags)\ \&\ FLAG\_PROCESS\_CORRUPTS\_WK0}
+\DoxyCodeLine{00906\ \ \ .set\ ARGS\_STACK\_OFFSET,\ ARGS\_STACK\_OFFSET-\/4}
+\DoxyCodeLine{00907\ \ \ .set\ LOCALS\_STACK\_OFFSET,\ LOCALS\_STACK\_OFFSET-\/4}
+\DoxyCodeLine{00908\ \ \ \ \ \ \ \ \ add\ \ \ \ \ sp,\ sp,\ \#4}
+\DoxyCodeLine{00909\ \ .endif}
+\DoxyCodeLine{00910\ }
+\DoxyCodeLine{00911\ \ \ \ \ \ \ \ \ cleanup}
+\DoxyCodeLine{00912\ }
+\DoxyCodeLine{00913\ \textcolor{preprocessor}{\#ifdef\ DEBUG\_PARAMS}}
+\DoxyCodeLine{00914\ \ \ \ \ \ \ \ \ add\ \ \ \ \ sp,\ sp,\ \#9*4\ \textcolor{comment}{/*\ junk\ the\ debug\ copy\ of\ arguments\ */}}
+\DoxyCodeLine{00915\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00916\ 199:}
+\DoxyCodeLine{00917\ \ \ \ \ \ \ \ \ pop\ \ \ \ \ \{r4-\/r11,\ pc\}\ \ \textcolor{comment}{/*\ exit\ */}}
+\DoxyCodeLine{00918\ }
+\DoxyCodeLine{00919\ \ .ltorg}
+\DoxyCodeLine{00920\ }
+\DoxyCodeLine{00921\ \ \ \ \ .unreq\ \ X}
+\DoxyCodeLine{00922\ \ \ \ \ .unreq\ \ Y}
+\DoxyCodeLine{00923\ \ \ \ \ .unreq\ \ DST}
+\DoxyCodeLine{00924\ \ \ \ \ .unreq\ \ STRIDE\_D}
+\DoxyCodeLine{00925\ \ \ \ \ .unreq\ \ SRC}
+\DoxyCodeLine{00926\ \ \ \ \ .unreq\ \ STRIDE\_S}
+\DoxyCodeLine{00927\ \ \ \ \ .unreq\ \ MASK}
+\DoxyCodeLine{00928\ \ \ \ \ .unreq\ \ STRIDE\_M}
+\DoxyCodeLine{00929\ \ \ \ \ .unreq\ \ WK0}
+\DoxyCodeLine{00930\ \ \ \ \ .unreq\ \ WK1}
+\DoxyCodeLine{00931\ \ \ \ \ .unreq\ \ WK2}
+\DoxyCodeLine{00932\ \ \ \ \ .unreq\ \ WK3}
+\DoxyCodeLine{00933\ \ \ \ \ .unreq\ \ SCRATCH}
+\DoxyCodeLine{00934\ \ \ \ \ .unreq\ \ ORIG\_W}
+\DoxyCodeLine{00935\ \ \ \ \ .endfunc}
+\DoxyCodeLine{00936\ .endm}
+\DoxyCodeLine{00937\ }
+\DoxyCodeLine{00938\ .macro\ line\_saved\_regs\ \ x:vararg}
+\DoxyCodeLine{00939\ \ .set\ LINE\_SAVED\_REGS,\ 0}
+\DoxyCodeLine{00940\ \ .set\ LINE\_SAVED\_REG\_COUNT,\ 0}
+\DoxyCodeLine{00941\ \ .irp\ SAVED\_REG,x}
+\DoxyCodeLine{00942\ \ \ .ifc\ \textcolor{stringliteral}{"{}SAVED\_REG"{}},\textcolor{stringliteral}{"{}Y"{}}}
+\DoxyCodeLine{00943\ \ \ \ .set\ LINE\_SAVED\_REGS,\ LINE\_SAVED\_REGS\ |\ (1<<1)}
+\DoxyCodeLine{00944\ \ \ \ .set\ LINE\_SAVED\_REG\_COUNT,\ LINE\_SAVED\_REG\_COUNT\ +\ 1}
+\DoxyCodeLine{00945\ \ \ .endif}
+\DoxyCodeLine{00946\ \ \ .ifc\ \textcolor{stringliteral}{"{}SAVED\_REG"{}},\textcolor{stringliteral}{"{}STRIDE\_D"{}}}
+\DoxyCodeLine{00947\ \ \ \ .set\ LINE\_SAVED\_REGS,\ LINE\_SAVED\_REGS\ |\ (1<<3)}
+\DoxyCodeLine{00948\ \ \ \ .set\ LINE\_SAVED\_REG\_COUNT,\ LINE\_SAVED\_REG\_COUNT\ +\ 1}
+\DoxyCodeLine{00949\ \ \ .endif}
+\DoxyCodeLine{00950\ \ \ .ifc\ \textcolor{stringliteral}{"{}SAVED\_REG"{}},\textcolor{stringliteral}{"{}STRIDE\_S"{}}}
+\DoxyCodeLine{00951\ \ \ \ .set\ LINE\_SAVED\_REGS,\ LINE\_SAVED\_REGS\ |\ (1<<5)}
+\DoxyCodeLine{00952\ \ \ \ .set\ LINE\_SAVED\_REG\_COUNT,\ LINE\_SAVED\_REG\_COUNT\ +\ 1}
+\DoxyCodeLine{00953\ \ \ .endif}
+\DoxyCodeLine{00954\ \ \ .ifc\ \textcolor{stringliteral}{"{}SAVED\_REG"{}},\textcolor{stringliteral}{"{}STRIDE\_M"{}}}
+\DoxyCodeLine{00955\ \ \ \ .set\ LINE\_SAVED\_REGS,\ LINE\_SAVED\_REGS\ |\ (1<<7)}
+\DoxyCodeLine{00956\ \ \ \ .set\ LINE\_SAVED\_REG\_COUNT,\ LINE\_SAVED\_REG\_COUNT\ +\ 1}
+\DoxyCodeLine{00957\ \ \ .endif}
+\DoxyCodeLine{00958\ \ \ .ifc\ \textcolor{stringliteral}{"{}SAVED\_REG"{}},\textcolor{stringliteral}{"{}ORIG\_W"{}}}
+\DoxyCodeLine{00959\ \ \ \ .set\ LINE\_SAVED\_REGS,\ LINE\_SAVED\_REGS\ |\ (1<<14)}
+\DoxyCodeLine{00960\ \ \ \ .set\ LINE\_SAVED\_REG\_COUNT,\ LINE\_SAVED\_REG\_COUNT\ +\ 1}
+\DoxyCodeLine{00961\ \ \ .endif}
+\DoxyCodeLine{00962\ \ .endr}
+\DoxyCodeLine{00963\ .endm}
+\DoxyCodeLine{00964\ }
+\DoxyCodeLine{00965\ .macro\ nop\_macro\ x:vararg}
+\DoxyCodeLine{00966\ .endm}
+
+\end{DoxyCode}

@@ -1,0 +1,555 @@
+\hypertarget{ttinterp_8h_source}{}\doxysection{ttinterp.\+h}
+\label{ttinterp_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/truetype/ttinterp.h@{AseSprite/aseprite/third\_party/freetype2/src/truetype/ttinterp.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ttinterp.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ TrueType\ bytecode\ interpreter\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ TTINTERP\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ TTINTERP\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}ttobjs.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ \ *\ Rounding\ mode\ constants.}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ TT\_Round\_Off\ \ \ \ \ \ \ \ \ \ \ \ \ 5}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ TT\_Round\_To\_Half\_Grid\ \ \ \ 0}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#define\ TT\_Round\_To\_Grid\ \ \ \ \ \ \ \ \ 1}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ TT\_Round\_To\_Double\_Grid\ \ 2}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ TT\_Round\_Up\_To\_Grid\ \ \ \ \ \ 4}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ TT\_Round\_Down\_To\_Grid\ \ \ \ 3}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ TT\_Round\_Super\ \ \ \ \ \ \ \ \ \ \ 6}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ TT\_Round\_Super\_45\ \ \ \ \ \ \ \ 7}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ \ *\ Function\ types\ used\ by\ the\ interpreter,\ depending\ on\ various\ modes}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ \ *\ (e.g.\ the\ rounding\ mode,\ whether\ to\ render\ a\ vertical\ or\ horizontal}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ \ *\ line\ etc).}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \textcolor{comment}{/*\ Rounding\ function\ */}}
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{typedef}\ FT\_F26Dot6}
+\DoxyCodeLine{00052\ \ \ (*TT\_Round\_Func)(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exc,}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_F26Dot6\ \ \ \ \ \ distance,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ color\ );}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \textcolor{comment}{/*\ Point\ displacement\ along\ the\ freedom\ vector\ routine\ */}}
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00058\ \ \ (*TT\_Move\_Func)(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exc,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___glyph_zone_rec__}{TT\_GlyphZone}}\ \ \ \ zone,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UShort\ \ \ \ \ \ \ \mbox{\hyperlink{structpoint}{point}},}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_F26Dot6\ \ \ \ \ \ distance\ );}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \textcolor{comment}{/*\ Distance\ projection\ along\ one\ of\ the\ projection\ vectors\ */}}
+\DoxyCodeLine{00064\ \ \ \textcolor{keyword}{typedef}\ FT\_F26Dot6}
+\DoxyCodeLine{00065\ \ \ (*TT\_Project\_Func)(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exc,}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ \ \ dx,}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ \ \ dy\ );}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \textcolor{comment}{/*\ getting\ current\ ppem.\ \ Take\ care\ of\ non-\/square\ pixels\ if\ necessary\ */}}
+\DoxyCodeLine{00070\ \ \ \textcolor{keyword}{typedef}\ FT\_Long}
+\DoxyCodeLine{00071\ \ \ (*TT\_Cur\_Ppem\_Func)(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exc\ );}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \textcolor{comment}{/*\ reading\ a\ cvt\ value.\ \ Take\ care\ of\ non-\/square\ pixels\ if\ necessary\ */}}
+\DoxyCodeLine{00074\ \ \ \textcolor{keyword}{typedef}\ FT\_F26Dot6}
+\DoxyCodeLine{00075\ \ \ (*TT\_Get\_CVT\_Func)(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exc,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ idx\ );}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \textcolor{comment}{/*\ setting\ or\ moving\ a\ cvt\ value.\ \ Take\ care\ of\ non-\/square\ pixels\ \ */}}
+\DoxyCodeLine{00079\ \ \ \textcolor{comment}{/*\ if\ necessary\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00080\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00081\ \ \ (*TT\_Set\_CVT\_Func)(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exc,}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ idx,}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_F26Dot6\ \ \ \ \ \ \mbox{\hyperlink{classvalue}{value}}\ );}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *\ This\ structure\ defines\ a\ call\ record,\ used\ to\ manage\ function\ calls.}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00090\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t_t___call_rec__}{TT\_CallRec\_}}}
+\DoxyCodeLine{00091\ \ \ \{}
+\DoxyCodeLine{00092\ \ \ \ \ FT\_Int\ \ \ Caller\_Range;}
+\DoxyCodeLine{00093\ \ \ \ \ FT\_Long\ \ Caller\_IP;}
+\DoxyCodeLine{00094\ \ \ \ \ FT\_Long\ \ Cur\_Count;}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{struct_t_t___def_record__}{TT\_DefRecord}}\ \ *Def;\ \textcolor{comment}{/*\ either\ FDEF\ or\ IDEF\ */}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \}\ \mbox{\hyperlink{struct_t_t___call_rec__}{TT\_CallRec}},\ *\mbox{\hyperlink{struct_t_t___call_rec__}{TT\_CallStack}};}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#ifdef\ TT\_SUPPORT\_SUBPIXEL\_HINTING\_INFINALITY}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ *\ These\ structures\ define\ rules\ used\ to\ tweak\ subpixel\ hinting\ for}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ *\ various\ fonts.\ \ "{}"{},\ 0,\ "{}"{},\ NULL\ value\ indicates\ to\ match\ any\ value.}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#define\ SPH\_MAX\_NAME\_SIZE\ \ \ \ \ \ 32}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#define\ SPH\_MAX\_CLASS\_MEMBERS\ \ 100}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }SPH\_TweakRule\_}
+\DoxyCodeLine{00113\ \ \ \{}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ family[SPH\_MAX\_NAME\_SIZE];}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keyword}{const}\ FT\_UInt\ \ \ ppem;}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ style[SPH\_MAX\_NAME\_SIZE];}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keyword}{const}\ FT\_ULong\ \ glyph;}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \}\ SPH\_TweakRule;}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }SPH\_ScaleRule\_}
+\DoxyCodeLine{00123\ \ \ \{}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ family[SPH\_MAX\_NAME\_SIZE];}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keyword}{const}\ FT\_UInt\ \ \ ppem;}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ style[SPH\_MAX\_NAME\_SIZE];}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keyword}{const}\ FT\_ULong\ \ glyph;}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keyword}{const}\ FT\_ULong\ \ scale;}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \}\ SPH\_ScaleRule;}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }SPH\_Font\_Class\_}
+\DoxyCodeLine{00134\ \ \ \{}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ name[SPH\_MAX\_NAME\_SIZE];}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ member[SPH\_MAX\_CLASS\_MEMBERS][SPH\_MAX\_NAME\_SIZE];}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \}\ SPH\_Font\_Class;}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ TT\_SUPPORT\_SUBPIXEL\_HINTING\_INFINALITY\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ *\ The\ main\ structure\ for\ the\ interpreter\ which\ collects\ all\ necessary}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ *\ variables\ and\ states.}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ *\ Members\ that\ are\ initialized\ by\ `TT\_Load\_Context`\ are\ marked\ with\ '!'.}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ *\ Members\ that\ are\ initialized\ by\ `TT\_Run\_Context`\ are\ marked\ with\ '@'.}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00151\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContextRec\_}}}
+\DoxyCodeLine{00152\ \ \ \{}
+\DoxyCodeLine{00153\ \ \ \ \ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ face;\ \ \ \ \ \ \ \textcolor{comment}{/*\ !\ */}}
+\DoxyCodeLine{00154\ \ \ \ \ \mbox{\hyperlink{struct_t_t___size_rec__}{TT\_Size}}\ \ \ \ \ \ \ \ \ \ \ \ size;\ \ \ \ \ \ \ \textcolor{comment}{/*\ !\ */}}
+\DoxyCodeLine{00155\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{comment}{/*\ instructions\ state\ */}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ FT\_Error\ \ \ \ \ \ \ \ \ \ \ error;\ \ \ \ \ \ \textcolor{comment}{/*\ last\ execution\ error\ */}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ top;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ @\ top\ of\ exec.\ stack\ */}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ stackSize;\ \ \textcolor{comment}{/*\ !\ size\ of\ exec.\ stack\ */}}
+\DoxyCodeLine{00164\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ stack;\ \ \ \ \ \ \textcolor{comment}{/*\ !\ current\ exec.\ stack\ */}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ args;}
+\DoxyCodeLine{00167\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ new\_top;\ \ \ \ \textcolor{comment}{/*\ new\ top\ after\ exec.\ */}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \ \ \mbox{\hyperlink{struct_t_t___glyph_zone_rec__}{TT\_GlyphZoneRec}}\ \ \ \ zp0,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ @!\ zone\ records\ */}}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ zp1,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ @!\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ zp2,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ @!\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pts,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ !\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ twilight;\ \ \ \textcolor{comment}{/*\ \ !\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ pointSize;\ \ \textcolor{comment}{/*\ !\ in\ 26.6\ format\ */}}
+\DoxyCodeLine{00176\ \ \ \ \ \mbox{\hyperlink{struct_f_t___size___metrics__}{FT\_Size\_Metrics}}\ \ \ \ metrics;\ \ \ \ \textcolor{comment}{/*\ !\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00177\ \ \ \ \ \mbox{\hyperlink{struct_t_t___size___metrics__}{TT\_Size\_Metrics}}\ \ \ \ tt\_metrics;\ \textcolor{comment}{/*\ !\ size\ metrics\ \ \ */}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \mbox{\hyperlink{struct_t_t___graphics_state__}{TT\_GraphicsState}}\ \ \ GS;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ !@\ current\ graphics\ state\ */}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ iniRange;\ \ \textcolor{comment}{/*\ initial\ code\ range\ number\ \ \ */}}
+\DoxyCodeLine{00182\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ curRange;\ \ \textcolor{comment}{/*\ current\ code\ range\ number\ \ \ */}}
+\DoxyCodeLine{00183\ \ \ \ \ FT\_Byte*\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structcode}{code}};\ \ \ \ \ \ \textcolor{comment}{/*\ current\ code\ range\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00184\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ IP;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ instruction\ pointer\ */}}
+\DoxyCodeLine{00185\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ codeSize;\ \ \textcolor{comment}{/*\ size\ of\ current\ range\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \ \ \ \ FT\_Byte\ \ \ \ \ \ \ \ \ \ \ \ opcode;\ \ \ \ \textcolor{comment}{/*\ current\ opcode\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00188\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ length;\ \ \ \ \textcolor{comment}{/*\ length\ of\ current\ opcode\ \ \ \ */}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ step\_ins;\ \ \textcolor{comment}{/*\ true\ if\ the\ interpreter\ must\ */}}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ increment\ IP\ after\ ins.\ exec\ */}}
+\DoxyCodeLine{00192\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ cvtSize;\ \ \ \textcolor{comment}{/*\ !\ */}}
+\DoxyCodeLine{00193\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ cvt;\ \ \ \ \ \ \ \textcolor{comment}{/*\ !\ */}}
+\DoxyCodeLine{00194\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ glyfCvtSize;}
+\DoxyCodeLine{00195\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ glyfCvt;\ \ \ \textcolor{comment}{/*\ cvt\ working\ copy\ for\ glyph\ */}}
+\DoxyCodeLine{00196\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ origCvt;}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ glyphSize;\ \textcolor{comment}{/*\ !\ glyph\ instructions\ buffer\ size\ */}}
+\DoxyCodeLine{00199\ \ \ \ \ FT\_Byte*\ \ \ \ \ \ \ \ \ \ \ glyphIns;\ \ \textcolor{comment}{/*\ !\ glyph\ instructions\ buffer\ \ \ \ \ \ */}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ numFDefs;\ \ \textcolor{comment}{/*\ !\ number\ of\ function\ defs\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00202\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ maxFDefs;\ \ \textcolor{comment}{/*\ !\ maximum\ number\ of\ function\ defs\ */}}
+\DoxyCodeLine{00203\ \ \ \ \ \mbox{\hyperlink{struct_t_t___def_record__}{TT\_DefArray}}\ \ \ \ \ \ \ \ FDefs;\ \ \ \ \ \textcolor{comment}{/*\ \ \ table\ of\ FDefs\ entries\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ numIDefs;\ \ \textcolor{comment}{/*\ !\ number\ of\ instruction\ defs\ */}}
+\DoxyCodeLine{00206\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ maxIDefs;\ \ \textcolor{comment}{/*\ !\ maximum\ number\ of\ ins\ defs\ */}}
+\DoxyCodeLine{00207\ \ \ \ \ \mbox{\hyperlink{struct_t_t___def_record__}{TT\_DefArray}}\ \ \ \ \ \ \ \ IDefs;\ \ \ \ \ \textcolor{comment}{/*\ \ \ table\ of\ IDefs\ entries\ \ \ \ \ */}}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ maxFunc;\ \ \ \textcolor{comment}{/*\ !\ maximum\ function\ index\ \ \ \ */}}
+\DoxyCodeLine{00210\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ maxIns;\ \ \ \ \textcolor{comment}{/*\ !\ maximum\ instruction\ index\ */}}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ callTop,\ \ \ \ \textcolor{comment}{/*\ @\ top\ of\ call\ stack\ during\ execution\ */}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ callSize;\ \ \ \textcolor{comment}{/*\ \ \ size\ of\ call\ stack\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00214\ \ \ \ \ \mbox{\hyperlink{struct_t_t___call_rec__}{TT\_CallStack}}\ \ \ \ \ \ \ callStack;\ \ \textcolor{comment}{/*\ \ \ call\ stack\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ FT\_UShort\ \ \ \ \ \ \ \ \ \ maxPoints;\ \ \ \ \textcolor{comment}{/*\ capacity\ of\ this\ context's\ `pts'\ */}}
+\DoxyCodeLine{00217\ \ \ \ \ FT\_Short\ \ \ \ \ \ \ \ \ \ \ maxContours;\ \ \textcolor{comment}{/*\ record,\ expressed\ in\ points\ and\ \ */}}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ contours.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ TT\_CodeRangeTable\ \ codeRangeTable;\ \ \textcolor{comment}{/*\ !\ table\ of\ valid\ code\ ranges\ */}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ \ useful\ for\ the\ debugger\ \ \ \ */}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ FT\_UShort\ \ \ \ \ \ \ \ \ \ storeSize;\ \ \ \ \textcolor{comment}{/*\ !\ size\ of\ current\ storage\ */}}
+\DoxyCodeLine{00224\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ storage;\ \ \ \ \ \ \textcolor{comment}{/*\ !\ storage\ area\ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00225\ \ \ \ \ FT\_UShort\ \ \ \ \ \ \ \ \ \ glyfStoreSize;}
+\DoxyCodeLine{00226\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ glyfStorage;\ \ \textcolor{comment}{/*\ storage\ working\ copy\ for\ glyph\ */}}
+\DoxyCodeLine{00227\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ origStorage;}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \ \ FT\_F26Dot6\ \ \ \ \ \ \ \ \ period;\ \ \ \ \ \textcolor{comment}{/*\ values\ used\ for\ the\ */}}
+\DoxyCodeLine{00230\ \ \ \ \ FT\_F26Dot6\ \ \ \ \ \ \ \ \ phase;\ \ \ \ \ \ \textcolor{comment}{/*\ `SuperRounding'\ \ \ \ \ */}}
+\DoxyCodeLine{00231\ \ \ \ \ FT\_F26Dot6\ \ \ \ \ \ \ \ \ threshold;}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ instruction\_trap;\ \textcolor{comment}{/*\ !\ If\ `True',\ the\ interpreter\ \ \ */}}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \ \ exits\ after\ each\ instruction\ */}}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \ \ \mbox{\hyperlink{struct_t_t___graphics_state__}{TT\_GraphicsState}}\ \ \ default\_GS;\ \ \ \ \ \ \ \textcolor{comment}{/*\ graphics\ state\ resulting\ from\ \ \ */}}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ prep\ program\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00238\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ is\_composite;\ \ \ \ \ \textcolor{comment}{/*\ true\ if\ the\ glyph\ is\ composite\ \ */}}
+\DoxyCodeLine{00239\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ pedantic\_hinting;\ \textcolor{comment}{/*\ true\ if\ pedantic\ interpretation\ */}}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{comment}{/*\ latest\ interpreter\ additions\ */}}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ F\_dot\_P;\ \ \ \ \textcolor{comment}{/*\ dot\ product\ of\ freedom\ and\ projection\ */}}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ vectors\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00245\ \ \ \ \ TT\_Round\_Func\ \ \ \ \ \ func\_round;\ \textcolor{comment}{/*\ current\ rounding\ function\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ TT\_Project\_Func\ \ \ \ func\_project,\ \ \ \textcolor{comment}{/*\ current\ projection\ function\ */}}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ func\_dualproj,\ \ \textcolor{comment}{/*\ current\ dual\ proj.\ function\ */}}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ func\_freeProj;\ \ \textcolor{comment}{/*\ current\ freedom\ proj.\ func\ \ */}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ TT\_Move\_Func\ \ \ \ \ \ \ func\_move;\ \ \ \ \ \ \textcolor{comment}{/*\ current\ point\ move\ function\ \ \ \ \ */}}
+\DoxyCodeLine{00252\ \ \ \ \ TT\_Move\_Func\ \ \ \ \ \ \ func\_move\_orig;\ \textcolor{comment}{/*\ move\ original\ position\ function\ */}}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \ \ TT\_Cur\_Ppem\_Func\ \ \ func\_cur\_ppem;\ \ \textcolor{comment}{/*\ get\ current\ proj.\ ppem\ value\ \ */}}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \ \ TT\_Get\_CVT\_Func\ \ \ \ func\_read\_cvt;\ \ \textcolor{comment}{/*\ read\ a\ cvt\ entry\ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00257\ \ \ \ \ TT\_Set\_CVT\_Func\ \ \ \ func\_write\_cvt;\ \textcolor{comment}{/*\ write\ a\ cvt\ entry\ (in\ pixels)\ */}}
+\DoxyCodeLine{00258\ \ \ \ \ TT\_Set\_CVT\_Func\ \ \ \ func\_move\_cvt;\ \ \textcolor{comment}{/*\ incr\ a\ cvt\ entry\ (in\ pixels)\ \ */}}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ grayscale;\ \ \ \ \ \ \textcolor{comment}{/*\ bi-\/level\ hinting\ and\ */}}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ grayscale\ rendering\ \ */}}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\#ifdef\ TT\_SUPPORT\_SUBPIXEL\_HINTING\_MINIMAL}}
+\DoxyCodeLine{00264\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00265\ \textcolor{comment}{\ \ \ \ \ *\ FreeType\ supports\ ClearType-\/like\ hinting\ of\ TrueType\ fonts\ through}}
+\DoxyCodeLine{00266\ \textcolor{comment}{\ \ \ \ \ *\ the\ version\ 40\ interpreter.\ \ This\ is\ achieved\ through\ several\ hacks}}
+\DoxyCodeLine{00267\ \textcolor{comment}{\ \ \ \ \ *\ in\ the\ base\ (v35)\ interpreter,\ as\ detailed\ below.}}
+\DoxyCodeLine{00268\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00269\ \textcolor{comment}{\ \ \ \ \ *\ ClearType\ is\ an\ umbrella\ term\ for\ several\ rendering\ techniques}}
+\DoxyCodeLine{00270\ \textcolor{comment}{\ \ \ \ \ *\ employed\ by\ Microsoft's\ various\ GUI\ and\ rendering\ toolkit}}
+\DoxyCodeLine{00271\ \textcolor{comment}{\ \ \ \ \ *\ implementations,\ most\ importantly:\ subpixel\ rendering\ for\ using\ the}}
+\DoxyCodeLine{00272\ \textcolor{comment}{\ \ \ \ \ *\ RGB\ subpixels\ of\ LCDs\ to\ approximately\ triple\ the\ perceived}}
+\DoxyCodeLine{00273\ \textcolor{comment}{\ \ \ \ \ *\ resolution\ on\ the\ x-\/axis\ and\ subpixel\ hinting\ for\ positioning\ stems}}
+\DoxyCodeLine{00274\ \textcolor{comment}{\ \ \ \ \ *\ on\ subpixel\ borders.\ \ TrueType\ programming\ is\ explicit,\ i.e.,\ fonts}}
+\DoxyCodeLine{00275\ \textcolor{comment}{\ \ \ \ \ *\ must\ be\ programmed\ to\ take\ advantage\ of\ ClearType's\ possibilities.}}
+\DoxyCodeLine{00276\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00277\ \textcolor{comment}{\ \ \ \ \ *\ When\ ClearType\ was\ introduced,\ it\ seemed\ unlikely\ that\ all\ fonts}}
+\DoxyCodeLine{00278\ \textcolor{comment}{\ \ \ \ \ *\ would\ be\ reprogrammed,\ so\ Microsoft\ decided\ to\ implement\ a\ backward}}
+\DoxyCodeLine{00279\ \textcolor{comment}{\ \ \ \ \ *\ compatibility\ mode.\ \ It\ employs\ several\ simple\ to\ complicated}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ \ \ \ \ *\ assumptions\ and\ tricks,\ many\ of\ them\ font-\/dependent,\ that\ modify\ the}}
+\DoxyCodeLine{00281\ \textcolor{comment}{\ \ \ \ \ *\ interpretation\ of\ the\ bytecode\ contained\ in\ these\ fonts\ to\ retrofit}}
+\DoxyCodeLine{00282\ \textcolor{comment}{\ \ \ \ \ *\ them\ into\ a\ ClearType-\/y\ look.\ \ The\ quality\ of\ the\ results\ varies.}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ \ \ \ \ *\ Most\ (web)fonts\ that\ were\ released\ since\ then\ have\ come\ to\ rely\ on}}
+\DoxyCodeLine{00284\ \textcolor{comment}{\ \ \ \ \ *\ these\ hacks\ to\ render\ correctly,\ even\ some\ of\ Microsoft's\ flagship}}
+\DoxyCodeLine{00285\ \textcolor{comment}{\ \ \ \ \ *\ fonts\ (e.g.,\ Calibri,\ Cambria,\ Segoe\ UI).}}
+\DoxyCodeLine{00286\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00287\ \textcolor{comment}{\ \ \ \ \ *\ FreeType's\ minimal\ subpixel\ hinting\ code\ (interpreter\ version\ 40)}}
+\DoxyCodeLine{00288\ \textcolor{comment}{\ \ \ \ \ *\ employs\ a\ small\ list\ of\ font-\/agnostic\ hacks\ loosely\ based\ on\ the}}
+\DoxyCodeLine{00289\ \textcolor{comment}{\ \ \ \ \ *\ public\ information\ available\ on\ Microsoft's\ compatibility\ mode[2].}}
+\DoxyCodeLine{00290\ \textcolor{comment}{\ \ \ \ \ *\ The\ focus\ is\ on\ modern\ (web)fonts\ rather\ than\ legacy\ fonts\ that\ were}}
+\DoxyCodeLine{00291\ \textcolor{comment}{\ \ \ \ \ *\ made\ for\ monochrome\ rendering.\ \ It\ will\ not\ match\ ClearType\ rendering}}
+\DoxyCodeLine{00292\ \textcolor{comment}{\ \ \ \ \ *\ exactly.\ \ Unlike\ the\ `Infinality'\ code\ (interpreter\ version\ 38)\ that}}
+\DoxyCodeLine{00293\ \textcolor{comment}{\ \ \ \ \ *\ came\ before,\ it\ will\ not\ try\ to\ toggle\ hacks\ for\ specific\ fonts\ for}}
+\DoxyCodeLine{00294\ \textcolor{comment}{\ \ \ \ \ *\ performance\ and\ complexity\ reasons.\ \ It\ will\ fall\ back\ to\ version\ 35}}
+\DoxyCodeLine{00295\ \textcolor{comment}{\ \ \ \ \ *\ behavior\ for\ tricky\ fonts[1]\ or\ when\ monochrome\ rendering\ is}}
+\DoxyCodeLine{00296\ \textcolor{comment}{\ \ \ \ \ *\ requested.}}
+\DoxyCodeLine{00297\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00298\ \textcolor{comment}{\ \ \ \ \ *\ Major\ hacks}}
+\DoxyCodeLine{00299\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00300\ \textcolor{comment}{\ \ \ \ \ *\ -\/\ Any\ point\ movement\ on\ the\ x\ axis\ is\ ignored\ (cf.\ `Direct\_Move'\ and}}
+\DoxyCodeLine{00301\ \textcolor{comment}{\ \ \ \ \ *\ \ \ `Direct\_Move\_X').\ \ This\ has\ the\ smallest\ code\ footprint\ and\ single}}
+\DoxyCodeLine{00302\ \textcolor{comment}{\ \ \ \ \ *\ \ \ biggest\ effect.\ \ The\ ClearType\ way\ to\ increase\ resolution\ is}}
+\DoxyCodeLine{00303\ \textcolor{comment}{\ \ \ \ \ *\ \ \ supersampling\ the\ x\ axis,\ the\ FreeType\ way\ is\ ignoring\ instructions}}
+\DoxyCodeLine{00304\ \textcolor{comment}{\ \ \ \ \ *\ \ \ on\ the\ x\ axis,\ which\ gives\ the\ same\ result\ in\ the\ majority\ of}}
+\DoxyCodeLine{00305\ \textcolor{comment}{\ \ \ \ \ *\ \ \ cases.}}
+\DoxyCodeLine{00306\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00307\ \textcolor{comment}{\ \ \ \ \ *\ -\/\ Points\ are\ not\ moved\ post-\/IUP\ (neither\ on\ the\ x\ nor\ on\ the\ y\ axis),}}
+\DoxyCodeLine{00308\ \textcolor{comment}{\ \ \ \ \ *\ \ \ except\ the\ x\ component\ of\ diagonal\ moves\ post-\/IUP\ (cf.}}
+\DoxyCodeLine{00309\ \textcolor{comment}{\ \ \ \ \ *\ \ \ `Direct\_Move',\ `Direct\_Move\_Y',\ `Move\_Zp2\_Point').\ \ Post-\/IUP}}
+\DoxyCodeLine{00310\ \textcolor{comment}{\ \ \ \ \ *\ \ \ changes\ are\ commonly\ used\ to\ `fix'\ pixel\ patterns\ which\ has\ little}}
+\DoxyCodeLine{00311\ \textcolor{comment}{\ \ \ \ \ *\ \ \ use\ outside\ monochrome\ rendering.}}
+\DoxyCodeLine{00312\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00313\ \textcolor{comment}{\ \ \ \ \ *\ -\/\ SHPIX\ and\ DELTAP\ don't\ execute\ unless\ moving\ a\ composite\ on\ the}}
+\DoxyCodeLine{00314\ \textcolor{comment}{\ \ \ \ \ *\ \ \ y\ axis\ or\ moving\ a\ previously\ y\ touched\ point.\ \ SHPIX\ additionally}}
+\DoxyCodeLine{00315\ \textcolor{comment}{\ \ \ \ \ *\ \ \ denies\ movement\ on\ the\ x\ axis\ (cf.\ `Ins\_SHPIX'\ and\ `Ins\_DELTAP').}}
+\DoxyCodeLine{00316\ \textcolor{comment}{\ \ \ \ \ *\ \ \ Both\ instructions\ are\ commonly\ used\ to\ `fix'\ pixel\ patterns\ for}}
+\DoxyCodeLine{00317\ \textcolor{comment}{\ \ \ \ \ *\ \ \ monochrome\ or\ Windows's\ GDI\ rendering\ but\ make\ little\ sense\ for}}
+\DoxyCodeLine{00318\ \textcolor{comment}{\ \ \ \ \ *\ \ \ FreeType\ rendering.\ \ Both\ can\ distort\ the\ outline.\ \ See\ [2]\ for}}
+\DoxyCodeLine{00319\ \textcolor{comment}{\ \ \ \ \ *\ \ \ details.}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00321\ \textcolor{comment}{\ \ \ \ \ *\ -\/\ The\ hdmx\ table\ and\ modifications\ to\ phantom\ points\ are\ ignored.}}
+\DoxyCodeLine{00322\ \textcolor{comment}{\ \ \ \ \ *\ \ \ Bearings\ and\ advance\ widths\ remain\ unchanged\ (except\ rounding\ them}}
+\DoxyCodeLine{00323\ \textcolor{comment}{\ \ \ \ \ *\ \ \ outside\ the\ interpreter!),\ cf.\ `compute\_glyph\_metrics'\ and}}
+\DoxyCodeLine{00324\ \textcolor{comment}{\ \ \ \ \ *\ \ \ `TT\_Hint\_Glyph'.\ \ Letting\ non-\/native-\/ClearType\ fonts\ modify\ spacing}}
+\DoxyCodeLine{00325\ \textcolor{comment}{\ \ \ \ \ *\ \ \ might\ mess\ up\ spacing.}}
+\DoxyCodeLine{00326\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00327\ \textcolor{comment}{\ \ \ \ \ *\ Minor\ hacks}}
+\DoxyCodeLine{00328\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00329\ \textcolor{comment}{\ \ \ \ \ *\ -\/\ FLIPRGON,\ FLIPRGOFF,\ and\ FLIPPT\ don't\ execute\ post-\/IUP.\ \ This}}
+\DoxyCodeLine{00330\ \textcolor{comment}{\ \ \ \ \ *\ \ \ prevents\ dents\ in\ e.g.\ Arial-\/Regular's\ `D'\ and\ `G'\ glyphs\ at}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ \ \ \ \ *\ \ \ various\ sizes.}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ \ \ \ \ *\ (Post-\/IUP\ is\ the\ state\ after\ both\ IUP[x]\ and\ IUP[y]\ have\ been}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ \ \ \ *\ executed.)}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00336\ \textcolor{comment}{\ \ \ \ \ *\ The\ best\ results\ are\ achieved\ for\ fonts\ that\ were\ from\ the\ outset}}
+\DoxyCodeLine{00337\ \textcolor{comment}{\ \ \ \ \ *\ designed\ with\ ClearType\ in\ mind,\ meaning\ they\ leave\ the\ x\ axis\ mostly}}
+\DoxyCodeLine{00338\ \textcolor{comment}{\ \ \ \ \ *\ alone\ and\ don't\ mess\ with\ the\ `final'\ outline\ to\ produce\ more}}
+\DoxyCodeLine{00339\ \textcolor{comment}{\ \ \ \ \ *\ pleasing\ pixel\ patterns.\ \ The\ harder\ the\ designer\ tried\ to\ produce}}
+\DoxyCodeLine{00340\ \textcolor{comment}{\ \ \ \ \ *\ very\ specific\ patterns\ (`superhinting')\ for\ pre-\/ClearType-\/displays,}}
+\DoxyCodeLine{00341\ \textcolor{comment}{\ \ \ \ \ *\ the\ worse\ the\ results.}}
+\DoxyCodeLine{00342\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00343\ \textcolor{comment}{\ \ \ \ \ *\ Microsoft\ defines\ a\ way\ to\ turn\ off\ backward\ compatibility\ and}}
+\DoxyCodeLine{00344\ \textcolor{comment}{\ \ \ \ \ *\ interpret\ instructions\ as\ before\ (called\ `native\ ClearType')[2][3].}}
+\DoxyCodeLine{00345\ \textcolor{comment}{\ \ \ \ \ *\ The\ font\ designer\ then\ regains\ full\ control\ and\ is\ responsible\ for}}
+\DoxyCodeLine{00346\ \textcolor{comment}{\ \ \ \ \ *\ making\ the\ font\ work\ correctly\ with\ ClearType\ without\ any}}
+\DoxyCodeLine{00347\ \textcolor{comment}{\ \ \ \ \ *\ hand-\/holding\ by\ the\ interpreter\ or\ rasterizer[4].\ \ The\ v40}}
+\DoxyCodeLine{00348\ \textcolor{comment}{\ \ \ \ \ *\ interpreter\ assumes\ backward\ compatibility\ by\ default,\ which\ can\ be}}
+\DoxyCodeLine{00349\ \textcolor{comment}{\ \ \ \ \ *\ turned\ off\ the\ same\ way\ by\ executing\ the\ following\ in\ the\ control}}
+\DoxyCodeLine{00350\ \textcolor{comment}{\ \ \ \ \ *\ program\ (cf.\ `Ins\_INSTCTRL').}}
+\DoxyCodeLine{00351\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00352\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \#PUSH\ 4,3}}
+\DoxyCodeLine{00353\ \textcolor{comment}{\ \ \ \ \ *\ \ \ INSTCTRL[]}}
+\DoxyCodeLine{00354\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00355\ \textcolor{comment}{\ \ \ \ \ *\ [1]\ Tricky\ fonts\ as\ FreeType\ defines\ them\ rely\ on\ the\ bytecode}}
+\DoxyCodeLine{00356\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ interpreter\ to\ display\ correctly.\ \ Hacks\ can\ interfere\ with\ them,}}
+\DoxyCodeLine{00357\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ so\ they\ get\ treated\ like\ native\ ClearType\ fonts\ (v40\ with}}
+\DoxyCodeLine{00358\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ backward\ compatibility\ turned\ off).\ \ Cf.\ `TT\_RunIns'.}}
+\DoxyCodeLine{00359\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00360\ \textcolor{comment}{\ \ \ \ \ *\ [2]\ Proposed\ by\ Microsoft's\ Greg\ Hitchcock\ in}}
+\DoxyCodeLine{00361\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ https://www.microsoft.com/typography/cleartype/truetypecleartype.aspx}}
+\DoxyCodeLine{00362\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ \ \ \ \ *\ [3]\ Beat\ Stamm\ describes\ it\ in\ more\ detail:}}
+\DoxyCodeLine{00364\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ http://rastertragedy.com/RTRCh4.htm\#Sec12.}}
+\DoxyCodeLine{00365\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00366\ \textcolor{comment}{\ \ \ \ \ *\ [4]\ The\ list\ of\ `native\ ClearType'\ fonts\ is\ small\ at\ the\ time\ of\ this}}
+\DoxyCodeLine{00367\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ writing;\ I\ found\ the\ following\ on\ a\ Windows\ 10\ Update\ 1511}}
+\DoxyCodeLine{00368\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ installation:\ Constantia,\ Corbel,\ Sitka,\ Malgun\ Gothic,\ Microsoft}}
+\DoxyCodeLine{00369\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ JhengHei\ (Bold\ and\ UI\ Bold),\ Microsoft\ YaHei\ (Bold\ and\ UI\ Bold),}}
+\DoxyCodeLine{00370\ \textcolor{comment}{\ \ \ \ \ *\ \ \ \ \ SimSun,\ NSimSun,\ and\ Yu\ Gothic.}}
+\DoxyCodeLine{00371\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00372\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00373\ }
+\DoxyCodeLine{00374\ \ \ \ \ \textcolor{comment}{/*\ Using\ v40\ implies\ subpixel\ hinting,\ unless\ FT\_RENDER\_MODE\_MONO\ has\ been}}
+\DoxyCodeLine{00375\ \textcolor{comment}{\ \ \ \ \ *\ requested.\ \ Used\ to\ detect\ interpreter\ */}}
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{comment}{/*\ version\ switches.\ \ `\_lean'\ to\ differentiate\ from\ the\ Infinality\ */}}
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{comment}{/*\ `subpixel\_hinting',\ which\ is\ managed\ differently.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00378\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ subpixel\_hinting\_lean;}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{comment}{/*\ Long\ side\ of\ a\ LCD\ subpixel\ is\ vertical\ (e.g.,\ screen\ is\ rotated).\ */}}
+\DoxyCodeLine{00381\ \ \ \ \ \textcolor{comment}{/*\ `\_lean'\ to\ differentiate\ from\ the\ Infinality\ `vertical\_lcd',\ which\ */}}
+\DoxyCodeLine{00382\ \ \ \ \ \textcolor{comment}{/*\ is\ managed\ differently.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00383\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ vertical\_lcd\_lean;}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \ \ \ \ \textcolor{comment}{/*\ Default\ to\ backward\ compatibility\ mode\ in\ v40\ interpreter.\ \ If\ \ \ */}}
+\DoxyCodeLine{00386\ \ \ \ \ \textcolor{comment}{/*\ this\ is\ false,\ it\ implies\ the\ interpreter\ is\ in\ v35\ or\ in\ native\ */}}
+\DoxyCodeLine{00387\ \ \ \ \ \textcolor{comment}{/*\ ClearType\ mode.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00388\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ backward\_compatibility;}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \ \ \ \ \textcolor{comment}{/*\ Useful\ for\ detecting\ and\ denying\ post-\/IUP\ trickery\ that\ is\ usually\ */}}
+\DoxyCodeLine{00391\ \ \ \ \ \textcolor{comment}{/*\ used\ to\ fix\ pixel\ patterns\ (`superhinting').\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00392\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ iupx\_called;}
+\DoxyCodeLine{00393\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ iupy\_called;}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \ \ \textcolor{comment}{/*\ ClearType\ hinting\ and\ grayscale\ rendering,\ as\ used\ by\ Universal\ */}}
+\DoxyCodeLine{00396\ \ \ \ \ \textcolor{comment}{/*\ Windows\ Platform\ apps\ (Windows\ 8\ and\ above).\ \ Like\ the\ standard\ */}}
+\DoxyCodeLine{00397\ \ \ \ \ \textcolor{comment}{/*\ colorful\ ClearType\ mode,\ it\ utilizes\ a\ vastly\ increased\ virtual\ */}}
+\DoxyCodeLine{00398\ \ \ \ \ \textcolor{comment}{/*\ resolution\ on\ the\ x\ axis.\ \ Different\ from\ bi-\/level\ hinting\ and\ \ */}}
+\DoxyCodeLine{00399\ \ \ \ \ \textcolor{comment}{/*\ grayscale\ rendering,\ the\ old\ mode\ from\ Win9x\ days\ that\ roughly\ \ */}}
+\DoxyCodeLine{00400\ \ \ \ \ \textcolor{comment}{/*\ adheres\ to\ the\ physical\ pixel\ grid\ on\ both\ axes.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00401\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ grayscale\_cleartype;}
+\DoxyCodeLine{00402\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ TT\_SUPPORT\_SUBPIXEL\_HINTING\_MINIMAL\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00403\ }
+\DoxyCodeLine{00404\ \textcolor{preprocessor}{\#ifdef\ TT\_SUPPORT\_SUBPIXEL\_HINTING\_INFINALITY}}
+\DoxyCodeLine{00405\ \ \ \ \ TT\_Round\_Func\ \ \ \ \ \ func\_round\_sphn;\ \ \ \textcolor{comment}{/*\ subpixel\ rounding\ function\ */}}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ subpixel\_hinting;\ \ \textcolor{comment}{/*\ Using\ subpixel\ hinting?\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00408\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ ignore\_x\_mode;\ \ \ \ \ \textcolor{comment}{/*\ Standard\ rendering\ mode\ for\ \ \ */}}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ subpixel\ hinting.\ \ On\ if\ gray\ */}}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ or\ subpixel\ hinting\ is\ on.\ \ \ \ */}}
+\DoxyCodeLine{00411\ }
+\DoxyCodeLine{00412\ \ \ \ \ \textcolor{comment}{/*\ The\ following\ 6\ aren't\ fully\ implemented\ but\ here\ for\ MS\ rasterizer\ */}}
+\DoxyCodeLine{00413\ \ \ \ \ \textcolor{comment}{/*\ compatibility.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00414\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ compatible\_widths;\ \ \ \ \ \textcolor{comment}{/*\ compatible\ widths?\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00415\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ symmetrical\_smoothing;\ \textcolor{comment}{/*\ symmetrical\_smoothing?\ \ \ \ */}}
+\DoxyCodeLine{00416\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ bgr;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bgr\ instead\ of\ rgb?\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00417\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ vertical\_lcd;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ long\ side\ of\ LCD\ subpixel\ */}}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ rectangles\ is\ horizontal\ \ */}}
+\DoxyCodeLine{00419\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ subpixel\_positioned;\ \ \ \textcolor{comment}{/*\ subpixel\ positioned\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ (DirectWrite\ ClearType)?\ \ */}}
+\DoxyCodeLine{00421\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ gray\_cleartype;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ ClearType\ hinting\ but\ \ \ \ \ */}}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ grayscale\ rendering\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00423\ }
+\DoxyCodeLine{00424\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ rasterizer\_version;\ \ \ \ \textcolor{comment}{/*\ MS\ rasterizer\ version\ \ \ \ \ */}}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ iup\_called;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ IUP\ called\ for\ glyph?\ \ \ \ \ */}}
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ sph\_tweak\_flags;\ \ \ \ \ \ \ \textcolor{comment}{/*\ flags\ to\ control\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ hint\ tweaks\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00430\ }
+\DoxyCodeLine{00431\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ sph\_in\_func\_flags;\ \ \ \ \ \textcolor{comment}{/*\ flags\ to\ indicate\ if\ in\ \ \ */}}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ special\ functions\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ TT\_SUPPORT\_SUBPIXEL\_HINTING\_INFINALITY\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \ \ \ \ \textcolor{comment}{/*\ We\ maintain\ two\ counters\ (in\ addition\ to\ the\ instruction\ counter)\ */}}
+\DoxyCodeLine{00437\ \ \ \ \ \textcolor{comment}{/*\ that\ act\ as\ loop\ detectors\ for\ LOOPCALL\ and\ jump\ opcodes\ with\ \ \ \ \ */}}
+\DoxyCodeLine{00438\ \ \ \ \ \textcolor{comment}{/*\ negative\ arguments.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00439\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ loopcall\_counter;}
+\DoxyCodeLine{00440\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ loopcall\_counter\_max;}
+\DoxyCodeLine{00441\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ neg\_jump\_counter;}
+\DoxyCodeLine{00442\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ neg\_jump\_counter\_max;}
+\DoxyCodeLine{00443\ }
+\DoxyCodeLine{00444\ \ \ \}\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContextRec}};}
+\DoxyCodeLine{00445\ }
+\DoxyCodeLine{00446\ }
+\DoxyCodeLine{00447\ \ \ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t_t___graphics_state__}{TT\_GraphicsState}}\ \ tt\_default\_graphics\_state;}
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ }
+\DoxyCodeLine{00450\ \textcolor{preprocessor}{\#ifdef\ TT\_USE\_BYTECODE\_INTERPRETER}}
+\DoxyCodeLine{00451\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00452\ \ \ TT\_Goto\_CodeRange(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec,}
+\DoxyCodeLine{00453\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ range,}
+\DoxyCodeLine{00454\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ IP\ );}
+\DoxyCodeLine{00455\ }
+\DoxyCodeLine{00456\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00457\ \ \ TT\_Set\_CodeRange(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec,}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ range,}
+\DoxyCodeLine{00459\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ base,}
+\DoxyCodeLine{00460\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ length\ );}
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00463\ \ \ TT\_Clear\_CodeRange(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec,}
+\DoxyCodeLine{00464\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ range\ );}
+\DoxyCodeLine{00465\ }
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00468\ \ \ Update\_Max(\ FT\_Memory\ \ \mbox{\hyperlink{structmemory}{memory}},}
+\DoxyCodeLine{00469\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong*\ \ size,}
+\DoxyCodeLine{00470\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ multiplier,}
+\DoxyCodeLine{00471\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \_pbuff,}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ new\_max\ );}
+\DoxyCodeLine{00473\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ TT\_USE\_BYTECODE\_INTERPRETER\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ }
+\DoxyCodeLine{00476\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00477\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00478\ \textcolor{comment}{\ \ \ *\ @Function:}}
+\DoxyCodeLine{00479\ \textcolor{comment}{\ \ \ *\ \ \ TT\_New\_Context}}
+\DoxyCodeLine{00480\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00481\ \textcolor{comment}{\ \ \ *\ @Description:}}
+\DoxyCodeLine{00482\ \textcolor{comment}{\ \ \ *\ \ \ Create\ a\ `TT\_ExecContext`.\ \ Note\ that\ there\ is\ now\ an\ execution}}
+\DoxyCodeLine{00483\ \textcolor{comment}{\ \ \ *\ \ \ context\ per\ `TT\_Size`\ that\ is\ not\ shared\ among\ faces.}}
+\DoxyCodeLine{00484\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00485\ \textcolor{comment}{\ \ \ *\ @Input:}}
+\DoxyCodeLine{00486\ \textcolor{comment}{\ \ \ *\ \ \ driver\ ::}}
+\DoxyCodeLine{00487\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ driver,\ used\ for\ memory\ allocation.}}
+\DoxyCodeLine{00488\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00489\ \textcolor{comment}{\ \ \ *\ @Return:}}
+\DoxyCodeLine{00490\ \textcolor{comment}{\ \ \ *\ \ \ A\ handle\ to\ a\ new\ empty\ execution\ context.}}
+\DoxyCodeLine{00491\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00492\ \textcolor{comment}{\ \ \ *\ @Note:}}
+\DoxyCodeLine{00493\ \textcolor{comment}{\ \ \ *\ \ \ Only\ the\ glyph\ loader\ and\ debugger\ should\ call\ this\ function.}}
+\DoxyCodeLine{00494\ \textcolor{comment}{\ \ \ *\ \ \ (And\ right\ now\ only\ the\ glyph\ loader\ uses\ it.)}}
+\DoxyCodeLine{00495\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00496\ \ \ FT\_EXPORT(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ )}
+\DoxyCodeLine{00497\ \ \ TT\_New\_Context(\ TT\_Driver\ \ driver\ );}
+\DoxyCodeLine{00498\ }
+\DoxyCodeLine{00499\ }
+\DoxyCodeLine{00500\ \textcolor{preprocessor}{\#ifdef\ TT\_USE\_BYTECODE\_INTERPRETER}}
+\DoxyCodeLine{00501\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00502\ \ \ TT\_Done\_Context(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec\ );}
+\DoxyCodeLine{00503\ }
+\DoxyCodeLine{00504\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00505\ \ \ TT\_Load\_Context(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec,}
+\DoxyCodeLine{00506\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___size_rec__}{TT\_Size}}\ \ \ \ \ \ \ \ \ size\ );}
+\DoxyCodeLine{00508\ }
+\DoxyCodeLine{00509\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00510\ \ \ TT\_Save\_Context(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec,}
+\DoxyCodeLine{00511\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___size_rec__}{TT\_Size}}\ \ \ \ \ \ \ \ \ ins\ );}
+\DoxyCodeLine{00512\ }
+\DoxyCodeLine{00513\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00514\ \ \ TT\_Run\_Context(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec\ );}
+\DoxyCodeLine{00515\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ TT\_USE\_BYTECODE\_INTERPRETER\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00516\ }
+\DoxyCodeLine{00517\ }
+\DoxyCodeLine{00518\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00519\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00520\ \textcolor{comment}{\ \ \ *\ @Function:}}
+\DoxyCodeLine{00521\ \textcolor{comment}{\ \ \ *\ \ \ TT\_RunIns}}
+\DoxyCodeLine{00522\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00523\ \textcolor{comment}{\ \ \ *\ @Description:}}
+\DoxyCodeLine{00524\ \textcolor{comment}{\ \ \ *\ \ \ Executes\ one\ or\ more\ instruction\ in\ the\ execution\ context.\ \ This}}
+\DoxyCodeLine{00525\ \textcolor{comment}{\ \ \ *\ \ \ is\ the\ main\ function\ of\ the\ TrueType\ opcode\ interpreter.}}
+\DoxyCodeLine{00526\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00527\ \textcolor{comment}{\ \ \ *\ @Input:}}
+\DoxyCodeLine{00528\ \textcolor{comment}{\ \ \ *\ \ \ exec\ ::}}
+\DoxyCodeLine{00529\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ execution\ context.}}
+\DoxyCodeLine{00530\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00531\ \textcolor{comment}{\ \ \ *\ @Return:}}
+\DoxyCodeLine{00532\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ *\ @Note:}}
+\DoxyCodeLine{00535\ \textcolor{comment}{\ \ \ *\ \ \ Only\ the\ object\ manager\ and\ debugger\ should\ call\ this\ function.}}
+\DoxyCodeLine{00536\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00537\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ is\ publicly\ exported\ because\ it\ is\ directly}}
+\DoxyCodeLine{00538\ \textcolor{comment}{\ \ \ *\ \ \ invoked\ by\ the\ TrueType\ debugger.}}
+\DoxyCodeLine{00539\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00540\ \ \ FT\_EXPORT(\ FT\_Error\ )}
+\DoxyCodeLine{00541\ \ \ TT\_RunIns(\ \mbox{\hyperlink{struct_t_t___exec_context_rec__}{TT\_ExecContext}}\ \ exec\ );}
+\DoxyCodeLine{00542\ }
+\DoxyCodeLine{00543\ }
+\DoxyCodeLine{00544\ FT\_END\_HEADER}
+\DoxyCodeLine{00545\ }
+\DoxyCodeLine{00546\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ TTINTERP\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ }
+\DoxyCodeLine{00549\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

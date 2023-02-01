@@ -1,0 +1,289 @@
+\hypertarget{bin_2x64_2_debug_2_tengu_2external_2include_2spdlog_2sinks_2win__eventlog__sink_8h_source}{}\doxysection{win\+\_\+eventlog\+\_\+sink.\+h}
+\label{bin_2x64_2_debug_2_tengu_2external_2include_2spdlog_2sinks_2win__eventlog__sink_8h_source}\index{Tengu/bin/x64/Debug/Tengu/external/include/spdlog/sinks/win\_eventlog\_sink.h@{Tengu/bin/x64/Debug/Tengu/external/include/spdlog/sinks/win\_eventlog\_sink.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ Writing\ to\ Windows\ Event\ Log\ requires\ the\ registry\ entries\ below\ to\ be\ present,\ with\ the\ following\ modifications:}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ 1.\ <log\_name>\ \ \ \ should\ be\ replaced\ with\ your\ log\ name\ (e.g.\ your\ application\ name)}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ 2.\ <source\_name>\ should\ be\ replaced\ with\ the\ specific\ source\ name\ and\ the\ key\ should\ be\ duplicated\ for}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ each\ source\ used\ in\ the\ application}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//\ Since\ typically\ modifications\ of\ this\ kind\ require\ elevation,\ it's\ better\ to\ do\ it\ as\ a\ part\ of\ setup\ procedure.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ The\ snippet\ below\ uses\ mscoree.dll\ as\ the\ message\ file\ as\ it\ exists\ on\ most\ of\ the\ Windows\ systems\ anyway\ and}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ happens\ to\ contain\ the\ needed\ resource.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ You\ can\ also\ specify\ a\ custom\ message\ file\ if\ needed.}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ Please\ refer\ to\ Event\ Log\ functions\ descriptions\ in\ MSDN\ for\ more\ details\ on\ custom\ message\ files.}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{comment}{/*-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00017\ \textcolor{comment}{}}
+\DoxyCodeLine{00018\ \textcolor{comment}{Windows\ Registry\ Editor\ Version\ 5.00}}
+\DoxyCodeLine{00019\ \textcolor{comment}{}}
+\DoxyCodeLine{00020\ \textcolor{comment}{[HKEY\_LOCAL\_MACHINE\(\backslash\)SYSTEM\(\backslash\)CurrentControlSet\(\backslash\)Services\(\backslash\)EventLog\(\backslash\)<log\_name>]}}
+\DoxyCodeLine{00021\ \textcolor{comment}{}}
+\DoxyCodeLine{00022\ \textcolor{comment}{[HKEY\_LOCAL\_MACHINE\(\backslash\)SYSTEM\(\backslash\)CurrentControlSet\(\backslash\)Services\(\backslash\)EventLog\(\backslash\)<log\_name>\(\backslash\)<source\_name>]}}
+\DoxyCodeLine{00023\ \textcolor{comment}{"{}TypesSupported"{}=dword:00000007}}
+\DoxyCodeLine{00024\ \textcolor{comment}{"{}EventMessageFile"{}=hex(2):25,00,73,00,79,00,73,00,74,00,65,00,6d,00,72,00,6f,\(\backslash\)}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ \ 00,6f,00,74,00,25,00,5c,00,53,00,79,00,73,00,74,00,65,00,6d,00,33,00,32,00,\(\backslash\)}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ 5c,00,6d,00,73,00,63,00,6f,00,72,00,65,00,65,00,2e,00,64,00,6c,00,6c,00,00,\(\backslash\)}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ 00}}
+\DoxyCodeLine{00028\ \textcolor{comment}{}}
+\DoxyCodeLine{00029\ \textcolor{comment}{-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/*/}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ <spdlog/details/null\_mutex.h>}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ <spdlog/sinks/base\_sink.h>}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ <spdlog/details/windows\_include.h>}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ <winbase.h>}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00044\ \textcolor{keyword}{namespace\ }sinks\ \{}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{namespace\ }win\_eventlog\ \{}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{namespace\ }internal\ \{}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{local\_alloc\_t}}}
+\DoxyCodeLine{00051\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ HLOCAL\ hlocal\_;}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ SPDLOG\_CONSTEXPR\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{local\_alloc\_t}}()\ SPDLOG\_NOEXCEPT\ :\ hlocal\_(\textcolor{keyword}{nullptr})\ \{\}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{local\_alloc\_t}}(\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{local\_alloc\_t}}\ \textcolor{keyword}{const}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00057\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{local\_alloc\_t}}\ \&operator=(\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{local\_alloc\_t}}\ \textcolor{keyword}{const}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{\string~local\_alloc\_t}}()\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00060\ \ \ \ \ \{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hlocal\_)}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ LocalFree(hlocal\_);}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00065\ \ \ \ \ \}}
+\DoxyCodeLine{00066\ \};}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error}{win32\_error}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classspdlog_1_1spdlog__ex}{spdlog\_ex}}}
+\DoxyCodeLine{00070\ \{}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keyword}{static}\ std::string\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error_ac257bfbcd3a8e7d1be75074b7d41ab6d}{format}}(std::string\ \textcolor{keyword}{const}\ \&user\_message,\ DWORD\ error\_code\ =\ GetLastError())}
+\DoxyCodeLine{00073\ \ \ \ \ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ std::string\ system\_message;}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1local__alloc__t}{local\_alloc\_t}}\ format\_message\_result\{\};}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ format\_message\_succeeded\ =}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ ::FormatMessageA(FORMAT\_MESSAGE\_ALLOCATE\_BUFFER\ |\ FORMAT\_MESSAGE\_FROM\_SYSTEM\ |\ FORMAT\_MESSAGE\_IGNORE\_INSERTS,\ \textcolor{keyword}{nullptr},}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ error\_code,\ MAKELANGID(LANG\_NEUTRAL,\ SUBLANG\_DEFAULT),\ (LPSTR)\&format\_message\_result.hlocal\_,\ 0,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (format\_message\_succeeded\ \&\&\ format\_message\_result.hlocal\_)}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ system\_message\ =\ fmt\_lib::format(\textcolor{stringliteral}{"{}\ (\{\})"{}},\ (LPSTR)format\_message\_result.hlocal\_);}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ fmt\_lib::format(\textcolor{stringliteral}{"{}\{\}:\ \{\}\{\}"{}},\ user\_message,\ error\_code,\ system\_message);}
+\DoxyCodeLine{00087\ \ \ \ \ \}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error}{win32\_error}}(std::string\ \textcolor{keyword}{const}\ \&func\_name,\ DWORD\ error\ =\ GetLastError())}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{classspdlog_1_1spdlog__ex}{spdlog\_ex}}(format(func\_name,\ error))}
+\DoxyCodeLine{00091\ \ \ \ \ \{\}}
+\DoxyCodeLine{00092\ \};}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t}{sid\_t}}}
+\DoxyCodeLine{00096\ \{}
+\DoxyCodeLine{00097\ \ \ \ \ std::vector<char>\ buffer\_;}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00100\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t}{sid\_t}}()\ \{\}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t}{sid\_t}}\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t_a3baa3e05ef65fdc703b47e702013505b}{duplicate\_sid}}(PSID\ psid)}
+\DoxyCodeLine{00104\ \ \ \ \ \{}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!::IsValidSid(psid))}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ throw\_spdlog\_ex(\textcolor{stringliteral}{"{}sid\_t::sid\_t():\ invalid\ SID\ received"{}});}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ \textcolor{keyword}{const}\ sid\_length\{::GetLengthSid(psid)\};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t}{sid\_t}}\ result;}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ result.buffer\_.resize(sid\_length);}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!::CopySid(sid\_length,\ (PSID)result.as\_sid(),\ psid))}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_THROW(\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error}{win32\_error}}(\textcolor{stringliteral}{"{}CopySid"{}}));}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{00120\ \ \ \ \ \}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00123\ \ \ \ \ SID\ *\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t_a6b69019a95609aca5fcc5aa8d30ff48a}{as\_sid}}()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00124\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ buffer\_.empty()\ ?\ nullptr\ :\ (SID\ *)buffer\_.data();}
+\DoxyCodeLine{00126\ \ \ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t}{sid\_t}}\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t_ad6c8ed4cae2d0aae1d20339c5d4cbf53}{get\_current\_user\_sid}}()}
+\DoxyCodeLine{00130\ \ \ \ \ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ create\ and\ init\ RAII\ holder\ for\ process\ token\ */}}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }process\_token\_t}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ HANDLE\ token\_handle\_\ =\ INVALID\_HANDLE\_VALUE;}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{explicit}\ process\_token\_t(HANDLE\ process)}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!::OpenProcessToken(process,\ TOKEN\_QUERY,\ \&token\_handle\_))}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_THROW(\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error}{win32\_error}}(\textcolor{stringliteral}{"{}OpenProcessToken"{}}));}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \string~process\_token\_t()}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ::CloseHandle(token\_handle\_);}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \}\ current\_process\_token(::GetCurrentProcess());\ \textcolor{comment}{//\ GetCurrentProcess\ returns\ pseudohandle,\ no\ leak\ here!}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Get\ the\ required\ size,\ this\ is\ expected\ to\ fail\ with\ ERROR\_INSUFFICIENT\_BUFFER\ and\ return\ the\ token\ size}}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ DWORD\ tusize\ =\ 0;}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (::GetTokenInformation(current\_process\_token.token\_handle\_,\ TokenUser,\ NULL,\ 0,\ \&tusize))}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_THROW(\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error}{win32\_error}}(\textcolor{stringliteral}{"{}GetTokenInformation\ should\ fail"{}}));}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ get\ user\ token}}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ std::vector<unsigned\ char>\ \mbox{\hyperlink{classbuffer}{buffer}}(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(tusize));}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!::GetTokenInformation(current\_process\_token.token\_handle\_,\ TokenUser,\ (LPVOID)\mbox{\hyperlink{classbuffer}{buffer}}.\mbox{\hyperlink{classbuffer_a5fe8b50555561bfb4d77a2adcd5f79b2}{data}}(),\ tusize,\ \&tusize))}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_THROW(\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error}{win32\_error}}(\textcolor{stringliteral}{"{}GetTokenInformation"{}}));}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ create\ a\ wrapper\ of\ the\ SID\ data\ as\ stored\ in\ the\ user\ token}}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t_a3baa3e05ef65fdc703b47e702013505b}{sid\_t::duplicate\_sid}}(((TOKEN\_USER\ *)\mbox{\hyperlink{classbuffer}{buffer}}.\mbox{\hyperlink{classbuffer_a5fe8b50555561bfb4d77a2adcd5f79b2}{data}}())-\/>User.Sid);}
+\DoxyCodeLine{00166\ \ \ \ \ \}}
+\DoxyCodeLine{00167\ \};}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1eventlog}{eventlog}}}
+\DoxyCodeLine{00170\ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keyword}{static}\ WORD\ get\_event\_type(\mbox{\hyperlink{structspdlog_1_1details_1_1log__msg}{details::log\_msg}}\ \textcolor{keyword}{const}\ \&msg)}
+\DoxyCodeLine{00172\ \ \ \ \ \{}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (msg.level)}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ level::trace:}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ level::debug:}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ EVENTLOG\_SUCCESS;}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ level::info:}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ EVENTLOG\_INFORMATION\_TYPE;}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ level::warn:}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ EVENTLOG\_WARNING\_TYPE;}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ level::err:}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ level::critical:}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ level::off:}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ EVENTLOG\_ERROR\_TYPE;}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ EVENTLOG\_INFORMATION\_TYPE;}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00193\ \ \ \ \ \}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{keyword}{static}\ WORD\ get\_event\_category(\mbox{\hyperlink{structspdlog_1_1details_1_1log__msg}{details::log\_msg}}\ \textcolor{keyword}{const}\ \&msg)}
+\DoxyCodeLine{00196\ \ \ \ \ \{}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (WORD)msg.level;}
+\DoxyCodeLine{00198\ \ \ \ \ \}}
+\DoxyCodeLine{00199\ \};}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \}\ \textcolor{comment}{//\ namespace\ internal}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00204\ \textcolor{comment}{\ *\ Windows\ Event\ Log\ sink}}
+\DoxyCodeLine{00205\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00206\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Mutex>}
+\DoxyCodeLine{00207\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classspdlog_1_1sinks_1_1win__eventlog_1_1win__eventlog__sink}{win\_eventlog\_sink}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classspdlog_1_1sinks_1_1base__sink}{base\_sink}}<Mutex>}
+\DoxyCodeLine{00208\ \{}
+\DoxyCodeLine{00209\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00210\ \ \ \ \ HANDLE\ hEventLog\_\{NULL\};}
+\DoxyCodeLine{00211\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t}{internal::sid\_t}}\ current\_user\_sid\_;}
+\DoxyCodeLine{00212\ \ \ \ \ std::string\ source\_;}
+\DoxyCodeLine{00213\ \ \ \ \ DWORD\ event\_id\_;}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ \ \ HANDLE\ event\_log\_handle()}
+\DoxyCodeLine{00216\ \ \ \ \ \{}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!hEventLog\_)}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ hEventLog\_\ =\ ::RegisterEventSourceA(\textcolor{keyword}{nullptr},\ source\_.c\_str());}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!hEventLog\_\ ||\ hEventLog\_\ ==\ (HANDLE)ERROR\_ACCESS\_DENIED)}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_THROW(\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1win32__error}{internal::win32\_error}}(\textcolor{stringliteral}{"{}RegisterEventSource"{}}));}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ hEventLog\_;}
+\DoxyCodeLine{00227\ \ \ \ \ \}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{keywordtype}{void}\ sink\_it\_(\textcolor{keyword}{const}\ \mbox{\hyperlink{structspdlog_1_1details_1_1log__msg}{details::log\_msg}}\ \&msg)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00231\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ namespace\ }internal;}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ succeeded;}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ memory\_buf\_t\ formatted;}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1sinks_1_1base__sink}{base\_sink<Mutex>::formatter\_}}-\/>format(msg,\ formatted);}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ formatted.push\_back(\textcolor{charliteral}{'\(\backslash\)0'});}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT}}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ wmemory\_buf\_t\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ details::os::utf8\_to\_wstrbuf(string\_view\_t(formatted.data(),\ formatted.size()),\ \mbox{\hyperlink{structbuf}{buf}});}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ LPCWSTR\ lp\_wstr\ =\ \mbox{\hyperlink{structbuf}{buf}}.data();}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ succeeded\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{bool}\textcolor{keyword}{>}(::ReportEventW(event\_log\_handle(),\ eventlog::get\_event\_type(msg),\ eventlog::get\_event\_category(msg),\ event\_id\_,}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ \ \ current\_user\_sid\_.\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t_a6b69019a95609aca5fcc5aa8d30ff48a}{as\_sid}}(),\ 1,\ 0,\ \&lp\_wstr,\ \textcolor{keyword}{nullptr}));}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ LPCSTR\ lp\_str\ =\ formatted.data();}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ succeeded\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{bool}\textcolor{keyword}{>}(::ReportEventA(event\_log\_handle(),\ eventlog::get\_event\_type(msg),\ eventlog::get\_event\_category(msg),\ event\_id\_,}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ current\_user\_sid\_.\mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t_a6b69019a95609aca5fcc5aa8d30ff48a}{as\_sid}}(),\ 1,\ 0,\ \&lp\_str,\ \textcolor{keyword}{nullptr}));}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!succeeded)}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_THROW(win32\_error(\textcolor{stringliteral}{"{}ReportEvent"{}}));}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00256\ \ \ \ \ \}}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{keywordtype}{void}\ flush\_()\textcolor{keyword}{\ override\ }\{\}}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00261\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1sinks_1_1win__eventlog_1_1win__eventlog__sink}{win\_eventlog\_sink}}(std::string\ \textcolor{keyword}{const}\ \&source,\ DWORD\ event\_id\ =\ 1000\ \textcolor{comment}{/*\ according\ to\ mscoree.dll\ */})}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ :\ source\_(source)}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ ,\ event\_id\_(event\_id)}
+\DoxyCodeLine{00264\ \ \ \ \ \{}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{try}}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ current\_user\_sid\_\ =\ \mbox{\hyperlink{structspdlog_1_1sinks_1_1win__eventlog_1_1internal_1_1sid__t_ad6c8ed4cae2d0aae1d20339c5d4cbf53}{internal::sid\_t::get\_current\_user\_sid}}();}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{catch}\ (...)}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ get\_current\_user\_sid()\ is\ unlikely\ to\ fail\ and\ if\ it\ does,\ we\ can\ still\ proceed\ without}}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ current\_user\_sid\ but\ in\ the\ event\ log\ the\ record\ will\ have\ no\ user\ name}}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00274\ \ \ \ \ \}}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1sinks_1_1win__eventlog_1_1win__eventlog__sink}{\string~win\_eventlog\_sink}}()}
+\DoxyCodeLine{00277\ \ \ \ \ \{}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hEventLog\_)}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \ \ \ DeregisterEventSource(hEventLog\_);}
+\DoxyCodeLine{00280\ \ \ \ \ \}}
+\DoxyCodeLine{00281\ \};}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \}\ \textcolor{comment}{//\ namespace\ win\_eventlog}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \textcolor{keyword}{using\ }\mbox{\hyperlink{classspdlog_1_1sinks_1_1win__eventlog_1_1win__eventlog__sink}{win\_eventlog\_sink\_mt}}\ =\ \mbox{\hyperlink{classspdlog_1_1sinks_1_1win__eventlog_1_1win__eventlog__sink}{win\_eventlog::win\_eventlog\_sink<std::mutex>}};}
+\DoxyCodeLine{00286\ \textcolor{keyword}{using\ }\mbox{\hyperlink{classspdlog_1_1sinks_1_1win__eventlog_1_1win__eventlog__sink}{win\_eventlog\_sink\_st}}\ =\ \mbox{\hyperlink{classspdlog_1_1sinks_1_1win__eventlog_1_1win__eventlog__sink}{win\_eventlog::win\_eventlog\_sink<details::null\_mutex>}};}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \}\ \textcolor{comment}{//\ namespace\ sinks}}
+\DoxyCodeLine{00289\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

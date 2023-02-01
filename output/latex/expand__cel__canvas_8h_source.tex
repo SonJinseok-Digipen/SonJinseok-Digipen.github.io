@@ -1,0 +1,154 @@
+\hypertarget{expand__cel__canvas_8h_source}{}\doxysection{expand\+\_\+cel\+\_\+canvas.\+h}
+\label{expand__cel__canvas_8h_source}\index{AseSprite/aseprite/src/app/util/expand\_cel\_canvas.h@{AseSprite/aseprite/src/app/util/expand\_cel\_canvas.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2021\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_UTIL\_EXPAND\_CEL\_CANVAS\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_UTIL\_EXPAND\_CEL\_CANVAS\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/tilemap\_mode.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/tileset\_mode.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}doc/frame.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}doc/grid.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}doc/image\_ref.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}doc/layer.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}filters/tiled\_mode.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}gfx/point.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}gfx/rect.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}gfx/region.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}gfx/size.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00025\ \ \ \textcolor{keyword}{class\ }Cel;}
+\DoxyCodeLine{00026\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{class\ }Layer;}
+\DoxyCodeLine{00028\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{class\ }Tileset;}
+\DoxyCodeLine{00030\ \}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{class\ }CmdSequence;}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{class\ }Doc;}
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{class\ }Site;}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{using\ namespace\ }filters;}
+\DoxyCodeLine{00038\ \ \ \textcolor{keyword}{using\ namespace\ }doc;}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \textcolor{comment}{//\ This\ class\ can\ be\ used\ to\ expand\ the\ canvas\ of\ the\ current\ cel\ to}}
+\DoxyCodeLine{00041\ \ \ \textcolor{comment}{//\ the\ visible\ portion\ of\ sprite.\ If\ the\ user\ cancels\ the\ operation,}}
+\DoxyCodeLine{00042\ \ \ \textcolor{comment}{//\ you've\ a\ rollback()\ method\ to\ restore\ the\ cel\ to\ its\ original}}
+\DoxyCodeLine{00043\ \ \ \textcolor{comment}{//\ state.\ \ If\ all\ changes\ are\ committed,\ some\ undo\ information\ is}}
+\DoxyCodeLine{00044\ \ \ \textcolor{comment}{//\ stored\ in\ the\ document's\ UndoHistory\ to\ go\ back\ to\ the\ original}}
+\DoxyCodeLine{00045\ \ \ \textcolor{comment}{//\ state\ using\ "{}Undo"{}\ command.}}
+\DoxyCodeLine{00046\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_expand_cel_canvas}{ExpandCelCanvas}}\ \{}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keyword}{enum}\ Flags\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ None\ =\ 0,}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ NeedsSource\ =\ 1,}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \textcolor{comment}{//\ Use\ tiles\ mode\ but\ with\ pixels\ bounds\ in\ dst\ image\ (e.g.\ for}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \textcolor{comment}{//\ selection\ preview)}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ PixelsBounds\ =\ 2,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \textcolor{comment}{//\ True\ if\ you\ want\ to\ preview\ the\ changes\ in\ the\ tileset.\ Only}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \textcolor{comment}{//\ useful\ in\ TilesetMode::Manual\ mode\ when\ editing\ tiles\ in\ a}}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \textcolor{comment}{//\ tilemap.\ See\ getDestTileset()\ for\ details.}}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ TilesetPreview\ =\ 4,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \textcolor{comment}{//\ Enable\ when\ we\ are\ going\ to\ use\ the\ expanded\ cel\ canvas\ for}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \textcolor{comment}{//\ preview\ purposes\ of\ a\ selection\ tools.}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ SelectionPreview\ =\ 8,}
+\DoxyCodeLine{00061\ \ \ \ \ \};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_expand_cel_canvas}{ExpandCelCanvas}}(\mbox{\hyperlink{classapp_1_1_site}{Site}}\ site,\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ TiledMode\ tiledMode,}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_cmd_sequence}{CmdSequence}}*\ cmds,}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ Flags\ flags);}
+\DoxyCodeLine{00067\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_expand_cel_canvas}{\string~ExpandCelCanvas}}();}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{comment}{//\ Commit\ changes\ made\ in\ getDestCanvas()\ in\ the\ cel's\ image.\ Adds}}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{comment}{//\ information\ in\ the\ undo\ history\ so\ the\ user\ can\ undo\ the}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{comment}{//\ modifications\ in\ the\ canvas.}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{void}\ commit();}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{comment}{//\ Restore\ the\ cel\ as\ its\ original\ state\ as\ when\ ExpandCelCanvas()}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ was\ created.}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordtype}{void}\ rollback();}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ getCelOrigin()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ getSourceCanvas();\ \textcolor{comment}{//\ You\ can\ read\ pixels\ from\ here}}
+\DoxyCodeLine{00081\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ getDestCanvas();\ \ \ \textcolor{comment}{//\ You\ can\ write\ pixels\ right\ here}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_tileset}{Tileset}}*\ getDestTileset();\ \textcolor{comment}{//\ You\ can\ use\ this\ as\ a\ preview-\/tileset}}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ when\ the\ user\ is\ editing\ in\ "{}Manual"{}\ mode}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keywordtype}{void}\ validateSourceCanvas(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn);}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{void}\ validateDestCanvas(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn);}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{void}\ validateDestTileset(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ forceRgn);}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{void}\ invalidateDestCanvas();}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keywordtype}{void}\ invalidateDestCanvas(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn);}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{void}\ copyValidDestToSourceCanvas(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn);}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_cel}{Cel}}*\ getCel()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_cel;\ \}}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_grid}{doc::Grid}}\&\ getGrid()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_grid;\ \}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00097\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getTrimDstImageBounds()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00098\ \ \ \ \ ImageRef\ trimDstImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{void}\ copySourceTilestToDestTileset();}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordtype}{bool}\ isTilesetPreview()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((m\_flags\ \&\ TilesetPreview)\ ==\ TilesetPreview);}
+\DoxyCodeLine{00103\ \ \ \ \ \}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{bool}\ isSelectionPreview()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ((m\_flags\ \&\ SelectionPreview)\ ==\ SelectionPreview);}
+\DoxyCodeLine{00107\ \ \ \ \ \}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{comment}{//\ This\ is\ the\ common\ case\ where\ we\ want\ to\ preview\ a\ change\ in}}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{comment}{//\ the\ given\ layer\ of\ ExpandCelCanvas\ ctor.}}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{bool}\ previewSpecificLayerChanges()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_layer\ \&\&}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_layer-\/>isImage()\ \&\&}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !isSelectionPreview());}
+\DoxyCodeLine{00115\ \ \ \ \ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_document;}
+\DoxyCodeLine{00118\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ m\_sprite;}
+\DoxyCodeLine{00119\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ m\_layer;}
+\DoxyCodeLine{00120\ \ \ \ \ frame\_t\ m\_frame;}
+\DoxyCodeLine{00121\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_cel}{Cel}}*\ m\_cel;}
+\DoxyCodeLine{00122\ \ \ \ \ ImageRef\ m\_celImage;}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_celCreated;}
+\DoxyCodeLine{00124\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ m\_origCelPos;}
+\DoxyCodeLine{00125\ \ \ \ \ Flags\ m\_flags;}
+\DoxyCodeLine{00126\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ m\_bounds;}
+\DoxyCodeLine{00127\ \ \ \ \ ImageRef\ m\_srcImage;}
+\DoxyCodeLine{00128\ \ \ \ \ ImageRef\ m\_dstImage;}
+\DoxyCodeLine{00129\ \ \ \ \ std::unique\_ptr<Tileset>\ m\_dstTileset;}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_closed;}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_committed;}
+\DoxyCodeLine{00132\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_cmd_sequence}{CmdSequence}}*\ m\_cmds;}
+\DoxyCodeLine{00133\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\ m\_validSrcRegion;}
+\DoxyCodeLine{00134\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\ m\_validDstRegion;}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{comment}{//\ True\ if\ we\ can\ compare\ src\ image\ with\ dst\ image\ to\ patch\ the}}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{comment}{//\ cel.\ This\ is\ false\ when\ dst\ is\ copied\ to\ the\ src,\ so\ we\ cannot}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{comment}{//\ reduce\ the\ patched\ region\ because\ both\ images\ will\ be\ the\ same.}}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_canCompareSrcVsDst;}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_grid}{doc::Grid}}\ m\_grid;}
+\DoxyCodeLine{00142\ \ \ \ \ TilemapMode\ m\_tilemapMode;}
+\DoxyCodeLine{00143\ \ \ \ \ TilesetMode\ m\_tilesetMode;}
+\DoxyCodeLine{00144\ \ \ \};}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

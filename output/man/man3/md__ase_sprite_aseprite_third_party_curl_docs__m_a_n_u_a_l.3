@@ -1,0 +1,1042 @@
+.TH "md__ase_sprite_aseprite_third_party_curl_docs__m_a_n_u_a_l" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_curl_docs__m_a_n_u_a_l \- curl tutorial 
+.PP
+
+.SH "Simple Usage"
+.PP
+Get the main page from a web-server: 
+.PP
+.nf
+curl https://www\&.example\&.com/
+
+.fi
+.PP
+ Get the README file the user's home directory at funet's ftp-server: 
+.PP
+.nf
+curl ftp://ftp\&.funet\&.fi/README
+
+.fi
+.PP
+ Get a web page from a server using port 8000: 
+.PP
+.nf
+curl http://www\&.weirdserver\&.com:8000/
+
+.fi
+.PP
+ Get a directory listing of an \fBFTP\fP site: 
+.PP
+.nf
+curl ftp://ftp\&.funet\&.fi
+
+.fi
+.PP
+ Get the definition of curl from a dictionary: 
+.PP
+.nf
+curl dict://dict\&.org/m:curl
+
+.fi
+.PP
+ Fetch two documents at once: 
+.PP
+.nf
+curl ftp://ftp\&.funet\&.fi/ http://www\&.weirdserver\&.com:8000/
+
+.fi
+.PP
+ Get a file off an FTPS server: 
+.PP
+.nf
+curl ftps://files\&.are\&.secure\&.com/secrets\&.txt
+
+.fi
+.PP
+ or use the more appropriate FTPS way to get the same file: 
+.PP
+.nf
+curl --ftp-ssl ftp://files\&.are\&.secure\&.com/secrets\&.txt
+
+.fi
+.PP
+ Get a file from an SSH server using SFTP: 
+.PP
+.nf
+curl -u username sftp://example\&.com/etc/issue
+
+.fi
+.PP
+ Get a file from an SSH server using SCP using a private key (not password-protected) to authenticate: 
+.PP
+.nf
+curl -u username: --key ~/\&.ssh/id_rsa scp://example\&.com/~/file\&.txt
+
+.fi
+.PP
+ Get a file from an SSH server using SCP using a private key (password-protected) to authenticate: 
+.PP
+.nf
+curl -u username: --key ~/\&.ssh/id_rsa --pass private_key_password
+scp://example\&.com/~/file\&.txt
+
+.fi
+.PP
+ Get the main page from an IPv6 web server: 
+.PP
+.nf
+curl 'http://[2001:1890:1112:1::20]/'
+
+.fi
+.PP
+ Get a file from an SMB server: 
+.PP
+.nf
+curl -u 'domain\\username:passwd' smb://server\&.example\&.com/share/file\&.txt
+
+.fi
+.PP
+ 
+.SH "Download to a File"
+.PP
+Get a web page and store in a local file with a specific name: 
+.PP
+.nf
+curl -o thatpage\&.html http://www\&.example\&.com/
+
+.fi
+.PP
+ Get a web page and store in a local file, make the local file get the name of the remote document (if no file name part is specified in the URL, this will fail): 
+.PP
+.nf
+curl -O http://www\&.example\&.com/index\&.html
+
+.fi
+.PP
+ Fetch two files and store them with their remote names: 
+.PP
+.nf
+curl -O www\&.haxx\&.se/index\&.html -O curl\&.se/download\&.html
+
+.fi
+.PP
+ 
+.SH "Using Passwords"
+.PP
+.SS "FTP"
+To ftp files using name+passwd, include them in the URL like: 
+.PP
+.nf
+curl ftp://name:passwd@machine\&.domain:port/full/path/to/file
+
+.fi
+.PP
+ or specify them with the -u flag like 
+.PP
+.nf
+curl -u name:passwd ftp://machine\&.domain:port/full/path/to/file
+
+.fi
+.PP
+ 
+.SS "FTPS"
+It is just like for \fBFTP\fP, but you may also want to specify and use SSL-specific options for certificates etc\&.
+.PP
+Note that using \fCFTPS://\fP as prefix is the 'implicit' way as described in the standards while the recommended 'explicit' way is done by using \fBFTP\fP:// and the \fC--ftp-ssl\fP option\&.
+.SS "SFTP / SCP"
+This is similar to \fBFTP\fP, but you can use the \fC--key\fP option to specify a private key to use instead of a password\&. Note that the private key may itself be protected by a password that is unrelated to the login password of the remote system; this password is specified using the \fC--pass\fP option\&. Typically, curl will automatically extract the public key from the private key file, but in cases where curl does not have the proper library support, a matching public key file must be specified using the \fC--pubkey\fP option\&.
+.SS "HTTP"
+Curl also supports user and password in \fBHTTP\fP URLs, thus you can pick a file like: 
+.PP
+.nf
+curl http://name:passwd@machine\&.domain/full/path/to/file
+
+.fi
+.PP
+ or specify user and password separately like in 
+.PP
+.nf
+curl -u name:passwd http://machine\&.domain/full/path/to/file
+
+.fi
+.PP
+ \fBHTTP\fP offers many different methods of authentication and curl supports several: Basic, Digest, NTLM and Negotiate (SPNEGO)\&. Without telling which method to use, curl defaults to Basic\&. You can also ask curl to pick the most secure ones out of the ones that the server accepts for the given URL, by using \fC--anyauth\fP\&.
+.PP
+\fBNote\fP! According to the URL specification, \fBHTTP\fP URLs can not contain a user and password, so that style will not work when using curl via a proxy, even though curl allows it at other times\&. When using a proxy, you \fImust\fP use the \fC-u\fP style for user and password\&.
+.SS "HTTPS"
+Probably most commonly used with private certificates, as explained below\&.
+.SH "Proxy"
+.PP
+curl supports both \fBHTTP\fP and SOCKS proxy servers, with optional authentication\&. It does not have special support for \fBFTP\fP proxy servers since there are no standards for those, but it can still be made to work with many of them\&. You can also use both \fBHTTP\fP and SOCKS proxies to transfer files to and from \fBFTP\fP servers\&.
+.PP
+Get an ftp file using an \fBHTTP\fP proxy named my-proxy that uses port 888: 
+.PP
+.nf
+curl -x my-proxy:888 ftp://ftp\&.leachsite\&.com/README
+
+.fi
+.PP
+ Get a file from an \fBHTTP\fP server that requires user and password, using the same proxy as above: 
+.PP
+.nf
+curl -u user:passwd -x my-proxy:888 http://www\&.get\&.this/
+
+.fi
+.PP
+ Some proxies require special authentication\&. Specify by using -U as above: 
+.PP
+.nf
+curl -U user:passwd -x my-proxy:888 http://www\&.get\&.this/
+
+.fi
+.PP
+ \fBA\fP comma-separated list of hosts and domains which do not use the proxy can be specified as: 
+.PP
+.nf
+curl --noproxy localhost,get\&.this -x my-proxy:888 http://www\&.get\&.this/
+
+.fi
+.PP
+ If the proxy is specified with \fC--proxy1\&.0\fP instead of \fC--proxy\fP or \fC-x\fP, then curl will use HTTP/1\&.0 instead of HTTP/1\&.1 for any \fCCONNECT\fP attempts\&.
+.PP
+curl also supports SOCKS4 and SOCKS5 proxies with \fC--socks4\fP and \fC--socks5\fP\&.
+.PP
+See also the environment variables Curl supports that offer further proxy control\&.
+.PP
+Most \fBFTP\fP proxy servers are set up to appear as a normal \fBFTP\fP server from the client's perspective, with special commands to select the remote \fBFTP\fP server\&. curl supports the \fC-u\fP, \fC-Q\fP and \fC--ftp-account\fP options that can be used to set up transfers through many \fBFTP\fP proxies\&. For example, a file can be uploaded to a remote \fBFTP\fP server using a Blue Coat \fBFTP\fP proxy with the options: 
+.PP
+.nf
+curl -u 'username@ftp\&.server Proxy-Username:Remote-Pass'
+  --ftp-account Proxy-Password --upload-file local-file
+  ftp://my-ftp\&.proxy\&.server:21/remote/upload/path/
+
+.fi
+.PP
+ See the manual for your \fBFTP\fP proxy to determine the form it expects to set up transfers, and curl's \fC-v\fP option to see exactly what curl is sending\&.
+.SH "Ranges"
+.PP
+\fBHTTP\fP 1\&.1 introduced byte-ranges\&. Using this, a client can request to get only one or more subparts of a specified document\&. Curl supports this with the \fC-r\fP flag\&.
+.PP
+Get the first 100 bytes of a document: 
+.PP
+.nf
+curl -r 0-99 http://www\&.get\&.this/
+
+.fi
+.PP
+ Get the last 500 bytes of a document: 
+.PP
+.nf
+curl -r -500 http://www\&.get\&.this/
+
+.fi
+.PP
+ Curl also supports simple ranges for \fBFTP\fP files as well\&. Then you can only specify start and stop position\&.
+.PP
+Get the first 100 bytes of a document using \fBFTP\fP: 
+.PP
+.nf
+curl -r 0-99 ftp://www\&.get\&.this/README
+
+.fi
+.PP
+ 
+.SH "Uploading"
+.PP
+.SS "FTP / FTPS / SFTP / SCP"
+Upload all data on stdin to a specified server: 
+.PP
+.nf
+curl -T - ftp://ftp\&.upload\&.com/myfile
+
+.fi
+.PP
+ Upload data from a specified file, login with user and password: 
+.PP
+.nf
+curl -T uploadfile -u user:passwd ftp://ftp\&.upload\&.com/myfile
+
+.fi
+.PP
+ Upload a local file to the remote site, and use the local file name at the remote site too: 
+.PP
+.nf
+curl -T uploadfile -u user:passwd ftp://ftp\&.upload\&.com/
+
+.fi
+.PP
+ Upload a local file to get appended to the remote file: 
+.PP
+.nf
+curl -T localfile -a ftp://ftp\&.upload\&.com/remotefile
+
+.fi
+.PP
+ Curl also supports ftp upload through a proxy, but only if the proxy is configured to allow that kind of tunneling\&. If it does, you can run curl in a fashion similar to: 
+.PP
+.nf
+curl --proxytunnel -x proxy:port -T localfile ftp\&.upload\&.com
+
+.fi
+.PP
+ 
+.SS "SMB / SMBS"
+.PP
+.nf
+curl -T file\&.txt -u 'domain\\username:passwd'
+  smb://server\&.example\&.com/share/
+.fi
+.PP
+ 
+.SS "HTTP"
+Upload all data on stdin to a specified \fBHTTP\fP site: 
+.PP
+.nf
+curl -T - http://www\&.upload\&.com/myfile
+
+.fi
+.PP
+ Note that the \fBHTTP\fP server must have been configured to accept PUT before this can be done successfully\&.
+.PP
+For other ways to do \fBHTTP\fP data upload, see the POST section below\&.
+.SH "Verbose / Debug"
+.PP
+If curl fails where it isn't supposed to, if the servers don't let you in, if you can't understand the responses: use the \fC-v\fP flag to get verbose fetching\&. Curl will output lots of info and what it sends and receives in order to let the user see all client-server interaction (but it won't show you the actual data)\&. 
+.PP
+.nf
+curl -v ftp://ftp\&.upload\&.com/
+
+.fi
+.PP
+ To get even more details and information on what curl does, try using the \fC--trace\fP or \fC--trace-ascii\fP options with a given file name to log to, like this: 
+.PP
+.nf
+curl --trace trace\&.txt www\&.haxx\&.se
+
+.fi
+.PP
+.SH "Detailed Information"
+.PP
+Different protocols provide different ways of getting detailed information about specific files/documents\&. To get curl to show detailed information about a single file, you should use \fC-I\fP/\fC--head\fP option\&. It displays all available info on a single file for \fBHTTP\fP and \fBFTP\fP\&. The \fBHTTP\fP information is a lot more extensive\&.
+.PP
+For \fBHTTP\fP, you can get the header information (the same as \fC-I\fP would show) shown before the data by using \fC-i\fP/\fC--include\fP\&. Curl understands the \fC-D\fP/\fC--dump-header\fP option when getting files from both \fBFTP\fP and \fBHTTP\fP, and it will then store the headers in the specified file\&.
+.PP
+Store the \fBHTTP\fP headers in a separate file (headers\&.txt in the example): 
+.PP
+.nf
+  curl --dump-header headers\&.txt curl\&.se
+
+.fi
+.PP
+ Note that headers stored in a separate file can be very useful at a later time if you want curl to use cookies sent by the server\&. More about that in the cookies section\&.
+.SH "POST (HTTP)"
+.PP
+It's easy to post data using curl\&. This is done using the \fC-d <data>\fP option\&. The post data must be urlencoded\&.
+.PP
+Post a simple 'name' and 'phone' guestbook\&. 
+.PP
+.nf
+curl -d 'name=Rafael%20Sagula&phone=3320780' http://www\&.where\&.com/guest\&.cgi
+
+.fi
+.PP
+ How to post a form with curl, lesson #1:
+.PP
+Dig out all the \fC<input>\fP tags in the form that you want to fill in\&.
+.PP
+If there's a 'normal' post, you use \fC-d\fP to post\&. \fC-d\fP takes a full 'post
+string', which is in the format 
+.PP
+.nf
+<variable1>=<data1>&<variable2>=<data2>&\&.\&.\&.
+
+.fi
+.PP
+ The 'variable' names are the names set with \fC'name='\fP in the \fC<input>\fP tags, and the data is the contents you want to fill in for the inputs\&. The data \fImust\fP be properly URL encoded\&. That means you replace space with + and that you replace weird letters with XX where XX is the hexadecimal representation of the letter's ASCII code\&.
+.PP
+Example:
+.PP
+(page located at \fChttp://www.formpost.com/getthis/\fP)
+.PP
+.PP
+.nf
+<form action="post\&.cgi" method="post">
+<input name=user size=10>
+<input name=pass type=password size=10>
+<input name=id type=hidden value="blablabla">
+<input name=ding value="submit">
+</form>
+.fi
+.PP
+.PP
+We want to enter user 'foobar' with password '12345'\&.
+.PP
+To post to this, you enter a curl command line like: 
+.PP
+.nf
+curl -d 'user=foobar&pass=12345&id=blablabla&ding=submit'
+  http://www\&.formpost\&.com/getthis/post\&.cgi
+
+.fi
+.PP
+ While \fC-d\fP uses the application/x-www-form-urlencoded mime-type, generally understood by CGI's and similar, curl also supports the more capable multipart/form-data type\&. This latter type supports things like file upload\&.
+.PP
+\fC-F\fP accepts parameters like \fC-F 'name=contents'\fP\&. If you want the contents to be read from a file, use \fC@filename\fP as contents\&. When specifying a file, you can also specify the file content type by appending \fC;type=<mime type>\fP to the file name\&. You can also post the contents of several files in one field\&. For example, the field name 'coolfiles' is used to send three files, with different content types using the following syntax: 
+.PP
+.nf
+curl -F 'coolfiles=@fil1\&.gif;type=image/gif,fil2\&.txt,fil3\&.html'
+  http://www\&.post\&.com/postit\&.cgi
+
+.fi
+.PP
+ If the content-type is not specified, curl will try to guess from the file extension (it only knows a few), or use the previously specified type (from an earlier file if several files are specified in a list) or else it will use the default type 'application/octet-stream'\&.
+.PP
+Emulate a fill-in form with \fC-F\fP\&. Let's say you fill in three fields in a form\&. One field is a file name which to post, one field is your name and one field is a file description\&. We want to post the file we have written named 'cooltext\&.txt'\&. To let curl do the posting of this data instead of your favourite browser, you have to read the HTML source of the form page and find the names of the input fields\&. In our example, the input field names are 'file', 'yourname' and 'filedescription'\&. 
+.PP
+.nf
+curl -F 'file=@cooltext\&.txt' -F 'yourname=Daniel'
+  -F 'filedescription=Cool text file with cool text inside'
+  http://www\&.post\&.com/postit\&.cgi
+
+.fi
+.PP
+ To send two files in one post you can do it in two ways:
+.PP
+Send multiple files in a single 'field' with a single field name: 
+.PP
+.nf
+curl -F 'pictures=@dog\&.gif,cat\&.gif' $URL
+
+.fi
+.PP
+ Send two fields with two field names 
+.PP
+.nf
+curl -F 'docpicture=@dog\&.gif' -F 'catpicture=@cat\&.gif' $URL
+
+.fi
+.PP
+ To send a field value literally without interpreting a leading \fC@\fP or \fC<\fP, or an embedded \fC;type=\fP, use \fC--form-string\fP instead of \fC-F\fP\&. This is recommended when the value is obtained from a user or some other unpredictable source\&. Under these circumstances, using \fC-F\fP instead of \fC--form-string\fP could allow a user to trick curl into uploading a file\&.
+.SH "Referrer"
+.PP
+An \fBHTTP\fP request has the option to include information about which address referred it to the actual page\&. Curl allows you to specify the referrer to be used on the command line\&. It is especially useful to fool or trick stupid servers or CGI scripts that rely on that information being available or contain certain data\&. 
+.PP
+.nf
+curl -e www\&.coolsite\&.com http://www\&.showme\&.com/
+
+.fi
+.PP
+ 
+.SH "User Agent"
+.PP
+An \fBHTTP\fP request has the option to include information about the browser that generated the request\&. Curl allows it to be specified on the command line\&. It is especially useful to fool or trick stupid servers or CGI scripts that only accept certain browsers\&.
+.PP
+Example: 
+.PP
+.nf
+curl -A 'Mozilla/3\&.0 (Win95; I)' http://www\&.nationsbank\&.com/
+
+.fi
+.PP
+ Other common strings:
+.PP
+.IP "\(bu" 2
+\fCMozilla/3\&.0 (Win95; I)\fP - Netscape Version 3 for Windows 95
+.IP "\(bu" 2
+\fCMozilla/3\&.04 (Win95; U)\fP - Netscape Version 3 for Windows 95
+.IP "\(bu" 2
+\fCMozilla/2\&.02 (OS/2; U)\fP - Netscape Version 2 for OS/2
+.IP "\(bu" 2
+\fCMozilla/4\&.04 [en] (X11; U; AIX 4\&.2; Nav)\fP - Netscape for AIX
+.IP "\(bu" 2
+\fCMozilla/4\&.05 [en] (X11; U; Linux 2\&.0\&.32 i586)\fP - Netscape for Linux
+.PP
+.PP
+Note that Internet Explorer tries hard to be compatible in every way:
+.PP
+.IP "\(bu" 2
+\fCMozilla/4\&.0 (compatible; MSIE 4\&.01; Windows 95)\fP - MSIE for W95
+.PP
+.PP
+Mozilla is not the only possible User-Agent name:
+.PP
+.IP "\(bu" 2
+\fCKonqueror/1\&.0\fP - KDE File Manager desktop client
+.IP "\(bu" 2
+\fCLynx/2\&.7\&.1 libwww-FM/2\&.14\fP - Lynx command line browser
+.PP
+.SH "Cookies"
+.PP
+Cookies are generally used by web servers to keep state information at the client's side\&. The server sets cookies by sending a response line in the headers that looks like \fCSet-Cookie: <data>\fP where the data part then typically contains a set of \fCNAME=VALUE\fP pairs (separated by semicolons \fC;\fP like \fCNAME1=VALUE1; NAME2=VALUE2;\fP)\&. The server can also specify for what path the 'cookie' should be used for (by specifying \fCpath=value\fP), when the cookie should expire (\fCexpire=DATE\fP), for what domain to use it (\fCdomain=NAME\fP) and if it should be used on secure connections only (\fCsecure\fP)\&.
+.PP
+If you've received a page from a server that contains a header like:
+.PP
+.PP
+.nf
+Set\-Cookie: sessionid=boo123; path="/foo";
+.fi
+.PP
+.PP
+it means the server wants that first pair passed on when we get anything in a path beginning with '/foo'\&.
+.PP
+Example, get a page that wants my name passed in a cookie: 
+.PP
+.nf
+curl -b 'name=Daniel' www\&.sillypage\&.com
+
+.fi
+.PP
+ Curl also has the ability to use previously received cookies in following sessions\&. If you get cookies from a server and store them in a file in a manner similar to: 
+.PP
+.nf
+curl --dump-header headers www\&.example\&.com
+
+.fi
+.PP
+ \&.\&.\&. you can then in a second connect to that (or another) site, use the cookies from the 'headers' file like: 
+.PP
+.nf
+curl -b headers www\&.example\&.com
+
+.fi
+.PP
+ While saving headers to a file is a working way to store cookies, it is however error-prone and not the preferred way to do this\&. Instead, make curl save the incoming cookies using the well-known netscape cookie format like this: 
+.PP
+.nf
+curl -c cookies\&.txt www\&.example\&.com
+
+.fi
+.PP
+ Note that by specifying \fC-b\fP you enable the 'cookie awareness' and with \fC-L\fP you can make curl follow a location: (which often is used in combination with cookies)\&. So that if a site sends cookies and a location, you can use a non-existing file to trigger the cookie awareness like: 
+.PP
+.nf
+curl -L -b empty\&.txt www\&.example\&.com
+
+.fi
+.PP
+ The file to read cookies from must be formatted using plain \fBHTTP\fP headers OR as netscape's cookie file\&. Curl will determine what kind it is based on the file contents\&. In the above command, curl will parse the header and store the cookies received from www\&.example\&.com\&. curl will send to the server the stored cookies which match the request as it follows the location\&. The file 'empty\&.txt' may be a nonexistent file\&.
+.PP
+To read and write cookies from a netscape cookie file, you can set both \fC-b\fP and \fC-c\fP to use the same file: 
+.PP
+.nf
+curl -b cookies\&.txt -c cookies\&.txt www\&.example\&.com
+
+.fi
+.PP
+ 
+.SH "Progress Meter"
+.PP
+The progress meter exists to show a user that something actually is happening\&. The different fields in the output have the following meaning: 
+.PP
+.nf
+% Total    % Received % Xferd  Average Speed          Time             Curr\&.
+                               Dload  Upload Total    Current  Left    Speed
+0  151M    0 38608    0     0   9406      0  4:41:43  0:00:04  4:41:39  9287
+
+.fi
+.PP
+ From left-to-right:
+.PP
+.IP "\(bu" 2
+% - percentage completed of the whole transfer
+.IP "\(bu" 2
+Total - total size of the whole expected transfer
+.IP "\(bu" 2
+% - percentage completed of the download
+.IP "\(bu" 2
+Received - currently downloaded amount of bytes
+.IP "\(bu" 2
+% - percentage completed of the upload
+.IP "\(bu" 2
+Xferd - currently uploaded amount of bytes
+.IP "\(bu" 2
+Average Speed Dload - the average transfer speed of the download
+.IP "\(bu" 2
+Average Speed Upload - the average transfer speed of the upload
+.IP "\(bu" 2
+Time Total - expected time to complete the operation
+.IP "\(bu" 2
+Time Current - time passed since the invoke
+.IP "\(bu" 2
+Time Left - expected time left to completion
+.IP "\(bu" 2
+Curr\&.Speed - the average transfer speed the last 5 seconds (the first 5 seconds of a transfer is based on less time of course\&.)
+.PP
+.PP
+The \fC-#\fP option will display a totally different progress bar that doesn't need much explanation!
+.SH "Speed Limit"
+.PP
+Curl allows the user to set the transfer speed conditions that must be met to let the transfer keep going\&. By using the switch \fC-y\fP and \fC-Y\fP you can make curl abort transfers if the transfer speed is below the specified lowest limit for a specified time\&.
+.PP
+To have curl abort the download if the speed is slower than 3000 bytes per second for 1 minute, run: 
+.PP
+.nf
+curl -Y 3000 -y 60 www\&.far-away-site\&.com
+
+.fi
+.PP
+ This can very well be used in combination with the overall time limit, so that the above operation must be completed in whole within 30 minutes: 
+.PP
+.nf
+curl -m 1800 -Y 3000 -y 60 www\&.far-away-site\&.com
+
+.fi
+.PP
+ Forcing curl not to transfer data faster than a given rate is also possible, which might be useful if you're using a limited bandwidth connection and you don't want your transfer to use all of it (sometimes referred to as 'bandwidth throttle')\&.
+.PP
+Make curl transfer data no faster than 10 kilobytes per second: 
+.PP
+.nf
+curl --limit-rate 10K www\&.far-away-site\&.com
+
+.fi
+.PP
+ or 
+.PP
+.nf
+curl --limit-rate 10240 www\&.far-away-site\&.com
+
+.fi
+.PP
+ Or prevent curl from uploading data faster than 1 megabyte per second: 
+.PP
+.nf
+curl -T upload --limit-rate 1M ftp://uploadshereplease\&.com
+
+.fi
+.PP
+ When using the \fC--limit-rate\fP option, the transfer rate is regulated on a per-second basis, which will cause the total transfer speed to become lower than the given number\&. Sometimes of course substantially lower, if your transfer stalls during periods\&.
+.SH "Config File"
+.PP
+Curl automatically tries to read the \fC\&.curlrc\fP file (or \fC_curlrc\fP file on Microsoft Windows systems) from the user's home dir on startup\&.
+.PP
+The config file could be made up with normal command line switches, but you can also specify the long options without the dashes to make it more readable\&. You can separate the options and the parameter with spaces, or with \fC=\fP or \fC:\fP\&. Comments can be used within the file\&. If the first letter on a line is a \fC#\fP-symbol the rest of the line is treated as a comment\&.
+.PP
+If you want the parameter to contain spaces, you must enclose the entire parameter within double quotes (\fC'</tt>)\&. Within those quotes, you specify a quote
+as <tt>\\\\'</tt>\&.
+
+NOTE: You must specify options and their arguments on the same line\&.
+
+Example, set default time out and proxy in a config file:
+@iverbatim 
+# We want a 30 minute timeout:
+-m 1800
+# \&.\&.\&. and we use a proxy for all accesses:
+proxy = proxy\&.our\&.domain\&.com:8080
+@endiverbatim
+Whitespaces ARE significant at the end of lines, but all whitespace leading
+up to the first characters of each line are ignored\&.
+
+Prevent curl from reading the default file by using -q as the first command
+line parameter, like:
+@iverbatim 
+curl -q www\&.thatsite\&.com
+@endiverbatim
+Force curl to get and display a local help page in case it is invoked without
+URL by making a config file similar to:
+@iverbatim 
+# default url to get
+url = 'http://help.with.curl.com/curlhelp.html'
+@endiverbatim
+You can specify another config file to be read by using the <tt>-K</tt>/<tt>--config</tt>
+flag\&. If you set config file name to <tt>-</tt> it'll read the config from stdin,
+which can be handy if you want to hide options from being visible in process
+tables etc:
+@iverbatim 
+echo 'user = user:passwd' | curl -K - http://that\&.secret\&.site\&.com
+@endiverbatim
+@section autotoc_md1112 Extra Headers
+
+When using curl in your own very special programs, you may end up needing
+to pass on your own custom headers when getting a web page\&. You can do
+this by using the <tt>-H</tt> flag\&.
+
+Example, send the header <tt>X-you-and-me: yes</tt> to the server when getting a
+page:
+@iverbatim 
+curl -H 'X-you-and-me: yes' www\&.love\&.com
+@endiverbatim
+This can also be useful in case you want curl to send a different text in a
+header than it normally does\&. The <tt>-H</tt> header you specify then replaces the
+header curl would normally send\&. If you replace an internal header with an
+empty one, you prevent that header from being sent\&. To prevent the <tt>Host:</tt>
+header from being used:
+@iverbatim 
+curl -H 'Host:' www\&.server\&.com
+@endiverbatim
+@section autotoc_md1113 FTP and Path Names
+
+Do note that when getting files with a <tt>ftp://</tt> URL, the given path is
+relative the directory you enter\&. To get the file <tt>README</tt> from your home
+directory at your ftp site, do:
+@iverbatim 
+curl ftp://user:passwd@my\&.site\&.com/README
+@endiverbatim
+But if you want the README file from the root directory of that very same
+site, you need to specify the absolute file name:
+@iverbatim 
+curl ftp://user:passwd@my\&.site\&.com//README
+@endiverbatim
+(I\&.e with an extra slash in front of the file name\&.)
+
+@section autotoc_md1114 SFTP and SCP and Path Names
+
+With sftp: and scp: URLs, the path name given is the absolute name on the
+server\&. To access a file relative to the remote user's home directory, prefix
+the file with <tt>/~/</tt> , such as:
+@iverbatim 
+curl -u $USER sftp://home\&.example\&.com/~/\&.bashrc
+@endiverbatim
+@section autotoc_md1115 FTP and Firewalls
+
+The FTP protocol requires one of the involved parties to open a second
+connection as soon as data is about to get transferred\&. There are two ways to
+do this\&.
+
+The default way for curl is to issue the PASV command which causes the server
+to open another port and await another connection performed by the
+client\&. This is good if the client is behind a firewall that doesn't allow
+incoming connections\&.
+@iverbatim 
+curl ftp\&.download\&.com
+@endiverbatim
+If the server, for example, is behind a firewall that doesn't allow
+connections on ports other than 21 (or if it just doesn't support the <tt>PASV</tt>
+command), the other way to do it is to use the <tt>PORT</tt> command and instruct the
+server to connect to the client on the given IP number and port (as parameters
+to the PORT command)\&.
+
+The <tt>-P</tt> flag to curl supports a few different options\&. Your machine may have
+several IP-addresses and/or network interfaces and curl allows you to select
+which of them to use\&. Default address can also be used:
+@iverbatim 
+curl -P - ftp\&.download\&.com
+@endiverbatim
+Download with <tt>PORT</tt> but use the IP address of our <tt>le0</tt> interface (this does
+not work on windows):
+@iverbatim 
+curl -P le0 ftp\&.download\&.com
+@endiverbatim
+Download with <tt>PORT</tt> but use 192\&.168\&.0\&.10 as our IP address to use:
+@iverbatim 
+curl -P 192\&.168\&.0\&.10 ftp\&.download\&.com
+@endiverbatim
+@section autotoc_md1116 Network Interface
+
+Get a web page from a server using a specified port for the interface:
+@iverbatim 
+curl --interface eth0:1 http://www\&.example\&.com/
+@endiverbatim
+or
+@iverbatim 
+curl --interface 192\&.168\&.1\&.10 http://www\&.example\&.com/
+@endiverbatim
+@section autotoc_md1117 HTTPS
+
+Secure HTTP requires a TLS library to be installed and used when curl is
+built\&. If that is done, curl is capable of retrieving and posting documents
+using the HTTPS protocol\&.
+
+Example:
+@iverbatim 
+curl https://www\&.secure-site\&.com
+@endiverbatim
+curl is also capable of using client certificates to get/post files from sites
+that require valid certificates\&. The only drawback is that the certificate
+needs to be in PEM-format\&. PEM is a standard and open format to store
+certificates with, but it is not used by the most commonly used browsers\&. If
+you want curl to use the certificates you use with your (favourite) browser,
+you may need to download/compile a converter that can convert your browser's
+formatted certificates to PEM formatted ones\&.
+
+Example on how to automatically retrieve a document using a certificate with a
+personal password:
+@iverbatim 
+curl -E /path/to/cert\&.pem:password https://secure\&.site\&.com/
+@endiverbatim
+If you neglect to specify the password on the command line, you will be
+prompted for the correct password before any data can be received\&.
+
+Many older HTTPS servers have problems with specific SSL or TLS versions,
+which newer versions of OpenSSL etc use, therefore it is sometimes useful to
+specify what SSL-version curl should use\&. Use -3, -2 or -1 to specify that
+exact SSL version to use (for SSLv3, SSLv2 or TLSv1 respectively):
+@iverbatim 
+curl -2 https://secure\&.site\&.com/
+@endiverbatim
+Otherwise, curl will attempt to use a sensible TLS default version\&.
+
+@section autotoc_md1118 Resuming File Transfers
+
+To continue a file transfer where it was previously aborted, curl supports
+resume on HTTP(S) downloads as well as FTP uploads and downloads\&.
+
+Continue downloading a document:
+@iverbatim 
+curl -C - -o file ftp://ftp\&.server\&.com/path/file
+@endiverbatim
+Continue uploading a document:
+@iverbatim 
+curl -C - -T file ftp://ftp\&.server\&.com/path/file
+@endiverbatim
+Continue downloading a document from a web server
+@iverbatim 
+curl -C - -o file http://www\&.server\&.com/
+@endiverbatim
+@section autotoc_md1119 Time Conditions
+
+HTTP allows a client to specify a time condition for the document it requests\&.
+It is <tt>If-Modified-Since</tt> or <tt>If-Unmodified-Since</tt>\&. curl allows you to specify
+them with the <tt>-z</tt>/<tt>--time-cond</tt> flag\&.
+
+For example, you can easily make a download that only gets performed if the
+remote file is newer than a local copy\&. It would be made like:
+@iverbatim 
+curl -z local\&.html http://remote\&.server\&.com/remote\&.html
+@endiverbatim
+Or you can download a file only if the local file is newer than the remote
+one\&. Do this by prepending the date string with a <tt>-</tt>, as in:
+@iverbatim 
+curl -z -local\&.html http://remote\&.server\&.com/remote\&.html
+@endiverbatim
+You can specify a 'free text' date as condition\&. Tell curl to only download
+the file if it was updated since January 12, 2012:
+@iverbatim 
+curl -z 'Jan 12 2012' http://remote\&.server\&.com/remote\&.html
+@endiverbatim
+Curl will then accept a wide range of date formats\&. You always make the date
+check the other way around by prepending it with a dash (<tt>-</tt>)\&.
+
+@section autotoc_md1120 DICT
+
+For fun try
+@iverbatim 
+curl dict://dict\&.org/m:curl
+curl dict://dict\&.org/d:heisenbug:jargon
+curl dict://dict\&.org/d:daniel:gcide
+@endiverbatim
+Aliases for 'm' are 'match' and 'find', and aliases for 'd' are 'define' and
+'lookup'\&. For example,
+@iverbatim 
+curl dict://dict\&.org/find:curl
+@endiverbatim
+Commands that break the URL description of the RFC (but not the DICT
+protocol) are
+@iverbatim 
+curl dict://dict\&.org/show:db
+curl dict://dict\&.org/show:strat
+@endiverbatim
+Authentication support is still missing
+
+@section autotoc_md1121 LDAP
+
+If you have installed the OpenLDAP library, curl can take advantage of it and
+offer <tt>ldap://</tt> support\&.  On Windows, curl will use WinLDAP from Platform SDK
+by default\&.
+
+Default protocol version used by curl is LDAPv3\&. LDAPv2 will be used as
+fallback mechanism in case if LDAPv3 will fail to connect\&.
+
+LDAP is a complex thing and writing an LDAP query is not an easy task\&. I do
+advise you to dig up the syntax description for that elsewhere\&. One such place
+might be: <a href='https://curl.se/rfc/rfc2255.txt'
+ >RFC 2255, The LDAP URL Format</a>
+
+To show you an example, this is how I can get all people from my local LDAP
+server that has a certain sub-domain in their email address:
+@iverbatim 
+curl -B 'ldap://ldap\&.frontec\&.se/o=frontec??sub?mail=*sth\&.frontec\&.se'
+@endiverbatim
+If I want the same info in HTML format, I can get it by not using the <tt>-B</tt>
+(enforce ASCII) flag\&.
+
+You also can use authentication when accessing LDAP catalog:
+@iverbatim 
+curl -u user:passwd 'ldap://ldap\&.frontec\&.se/o=frontec??sub?mail=*'
+curl 'ldap://user:passwd@ldap.frontec.se/o=frontec??sub?mail=*'
+@endiverbatim
+By default, if user and password provided, OpenLDAP/WinLDAP will use basic
+authentication\&. On Windows you can control this behavior by providing one of
+<tt>--basic</tt>, <tt>--ntlm</tt> or <tt>--digest</tt> option in curl command line
+@iverbatim 
+curl --ntlm 'ldap://user:passwd@ldap.frontec.se/o=frontec??sub?mail=*"  On Windows, if no user/password specified, auto-negotiation mechanism will be used with current logon credentials (SSPI/SPNEGO)\&.\fP
+.PP
+\fC\fP
+.SH "Environment Variables"
+.PP
+\fC Curl reads and understands the following environment variables: 
+.PP
+.nf
+http_proxy, HTTPS_PROXY, FTP_PROXY
+
+.fi
+.PP
+ They should be set for protocol-specific proxies\&. General proxy should be set with 
+.PP
+.nf
+ALL_PROXY
+
+.fi
+.PP
+ \fBA\fP comma-separated list of host names that shouldn't go through any proxy is set in (only an asterisk, \fC*\fP matches all hosts) 
+.PP
+.nf
+NO_PROXY
+
+.fi
+.PP
+ If the host name matches one of these strings, or the host is within the domain of one of these strings, transactions with that node will not be proxied\&. When a domain is used, it needs to start with a period\&. \fBA\fP user can specify that both www\&.example\&.com and foo\&.example\&.com should not use a proxy by setting \fCNO_PROXY\fP to \fC\&.example\&.com\fP\&. By including the full name you can exclude specific host names, so to make \fCwww\&.example\&.com\fP not use a proxy but still have \fCfoo\&.example\&.com\fP do it, set \fCNO_PROXY\fP to \fCwww\&.example\&.com\fP\&.\fP
+.PP
+\fCThe usage of the \fC-x\fP/\fC--proxy\fP flag overrides the environment variables\&.\fP
+.PP
+\fC\fP
+.SH "Netrc"
+.PP
+\fC Unix introduced the \fC\&.netrc\fP concept a long time ago\&. It is a way for a user to specify name and password for commonly visited \fBFTP\fP sites in a file so that you don't have to type them in each time you visit those sites\&. You realize this is a big security risk if someone else gets hold of your passwords, so therefore most unix programs won't read this file unless it is only readable by yourself (curl doesn't care though)\&.\fP
+.PP
+\fCCurl supports \fC\&.netrc\fP files if told to (using the \fC-n\fP/\fC--netrc\fP and \fC--netrc-optional\fP options)\&. This is not restricted to just \fBFTP\fP, so curl can use it for all protocols where authentication is used\&.\fP
+.PP
+\fC\fBA\fP very simple \fC\&.netrc\fP file could look something like: 
+.PP
+.nf
+machine curl\&.se login iamdaniel password mysecret
+
+.fi
+.PP
+ \fP
+.SH "Custom Output"
+.PP
+\fC To better allow script programmers to get to know about the progress of curl, the \fC-w\fP/\fC--write-out\fP option was introduced\&. Using this, you can specify what information from the previous transfer you want to extract\&.\fP
+.PP
+\fCTo display the amount of bytes downloaded together with some text and an ending newline: 
+.PP
+.nf
+curl -w 'We downloaded %{size_download} bytes\\n' www\&.download\&.com
+
+.fi
+.PP
+ \fP
+.SH "Kerberos FTP Transfer"
+.PP
+\fC Curl supports kerberos4 and kerberos5/GSSAPI for \fBFTP\fP transfers\&. You need the kerberos package installed and used at curl build time for it to be available\&.\fP
+.PP
+\fCFirst, get the krb-ticket the normal way, like with the kinit/kauth tool\&. Then use curl in way similar to: 
+.PP
+.nf
+curl --krb private ftp://krb4site\&.com -u username:fakepwd
+
+.fi
+.PP
+ There's no use for a password on the \fC-u\fP switch, but a blank one will make curl ask for one and you already entered the real password to kinit/kauth\&.\fP
+.PP
+\fC\fP
+.SH "TELNET"
+.PP
+\fC The curl telnet support is basic and very easy to use\&. Curl passes all data passed to it on stdin to the remote server\&. Connect to a remote telnet server using a command line similar to: 
+.PP
+.nf
+curl telnet://remote\&.server\&.com
+
+.fi
+.PP
+ And enter the data to pass to the server on stdin\&. The result will be sent to stdout or to the file you specify with \fC-o\fP\&.\fP
+.PP
+\fCYou might want the \fC-N\fP/\fC--no-buffer\fP option to switch off the buffered output for slow connections or similar\&.\fP
+.PP
+\fCPass options to the telnet protocol negotiation, by using the \fC-t\fP option\&. To tell the server we use a vt100 terminal, try something like: 
+.PP
+.nf
+curl -tTTYPE=vt100 telnet://remote\&.server\&.com
+
+.fi
+.PP
+ Other interesting options for it \fC-t\fP include:\fP
+.PP
+\fC
+.IP "\(bu" 2
+\fCXDISPLOC=<X display>\fP Sets the X display location\&.
+.IP "\(bu" 2
+\fCNEW_ENV=<var,val>\fP Sets an environment variable\&.
+.PP
+\fP
+.PP
+\fCNOTE: The telnet protocol does not specify any way to login with a specified user and password so curl can't do that automatically\&. To do that, you need to track when the login prompt is received and send the username and password accordingly\&.\fP
+.PP
+\fC\fP
+.SH "Persistent Connections"
+.PP
+\fC Specifying multiple files on a single command line will make curl transfer all of them, one after the other in the specified order\&.\fP
+.PP
+\fClibcurl will attempt to use persistent connections for the transfers so that the second transfer to the same host can use the same connection that was already initiated and was left open in the previous transfer\&. This greatly decreases connection time for all but the first transfer and it makes a far better use of the network\&.\fP
+.PP
+\fCNote that curl cannot use persistent connections for transfers that are used in subsequence curl invokes\&. Try to stuff as many URLs as possible on the same command line if they are using the same host, as that'll make the transfers faster\&. If you use an \fBHTTP\fP proxy for file transfers, practically all transfers will be persistent\&.\fP
+.PP
+\fC\fP
+.SH "Multiple Transfers With A Single Command Line"
+.PP
+\fC As is mentioned above, you can download multiple files with one command line by simply adding more URLs\&. If you want those to get saved to a local file instead of just printed to stdout, you need to add one save option for each URL you specify\&. Note that this also goes for the \fC-\fBO\fP\fP option (but not \fC--remote-name-all\fP)\&.\fP
+.PP
+\fCFor example: get two files and use \fC-\fBO\fP\fP for the first and a custom file name for the second: 
+.PP
+.nf
+curl -O http://url\&.com/file\&.txt ftp://ftp\&.com/moo\&.exe -o moo\&.jpg
+
+.fi
+.PP
+ You can also upload multiple files in a similar fashion: 
+.PP
+.nf
+curl -T local1 ftp://ftp\&.com/moo\&.exe -T local2 ftp://ftp\&.com/moo2\&.txt
+
+.fi
+.PP
+ \fP
+.SH "IPv6"
+.PP
+\fC curl will connect to a server with IPv6 when a host lookup returns an IPv6 address and fall back to IPv4 if the connection fails\&. The \fC--ipv4\fP and \fC--ipv6\fP options can specify which address to use when both are available\&. IPv6 addresses can also be specified directly in URLs using the syntax: 
+.PP
+.nf
+http://[2001:1890:1112:1::20]/overview\&.html
+
+.fi
+.PP
+ When this style is used, the \fC-g\fP option must be given to stop curl from interpreting the square brackets as special globbing characters\&. Link local and site local addresses including a scope identifier, such as \fCfe80::1234%1\fP, may also be used, but the scope portion must be numeric or match an existing network interface on Linux and the percent character must be URL escaped\&. The previous example in an SFTP URL might look like: 
+.PP
+.nf
+sftp://[fe80::1234%251]/
+
+.fi
+.PP
+ IPv6 addresses provided other than in URLs (e\&.g\&. to the \fC--proxy\fP, \fC--interface\fP or \fC--ftp-port\fP options) should not be URL encoded\&.\fP
+.PP
+\fC\fP
+.SH "Mailing Lists"
+.PP
+\fC For your convenience, we have several open mailing lists to discuss curl, its development and things relevant to this\&. Get all info at https://curl.se/mail/\&.\fP
+.PP
+\fCPlease direct curl questions, feature requests and trouble reports to one of these mailing lists instead of mailing any individual\&.\fP
+.PP
+\fCAvailable lists include:\fP
+.PP
+\fC\fP
+.SS "curl-users"
+\fC Users of the command line tool\&. How to use it, what doesn't work, new features, related tools, questions, news, installations, compilations, running, porting etc\&.\fP
+.PP
+\fC\fP
+.SS "curl-library"
+\fC Developers using or developing libcurl\&. Bugs, extensions, improvements\&.\fP
+.PP
+\fC\fP
+.SS "curl-announce"
+\fC Low-traffic\&. Only receives announcements of new public versions\&. At worst, that makes something like one or two mails per month, but usually only one mail every second month\&.\fP
+.PP
+\fC\fP
+.SS "curl-and-php"
+\fC Using the curl functions in PHP\&. Everything curl with a PHP angle\&. Or PHP with a curl angle\&.\fP
+.PP
+\fC\fP
+.SS "curl-and-python"
+\fC Python hackers using curl with or without the python binding pycurl\&. \fP

@@ -1,0 +1,768 @@
+\hypertarget{intertwiners_8h_source}{}\doxysection{intertwiners.\+h}
+\label{intertwiners_8h_source}\index{AseSprite/aseprite/src/app/tools/intertwiners.h@{AseSprite/aseprite/src/app/tools/intertwiners.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}base/pi.h"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}doc/layer\_tilemap.h"{}}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00012\ \textcolor{keyword}{namespace\ }tools\ \{}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structapp_1_1tools_1_1_line_data2}{LineData2}}\ \{}
+\DoxyCodeLine{00015\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_intertwine_1_1_line_data}{Intertwine::LineData}}\ head;}
+\DoxyCodeLine{00016\ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output;}
+\DoxyCodeLine{00017\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_line_data2}{LineData2}}(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ b,}
+\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output)}
+\DoxyCodeLine{00019\ \ \ \ \ :\ head(loop,\ \mbox{\hyperlink{structa}{a}},\ b)}
+\DoxyCodeLine{00020\ \ \ \ \ ,\ output(output)\ \{}
+\DoxyCodeLine{00021\ \ \ \}}
+\DoxyCodeLine{00022\ \};}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ addPointsWithoutDuplicatingLastOne(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \mbox{\hyperlink{structapp_1_1tools_1_1_line_data2}{LineData2}}*\ \mbox{\hyperlink{structdata}{data}})}
+\DoxyCodeLine{00025\ \{}
+\DoxyCodeLine{00026\ \ \ \mbox{\hyperlink{structdata}{data}}-\/>head.doStep(x,\ y);}
+\DoxyCodeLine{00027\ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structdata}{data}}-\/>output.empty()\ ||}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \mbox{\hyperlink{structdata}{data}}-\/>output.lastPoint()\ !=\ \mbox{\hyperlink{structdata}{data}}-\/>head.pt)\ \{}
+\DoxyCodeLine{00029\ \ \ \ \ \mbox{\hyperlink{structdata}{data}}-\/>output.addPoint(\mbox{\hyperlink{structdata}{data}}-\/>head.pt);}
+\DoxyCodeLine{00030\ \ \ \}}
+\DoxyCodeLine{00031\ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_intertwine_none}{IntertwineNone}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}\ \{}
+\DoxyCodeLine{00034\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \textcolor{keywordtype}{void}\ joinStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c<stroke.size();\ ++c)}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ doPointshapeStrokePt(stroke[c],\ loop);}
+\DoxyCodeLine{00039\ \ \ \}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \textcolor{keywordtype}{void}\ fillStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00042\ \ \ \ \ joinStroke(loop,\ stroke);}
+\DoxyCodeLine{00043\ \ \ \}}
+\DoxyCodeLine{00044\ \};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_intertwine_first_point}{IntertwineFirstPoint}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}\ \{}
+\DoxyCodeLine{00047\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00048\ \ \ \textcolor{comment}{//\ Snap\ angle\ because\ the\ angle\ between\ the\ first\ point\ and\ the\ last}}
+\DoxyCodeLine{00049\ \ \ \textcolor{comment}{//\ point\ might\ be\ useful\ for\ the\ ink\ (e.g.\ the\ gradient\ ink)}}
+\DoxyCodeLine{00050\ \ \ \textcolor{keywordtype}{bool}\ snapByAngle()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \textcolor{keywordtype}{void}\ joinStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.empty())}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ mid;}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getController()-\/>isTwoPoints()\ \&\&}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{int}(loop-\/>getModifiers())\ \&\ \textcolor{keywordtype}{int}(ToolLoopModifiers::kFromCenter)))\ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ n\ =\ 0;}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\ pt\ :\ stroke)\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ mid.x\ +=\ pt.x;}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ mid.y\ +=\ pt.y;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ ++n;}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ mid.x\ /=\ n;}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ mid.y\ /=\ n;}
+\DoxyCodeLine{00068\ \ \ \ \ \}}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ mid\ =\ stroke[0].toPoint();}
+\DoxyCodeLine{00071\ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ doPointshapePoint(mid.x,\ mid.y,\ loop);}
+\DoxyCodeLine{00074\ \ \ \}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordtype}{void}\ fillStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00077\ \ \ \ \ joinStroke(loop,\ stroke);}
+\DoxyCodeLine{00078\ \ \ \}}
+\DoxyCodeLine{00079\ \};}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_intertwine_as_lines}{IntertwineAsLines}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}\ \{}
+\DoxyCodeLine{00082\ \ \ \textcolor{comment}{//\ It\ was\ introduced\ to\ know\ if\ joinStroke\ function}}
+\DoxyCodeLine{00083\ \ \ \textcolor{comment}{//\ was\ executed\ inmediatelly\ after\ a\ "{}Last"{}\ trace\ policy\ (i.e.\ after\ the}}
+\DoxyCodeLine{00084\ \ \ \textcolor{comment}{//\ user\ confirms\ a\ line\ draw\ while\ he\ is\ holding\ down\ the\ SHIFT\ key),\ so}}
+\DoxyCodeLine{00085\ \ \ \textcolor{comment}{//\ we\ have\ to\ ignore\ printing\ the\ first\ pixel\ of\ the\ line.}}
+\DoxyCodeLine{00086\ \ \ \textcolor{keywordtype}{bool}\ m\_retainedTracePolicyLast\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \textcolor{comment}{//\ In\ freehand-\/like\ tools,\ on\ each\ mouse\ movement\ we\ draw\ only\ the}}
+\DoxyCodeLine{00089\ \ \ \textcolor{comment}{//\ line\ between\ the\ last\ two\ mouse\ points\ in\ the\ stroke\ (the}}
+\DoxyCodeLine{00090\ \ \ \textcolor{comment}{//\ complete\ stroke\ is\ not\ re-\/painted\ again),\ so\ we\ want\ to\ indicate}}
+\DoxyCodeLine{00091\ \ \ \textcolor{comment}{//\ if\ this\ is\ the\ first\ stroke\ of\ all\ (the\ only\ one\ that\ needs\ the}}
+\DoxyCodeLine{00092\ \ \ \textcolor{comment}{//\ first\ pixel\ of\ the\ line\ algorithm)}}
+\DoxyCodeLine{00093\ \ \ \textcolor{keywordtype}{bool}\ m\_firstStroke\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00096\ \ \ \textcolor{keywordtype}{bool}\ snapByAngle()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordtype}{void}\ prepareIntertwine(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00099\ \ \ \ \ m\_retainedTracePolicyLast\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00100\ \ \ \ \ m\_firstStroke\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00101\ \ \ \}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \textcolor{keywordtype}{void}\ joinStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ Required\ for\ LineFreehand\ controller\ in\ the\ first\ stage,\ when}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{comment}{//\ we\ are\ drawing\ the\ line\ and\ the\ trace\ policy\ is\ "{}Last"{}.\ Each}}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{comment}{//\ new\ joinStroke()\ is\ like\ a\ fresh\ start.\ \ Without\ this\ fix,\ the}}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{comment}{//\ first\ stage\ on\ LineFreehand\ will\ draw\ a\ "{}star"{}\ like\ pattern}}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{comment}{//\ with\ lines\ from\ the\ first\ point\ to\ the\ last\ point.}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getTracePolicy()\ ==\ TracePolicy::Last)}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ m\_retainedTracePolicyLast\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 0)}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 1)\ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ doPointshapeStrokePt(stroke[0],\ loop);}
+\DoxyCodeLine{00116\ \ \ \ \ \}}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\ pts;}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c+1<stroke.size();\ ++c)\ \{}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ lineAlgo\ =\ getLineAlgo(loop,\ stroke[c],\ stroke[c+1]);}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_line_data2}{LineData2}}\ lineData(loop,\ stroke[c],\ stroke[c+1],\ pts);}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ lineAlgo(stroke[c].x,\ stroke[c].y,}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke[c+1].x,\ stroke[c+1].y,}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void}*)\&lineData,}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (AlgoPixel)\&addPointsWithoutDuplicatingLastOne);}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \textcolor{comment}{//\ Don't\ draw\ the\ first\ point\ in\ freehand\ tools\ (this\ is\ to}}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \textcolor{comment}{//\ avoid\ painting\ above\ the\ last\ pixel\ of\ a\ freehand\ stroke,}}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \textcolor{comment}{//\ when\ we\ use\ Shift+click\ in\ the\ Pencil\ tool\ to\ continue\ the}}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \textcolor{comment}{//\ old\ stroke).}}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ useful\ only\ in\ the\ case\ when\ brush\ size\ =\ 1px}}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ start\ =}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ (loop-\/>getController()-\/>isFreehand()\ \&\&}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ (m\_retainedTracePolicyLast\ ||\ !m\_firstStroke)\ ?\ 1:\ 0);}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=start;\ c<pts.size();\ ++c)}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ doPointshapeStrokePt(pts[c],\ loop);}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \textcolor{comment}{//\ Closed\ shape\ (polygon\ outline)}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \textcolor{comment}{//\ Note:\ Contour\ tool\ was\ getting\ into\ the\ condition\ with\ no\ need,\ so}}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \textcolor{comment}{//\ we\ add\ the\ \&\&\ !isFreehand\ to\ detect\ this\ circunstance.}}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \textcolor{comment}{//\ When\ this\ is\ missing,\ we\ have\ problems\ previewing\ the\ stroke\ of}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \textcolor{comment}{//\ contour\ tool,\ with\ brush\ type\ =\ kImageBrush\ with\ alpha\ content\ and}}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \textcolor{comment}{//\ with\ not\ Pixel\ Perfect\ pencil\ mode.}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getFilled()\ \&\&\ !loop-\/>getController()-\/>isFreehand())\ \{}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ doPointshapeLine(stroke[stroke.size()-\/1],\ stroke[0],\ loop);}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00149\ \ \ \ \ \}}
+\DoxyCodeLine{00150\ \ \ \ \ m\_firstStroke\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00151\ \ \ \}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \ \ \textcolor{keywordtype}{void}\ fillStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#if\ 0}}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{comment}{//\ We\ prefer\ to\ use\ doc::algorithm::polygon()\ directly\ instead\ of}}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{comment}{//\ joinStroke()\ for\ the\ simplest\ cases\ (i.e.\ stroke.size()\ <\ 3\ is}}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{comment}{//\ one\ point,\ or\ a\ line\ with\ two\ points),\ because\ if\ we\ use}}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{comment}{//\ joinStroke(),\ we'll\ get\ some\ undesirable\ behaviors\ of\ the}}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{comment}{//\ Shift+click\ considerations.\ E.g.\ not\ drawing\ the\ first\ pixel}}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{comment}{//\ (or\ nothing\ at\ all)\ because\ it\ can\ been\ seen\ as\ the}}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{comment}{//\ continuation\ of\ the\ previous\ last\ point.\ An\ specific\ example\ is}}
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{comment}{//\ when\ stroke[0]\ ==\ stroke[1],\ joinStroke()\ assumes\ that\ it\ has}}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{comment}{//\ to\ draw\ a\ stroke\ with\ 2\ pixels,\ but\ when\ the\ stroke\ is}}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{comment}{//\ converted\ to\ "{}pts"{},\ "{}pts"{}\ has\ just\ one\ point,\ then\ if\ the\ first}}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{comment}{//\ one\ has\ to\ be\ discarded\ no\ pixel\ is\ drawn.}}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ <\ 3)\ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ joinStroke(loop,\ stroke);}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00169\ \ \ \ \ \}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{comment}{//\ Fill\ content}}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{keyword}{auto}\ v\ =\ stroke.toXYInts();}
+\DoxyCodeLine{00174\ \ \ \ \ doc::algorithm::polygon(}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ v.size()/2,\ \&v[0],}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ loop,\ (AlgoHLine)doPointshapeHline);}
+\DoxyCodeLine{00177\ \ \ \}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \};}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_intertwine_as_rectangles}{IntertwineAsRectangles}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}\ \{}
+\DoxyCodeLine{00182\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \ \ \textcolor{keywordtype}{void}\ joinStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 0)}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 1)\ \{}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ doPointshapePoint(stroke[0].x,\ stroke[0].y,\ loop);}
+\DoxyCodeLine{00190\ \ \ \ \ \}}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.size()\ >=\ 2)\ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c+1<stroke.size();\ ++c)\ \{}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ fix\ this\ with\ strokes\ and\ dynamics}}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x1\ =\ stroke[c].x;}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y1\ =\ stroke[c].y;}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x2\ =\ stroke[c+1].x;}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y2\ =\ stroke[c+1].y;}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y;}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ >\ x2)\ std::swap(x1,\ x2);}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ >\ y2)\ std::swap(y1,\ y2);}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle\ =\ loop-\/>getController()-\/>getShapeAngle();}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ABS(angle)\ <\ 0.001)\ \{}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ doPointshapeLineWithoutDynamics(x1,\ y1,\ x2,\ y1,\ loop);}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ doPointshapeLineWithoutDynamics(x1,\ y2,\ x2,\ y2,\ loop);}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (y=y1;\ y<=y2;\ y++)\ \{}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ doPointshapePoint(x1,\ y,\ loop);}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ doPointshapePoint(x2,\ y,\ loop);}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\ p\ =\ rotateRectangle(x1,\ y1,\ x2,\ y2,\ angle);}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ n\ =\ p.size();}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i=0;\ i+1<n;\ ++i)\ \{}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ doPointshapeLine(p[i],\ p[i+1],\ loop);}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ doPointshapeLine(p[n-\/1],\ p[0],\ loop);}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00222\ \ \ \ \ \}}
+\DoxyCodeLine{00223\ \ \ \}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \ \ \textcolor{keywordtype}{void}\ fillStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ <\ 2)\ \{}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ joinStroke(loop,\ stroke);}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00229\ \ \ \ \ \}}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c+1<stroke.size();\ ++c)\ \{}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x1\ =\ stroke[c].x;}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y1\ =\ stroke[c].y;}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x2\ =\ stroke[c+1].x;}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y2\ =\ stroke[c+1].y;}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y;}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ >\ x2)\ std::swap(x1,\ x2);}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ >\ y2)\ std::swap(y1,\ y2);}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle\ =\ loop-\/>getController()-\/>getShapeAngle();}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ABS(angle)\ <\ 0.001)\ \{}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (y=y1;\ y<=y2;\ y++)}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ doPointshapeLineWithoutDynamics(x1,\ y,\ x2,\ y,\ loop);}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\ p\ =\ rotateRectangle(x1,\ y1,\ x2,\ y2,\ angle);}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ v\ =\ p.toXYInts();}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ doc::algorithm::polygon(}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ v.size()/2,\ \&v[0],}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ loop,\ (AlgoHLine)doPointshapeHline);}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00253\ \ \ \ \ \}}
+\DoxyCodeLine{00254\ \ \ \}}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getStrokeBounds(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00257\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ bounds\ =\ stroke.bounds();}
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle\ =\ loop-\/>getController()-\/>getShapeAngle();}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{keywordflow}{if}\ (ABS(angle)\ >\ 0.001)\ \{}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ bounds\ =\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}();}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ >=\ 2)\ \{}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c+1<stroke.size();\ ++c)\ \{}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x1\ =\ stroke[c].x;}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y1\ =\ stroke[c].y;}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x2\ =\ stroke[c+1].x;}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y2\ =\ stroke[c+1].y;}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ bounds\ |=\ rotateRectangle(x1,\ y1,\ x2,\ y2,\ angle).bounds();}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00271\ \ \ \ \ \}}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \ \ \ \ \textcolor{keywordflow}{return}\ bounds;}
+\DoxyCodeLine{00274\ \ \ \}}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00277\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\ rotateRectangle(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y1,\ \textcolor{keywordtype}{int}\ x2,\ \textcolor{keywordtype}{int}\ y2,\ \textcolor{keywordtype}{double}\ angle)\ \{}
+\DoxyCodeLine{00278\ \ \ \ \ \textcolor{keywordtype}{int}\ cx\ =\ (x1+x2)/2;}
+\DoxyCodeLine{00279\ \ \ \ \ \textcolor{keywordtype}{int}\ cy\ =\ (y1+y2)/2;}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}}\ =\ (x2-\/x1)/2;}
+\DoxyCodeLine{00281\ \ \ \ \ \textcolor{keywordtype}{int}\ b\ =\ (y2-\/y1)/2;}
+\DoxyCodeLine{00282\ \ \ \ \ \textcolor{keywordtype}{double}\ s\ =\ -\/std::sin(angle);}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keywordtype}{double}\ c\ =\ std::cos(angle);}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \ \ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\ stroke;}
+\DoxyCodeLine{00286\ \ \ \ \ stroke.addPoint(\mbox{\hyperlink{classgfx_1_1_point_t}{Point}}(cx-\/\mbox{\hyperlink{structa}{a}}*c-\/b*s,\ cy+\mbox{\hyperlink{structa}{a}}*s-\/b*c));}
+\DoxyCodeLine{00287\ \ \ \ \ stroke.addPoint(\mbox{\hyperlink{classgfx_1_1_point_t}{Point}}(cx+\mbox{\hyperlink{structa}{a}}*c-\/b*s,\ cy-\/\mbox{\hyperlink{structa}{a}}*s-\/b*c));}
+\DoxyCodeLine{00288\ \ \ \ \ stroke.addPoint(\mbox{\hyperlink{classgfx_1_1_point_t}{Point}}(cx+\mbox{\hyperlink{structa}{a}}*c+b*s,\ cy-\/\mbox{\hyperlink{structa}{a}}*s+b*c));}
+\DoxyCodeLine{00289\ \ \ \ \ stroke.addPoint(\mbox{\hyperlink{classgfx_1_1_point_t}{Point}}(cx-\/\mbox{\hyperlink{structa}{a}}*c+b*s,\ cy+\mbox{\hyperlink{structa}{a}}*s+b*c));}
+\DoxyCodeLine{00290\ \ \ \ \ \textcolor{keywordflow}{return}\ stroke;}
+\DoxyCodeLine{00291\ \ \ \}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \};}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_intertwine_as_ellipses}{IntertwineAsEllipses}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}\ \{}
+\DoxyCodeLine{00296\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \textcolor{keywordtype}{void}\ joinStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00299\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 0)}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 1)\ \{}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ doPointshapePoint(stroke[0].x,\ stroke[0].y,\ loop);}
+\DoxyCodeLine{00304\ \ \ \ \ \}}
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.size()\ >=\ 2)\ \{}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c+1<stroke.size();\ ++c)\ \{}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x1\ =\ stroke[c].x;}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y1\ =\ stroke[c].y;}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x2\ =\ stroke[c+1].x;}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y2\ =\ stroke[c+1].y;}
+\DoxyCodeLine{00311\ }
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ >\ x2)\ std::swap(x1,\ x2);}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ >\ y2)\ std::swap(y1,\ y2);}
+\DoxyCodeLine{00314\ }
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle\ =\ loop-\/>getController()-\/>getShapeAngle();}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ABS(angle)\ <\ 0.001)\ \{}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ \ \ algo\_ellipse(x1,\ y1,\ x2,\ y2,\ 0,\ 0,\ loop,\ (AlgoPixel)doPointshapePoint);}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \ \ draw\_rotated\_ellipse((x1+x2)/2,\ (y1+y2)/2,}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ABS(x2-\/x1)/2,}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ABS(y2-\/y1)/2,}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ angle,}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loop,\ (AlgoPixel)doPointshapePoint);}
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00327\ \ \ \ \ \}}
+\DoxyCodeLine{00328\ \ \ \}}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ \ \ \textcolor{keywordtype}{void}\ fillStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00331\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ <\ 2)\ \{}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ joinStroke(loop,\ stroke);}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00334\ \ \ \ \ \}}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c+1<stroke.size();\ ++c)\ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x1\ =\ stroke[c].x;}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y1\ =\ stroke[c].y;}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x2\ =\ stroke[c+1].x;}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y2\ =\ stroke[c+1].y;}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ >\ x2)\ std::swap(x1,\ x2);}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y1\ >\ y2)\ std::swap(y1,\ y2);}
+\DoxyCodeLine{00344\ }
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle\ =\ loop-\/>getController()-\/>getShapeAngle();}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ABS(angle)\ <\ 0.001)\ \{}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ algo\_ellipsefill(x1,\ y1,\ x2,\ y2,\ 0,\ 0,\ loop,\ (AlgoHLine)doPointshapeHline);}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00350\ \ \ \ \ \ \ \ \ fill\_rotated\_ellipse((x1+x2)/2,\ (y1+y2)/2,}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ABS(x2-\/x1)/2,}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ABS(y2-\/y1)/2,}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ angle,}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loop,\ (AlgoHLine)doPointshapeHline);}
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00356\ \ \ \ \ \}}
+\DoxyCodeLine{00357\ \ \ \}}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getStrokeBounds(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00360\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ bounds\ =\ stroke.bounds();}
+\DoxyCodeLine{00361\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle\ =\ loop-\/>getController()-\/>getShapeAngle();}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keywordflow}{if}\ (ABS(angle)\ >\ 0.001)\ \{}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{Point}}\ center\ =\ bounds.center();}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}}\ =\ bounds.w/2.0\ +\ 0.5;}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ b\ =\ bounds.h/2.0\ +\ 0.5;}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ xd\ =\ \mbox{\hyperlink{structa}{a}}*\mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ yd\ =\ b*b;}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ s\ =\ std::sin(angle);}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ zd\ =\ (xd-\/yd)*s;}
+\DoxyCodeLine{00371\ }
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ =\ std::sqrt(xd-\/zd*s)\ +\ 0.5;}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ b\ =\ std::sqrt(yd+zd*s)\ +\ 0.5;}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \ \ \ \ \ \ bounds.x\ =\ center.x-\/\mbox{\hyperlink{structa}{a}}-\/1;}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ bounds.y\ =\ center.y-\/b-\/1;}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ bounds.w\ =\ 2*\mbox{\hyperlink{structa}{a}}+3;}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ bounds.h\ =\ 2*b+3;}
+\DoxyCodeLine{00379\ \ \ \ \ \}}
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ ++bounds.w;}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ ++bounds.h;}
+\DoxyCodeLine{00383\ \ \ \ \ \}}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \ \ \ \ \textcolor{keywordflow}{return}\ bounds;}
+\DoxyCodeLine{00386\ \ \ \}}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \};}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_intertwine_as_bezier}{IntertwineAsBezier}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}\ \{}
+\DoxyCodeLine{00391\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \ \ \textcolor{keywordtype}{void}\ joinStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00394\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 0)}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00396\ }
+\DoxyCodeLine{00397\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c<stroke.size();\ c\ +=\ 4)\ \{}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()-\/c\ ==\ 1)\ \{}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ doPointshapeStrokePt(stroke[c],\ loop);}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.size()-\/c\ ==\ 2)\ \{}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ doPointshapeLine(stroke[c],\ stroke[c+1],\ loop);}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.size()-\/c\ ==\ 3)\ \{}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \ \ algo\_spline(stroke[c\ \ ].x,\ stroke[c\ \ ].y,}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke[c+1].x,\ stroke[c+1].y,}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke[c+1].x,\ stroke[c+1].y,}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke[c+2].x,\ stroke[c+2].y,\ loop,}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (AlgoLine)doPointshapeLineWithoutDynamics);}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \ \ algo\_spline(stroke[c\ \ ].x,\ stroke[c\ \ ].y,}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke[c+1].x,\ stroke[c+1].y,}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke[c+2].x,\ stroke[c+2].y,}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stroke[c+3].x,\ stroke[c+3].y,\ loop,}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (AlgoLine)doPointshapeLineWithoutDynamics);}
+\DoxyCodeLine{00417\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00418\ \ \ \ \ \}}
+\DoxyCodeLine{00419\ \ \ \}}
+\DoxyCodeLine{00420\ }
+\DoxyCodeLine{00421\ \ \ \textcolor{keywordtype}{void}\ fillStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00422\ \ \ \ \ joinStroke(loop,\ stroke);}
+\DoxyCodeLine{00423\ \ \ \}}
+\DoxyCodeLine{00424\ \};}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_intertwine_as_pixel_perfect}{IntertwineAsPixelPerfect}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}\ \{}
+\DoxyCodeLine{00427\ \ \ \textcolor{comment}{//\ It\ was\ introduced\ to\ know\ if\ joinStroke\ function}}
+\DoxyCodeLine{00428\ \ \ \textcolor{comment}{//\ was\ executed\ inmediatelly\ after\ a\ "{}Last"{}\ trace\ policy\ (i.e.\ after\ the}}
+\DoxyCodeLine{00429\ \ \ \textcolor{comment}{//\ user\ confirms\ a\ line\ draw\ while\ he\ is\ holding\ down\ the\ SHIFT\ key),\ so}}
+\DoxyCodeLine{00430\ \ \ \textcolor{comment}{//\ we\ have\ to\ ignore\ printing\ the\ first\ pixel\ of\ the\ line.}}
+\DoxyCodeLine{00431\ \ \ \textcolor{keywordtype}{bool}\ m\_retainedTracePolicyLast\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00432\ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\ m\_pts;}
+\DoxyCodeLine{00433\ \ \ \textcolor{keywordtype}{bool}\ m\_saveStrokeArea\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \textcolor{comment}{//\ Helper\ struct\ to\ store\ an\ image's\ area\ that\ will\ be\ affected\ by\ the\ stroke}}
+\DoxyCodeLine{00436\ \ \ \textcolor{comment}{//\ point\ at\ the\ specified\ position\ of\ the\ original\ image.}}
+\DoxyCodeLine{00437\ \ \ \textcolor{keyword}{struct\ }SavedArea\ \{}
+\DoxyCodeLine{00438\ \ \ \ \ doc::ImageRef\ img;}
+\DoxyCodeLine{00439\ \ \ \ \ \textcolor{comment}{//\ Original\ stroke\ point\ position.}}
+\DoxyCodeLine{00440\ \ \ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{tools::Stroke::Pt}}\ pos;}
+\DoxyCodeLine{00441\ \ \ \ \ \textcolor{comment}{//\ Area\ of\ the\ original\ image\ that\ was\ saved\ into\ img.}}
+\DoxyCodeLine{00442\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ r;}
+\DoxyCodeLine{00443\ \ \ \};}
+\DoxyCodeLine{00444\ \ \ \textcolor{comment}{//\ Holds\ the\ areas\ saved\ by\ savePointshapeStrokePtArea\ method\ and\ restored\ by}}
+\DoxyCodeLine{00445\ \ \ \textcolor{comment}{//\ restoreLastPts\ method.}}
+\DoxyCodeLine{00446\ \ \ std::vector<SavedArea>\ m\_savedAreas;}
+\DoxyCodeLine{00447\ \ \ \textcolor{comment}{//\ When\ a\ SavedArea\ is\ restored\ we\ add\ its\ Rect\ to\ this\ Region,\ then\ we\ use}}
+\DoxyCodeLine{00448\ \ \ \textcolor{comment}{//\ this\ to\ expand\ the\ modified\ region\ when\ editing\ a\ tilemap\ manually.}}
+\DoxyCodeLine{00449\ \ \ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\ m\_restoredRegion;}
+\DoxyCodeLine{00450\ \ \ \textcolor{comment}{//\ Last\ point\ index.}}
+\DoxyCodeLine{00451\ \ \ \textcolor{keywordtype}{int}\ m\_lastPti;}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \ \ \textcolor{comment}{//\ Temporal\ tileset\ with\ latest\ changes\ to\ be\ used\ by\ pixel\ perfect\ only\ when}}
+\DoxyCodeLine{00454\ \ \ \textcolor{comment}{//\ modifying\ a\ tilemap\ in\ Manual\ mode.}}
+\DoxyCodeLine{00455\ \ \ std::unique\_ptr<Tileset>\ m\_tempTileset;}
+\DoxyCodeLine{00456\ \ \ \mbox{\hyperlink{classdoc_1_1_grid}{doc::Grid}}\ m\_grid;}
+\DoxyCodeLine{00457\ \ \ \mbox{\hyperlink{classdoc_1_1_grid}{doc::Grid}}\ m\_dstGrid;}
+\DoxyCodeLine{00458\ \ \ \mbox{\hyperlink{classdoc_1_1_grid}{doc::Grid}}\ m\_celGrid;}
+\DoxyCodeLine{00459\ }
+\DoxyCodeLine{00460\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00461\ \ \ \textcolor{comment}{//\ Useful\ for\ Shift+Ctrl+pencil\ to\ draw\ straight\ lines\ and\ snap}}
+\DoxyCodeLine{00462\ \ \ \textcolor{comment}{//\ angle\ when\ "{}pixel\ perfect"{}\ is\ selected.}}
+\DoxyCodeLine{00463\ \ \ \textcolor{keywordtype}{bool}\ snapByAngle()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00464\ }
+\DoxyCodeLine{00465\ \ \ \textcolor{keywordtype}{void}\ prepareIntertwine(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00466\ \ \ \ \ m\_pts.reset();}
+\DoxyCodeLine{00467\ \ \ \ \ m\_retainedTracePolicyLast\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00468\ \ \ \ \ m\_grid\ =\ m\_dstGrid\ =\ m\_celGrid\ =\ loop-\/>getGrid();}
+\DoxyCodeLine{00469\ \ \ \ \ m\_restoredRegion.clear();}
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getLayer()-\/>isTilemap()\ \&\&}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ !loop-\/>isTilemapMode()\ \&\&}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ \ \ loop-\/>isManualTilesetMode())\ \{}
+\DoxyCodeLine{00474\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_tileset}{Tileset}}*\ srcTileset\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classdoc_1_1_layer_tilemap}{LayerTilemap}}*\textcolor{keyword}{>}(loop-\/>getLayer())-\/>tileset();}
+\DoxyCodeLine{00475\ \ \ \ \ \ \ m\_tempTileset.reset(Tileset::MakeCopyCopyingImages(srcTileset));}
+\DoxyCodeLine{00476\ }
+\DoxyCodeLine{00477\ \ \ \ \ \ \ \textcolor{comment}{//\ Grid\ to\ convert\ to\ dstImage\ coordinates}}
+\DoxyCodeLine{00478\ \ \ \ \ \ \ m\_dstGrid.origin(\mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(0,\ 0));}
+\DoxyCodeLine{00479\ }
+\DoxyCodeLine{00480\ \ \ \ \ \ \ \textcolor{comment}{//\ Grid\ where\ the\ original\ cel\ is\ the\ origin}}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ m\_celGrid.origin(loop-\/>getCel()-\/>position());}
+\DoxyCodeLine{00482\ \ \ \ \ \}}
+\DoxyCodeLine{00483\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00484\ \ \ \ \ \ \ m\_tempTileset.reset();}
+\DoxyCodeLine{00485\ \ \ \ \ \}}
+\DoxyCodeLine{00486\ \ \ \}}
+\DoxyCodeLine{00487\ }
+\DoxyCodeLine{00488\ \ \ \textcolor{keywordtype}{void}\ joinStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00489\ \ \ \ \ \textcolor{comment}{//\ Required\ for\ LineFreehand\ controller\ in\ the\ first\ stage,\ when}}
+\DoxyCodeLine{00490\ \ \ \ \ \textcolor{comment}{//\ we\ are\ drawing\ the\ line\ and\ the\ trace\ policy\ is\ "{}Last"{}.\ Each}}
+\DoxyCodeLine{00491\ \ \ \ \ \textcolor{comment}{//\ new\ joinStroke()\ is\ like\ a\ fresh\ start.\ \ Without\ this\ fix,\ the}}
+\DoxyCodeLine{00492\ \ \ \ \ \textcolor{comment}{//\ first\ stage\ on\ LineFreehand\ will\ draw\ a\ "{}star"{}\ like\ pattern}}
+\DoxyCodeLine{00493\ \ \ \ \ \textcolor{comment}{//\ with\ lines\ from\ the\ first\ point\ to\ the\ last\ point.}}
+\DoxyCodeLine{00494\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getTracePolicy()\ ==\ TracePolicy::Last)\ \{}
+\DoxyCodeLine{00495\ \ \ \ \ \ \ m\_retainedTracePolicyLast\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00496\ \ \ \ \ \ \ m\_pts.reset();}
+\DoxyCodeLine{00497\ \ \ \ \ \}}
+\DoxyCodeLine{00498\ }
+\DoxyCodeLine{00499\ \ \ \ \ \textcolor{keywordtype}{int}\ thirdFromLastPt\ =\ 0,\ nextPt\ =\ 0;}
+\DoxyCodeLine{00500\ }
+\DoxyCodeLine{00501\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 0)}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00503\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 1)\ \{}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_pts.empty())}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \ \ m\_pts\ =\ stroke;}
+\DoxyCodeLine{00506\ }
+\DoxyCodeLine{00507\ \ \ \ \ \ \ m\_saveStrokeArea\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ doPointshapeStrokePt(stroke[0],\ loop);}
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00511\ \ \ \ \ \}}
+\DoxyCodeLine{00512\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00513\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.firstPoint()\ ==\ stroke.lastPoint())}
+\DoxyCodeLine{00514\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \ \ \ \ \ \ nextPt\ =\ m\_pts.size();}
+\DoxyCodeLine{00517\ \ \ \ \ \ \ thirdFromLastPt\ =\ (m\_pts.size()\ >\ 2\ ?\ m\_pts.size()\ -\/\ 3\ :\ m\_pts.size()\ -\/\ 1);}
+\DoxyCodeLine{00518\ }
+\DoxyCodeLine{00519\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=0;\ c+1<stroke.size();\ ++c)\ \{}
+\DoxyCodeLine{00520\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ lineAlgo\ =\ getLineAlgo(loop,\ stroke[c],\ stroke[c+1]);}
+\DoxyCodeLine{00521\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_line_data2}{LineData2}}\ lineData(loop,\ stroke[c],\ stroke[c+1],\ m\_pts);}
+\DoxyCodeLine{00522\ \ \ \ \ \ \ \ \ lineAlgo(}
+\DoxyCodeLine{00523\ \ \ \ \ \ \ \ \ \ \ stroke[c].x,}
+\DoxyCodeLine{00524\ \ \ \ \ \ \ \ \ \ \ stroke[c].y,}
+\DoxyCodeLine{00525\ \ \ \ \ \ \ \ \ \ \ stroke[c+1].x,}
+\DoxyCodeLine{00526\ \ \ \ \ \ \ \ \ \ \ stroke[c+1].y,}
+\DoxyCodeLine{00527\ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void}*)\&lineData,}
+\DoxyCodeLine{00528\ \ \ \ \ \ \ \ \ \ \ (AlgoPixel)\&addPointsWithoutDuplicatingLastOne);}
+\DoxyCodeLine{00529\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00530\ \ \ \ \ \}}
+\DoxyCodeLine{00531\ }
+\DoxyCodeLine{00532\ \ \ \ \ \textcolor{comment}{//\ For\ line\ brush\ type,\ the\ pixel-\/perfect\ will\ create\ gaps\ so\ we}}
+\DoxyCodeLine{00533\ \ \ \ \ \textcolor{comment}{//\ avoid\ removing\ points}}
+\DoxyCodeLine{00534\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getBrush()-\/>type()\ !=\ kLineBrushType\ ||}
+\DoxyCodeLine{00535\ \ \ \ \ \ \ \ \ (loop-\/>getDynamics().angle\ ==\ tools::DynamicSensor::Static\ \&\&}
+\DoxyCodeLine{00536\ \ \ \ \ \ \ \ \ \ (loop-\/>getBrush()-\/>angle()\ ==\ 0.0f\ ||}
+\DoxyCodeLine{00537\ \ \ \ \ \ \ \ \ \ \ loop-\/>getBrush()-\/>angle()\ ==\ 90.0f\ ||}
+\DoxyCodeLine{00538\ \ \ \ \ \ \ \ \ \ \ loop-\/>getBrush()-\/>angle()\ ==\ 180.0f)))\ \{}
+\DoxyCodeLine{00539\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=thirdFromLastPt;\ c<m\_pts.size();\ ++c)\ \{}
+\DoxyCodeLine{00540\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ We\ ignore\ a\ pixel\ that\ is\ between\ other\ two\ pixels\ in\ the}}
+\DoxyCodeLine{00541\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ corner\ of\ a\ L-\/like\ shape.}}
+\DoxyCodeLine{00542\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ >\ 0\ \&\&\ c+1\ <\ m\_pts.size()}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ (m\_pts[c-\/1].x\ ==\ m\_pts[c].x\ ||\ m\_pts[c-\/1].y\ ==\ m\_pts[c].y)}
+\DoxyCodeLine{00544\ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ (m\_pts[c+1].x\ ==\ m\_pts[c].x\ ||\ m\_pts[c+1].y\ ==\ m\_pts[c].y)}
+\DoxyCodeLine{00545\ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ m\_pts[c-\/1].x\ !=\ m\_pts[c+1].x}
+\DoxyCodeLine{00546\ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ m\_pts[c-\/1].y\ !=\ m\_pts[c+1].y)\ \{}
+\DoxyCodeLine{00547\ \ \ \ \ \ \ \ \ \ \ restoreLastPts(loop,\ c,\ m\_pts[c]);}
+\DoxyCodeLine{00548\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ nextPt-\/1)}
+\DoxyCodeLine{00549\ \ \ \ \ \ \ \ \ \ \ \ \ nextPt-\/-\/;}
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \ \ \ \ m\_pts.erase(c);}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00552\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00553\ \ \ \ \ \}}
+\DoxyCodeLine{00554\ }
+\DoxyCodeLine{00555\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ c=nextPt;\ c<m\_pts.size();\ ++c)\ \{}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ \textcolor{comment}{//\ We\ must\ ignore\ to\ print\ the\ first\ point\ of\ the\ line\ after}}
+\DoxyCodeLine{00557\ \ \ \ \ \ \ \textcolor{comment}{//\ a\ joinStroke\ pass\ with\ a\ retained\ "{}Last"{}\ trace\ policy}}
+\DoxyCodeLine{00558\ \ \ \ \ \ \ \textcolor{comment}{//\ (i.e.\ the\ user\ confirms\ draw\ a\ line\ while\ he\ is\ holding}}
+\DoxyCodeLine{00559\ \ \ \ \ \ \ \textcolor{comment}{//\ the\ SHIFT\ key))}}
+\DoxyCodeLine{00560\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ 0\ \&\&\ m\_retainedTracePolicyLast)}
+\DoxyCodeLine{00561\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \ \ \ \ \textcolor{comment}{//\ For\ the\ last\ point\ we\ need\ to\ store\ the\ source\ image\ content\ at\ that}}
+\DoxyCodeLine{00564\ \ \ \ \ \ \ \textcolor{comment}{//\ point\ so\ we\ can\ restore\ it\ when\ erasing\ a\ point\ because\ of}}
+\DoxyCodeLine{00565\ \ \ \ \ \ \ \textcolor{comment}{//\ pixel-\/perfect.\ So\ we\ set\ the\ following\ flag\ to\ indicate\ this,\ and}}
+\DoxyCodeLine{00566\ \ \ \ \ \ \ \textcolor{comment}{//\ use\ it\ in\ doTransformPoint.}}
+\DoxyCodeLine{00567\ \ \ \ \ \ \ m\_saveStrokeArea\ =\ (c\ ==\ m\_pts.size()\ -\/\ 1\ \&\&\ !m\_retainedTracePolicyLast);}
+\DoxyCodeLine{00568\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_saveStrokeArea)\ \{}
+\DoxyCodeLine{00569\ \ \ \ \ \ \ \ \ clearPointshapeStrokePtAreas();}
+\DoxyCodeLine{00570\ \ \ \ \ \ \ \ \ setLastPtIndex(c);}
+\DoxyCodeLine{00571\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00572\ \ \ \ \ \ \ doPointshapeStrokePt(m\_pts[c],\ loop);}
+\DoxyCodeLine{00573\ \ \ \ \ \}}
+\DoxyCodeLine{00574\ \ \ \}}
+\DoxyCodeLine{00575\ }
+\DoxyCodeLine{00576\ \ \ \textcolor{keywordtype}{void}\ fillStroke(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00577\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.empty())}
+\DoxyCodeLine{00578\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00579\ }
+\DoxyCodeLine{00580\ \ \ \ \ \textcolor{comment}{//\ Fill\ content}}
+\DoxyCodeLine{00581\ \ \ \ \ \textcolor{keyword}{auto}\ v\ =\ m\_pts.toXYInts();}
+\DoxyCodeLine{00582\ \ \ \ \ doc::algorithm::polygon(}
+\DoxyCodeLine{00583\ \ \ \ \ \ \ v.size()/2,\ \&v[0],}
+\DoxyCodeLine{00584\ \ \ \ \ \ \ loop,\ (AlgoHLine)doPointshapeHline);}
+\DoxyCodeLine{00585\ \ \ \}}
+\DoxyCodeLine{00586\ }
+\DoxyCodeLine{00587\ \ \ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\ forceTilemapRegionToValidate()\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00588\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_restoredRegion;}
+\DoxyCodeLine{00589\ \ \ \}}
+\DoxyCodeLine{00590\ }
+\DoxyCodeLine{00591\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00592\ \ \ \textcolor{keywordtype}{void}\ doTransformPoint(\textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt,\ \mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00593\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_saveStrokeArea)}
+\DoxyCodeLine{00594\ \ \ \ \ \ \ savePointshapeStrokePtArea(loop,\ pt);}
+\DoxyCodeLine{00595\ }
+\DoxyCodeLine{00596\ \ \ \ \ Intertwine::doTransformPoint(pt,\ loop);}
+\DoxyCodeLine{00597\ }
+\DoxyCodeLine{00598\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getLayer()-\/>isTilemap()\ \&\&\ m\_tempTileset)}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ updateTempTileset(loop,\ pt);}
+\DoxyCodeLine{00600\ \ \ \}}
+\DoxyCodeLine{00601\ }
+\DoxyCodeLine{00602\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00603\ \ \ \textcolor{keywordtype}{void}\ clearPointshapeStrokePtAreas()\ \{}
+\DoxyCodeLine{00604\ \ \ \ \ m\_savedAreas.clear();}
+\DoxyCodeLine{00605\ \ \ \}}
+\DoxyCodeLine{00606\ }
+\DoxyCodeLine{00607\ \ \ \textcolor{keywordtype}{void}\ setLastPtIndex(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ pti)\ \{}
+\DoxyCodeLine{00608\ \ \ \ \ m\_lastPti\ =\ pti;}
+\DoxyCodeLine{00609\ \ \ \}}
+\DoxyCodeLine{00610\ }
+\DoxyCodeLine{00611\ \ \ \textcolor{comment}{//\ Saves\ the\ destination\ image's\ area\ that\ will\ be\ updated\ by\ the\ point}}
+\DoxyCodeLine{00612\ \ \ \textcolor{comment}{//\ passed.\ The\ idea\ is\ to\ have\ the\ state\ of\ the\ image\ (only\ the}}
+\DoxyCodeLine{00613\ \ \ \textcolor{comment}{//\ portion\ modified\ by\ the\ stroke's\ point\ shape)\ before\ drawing\ the\ last}}
+\DoxyCodeLine{00614\ \ \ \textcolor{comment}{//\ point\ of\ the\ stroke,\ then\ if\ that\ point\ has\ to\ be\ deleted\ by\ the}}
+\DoxyCodeLine{00615\ \ \ \textcolor{comment}{//\ pixel-\/perfect\ algorithm,\ we\ can\ use\ this\ image\ to\ restore\ the\ image\ to\ the}}
+\DoxyCodeLine{00616\ \ \ \textcolor{comment}{//\ state\ previous\ to\ the\ deletion.\ This\ method\ is\ used\ by}}
+\DoxyCodeLine{00617\ \ \ \textcolor{comment}{//\ IntertwineAsPixelPerfect.joinStroke()\ method.}}
+\DoxyCodeLine{00618\ \ \ \textcolor{keywordtype}{void}\ savePointshapeStrokePtArea(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{tools::Stroke::Pt}}\&\ pt)\ \{}
+\DoxyCodeLine{00619\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ r;}
+\DoxyCodeLine{00620\ \ \ \ \ loop-\/>getPointShape()-\/>getModifiedArea(loop,\ pt.x,\ pt.y,\ r);}
+\DoxyCodeLine{00621\ }
+\DoxyCodeLine{00622\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\ rgn(r);}
+\DoxyCodeLine{00623\ \ \ \ \ \textcolor{comment}{//\ By\ wrapping\ the\ modified\ area's\ position\ when\ tiled\ mode\ is\ active,\ the}}
+\DoxyCodeLine{00624\ \ \ \ \ \textcolor{comment}{//\ user\ can\ draw\ outside\ the\ canvas\ and\ still\ get\ the\ pixel-\/perfect}}
+\DoxyCodeLine{00625\ \ \ \ \ \textcolor{comment}{//\ effect.}}
+\DoxyCodeLine{00626\ \ \ \ \ loop-\/>getTiledModeHelper().wrapPosition(rgn);}
+\DoxyCodeLine{00627\ \ \ \ \ loop-\/>getTiledModeHelper().collapseRegionByTiledMode(rgn);}
+\DoxyCodeLine{00628\ }
+\DoxyCodeLine{00629\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \mbox{\hyperlink{structa}{a}}\ :\ rgn)\ \{}
+\DoxyCodeLine{00630\ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}.offset(-\/loop-\/>getCelOrigin());}
+\DoxyCodeLine{00631\ }
+\DoxyCodeLine{00632\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_tempTileset)\ \{}
+\DoxyCodeLine{00633\ \ \ \ \ \ \ \ \ forEachTilePos(}
+\DoxyCodeLine{00634\ \ \ \ \ \ \ \ \ \ \ loop,\ m\_dstGrid.tilesInCanvasRegion(\mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}(\mbox{\hyperlink{structa}{a}})),}
+\DoxyCodeLine{00635\ \ \ \ \ \ \ \ \ \ \ [loop](\textcolor{keyword}{const}\ doc::ImageRef\ existentTileImage,}
+\DoxyCodeLine{00636\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePos)\ \{}
+\DoxyCodeLine{00637\ \ \ \ \ \ \ \ \ \ \ \ \ loop-\/>getDstImage()-\/>copy(}
+\DoxyCodeLine{00638\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ existentTileImage.get(),}
+\DoxyCodeLine{00639\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gfx::Clip(tilePos.x,\ tilePos.y,\ 0,\ 0,}
+\DoxyCodeLine{00640\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ existentTileImage-\/>width(),}
+\DoxyCodeLine{00641\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ existentTileImage-\/>height()));}
+\DoxyCodeLine{00642\ \ \ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00643\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00644\ }
+\DoxyCodeLine{00645\ \ \ \ \ \ \ ImageRef\ i(crop\_image(loop-\/>getDstImage(),\ \mbox{\hyperlink{structa}{a}},\ loop-\/>getDstImage()-\/>maskColor()));}
+\DoxyCodeLine{00646\ \ \ \ \ \ \ m\_savedAreas.push\_back(SavedArea\{\ i,\ pt,\ \mbox{\hyperlink{structa}{a}}\ \});}
+\DoxyCodeLine{00647\ \ \ \ \ \}}
+\DoxyCodeLine{00648\ \ \ \}}
+\DoxyCodeLine{00649\ }
+\DoxyCodeLine{00650\ \ \ \textcolor{comment}{//\ Takes\ the\ images\ saved\ by\ savePointshapeStrokePtArea\ and\ copies\ them\ to}}
+\DoxyCodeLine{00651\ \ \ \textcolor{comment}{//\ the\ destination\ image.\ It\ restores\ the\ destination\ image\ because\ the}}
+\DoxyCodeLine{00652\ \ \ \textcolor{comment}{//\ images\ in\ m\_savedAreas\ are\ from\ previous\ states\ of\ the\ destination}}
+\DoxyCodeLine{00653\ \ \ \textcolor{comment}{//\ image.\ This\ method\ is\ used\ by\ IntertwineAsPixelPerfect.joinStroke()}}
+\DoxyCodeLine{00654\ \ \ \textcolor{comment}{//\ method.}}
+\DoxyCodeLine{00655\ \ \ \textcolor{keywordtype}{void}\ restoreLastPts(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ pti,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{tools::Stroke::Pt}}\&\ pt)\ \{}
+\DoxyCodeLine{00656\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_savedAreas.empty()\ ||\ pti\ !=\ m\_lastPti\ ||\ m\_savedAreas[0].pos\ !=\ pt)}
+\DoxyCodeLine{00657\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00658\ }
+\DoxyCodeLine{00659\ \ \ \ \ m\_restoredRegion.clear();}
+\DoxyCodeLine{00660\ }
+\DoxyCodeLine{00661\ \ \ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{tools::Stroke::Pt}}\ pos;}
+\DoxyCodeLine{00662\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i=0;\ i<m\_savedAreas.size();\ ++i)\ \{}
+\DoxyCodeLine{00663\ \ \ \ \ \ \ loop-\/>getDstImage()-\/>copy(}
+\DoxyCodeLine{00664\ \ \ \ \ \ \ \ \ m\_savedAreas[i].img.get(),}
+\DoxyCodeLine{00665\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_clip_t}{gfx::Clip}}(m\_savedAreas[i].r.origin(),}
+\DoxyCodeLine{00666\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_savedAreas[i].img-\/>bounds()));}
+\DoxyCodeLine{00667\ }
+\DoxyCodeLine{00668\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_tempTileset)\ \{}
+\DoxyCodeLine{00669\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ r\ =\ m\_savedAreas[i].r;}
+\DoxyCodeLine{00670\ \ \ \ \ \ \ \ \ forEachTilePos(}
+\DoxyCodeLine{00671\ \ \ \ \ \ \ \ \ \ \ loop,\ m\_dstGrid.tilesInCanvasRegion(\mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}(r)),}
+\DoxyCodeLine{00672\ \ \ \ \ \ \ \ \ \ \ [\textcolor{keyword}{this},\ i,\ r](\textcolor{keyword}{const}\ doc::ImageRef\ existentTileImage,}
+\DoxyCodeLine{00673\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePos)\ \{}
+\DoxyCodeLine{00674\ \ \ \ \ \ \ \ \ \ \ \ \ existentTileImage-\/>copy(}
+\DoxyCodeLine{00675\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_savedAreas[i].img.get(),}
+\DoxyCodeLine{00676\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gfx::Clip(r.x\ -\/\ tilePos.x,}
+\DoxyCodeLine{00677\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r.y\ -\/\ tilePos.y,}
+\DoxyCodeLine{00678\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0,\ 0,\ r.w,\ r.h));}
+\DoxyCodeLine{00679\ \ \ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00680\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00681\ }
+\DoxyCodeLine{00682\ \ \ \ \ \ \ m\_restoredRegion\ |=\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}(m\_savedAreas[i].r);}
+\DoxyCodeLine{00683\ \ \ \ \ \}}
+\DoxyCodeLine{00684\ }
+\DoxyCodeLine{00685\ \ \ \ \ m\_restoredRegion.offset(loop-\/>getCelOrigin());}
+\DoxyCodeLine{00686\ \ \ \}}
+\DoxyCodeLine{00687\ }
+\DoxyCodeLine{00688\ \ \ \textcolor{keywordtype}{void}\ updateTempTileset(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{tools::Stroke::Pt}}\&\ pt)\ \{}
+\DoxyCodeLine{00689\ \ \ \ \ ASSERT(m\_tempTileset);}
+\DoxyCodeLine{00690\ }
+\DoxyCodeLine{00691\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ r;}
+\DoxyCodeLine{00692\ \ \ \ \ loop-\/>getPointShape()-\/>getModifiedArea(loop,\ pt.x,\ pt.y,\ r);}
+\DoxyCodeLine{00693\ }
+\DoxyCodeLine{00694\ \ \ \ \ r.offset(-\/loop-\/>getCelOrigin());}
+\DoxyCodeLine{00695\ \ \ \ \ \textcolor{keyword}{auto}\ tilesPts\ =\ m\_dstGrid.tilesInCanvasRegion(\mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}(r));}
+\DoxyCodeLine{00696\ \ \ \ \ forEachTilePos(}
+\DoxyCodeLine{00697\ \ \ \ \ \ \ loop,\ tilesPts,}
+\DoxyCodeLine{00698\ \ \ \ \ \ \ [loop,\ r](\textcolor{keyword}{const}\ doc::ImageRef\ existentTileImage,}
+\DoxyCodeLine{00699\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePos)\ \{}
+\DoxyCodeLine{00700\ \ \ \ \ \ \ \ \ existentTileImage-\/>copy(}
+\DoxyCodeLine{00701\ \ \ \ \ \ \ \ \ \ \ loop-\/>getDstImage(),}
+\DoxyCodeLine{00702\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_clip_t}{gfx::Clip}}(r.x\ -\/\ tilePos.x,}
+\DoxyCodeLine{00703\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r.y\ -\/\ tilePos.y,\ r));}
+\DoxyCodeLine{00704\ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00705\ }
+\DoxyCodeLine{00706\ \ \ \ \ \textcolor{keywordflow}{if}\ (tilesPts.size()\ >\ 1)\ \{}
+\DoxyCodeLine{00707\ \ \ \ \ \ \ forEachTilePos(}
+\DoxyCodeLine{00708\ \ \ \ \ \ \ \ \ loop,\ tilesPts,}
+\DoxyCodeLine{00709\ \ \ \ \ \ \ \ \ [loop](\textcolor{keyword}{const}\ doc::ImageRef\ existentTileImage,}
+\DoxyCodeLine{00710\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePos)\ \{}
+\DoxyCodeLine{00711\ \ \ \ \ \ \ \ \ \ \ loop-\/>getDstImage()-\/>copy(}
+\DoxyCodeLine{00712\ \ \ \ \ \ \ \ \ \ \ \ \ existentTileImage.get(),}
+\DoxyCodeLine{00713\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_clip_t}{gfx::Clip}}(tilePos.x,\ tilePos.y,\ 0,\ 0,}
+\DoxyCodeLine{00714\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ existentTileImage-\/>width(),}
+\DoxyCodeLine{00715\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ existentTileImage-\/>height()));}
+\DoxyCodeLine{00716\ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00717\ \ \ \ \ \}}
+\DoxyCodeLine{00718\ \ \ \}}
+\DoxyCodeLine{00719\ }
+\DoxyCodeLine{00720\ \ \ \textcolor{comment}{//\ Loops\ over\ the\ points\ in\ tilesPts,\ and\ for\ each\ one\ calls\ the\ provided}}
+\DoxyCodeLine{00721\ \ \ \textcolor{comment}{//\ processTempTileImage\ callback\ passing\ to\ it\ the\ corresponding\ temp\ tile}}
+\DoxyCodeLine{00722\ \ \ \textcolor{comment}{//\ image\ and\ canvas\ position.}}
+\DoxyCodeLine{00723\ \ \ \textcolor{keywordtype}{void}\ forEachTilePos(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,}
+\DoxyCodeLine{00724\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::vector<gfx::Point>\&\ tilesPts,}
+\DoxyCodeLine{00725\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::function<\textcolor{keywordtype}{void}(\textcolor{keyword}{const}\ doc::ImageRef\ existentTileImage,}
+\DoxyCodeLine{00726\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePos)>\&\ processTempTileImage)\ \{}
+\DoxyCodeLine{00727\ \ \ \ \ ASSERT(loop-\/>getCel());}
+\DoxyCodeLine{00728\ \ \ \ \ \textcolor{keywordflow}{if}\ (!loop-\/>getCel())}
+\DoxyCodeLine{00729\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00730\ }
+\DoxyCodeLine{00731\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ tilemapImage\ =\ loop-\/>getCel()-\/>image();}
+\DoxyCodeLine{00732\ }
+\DoxyCodeLine{00733\ \ \ \ \ \textcolor{comment}{//\ Offset\ to\ convert\ a\ tile\ from\ dstImage\ coordinates\ to\ tilemap}}
+\DoxyCodeLine{00734\ \ \ \ \ \textcolor{comment}{//\ image\ coordinates\ (to\ get\ the\ tile\ from\ the\ original\ tilemap)}}
+\DoxyCodeLine{00735\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePt0\ =\ m\_celGrid.canvasToTile(\mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(0,\ 0));}
+\DoxyCodeLine{00736\ }
+\DoxyCodeLine{00737\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ tilePt\ :\ tilesPts)\ \{}
+\DoxyCodeLine{00738\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePtInTilemap\ =\ tilePt0\ +\ tilePt;}
+\DoxyCodeLine{00739\ }
+\DoxyCodeLine{00740\ \ \ \ \ \ \ \textcolor{comment}{//\ Ignore\ modifications\ outside\ the\ tilemap}}
+\DoxyCodeLine{00741\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!tilemapImage-\/>bounds().contains(tilePtInTilemap))}
+\DoxyCodeLine{00742\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00743\ }
+\DoxyCodeLine{00744\ \ \ \ \ \ \ \textcolor{keyword}{const}\ doc::tile\_t\ t\ =\ tilemapImage-\/>getPixel(tilePtInTilemap.x,}
+\DoxyCodeLine{00745\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tilePtInTilemap.y);}
+\DoxyCodeLine{00746\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (t\ ==\ doc::notile)}
+\DoxyCodeLine{00747\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00748\ }
+\DoxyCodeLine{00749\ \ \ \ \ \ \ \textcolor{keyword}{const}\ doc::tile\_index\ ti\ =\ doc::tile\_geti(t);}
+\DoxyCodeLine{00750\ \ \ \ \ \ \ \textcolor{keyword}{const}\ doc::ImageRef\ existentTileImage\ =\ m\_tempTileset-\/>get(ti);}
+\DoxyCodeLine{00751\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!existentTileImage)}
+\DoxyCodeLine{00752\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00753\ }
+\DoxyCodeLine{00754\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ tilePosInDstImage\ =\ m\_dstGrid.tileToCanvas(tilePt);}
+\DoxyCodeLine{00755\ \ \ \ \ \ \ processTempTileImage(existentTileImage,\ tilePosInDstImage);}
+\DoxyCodeLine{00756\ \ \ \ \ \}}
+\DoxyCodeLine{00757\ \ \ \}}
+\DoxyCodeLine{00758\ }
+\DoxyCodeLine{00759\ \};}
+\DoxyCodeLine{00760\ }
+\DoxyCodeLine{00761\ \}\ \textcolor{comment}{//\ namespace\ tools}}
+\DoxyCodeLine{00762\ \}\ \textcolor{comment}{//\ namespace\ app}}
+
+\end{DoxyCode}

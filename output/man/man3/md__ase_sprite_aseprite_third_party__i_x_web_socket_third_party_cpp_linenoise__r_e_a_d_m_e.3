@@ -1,0 +1,104 @@
+.TH "md__ase_sprite_aseprite_third_party__i_x_web_socket_third_party_cpp_linenoise__r_e_a_d_m_e" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party__i_x_web_socket_third_party_cpp_linenoise__r_e_a_d_m_e \- cpp-linenoise 
+.PP
+Multi-platfrom (Unix, Windows) C++ header-only linenoise-based readline library\&.
+.PP
+This library gathered code from following excellent libraries, clean it up, and put it into a C++ header file for convenience\&.
+.PP
+.IP "\(bu" 2
+\fClinenoise\&.h\fP and \fClinenose\&.c\fP (\fCantirez/linenoise\fP)
+.IP "\(bu" 2
+\fCANSI\&.c\fP (\fCadoxa/ansicon\fP)
+.IP "\(bu" 2
+\fCWin32_ANSI\&.h\fP and \fCWin32_ANSI\&.c\fP (\fCMSOpenTech/redis\fP)
+.PP
+.PP
+The licenses for the libraries are included in \fC\fBlinenoise\&.hpp\fP\fP\&.
+.SH "Usage"
+.PP
+.PP
+.nf
+ {c++}
+#include "linenoise\&.hpp"
+
+\&.\&.\&.
+
+const auto path = "history\&.txt";
+
+// Setup completion words every time when a user types
+linenoise::SetCompletionCallback([](const char* editBuffer, std::vector<std::string>& completions) {
+    if (editBuffer[0] == 'h') {
+        completions\&.push_back("hello");
+        completions\&.push_back("hello there");
+    }
+});
+
+// Enable the multi\-line mode
+linenoise::SetMultiLine(true);
+
+// Set max length of the history
+linenoise::SetHistoryMaxLen(4);
+
+// Load history
+linenoise::LoadHistory(path);
+
+while (true) {
+    // Read line
+    std::string line;
+    auto quit = linenoise::Readline("hello> ", line);
+
+    if (quit) {
+        break;
+    }
+
+    cout <<  "echo: '" << line << "'" << endl;
+
+    // Add text to history
+    linenoise::AddHistory(line\&.c_str());
+}
+
+// Save history
+linenoise::SaveHistory(path);
+.fi
+.PP
+.SH "API"
+.PP
+.PP
+.nf
+ {c++}
+namespace linenoise;
+
+std::string Readline(const char* prompt);
+
+void SetMultiLine(bool multiLineMode);
+
+typedef std::function<void (const char* editBuffer, std::vector<std::string>& completions)> CompletionCallback;
+
+void SetCompletionCallback(CompletionCallback fn);
+
+bool SetHistoryMaxLen(size_t len);
+
+bool LoadHistory(const char* path);
+
+bool SaveHistory(const char* path);
+
+bool AddHistory(const char* line);
+
+const std::vector<std::string>& GetHistory();
+.fi
+.PP
+.SH "Tested compilers"
+.PP
+.IP "\(bu" 2
+Visual Studio 2015
+.IP "\(bu" 2
+Clang 3\&.5
+.IP "\(bu" 2
+GCC 6\&.3\&.1
+.PP
+.SH "License"
+.PP
+BSD license (© 2015 Yuji Hirose) 

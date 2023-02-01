@@ -1,0 +1,69 @@
+\hypertarget{random__utils_8h_source}{}\doxysection{random\+\_\+utils.\+h}
+\label{random__utils_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/utils/random\_utils.h@{AseSprite/aseprite/third\_party/libwebp/src/utils/random\_utils.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2013\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Pseudo-\/random\ utilities}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_UTILS\_RANDOM\_UTILS\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_UTILS\_RANDOM\_UTILS\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00021\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ VP8\_RANDOM\_DITHER\_FIX\ 8\ \ \ }\textcolor{comment}{//\ fixed-\/point\ precision\ for\ dithering}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#define\ VP8\_RANDOM\_TABLE\_SIZE\ 55}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00028\ \ \ \textcolor{keywordtype}{int}\ index1\_,\ index2\_;}
+\DoxyCodeLine{00029\ \ \ uint32\_t\ tab\_[VP8\_RANDOM\_TABLE\_SIZE];}
+\DoxyCodeLine{00030\ \ \ \textcolor{keywordtype}{int}\ amp\_;}
+\DoxyCodeLine{00031\ \}\ \mbox{\hyperlink{struct_v_p8_random}{VP8Random}};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{comment}{//\ Initializes\ random\ generator\ with\ an\ amplitude\ 'dithering'\ in\ range\ [0..1].}}
+\DoxyCodeLine{00034\ \textcolor{keywordtype}{void}\ VP8InitRandom(\mbox{\hyperlink{struct_v_p8_random}{VP8Random}}*\ \textcolor{keyword}{const}\ rg,\ \textcolor{keywordtype}{float}\ dithering);}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ Returns\ a\ centered\ pseudo-\/random\ number\ with\ 'num\_bits'\ amplitude.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ (uses\ D.Knuth's\ Difference-\/based\ random\ generator).}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ 'amp'\ is\ in\ VP8\_RANDOM\_DITHER\_FIX\ fixed-\/point\ precision.}}
+\DoxyCodeLine{00039\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8RandomBits2(\mbox{\hyperlink{struct_v_p8_random}{VP8Random}}*\ \textcolor{keyword}{const}\ rg,\ \textcolor{keywordtype}{int}\ num\_bits,}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ amp)\ \{}
+\DoxyCodeLine{00041\ \ \ \textcolor{keywordtype}{int}\ diff;}
+\DoxyCodeLine{00042\ \ \ assert(num\_bits\ +\ VP8\_RANDOM\_DITHER\_FIX\ <=\ 31);}
+\DoxyCodeLine{00043\ \ \ diff\ =\ rg-\/>tab\_[rg-\/>index1\_]\ -\/\ rg-\/>tab\_[rg-\/>index2\_];}
+\DoxyCodeLine{00044\ \ \ \textcolor{keywordflow}{if}\ (diff\ <\ 0)\ diff\ +=\ (1u\ <<\ 31);}
+\DoxyCodeLine{00045\ \ \ rg-\/>tab\_[rg-\/>index1\_]\ =\ diff;}
+\DoxyCodeLine{00046\ \ \ \textcolor{keywordflow}{if}\ (++rg-\/>index1\_\ ==\ VP8\_RANDOM\_TABLE\_SIZE)\ rg-\/>index1\_\ =\ 0;}
+\DoxyCodeLine{00047\ \ \ \textcolor{keywordflow}{if}\ (++rg-\/>index2\_\ ==\ VP8\_RANDOM\_TABLE\_SIZE)\ rg-\/>index2\_\ =\ 0;}
+\DoxyCodeLine{00048\ \ \ \textcolor{comment}{//\ sign-\/extend,\ 0-\/center}}
+\DoxyCodeLine{00049\ \ \ diff\ =\ (int)((uint32\_t)diff\ <<\ 1)\ >>\ (32\ -\/\ num\_bits);}
+\DoxyCodeLine{00050\ \ \ diff\ =\ (diff\ *\ amp)\ >>\ VP8\_RANDOM\_DITHER\_FIX;\ \ \textcolor{comment}{//\ restrict\ range}}
+\DoxyCodeLine{00051\ \ \ diff\ +=\ 1\ <<\ (num\_bits\ -\/\ 1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ shift\ back\ to\ 0.5-\/center}}
+\DoxyCodeLine{00052\ \ \ \textcolor{keywordflow}{return}\ diff;}
+\DoxyCodeLine{00053\ \}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8RandomBits(\mbox{\hyperlink{struct_v_p8_random}{VP8Random}}*\ \textcolor{keyword}{const}\ rg,\ \textcolor{keywordtype}{int}\ num\_bits)\ \{}
+\DoxyCodeLine{00056\ \ \ \textcolor{keywordflow}{return}\ VP8RandomBits2(rg,\ num\_bits,\ rg-\/>amp\_);}
+\DoxyCodeLine{00057\ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00060\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_UTILS\_RANDOM\_UTILS\_H\_}}
+
+\end{DoxyCode}

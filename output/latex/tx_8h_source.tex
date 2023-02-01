@@ -1,0 +1,98 @@
+\hypertarget{tx_8h_source}{}\doxysection{tx.\+h}
+\label{tx_8h_source}\index{AseSprite/aseprite/src/app/tx.h@{AseSprite/aseprite/src/app/tx.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2023\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_TX\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_TX\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/app.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/context.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/doc.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/transaction.h"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <stdexcept>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \textcolor{comment}{//\ Wrapper\ to\ create\ a\ new\ transaction\ or\ get\ the\ current}}
+\DoxyCodeLine{00022\ \ \ \textcolor{comment}{//\ transaction\ in\ the\ context.}}
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_tx}{Tx}}\ \{}
+\DoxyCodeLine{00024\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ kDefaultTransactionName\ =\ \textcolor{stringliteral}{"{}Transaction"{}};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_tx}{Tx}}(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx,}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ label\ =\ kDefaultTransactionName,}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ Modification\ mod\ =\ ModifyDocument)}
+\DoxyCodeLine{00030\ \ \ \ \ \{}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ m\_doc\ =\ ctx-\/>activeDocument();}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_doc)}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::runtime\_error(\textcolor{stringliteral}{"{}No\ active\ document\ to\ execute\ a\ transaction"{}});}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \ \ m\_transaction\ =\ m\_doc-\/>transaction();}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transaction)}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ m\_owner\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ m\_transaction\ =\ \textcolor{keyword}{new}\ \mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}(ctx,\ m\_doc,\ label,\ mod);}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ m\_doc-\/>setTransaction(m\_transaction);}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ m\_owner\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00043\ \ \ \ \ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{comment}{//\ Use\ the\ default\ App\ context}}
+\DoxyCodeLine{00046\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_tx}{Tx}}(\textcolor{keyword}{const}\ std::string\&\ label\ =\ kDefaultTransactionName,}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ Modification\ mod\ =\ ModifyDocument)}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_tx}{Tx}}(App::instance()-\/>context(),\ label,\ mod)\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_tx}{\string~Tx}}()\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_owner)\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ m\_doc-\/>setTransaction(\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{keyword}{delete}\ m\_transaction;}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00056\ \ \ \ \ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{void}\ commit()\ \{}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_owner)}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ m\_transaction-\/>commit();}
+\DoxyCodeLine{00061\ \ \ \ \ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordtype}{void}\ setNewDocRange(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_range}{DocRange}}\&\ range)\ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ m\_transaction-\/>setNewDocRange(range);}
+\DoxyCodeLine{00065\ \ \ \ \ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}\ rollbackAndStartAgain()\ \{}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ m\_transaction-\/>rollbackAndStartAgain();}
+\DoxyCodeLine{00069\ \ \ \ \ \}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{comment}{//\ If\ the\ command\ cannot\ be\ executed,\ it\ will\ be\ deleted\ anyway.}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{void}\ operator()(\mbox{\hyperlink{classapp_1_1_cmd}{Cmd}}*\ cmd)\ \{}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ m\_transaction-\/>execute(cmd);}
+\DoxyCodeLine{00074\ \ \ \ \ \}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{operator}\ \mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}\&()\ \{}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *m\_transaction;}
+\DoxyCodeLine{00078\ \ \ \ \ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keyword}{operator}\ \mbox{\hyperlink{classapp_1_1_cmd_transaction}{CmdTransaction}}*()\ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_transaction-\/>cmds();}
+\DoxyCodeLine{00082\ \ \ \ \ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00085\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_doc;}
+\DoxyCodeLine{00086\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}*\ m\_transaction;}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_owner;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Owner\ of\ the\ transaction}}
+\DoxyCodeLine{00088\ \ \ \};}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,73 @@
+\hypertarget{_i_x_d_n_s_lookup_8h_source}{}\doxysection{IXDNSLookup.\+h}
+\label{_i_x_d_n_s_lookup_8h_source}\index{AseSprite/aseprite/third\_party/IXWebSocket/ixwebsocket/IXDNSLookup.h@{AseSprite/aseprite/third\_party/IXWebSocket/ixwebsocket/IXDNSLookup.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ \ IXDNSLookup.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ \ Author:\ Benjamin\ Sergeant}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ Copyright\ (c)\ 2018\ Machine\ Zone,\ Inc.\ All\ rights\ reserved.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ Resolve\ a\ hostname+port\ to\ a\ struct\ addrinfo\ obtained\ with\ getaddrinfo}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ Does\ this\ in\ a\ background\ thread\ so\ that\ it\ can\ be\ cancelled,\ since}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ getaddrinfo\ is\ a\ blocking\ call,\ and\ we\ don't\ want\ to\ block\ the\ main\ thread\ on\ Mobile.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}IXCancellationRequest.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <set>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{struct\ }addrinfo;}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespaceix}{ix}}}
+\DoxyCodeLine{00023\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classix_1_1_d_n_s_lookup}{DNSLookup}}\ :\ \textcolor{keyword}{public}\ std::enable\_shared\_from\_this<DNSLookup>}
+\DoxyCodeLine{00025\ \ \ \ \ \{}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classix_1_1_d_n_s_lookup}{DNSLookup}}(\textcolor{keyword}{const}\ std::string\&\ \mbox{\hyperlink{structhostname}{hostname}},\ \textcolor{keywordtype}{int}\ port,\ int64\_t\ wait\ =\ DNSLookup::kDefaultWait);}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classix_1_1_d_n_s_lookup}{\string~DNSLookup}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }addrinfo*\ resolve(std::string\&\ errMsg,}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ CancellationRequest\&\ isCancellationRequested,}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ cancellable\ =\ \textcolor{keyword}{true});}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ release(\textcolor{keyword}{struct}\ addrinfo*\ addr);}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }addrinfo*\ resolveCancellable(std::string\&\ errMsg,}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ CancellationRequest\&\ isCancellationRequested);}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }addrinfo*\ resolveUnCancellable(std::string\&\ errMsg,}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ CancellationRequest\&\ isCancellationRequested);}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{struct\ }addrinfo*\ getAddrInfo(\textcolor{keyword}{const}\ std::string\&\ \mbox{\hyperlink{structhostname}{hostname}},}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ port,}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::string\&\ errMsg);}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ run(std::weak\_ptr<DNSLookup>\ self,\ std::string\ \mbox{\hyperlink{structhostname}{hostname}},\ \textcolor{keywordtype}{int}\ port);\ \textcolor{comment}{//\ thread\ runner}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ setErrMsg(\textcolor{keyword}{const}\ std::string\&\ errMsg);}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ getErrMsg();}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ setRes(\textcolor{keyword}{struct}\ addrinfo*\ addr);}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }addrinfo*\ getRes();}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ std::string\ \_hostname;}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \_port;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ int64\_t\ \_wait;}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{static}\ int64\_t\ kDefaultWait;}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }addrinfo*\ \_res;}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ std::mutex\ \_resMutex;}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ std::string\ \_errMsg;}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ std::mutex\ \_errMsgMutex;}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_done;}
+\DoxyCodeLine{00066\ \ \ \ \ \};}
+\DoxyCodeLine{00067\ \}\ \textcolor{comment}{//\ namespace\ ix}}
+
+\end{DoxyCode}

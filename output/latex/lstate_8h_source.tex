@@ -1,0 +1,410 @@
+\hypertarget{lstate_8h_source}{}\doxysection{lstate.\+h}
+\label{lstate_8h_source}\index{AseSprite/aseprite/third\_party/lua/lstate.h@{AseSprite/aseprite/third\_party/lua/lstate.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{**\ \$Id:\ lstate.h\ \$}}
+\DoxyCodeLine{00003\ \textcolor{comment}{**\ Global\ State}}
+\DoxyCodeLine{00004\ \textcolor{comment}{**\ See\ Copyright\ Notice\ in\ lua.h}}
+\DoxyCodeLine{00005\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ lstate\_h}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ lstate\_h}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}lua.h"{}}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}lobject.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}ltm.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}lzio.h"{}}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00018\ \textcolor{comment}{**\ Some\ notes\ about\ garbage-\/collected\ objects:\ All\ objects\ in\ Lua\ must}}
+\DoxyCodeLine{00019\ \textcolor{comment}{**\ be\ kept\ somehow\ accessible\ until\ being\ freed,\ so\ all\ objects\ always}}
+\DoxyCodeLine{00020\ \textcolor{comment}{**\ belong\ to\ one\ (and\ only\ one)\ of\ these\ lists,\ using\ field\ 'next'\ of}}
+\DoxyCodeLine{00021\ \textcolor{comment}{**\ the\ 'CommonHeader'\ for\ the\ link:}}
+\DoxyCodeLine{00022\ \textcolor{comment}{**}}
+\DoxyCodeLine{00023\ \textcolor{comment}{**\ 'allgc':\ all\ objects\ not\ marked\ for\ finalization;}}
+\DoxyCodeLine{00024\ \textcolor{comment}{**\ 'finobj':\ all\ objects\ marked\ for\ finalization;}}
+\DoxyCodeLine{00025\ \textcolor{comment}{**\ 'tobefnz':\ all\ objects\ ready\ to\ be\ finalized;}}
+\DoxyCodeLine{00026\ \textcolor{comment}{**\ 'fixedgc':\ all\ objects\ that\ are\ not\ to\ be\ collected\ (currently}}
+\DoxyCodeLine{00027\ \textcolor{comment}{**\ only\ small\ strings,\ such\ as\ reserved\ words).}}
+\DoxyCodeLine{00028\ \textcolor{comment}{**}}
+\DoxyCodeLine{00029\ \textcolor{comment}{**\ For\ the\ generational\ collector,\ some\ of\ these\ lists\ have\ marks\ for}}
+\DoxyCodeLine{00030\ \textcolor{comment}{**\ generations.\ Each\ mark\ points\ to\ the\ first\ element\ in\ the\ list\ for}}
+\DoxyCodeLine{00031\ \textcolor{comment}{**\ that\ particular\ generation;\ that\ generation\ goes\ until\ the\ next\ mark.}}
+\DoxyCodeLine{00032\ \textcolor{comment}{**}}
+\DoxyCodeLine{00033\ \textcolor{comment}{**\ 'allgc'\ -\/>\ 'survival':\ new\ objects;}}
+\DoxyCodeLine{00034\ \textcolor{comment}{**\ 'survival'\ -\/>\ 'old':\ objects\ that\ survived\ one\ collection;}}
+\DoxyCodeLine{00035\ \textcolor{comment}{**\ 'old1'\ -\/>\ 'reallyold':\ objects\ that\ became\ old\ in\ last\ collection;}}
+\DoxyCodeLine{00036\ \textcolor{comment}{**\ 'reallyold'\ -\/>\ NULL:\ objects\ old\ for\ more\ than\ one\ cycle.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{**}}
+\DoxyCodeLine{00038\ \textcolor{comment}{**\ 'finobj'\ -\/>\ 'finobjsur':\ new\ objects\ marked\ for\ finalization;}}
+\DoxyCodeLine{00039\ \textcolor{comment}{**\ 'finobjsur'\ -\/>\ 'finobjold1':\ survived\ \ \ "{}"{}"{}"{};}}
+\DoxyCodeLine{00040\ \textcolor{comment}{**\ 'finobjold1'\ -\/>\ 'finobjrold':\ just\ old\ \ "{}"{}"{}"{};}}
+\DoxyCodeLine{00041\ \textcolor{comment}{**\ 'finobjrold'\ -\/>\ NULL:\ really\ old\ \ \ \ \ \ \ "{}"{}"{}"{}.}}
+\DoxyCodeLine{00042\ \textcolor{comment}{**}}
+\DoxyCodeLine{00043\ \textcolor{comment}{**\ All\ lists\ can\ contain\ elements\ older\ than\ their\ main\ ages,\ due}}
+\DoxyCodeLine{00044\ \textcolor{comment}{**\ to\ 'luaC\_checkfinalizer'\ and\ 'udata2finalize',\ which\ move}}
+\DoxyCodeLine{00045\ \textcolor{comment}{**\ objects\ between\ the\ normal\ lists\ and\ the\ "{}marked\ for\ finalization"{}}}
+\DoxyCodeLine{00046\ \textcolor{comment}{**\ lists.\ Moreover,\ barriers\ can\ age\ young\ objects\ in\ young\ lists\ as}}
+\DoxyCodeLine{00047\ \textcolor{comment}{**\ OLD0,\ which\ then\ become\ OLD1.\ However,\ a\ list\ never\ contains}}
+\DoxyCodeLine{00048\ \textcolor{comment}{**\ elements\ younger\ than\ their\ main\ ages.}}
+\DoxyCodeLine{00049\ \textcolor{comment}{**}}
+\DoxyCodeLine{00050\ \textcolor{comment}{**\ The\ generational\ collector\ also\ uses\ a\ pointer\ 'firstold1',\ which}}
+\DoxyCodeLine{00051\ \textcolor{comment}{**\ points\ to\ the\ first\ OLD1\ object\ in\ the\ list.\ It\ is\ used\ to\ optimize}}
+\DoxyCodeLine{00052\ \textcolor{comment}{**\ 'markold'.\ (Potentially\ OLD1\ objects\ can\ be\ anywhere\ between\ 'allgc'}}
+\DoxyCodeLine{00053\ \textcolor{comment}{**\ and\ 'reallyold',\ but\ often\ the\ list\ has\ no\ OLD1\ objects\ or\ they\ are}}
+\DoxyCodeLine{00054\ \textcolor{comment}{**\ after\ 'old1'.)\ Note\ the\ difference\ between\ it\ and\ 'old1':}}
+\DoxyCodeLine{00055\ \textcolor{comment}{**\ 'firstold1':\ no\ OLD1\ objects\ before\ this\ point;\ there\ can\ be\ all}}
+\DoxyCodeLine{00056\ \textcolor{comment}{**\ \ \ ages\ after\ it.}}
+\DoxyCodeLine{00057\ \textcolor{comment}{**\ 'old1':\ no\ objects\ younger\ than\ OLD1\ after\ this\ point.}}
+\DoxyCodeLine{00058\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00061\ \textcolor{comment}{**\ Moreover,\ there\ is\ another\ set\ of\ lists\ that\ control\ gray\ objects.}}
+\DoxyCodeLine{00062\ \textcolor{comment}{**\ These\ lists\ are\ linked\ by\ fields\ 'gclist'.\ (All\ objects\ that}}
+\DoxyCodeLine{00063\ \textcolor{comment}{**\ can\ become\ gray\ have\ such\ a\ field.\ The\ field\ is\ not\ the\ same}}
+\DoxyCodeLine{00064\ \textcolor{comment}{**\ in\ all\ objects,\ but\ it\ always\ has\ this\ name.)\ \ Any\ gray\ object}}
+\DoxyCodeLine{00065\ \textcolor{comment}{**\ must\ belong\ to\ one\ of\ these\ lists,\ and\ all\ objects\ in\ these\ lists}}
+\DoxyCodeLine{00066\ \textcolor{comment}{**\ must\ be\ gray\ (with\ two\ exceptions\ explained\ below):}}
+\DoxyCodeLine{00067\ \textcolor{comment}{**}}
+\DoxyCodeLine{00068\ \textcolor{comment}{**\ 'gray':\ regular\ gray\ objects,\ still\ waiting\ to\ be\ visited.}}
+\DoxyCodeLine{00069\ \textcolor{comment}{**\ 'grayagain':\ objects\ that\ must\ be\ revisited\ at\ the\ atomic\ phase.}}
+\DoxyCodeLine{00070\ \textcolor{comment}{**\ \ \ That\ includes}}
+\DoxyCodeLine{00071\ \textcolor{comment}{**\ \ \ -\/\ black\ objects\ got\ in\ a\ write\ barrier;}}
+\DoxyCodeLine{00072\ \textcolor{comment}{**\ \ \ -\/\ all\ kinds\ of\ weak\ tables\ during\ propagation\ phase;}}
+\DoxyCodeLine{00073\ \textcolor{comment}{**\ \ \ -\/\ all\ threads.}}
+\DoxyCodeLine{00074\ \textcolor{comment}{**\ 'weak':\ tables\ with\ weak\ values\ to\ be\ cleared;}}
+\DoxyCodeLine{00075\ \textcolor{comment}{**\ 'ephemeron':\ ephemeron\ tables\ with\ white-\/>white\ entries;}}
+\DoxyCodeLine{00076\ \textcolor{comment}{**\ 'allweak':\ tables\ with\ weak\ keys\ and/or\ weak\ values\ to\ be\ cleared.}}
+\DoxyCodeLine{00077\ \textcolor{comment}{**}}
+\DoxyCodeLine{00078\ \textcolor{comment}{**\ The\ exceptions\ to\ that\ "{}gray\ rule"{}\ are:}}
+\DoxyCodeLine{00079\ \textcolor{comment}{**\ -\/\ TOUCHED2\ objects\ in\ generational\ mode\ stay\ in\ a\ gray\ list\ (because}}
+\DoxyCodeLine{00080\ \textcolor{comment}{**\ they\ must\ be\ visited\ again\ at\ the\ end\ of\ the\ cycle),\ but\ they\ are}}
+\DoxyCodeLine{00081\ \textcolor{comment}{**\ marked\ black\ because\ assignments\ to\ them\ must\ activate\ barriers\ (to}}
+\DoxyCodeLine{00082\ \textcolor{comment}{**\ move\ them\ back\ to\ TOUCHED1).}}
+\DoxyCodeLine{00083\ \textcolor{comment}{**\ -\/\ Open\ upvales\ are\ kept\ gray\ to\ avoid\ barriers,\ but\ they\ stay\ out}}
+\DoxyCodeLine{00084\ \textcolor{comment}{**\ of\ gray\ lists.\ (They\ don't\ even\ have\ a\ 'gclist'\ field.)}}
+\DoxyCodeLine{00085\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00090\ \textcolor{comment}{**\ About\ 'nCcalls':\ \ This\ count\ has\ two\ parts:\ the\ lower\ 16\ bits\ counts}}
+\DoxyCodeLine{00091\ \textcolor{comment}{**\ the\ number\ of\ recursive\ invocations\ in\ the\ C\ stack;\ the\ higher}}
+\DoxyCodeLine{00092\ \textcolor{comment}{**\ 16\ bits\ counts\ the\ number\ of\ non-\/yieldable\ calls\ in\ the\ stack.}}
+\DoxyCodeLine{00093\ \textcolor{comment}{**\ (They\ are\ together\ so\ that\ we\ can\ change\ and\ save\ both\ with\ one}}
+\DoxyCodeLine{00094\ \textcolor{comment}{**\ instruction.)}}
+\DoxyCodeLine{00095\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{comment}{/*\ true\ if\ this\ thread\ does\ not\ have\ non-\/yieldable\ calls\ in\ the\ stack\ */}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#define\ yieldable(L)\ \ \ \ \ \ \ \ (((L)-\/>nCcalls\ \&\ 0xffff0000)\ ==\ 0)}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{comment}{/*\ real\ number\ of\ C\ calls\ */}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ getCcalls(L)\ \ \ \ ((L)-\/>nCcalls\ \&\ 0xffff)}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{comment}{/*\ Increment\ the\ number\ of\ non-\/yieldable\ calls\ */}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#define\ incnny(L)\ \ \ ((L)-\/>nCcalls\ +=\ 0x10000)}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{comment}{/*\ Decrement\ the\ number\ of\ non-\/yieldable\ calls\ */}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#define\ decnny(L)\ \ \ ((L)-\/>nCcalls\ -\/=\ 0x10000)}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{comment}{/*\ Non-\/yieldable\ call\ increment\ */}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#define\ nyci\ \ \ \ (0x10000\ |\ 1)}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlua__longjmp}{lua\_longjmp}};\ \ \textcolor{comment}{/*\ defined\ in\ ldo.c\ */}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00121\ \textcolor{comment}{**\ Atomic\ type\ (relative\ to\ signals)\ to\ better\ ensure\ that\ 'lua\_sethook'}}
+\DoxyCodeLine{00122\ \textcolor{comment}{**\ is\ thread\ safe}}
+\DoxyCodeLine{00123\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#if\ !defined(l\_signalT)}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#include\ <signal.h>}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#define\ l\_signalT\ \ \ sig\_atomic\_t}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00131\ \textcolor{comment}{**\ Extra\ stack\ space\ to\ handle\ TM\ calls\ and\ some\ other\ extras.\ This}}
+\DoxyCodeLine{00132\ \textcolor{comment}{**\ space\ is\ not\ included\ in\ 'stack\_last'.\ It\ is\ used\ only\ to\ avoid\ stack}}
+\DoxyCodeLine{00133\ \textcolor{comment}{**\ checks,\ either\ because\ the\ element\ will\ be\ promptly\ popped\ or\ because}}
+\DoxyCodeLine{00134\ \textcolor{comment}{**\ there\ will\ be\ a\ stack\ check\ soon\ after\ the\ push.\ Function\ frames}}
+\DoxyCodeLine{00135\ \textcolor{comment}{**\ never\ use\ this\ extra\ space,\ so\ it\ does\ not\ need\ to\ be\ kept\ clean.}}
+\DoxyCodeLine{00136\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#define\ EXTRA\_STACK\ \ \ 5}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#define\ BASIC\_STACK\_SIZE\ \ \ \ \ \ \ \ (2*LUA\_MINSTACK)}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#define\ stacksize(th)\ \ \ cast\_int((th)-\/>stack\_last\ -\/\ (th)-\/>stack)}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{comment}{/*\ kinds\ of\ Garbage\ Collection\ */}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\#define\ KGC\_INC\ \ \ \ \ 0\ \ \ }\textcolor{comment}{/*\ incremental\ gc\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#define\ KGC\_GEN\ \ \ \ \ 1\ \ \ }\textcolor{comment}{/*\ generational\ gc\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structstringtable}{stringtable}}\ \{}
+\DoxyCodeLine{00151\ \ \ \mbox{\hyperlink{struct_t_string}{TString}}\ **hash;}
+\DoxyCodeLine{00152\ \ \ \textcolor{keywordtype}{int}\ nuse;\ \ \textcolor{comment}{/*\ number\ of\ elements\ */}}
+\DoxyCodeLine{00153\ \ \ \textcolor{keywordtype}{int}\ size;}
+\DoxyCodeLine{00154\ \}\ \mbox{\hyperlink{structstringtable}{stringtable}};}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00158\ \textcolor{comment}{**\ Information\ about\ a\ call.}}
+\DoxyCodeLine{00159\ \textcolor{comment}{**\ About\ union\ 'u':}}
+\DoxyCodeLine{00160\ \textcolor{comment}{**\ -\/\ field\ 'l'\ is\ used\ only\ for\ Lua\ functions;}}
+\DoxyCodeLine{00161\ \textcolor{comment}{**\ -\/\ field\ 'c'\ is\ used\ only\ for\ C\ functions.}}
+\DoxyCodeLine{00162\ \textcolor{comment}{**\ About\ union\ 'u2':}}
+\DoxyCodeLine{00163\ \textcolor{comment}{**\ -\/\ field\ 'funcidx'\ is\ used\ only\ by\ C\ functions\ while\ doing\ a}}
+\DoxyCodeLine{00164\ \textcolor{comment}{**\ protected\ call;}}
+\DoxyCodeLine{00165\ \textcolor{comment}{**\ -\/\ field\ 'nyield'\ is\ used\ only\ while\ a\ function\ is\ "{}doing"{}\ an}}
+\DoxyCodeLine{00166\ \textcolor{comment}{**\ yield\ (from\ the\ yield\ until\ the\ next\ resume);}}
+\DoxyCodeLine{00167\ \textcolor{comment}{**\ -\/\ field\ 'nres'\ is\ used\ only\ while\ closing\ tbc\ variables\ when}}
+\DoxyCodeLine{00168\ \textcolor{comment}{**\ returning\ from\ a\ C\ function;}}
+\DoxyCodeLine{00169\ \textcolor{comment}{**\ -\/\ field\ 'transferinfo'\ is\ used\ only\ during\ call/returnhooks,}}
+\DoxyCodeLine{00170\ \textcolor{comment}{**\ before\ the\ function\ starts\ or\ after\ it\ ends.}}
+\DoxyCodeLine{00171\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00172\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_call_info}{CallInfo}}\ \{}
+\DoxyCodeLine{00173\ \ \ \mbox{\hyperlink{union_stack_value}{StkId}}\ func;\ \ \textcolor{comment}{/*\ function\ index\ in\ the\ stack\ */}}
+\DoxyCodeLine{00174\ \ \ \mbox{\hyperlink{union_stack_value}{StkId}}\ \ \ \ top;\ \ \textcolor{comment}{/*\ top\ for\ this\ function\ */}}
+\DoxyCodeLine{00175\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_call_info}{CallInfo}}\ *previous,\ *next;\ \ \textcolor{comment}{/*\ dynamic\ call\ link\ */}}
+\DoxyCodeLine{00176\ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keyword}{struct\ }\{\ \ \textcolor{comment}{/*\ only\ for\ Lua\ functions\ */}}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \textcolor{keyword}{const}\ Instruction\ *savedpc;}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \textcolor{keyword}{volatile}\ l\_signalT\ trap;}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ nextraargs;\ \ \textcolor{comment}{/*\ \#\ of\ extra\ arguments\ in\ vararg\ functions\ */}}
+\DoxyCodeLine{00181\ \ \ \ \ \}\ l;}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keyword}{struct\ }\{\ \ \textcolor{comment}{/*\ only\ for\ C\ functions\ */}}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ lua\_KFunction\ k;\ \ \textcolor{comment}{/*\ continuation\ in\ case\ of\ yields\ */}}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ ptrdiff\_t\ old\_errfunc;}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ lua\_KContext\ ctx;\ \ \textcolor{comment}{/*\ context\ info.\ in\ case\ of\ yields\ */}}
+\DoxyCodeLine{00186\ \ \ \ \ \}\ c;}
+\DoxyCodeLine{00187\ \ \ \}\ u;}
+\DoxyCodeLine{00188\ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keywordtype}{int}\ funcidx;\ \ \textcolor{comment}{/*\ called-\/function\ index\ */}}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{keywordtype}{int}\ nyield;\ \ \textcolor{comment}{/*\ number\ of\ values\ yielded\ */}}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordtype}{int}\ nres;\ \ \textcolor{comment}{/*\ number\ of\ values\ returned\ */}}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keyword}{struct\ }\{\ \ \textcolor{comment}{/*\ info\ about\ transferred\ values\ (for\ call/return\ hooks)\ */}}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ ftransfer;\ \ \textcolor{comment}{/*\ offset\ of\ first\ value\ transferred\ */}}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ ntransfer;\ \ \textcolor{comment}{/*\ number\ of\ values\ transferred\ */}}
+\DoxyCodeLine{00195\ \ \ \ \ \}\ transferinfo;}
+\DoxyCodeLine{00196\ \ \ \}\ u2;}
+\DoxyCodeLine{00197\ \ \ \textcolor{keywordtype}{short}\ nresults;\ \ \textcolor{comment}{/*\ expected\ number\ of\ results\ from\ this\ function\ */}}
+\DoxyCodeLine{00198\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ callstatus;}
+\DoxyCodeLine{00199\ \}\ \mbox{\hyperlink{struct_call_info}{CallInfo}};}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00203\ \textcolor{comment}{**\ Bits\ in\ CallInfo\ status}}
+\DoxyCodeLine{00204\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\#define\ CIST\_OAH\ \ \ \ (1<<0)\ \ }\textcolor{comment}{/*\ original\ value\ of\ 'allowhook'\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00206\ \textcolor{preprocessor}{\#define\ CIST\_C\ \ \ \ \ \ (1<<1)\ \ }\textcolor{comment}{/*\ call\ is\ running\ a\ C\ function\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#define\ CIST\_FRESH\ \ (1<<2)\ \ }\textcolor{comment}{/*\ call\ is\ on\ a\ fresh\ "{}luaV\_execute"{}\ frame\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#define\ CIST\_HOOKED\ (1<<3)\ \ }\textcolor{comment}{/*\ call\ is\ running\ a\ debug\ hook\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#define\ CIST\_YPCALL\ (1<<4)\ \ }\textcolor{comment}{/*\ doing\ a\ yieldable\ protected\ call\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#define\ CIST\_TAIL\ \ \ (1<<5)\ \ }\textcolor{comment}{/*\ call\ was\ tail\ called\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\#define\ CIST\_HOOKYIELD\ \ (1<<6)\ \ }\textcolor{comment}{/*\ last\ hook\ called\ yielded\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#define\ CIST\_FIN\ \ \ \ (1<<7)\ \ }\textcolor{comment}{/*\ call\ is\ running\ a\ finalizer\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#define\ CIST\_TRAN\ \ \ (1<<8)\ \ }\textcolor{comment}{/*\ 'ci'\ has\ transfer\ information\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\#define\ CIST\_CLSRET\ (1<<9)\ \ }\textcolor{comment}{/*\ function\ is\ closing\ tbc\ variables\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00215\ \textcolor{comment}{/*\ Bits\ 10-\/12\ are\ used\ for\ CIST\_RECST\ (see\ below)\ */}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\#define\ CIST\_RECST\ \ 10}}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\#if\ defined(LUA\_COMPAT\_LT\_LE)}}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\#define\ CIST\_LEQ\ \ \ \ (1<<13)\ \ }\textcolor{comment}{/*\ using\ \_\_lt\ for\ \_\_le\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00223\ \textcolor{comment}{**\ Field\ CIST\_RECST\ stores\ the\ "{}recover\ status"{},\ used\ to\ keep\ the\ error}}
+\DoxyCodeLine{00224\ \textcolor{comment}{**\ status\ while\ closing\ to-\/be-\/closed\ variables\ in\ coroutines,\ so\ that}}
+\DoxyCodeLine{00225\ \textcolor{comment}{**\ Lua\ can\ correctly\ resume\ after\ an\ yield\ from\ a\ \_\_close\ method\ called}}
+\DoxyCodeLine{00226\ \textcolor{comment}{**\ because\ of\ an\ error.\ \ (Three\ bits\ are\ enough\ for\ error\ status.)}}
+\DoxyCodeLine{00227\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\#define\ getcistrecst(ci)\ \ \ \ \ (((ci)-\/>callstatus\ >>\ CIST\_RECST)\ \&\ 7)}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#define\ setcistrecst(ci,st)\ \ \(\backslash\)}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\ \ check\_exp(((st)\ \&\ 7)\ ==\ (st),\ \ \ }\textcolor{comment}{/*\ status\ must\ fit\ in\ three\ bits\ */}\textcolor{preprocessor}{\ \ \(\backslash\)}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ ((ci)-\/>callstatus\ =\ ((ci)-\/>callstatus\ \&\ \string~(7\ <<\ CIST\_RECST))\ \ \(\backslash\)}}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((st)\ <<\ CIST\_RECST)))}}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \textcolor{comment}{/*\ active\ function\ is\ a\ Lua\ function\ */}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\#define\ isLua(ci)\ \ \ (!((ci)-\/>callstatus\ \&\ CIST\_C))}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \textcolor{comment}{/*\ call\ is\ running\ Lua\ code\ (not\ a\ hook)\ */}}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#define\ isLuacode(ci)\ \ \ (!((ci)-\/>callstatus\ \&\ (CIST\_C\ |\ CIST\_HOOKED)))}}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \textcolor{comment}{/*\ assume\ that\ CIST\_OAH\ has\ offset\ 0\ and\ that\ 'v'\ is\ strictly\ 0/1\ */}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#define\ setoah(st,v)\ \ \ \ ((st)\ =\ ((st)\ \&\ \string~CIST\_OAH)\ |\ (v))}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#define\ getoah(st)\ \ ((st)\ \&\ CIST\_OAH)}}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00247\ \textcolor{comment}{**\ 'global\ state',\ shared\ by\ all\ threads\ of\ this\ state}}
+\DoxyCodeLine{00248\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00249\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structglobal___state}{global\_State}}\ \{}
+\DoxyCodeLine{00250\ \ \ lua\_Alloc\ frealloc;\ \ \textcolor{comment}{/*\ function\ to\ reallocate\ memory\ */}}
+\DoxyCodeLine{00251\ \ \ \textcolor{keywordtype}{void}\ *ud;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ auxiliary\ data\ to\ 'frealloc'\ */}}
+\DoxyCodeLine{00252\ \ \ l\_mem\ totalbytes;\ \ \textcolor{comment}{/*\ number\ of\ bytes\ currently\ allocated\ -\/\ GCdebt\ */}}
+\DoxyCodeLine{00253\ \ \ l\_mem\ GCdebt;\ \ \textcolor{comment}{/*\ bytes\ allocated\ not\ yet\ compensated\ by\ the\ collector\ */}}
+\DoxyCodeLine{00254\ \ \ lu\_mem\ GCestimate;\ \ \textcolor{comment}{/*\ an\ estimate\ of\ the\ non-\/garbage\ memory\ in\ use\ */}}
+\DoxyCodeLine{00255\ \ \ lu\_mem\ lastatomic;\ \ \textcolor{comment}{/*\ see\ function\ 'genstep'\ in\ file\ 'lgc.c'\ */}}
+\DoxyCodeLine{00256\ \ \ \mbox{\hyperlink{structstringtable}{stringtable}}\ strt;\ \ \textcolor{comment}{/*\ hash\ table\ for\ strings\ */}}
+\DoxyCodeLine{00257\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ l\_registry;}
+\DoxyCodeLine{00258\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ nilvalue;\ \ \textcolor{comment}{/*\ a\ nil\ value\ */}}
+\DoxyCodeLine{00259\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ seed;\ \ \textcolor{comment}{/*\ randomized\ seed\ for\ hashes\ */}}
+\DoxyCodeLine{00260\ \ \ lu\_byte\ currentwhite;}
+\DoxyCodeLine{00261\ \ \ lu\_byte\ gcstate;\ \ \textcolor{comment}{/*\ state\ of\ garbage\ collector\ */}}
+\DoxyCodeLine{00262\ \ \ lu\_byte\ gckind;\ \ \textcolor{comment}{/*\ kind\ of\ GC\ running\ */}}
+\DoxyCodeLine{00263\ \ \ lu\_byte\ gcstopem;\ \ \textcolor{comment}{/*\ stops\ emergency\ collections\ */}}
+\DoxyCodeLine{00264\ \ \ lu\_byte\ genminormul;\ \ \textcolor{comment}{/*\ control\ for\ minor\ generational\ collections\ */}}
+\DoxyCodeLine{00265\ \ \ lu\_byte\ genmajormul;\ \ \textcolor{comment}{/*\ control\ for\ major\ generational\ collections\ */}}
+\DoxyCodeLine{00266\ \ \ lu\_byte\ gcrunning;\ \ \textcolor{comment}{/*\ true\ if\ GC\ is\ running\ */}}
+\DoxyCodeLine{00267\ \ \ lu\_byte\ gcemergency;\ \ \textcolor{comment}{/*\ true\ if\ this\ is\ an\ emergency\ collection\ */}}
+\DoxyCodeLine{00268\ \ \ lu\_byte\ gcpause;\ \ \textcolor{comment}{/*\ size\ of\ pause\ between\ successive\ GCs\ */}}
+\DoxyCodeLine{00269\ \ \ lu\_byte\ gcstepmul;\ \ \textcolor{comment}{/*\ GC\ "{}speed"{}\ */}}
+\DoxyCodeLine{00270\ \ \ lu\_byte\ gcstepsize;\ \ \textcolor{comment}{/*\ (log2\ of)\ GC\ granularity\ */}}
+\DoxyCodeLine{00271\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *allgc;\ \ \textcolor{comment}{/*\ list\ of\ all\ collectable\ objects\ */}}
+\DoxyCodeLine{00272\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ **sweepgc;\ \ \textcolor{comment}{/*\ current\ position\ of\ sweep\ in\ list\ */}}
+\DoxyCodeLine{00273\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *finobj;\ \ \textcolor{comment}{/*\ list\ of\ collectable\ objects\ with\ finalizers\ */}}
+\DoxyCodeLine{00274\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *gray;\ \ \textcolor{comment}{/*\ list\ of\ gray\ objects\ */}}
+\DoxyCodeLine{00275\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *grayagain;\ \ \textcolor{comment}{/*\ list\ of\ objects\ to\ be\ traversed\ atomically\ */}}
+\DoxyCodeLine{00276\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *weak;\ \ \textcolor{comment}{/*\ list\ of\ tables\ with\ weak\ values\ */}}
+\DoxyCodeLine{00277\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *ephemeron;\ \ \textcolor{comment}{/*\ list\ of\ ephemeron\ tables\ (weak\ keys)\ */}}
+\DoxyCodeLine{00278\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *allweak;\ \ \textcolor{comment}{/*\ list\ of\ all-\/weak\ tables\ */}}
+\DoxyCodeLine{00279\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *tobefnz;\ \ \textcolor{comment}{/*\ list\ of\ userdata\ to\ be\ GC\ */}}
+\DoxyCodeLine{00280\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *fixedgc;\ \ \textcolor{comment}{/*\ list\ of\ objects\ not\ to\ be\ collected\ */}}
+\DoxyCodeLine{00281\ \ \ \textcolor{comment}{/*\ fields\ for\ generational\ collector\ */}}
+\DoxyCodeLine{00282\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *survival;\ \ \textcolor{comment}{/*\ start\ of\ objects\ that\ survived\ one\ GC\ cycle\ */}}
+\DoxyCodeLine{00283\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *old1;\ \ \textcolor{comment}{/*\ start\ of\ old1\ objects\ */}}
+\DoxyCodeLine{00284\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *reallyold;\ \ \textcolor{comment}{/*\ objects\ more\ than\ one\ cycle\ old\ ("{}really\ old"{})\ */}}
+\DoxyCodeLine{00285\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *firstold1;\ \ \textcolor{comment}{/*\ first\ OLD1\ object\ in\ the\ list\ (if\ any)\ */}}
+\DoxyCodeLine{00286\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *finobjsur;\ \ \textcolor{comment}{/*\ list\ of\ survival\ objects\ with\ finalizers\ */}}
+\DoxyCodeLine{00287\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *finobjold1;\ \ \textcolor{comment}{/*\ list\ of\ old1\ objects\ with\ finalizers\ */}}
+\DoxyCodeLine{00288\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *finobjrold;\ \ \textcolor{comment}{/*\ list\ of\ really\ old\ objects\ with\ finalizers\ */}}
+\DoxyCodeLine{00289\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlua___state}{lua\_State}}\ *twups;\ \ \textcolor{comment}{/*\ list\ of\ threads\ with\ open\ upvalues\ */}}
+\DoxyCodeLine{00290\ \ \ lua\_CFunction\ panic;\ \ \textcolor{comment}{/*\ to\ be\ called\ in\ unprotected\ errors\ */}}
+\DoxyCodeLine{00291\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlua___state}{lua\_State}}\ *mainthread;}
+\DoxyCodeLine{00292\ \ \ \mbox{\hyperlink{struct_t_string}{TString}}\ *memerrmsg;\ \ \textcolor{comment}{/*\ message\ for\ memory-\/allocation\ errors\ */}}
+\DoxyCodeLine{00293\ \ \ \mbox{\hyperlink{struct_t_string}{TString}}\ *tmname[TM\_N];\ \ \textcolor{comment}{/*\ array\ with\ tag-\/method\ names\ */}}
+\DoxyCodeLine{00294\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_table}{Table}}\ *mt[LUA\_NUMTAGS];\ \ \textcolor{comment}{/*\ metatables\ for\ basic\ types\ */}}
+\DoxyCodeLine{00295\ \ \ \mbox{\hyperlink{struct_t_string}{TString}}\ *strcache[STRCACHE\_N][STRCACHE\_M];\ \ \textcolor{comment}{/*\ cache\ for\ strings\ in\ API\ */}}
+\DoxyCodeLine{00296\ \ \ lua\_WarnFunction\ warnf;\ \ \textcolor{comment}{/*\ warning\ function\ */}}
+\DoxyCodeLine{00297\ \ \ \textcolor{keywordtype}{void}\ *ud\_warn;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ auxiliary\ data\ to\ 'warnf'\ */}}
+\DoxyCodeLine{00298\ \}\ \mbox{\hyperlink{structglobal___state}{global\_State}};}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00302\ \textcolor{comment}{**\ 'per\ thread'\ state}}
+\DoxyCodeLine{00303\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00304\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlua___state}{lua\_State}}\ \{}
+\DoxyCodeLine{00305\ \ \ CommonHeader;}
+\DoxyCodeLine{00306\ \ \ lu\_byte\ status;}
+\DoxyCodeLine{00307\ \ \ lu\_byte\ allowhook;}
+\DoxyCodeLine{00308\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ nci;\ \ \textcolor{comment}{/*\ number\ of\ items\ in\ 'ci'\ list\ */}}
+\DoxyCodeLine{00309\ \ \ \mbox{\hyperlink{union_stack_value}{StkId}}\ top;\ \ \textcolor{comment}{/*\ first\ free\ slot\ in\ the\ stack\ */}}
+\DoxyCodeLine{00310\ \ \ \mbox{\hyperlink{structglobal___state}{global\_State}}\ *l\_G;}
+\DoxyCodeLine{00311\ \ \ \mbox{\hyperlink{struct_call_info}{CallInfo}}\ *ci;\ \ \textcolor{comment}{/*\ call\ info\ for\ current\ function\ */}}
+\DoxyCodeLine{00312\ \ \ \mbox{\hyperlink{union_stack_value}{StkId}}\ stack\_last;\ \ \textcolor{comment}{/*\ end\ of\ stack\ (last\ element\ +\ 1)\ */}}
+\DoxyCodeLine{00313\ \ \ \mbox{\hyperlink{union_stack_value}{StkId}}\ stack;\ \ \textcolor{comment}{/*\ stack\ base\ */}}
+\DoxyCodeLine{00314\ \ \ \mbox{\hyperlink{struct_up_val}{UpVal}}\ *openupval;\ \ \textcolor{comment}{/*\ list\ of\ open\ upvalues\ in\ this\ stack\ */}}
+\DoxyCodeLine{00315\ \ \ \mbox{\hyperlink{union_stack_value}{StkId}}\ tbclist;\ \ \textcolor{comment}{/*\ list\ of\ to-\/be-\/closed\ variables\ */}}
+\DoxyCodeLine{00316\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *gclist;}
+\DoxyCodeLine{00317\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlua___state}{lua\_State}}\ *twups;\ \ \textcolor{comment}{/*\ list\ of\ threads\ with\ open\ upvalues\ */}}
+\DoxyCodeLine{00318\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlua__longjmp}{lua\_longjmp}}\ *errorJmp;\ \ \textcolor{comment}{/*\ current\ error\ recover\ point\ */}}
+\DoxyCodeLine{00319\ \ \ \mbox{\hyperlink{struct_call_info}{CallInfo}}\ base\_ci;\ \ \textcolor{comment}{/*\ CallInfo\ for\ first\ level\ (C\ calling\ Lua)\ */}}
+\DoxyCodeLine{00320\ \ \ \textcolor{keyword}{volatile}\ lua\_Hook\ hook;}
+\DoxyCodeLine{00321\ \ \ ptrdiff\_t\ errfunc;\ \ \textcolor{comment}{/*\ current\ error\ handling\ function\ (stack\ index)\ */}}
+\DoxyCodeLine{00322\ \ \ l\_uint32\ nCcalls;\ \ \textcolor{comment}{/*\ number\ of\ nested\ (non-\/yieldable\ |\ C)\ \ calls\ */}}
+\DoxyCodeLine{00323\ \ \ \textcolor{keywordtype}{int}\ oldpc;\ \ \textcolor{comment}{/*\ last\ pc\ traced\ */}}
+\DoxyCodeLine{00324\ \ \ \textcolor{keywordtype}{int}\ basehookcount;}
+\DoxyCodeLine{00325\ \ \ \textcolor{keywordtype}{int}\ hookcount;}
+\DoxyCodeLine{00326\ \ \ \textcolor{keyword}{volatile}\ l\_signalT\ hookmask;}
+\DoxyCodeLine{00327\ \};}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{\#define\ G(L)\ \ \ \ (L-\/>l\_G)}}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00333\ \textcolor{comment}{**\ 'g-\/>nilvalue'\ being\ a\ nil\ value\ flags\ that\ the\ state\ was\ completely}}
+\DoxyCodeLine{00334\ \textcolor{comment}{**\ build.}}
+\DoxyCodeLine{00335\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00336\ \textcolor{preprocessor}{\#define\ completestate(g)\ \ \ \ ttisnil(\&g-\/>nilvalue)}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00340\ \textcolor{comment}{**\ Union\ of\ all\ collectable\ objects\ (only\ for\ conversions)}}
+\DoxyCodeLine{00341\ \textcolor{comment}{**\ ISO\ C99,\ 6.5.2.3\ p.5:}}
+\DoxyCodeLine{00342\ \textcolor{comment}{**\ "{}if\ a\ union\ contains\ several\ structures\ that\ share\ a\ common\ initial}}
+\DoxyCodeLine{00343\ \textcolor{comment}{**\ sequence\ [...],\ and\ if\ the\ union\ object\ currently\ contains\ one}}
+\DoxyCodeLine{00344\ \textcolor{comment}{**\ of\ these\ structures,\ it\ is\ permitted\ to\ inspect\ the\ common\ initial}}
+\DoxyCodeLine{00345\ \textcolor{comment}{**\ part\ of\ any\ of\ them\ anywhere\ that\ a\ declaration\ of\ the\ complete\ type}}
+\DoxyCodeLine{00346\ \textcolor{comment}{**\ of\ the\ union\ is\ visible."{}}}
+\DoxyCodeLine{00347\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00348\ \textcolor{keyword}{union\ }\mbox{\hyperlink{union_g_c_union}{GCUnion}}\ \{}
+\DoxyCodeLine{00349\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ gc;\ \ \textcolor{comment}{/*\ common\ header\ */}}
+\DoxyCodeLine{00350\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t_string}{TString}}\ ts;}
+\DoxyCodeLine{00351\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_udata}{Udata}}\ u;}
+\DoxyCodeLine{00352\ \ \ \textcolor{keyword}{union\ }\mbox{\hyperlink{union_closure}{Closure}}\ cl;}
+\DoxyCodeLine{00353\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_table}{Table}}\ h;}
+\DoxyCodeLine{00354\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_proto}{Proto}}\ p;}
+\DoxyCodeLine{00355\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlua___state}{lua\_State}}\ th;\ \ \textcolor{comment}{/*\ thread\ */}}
+\DoxyCodeLine{00356\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_up_val}{UpVal}}\ upv;}
+\DoxyCodeLine{00357\ \};}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00361\ \textcolor{comment}{**\ ISO\ C99,\ 6.7.2.1\ p.14:}}
+\DoxyCodeLine{00362\ \textcolor{comment}{**\ "{}A\ pointer\ to\ a\ union\ object,\ suitably\ converted,\ points\ to\ each\ of}}
+\DoxyCodeLine{00363\ \textcolor{comment}{**\ its\ members\ [...],\ and\ vice\ versa."{}}}
+\DoxyCodeLine{00364\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00365\ \textcolor{preprocessor}{\#define\ cast\_u(o)\ \ \ cast(union\ GCUnion\ *,\ (o))}}
+\DoxyCodeLine{00366\ }
+\DoxyCodeLine{00367\ \textcolor{comment}{/*\ macros\ to\ convert\ a\ GCObject\ into\ a\ specific\ value\ */}}
+\DoxyCodeLine{00368\ \textcolor{preprocessor}{\#define\ gco2ts(o)\ \ \(\backslash\)}}
+\DoxyCodeLine{00369\ \textcolor{preprocessor}{\ \ \ \ check\_exp(novariant((o)-\/>tt)\ ==\ LUA\_TSTRING,\ \&((cast\_u(o))-\/>ts))}}
+\DoxyCodeLine{00370\ \textcolor{preprocessor}{\#define\ gco2u(o)\ \ check\_exp((o)-\/>tt\ ==\ LUA\_VUSERDATA,\ \&((cast\_u(o))-\/>u))}}
+\DoxyCodeLine{00371\ \textcolor{preprocessor}{\#define\ gco2lcl(o)\ \ check\_exp((o)-\/>tt\ ==\ LUA\_VLCL,\ \&((cast\_u(o))-\/>cl.l))}}
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\#define\ gco2ccl(o)\ \ check\_exp((o)-\/>tt\ ==\ LUA\_VCCL,\ \&((cast\_u(o))-\/>cl.c))}}
+\DoxyCodeLine{00373\ \textcolor{preprocessor}{\#define\ gco2cl(o)\ \ \(\backslash\)}}
+\DoxyCodeLine{00374\ \textcolor{preprocessor}{\ \ \ \ check\_exp(novariant((o)-\/>tt)\ ==\ LUA\_TFUNCTION,\ \&((cast\_u(o))-\/>cl))}}
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\#define\ gco2t(o)\ \ check\_exp((o)-\/>tt\ ==\ LUA\_VTABLE,\ \&((cast\_u(o))-\/>h))}}
+\DoxyCodeLine{00376\ \textcolor{preprocessor}{\#define\ gco2p(o)\ \ check\_exp((o)-\/>tt\ ==\ LUA\_VPROTO,\ \&((cast\_u(o))-\/>p))}}
+\DoxyCodeLine{00377\ \textcolor{preprocessor}{\#define\ gco2th(o)\ \ check\_exp((o)-\/>tt\ ==\ LUA\_VTHREAD,\ \&((cast\_u(o))-\/>th))}}
+\DoxyCodeLine{00378\ \textcolor{preprocessor}{\#define\ gco2upv(o)\ \ check\_exp((o)-\/>tt\ ==\ LUA\_VUPVAL,\ \&((cast\_u(o))-\/>upv))}}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00382\ \textcolor{comment}{**\ macro\ to\ convert\ a\ Lua\ object\ into\ a\ GCObject}}
+\DoxyCodeLine{00383\ \textcolor{comment}{**\ (The\ access\ to\ 'tt'\ tries\ to\ ensure\ that\ 'v'\ is\ actually\ a\ Lua\ object.)}}
+\DoxyCodeLine{00384\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00385\ \textcolor{preprocessor}{\#define\ obj2gco(v)\ \ check\_exp((v)-\/>tt\ >=\ LUA\_TSTRING,\ \&(cast\_u(v)-\/>gc))}}
+\DoxyCodeLine{00386\ }
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \textcolor{comment}{/*\ actual\ number\ of\ total\ bytes\ allocated\ */}}
+\DoxyCodeLine{00389\ \textcolor{preprocessor}{\#define\ gettotalbytes(g)\ \ \ \ cast(lu\_mem,\ (g)-\/>totalbytes\ +\ (g)-\/>GCdebt)}}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_setdebt\ (\mbox{\hyperlink{structglobal___state}{global\_State}}\ *g,\ l\_mem\ debt);}
+\DoxyCodeLine{00392\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_freethread\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \mbox{\hyperlink{structlua___state}{lua\_State}}\ *L1);}
+\DoxyCodeLine{00393\ LUAI\_FUNC\ \mbox{\hyperlink{struct_call_info}{CallInfo}}\ *luaE\_extendCI\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L);}
+\DoxyCodeLine{00394\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_freeCI\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L);}
+\DoxyCodeLine{00395\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_shrinkCI\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L);}
+\DoxyCodeLine{00396\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_checkcstack\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L);}
+\DoxyCodeLine{00397\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_incCstack\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L);}
+\DoxyCodeLine{00398\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_warning\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *msg,\ \textcolor{keywordtype}{int}\ tocont);}
+\DoxyCodeLine{00399\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaE\_warnerror\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *where);}
+\DoxyCodeLine{00400\ LUAI\_FUNC\ \textcolor{keywordtype}{int}\ luaE\_resetthread\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \textcolor{keywordtype}{int}\ status);}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00404\ }
+
+\end{DoxyCode}

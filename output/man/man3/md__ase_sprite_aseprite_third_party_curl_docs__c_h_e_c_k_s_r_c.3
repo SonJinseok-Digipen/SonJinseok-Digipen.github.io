@@ -1,0 +1,154 @@
+.TH "md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c \- checksrc 
+.PP
+This is the tool we use within the curl project to scan C source code and check that it adheres to our \fBSource Code Style guide\fP\&.
+.SH "Usage"
+.PP
+.PP
+.nf
+checksrc\&.pl [options] [file1] [file2] \&.\&.\&.
+.fi
+.PP
+ 
+.SH "Command line options"
+.PP
+\fC-W[file]\fP skip that file and excludes it from being checked\&. Helpful when, for example, one of the files is generated\&.
+.PP
+\fC-D[dir]\fP directory name to prepend to file names when accessing them\&.
+.PP
+\fC-h\fP shows the help output, that also lists all recognized warnings
+.SH "What does checksrc warn for?"
+.PP
+checksrc does not check and verify the code against the entire style guide, but the script is instead an effort to detect the most common mistakes and syntax mistakes that contributors make before they get accustomed to our code style\&. Heck, many of us regulars do the mistakes too and this script helps us keep the code in shape\&. 
+.PP
+.nf
+checksrc\&.pl -h
+
+.fi
+.PP
+ Lists how to use the script and it lists all existing warnings it has and problems it detects\&. At the time of this writing, the existing checksrc warnings are:
+.PP
+.IP "\(bu" 2
+\fCASSIGNWITHINCONDITION\fP: Assignment within a conditional expression\&. The code style mandates the assignment to be done outside of it\&.
+.IP "\(bu" 2
+\fCASTERISKNOSPACE\fP: \fBA\fP pointer was declared like \fCchar* name\fP instead of the more appropriate \fCchar *name\fP style\&. The asterisk should sit next to the name\&.
+.IP "\(bu" 2
+\fCASTERISKSPACE\fP: \fBA\fP pointer was declared like \fCchar * name\fP instead of the more appropriate \fCchar *name\fP style\&. The asterisk should sit right next to the name without a space in between\&.
+.IP "\(bu" 2
+\fCBADCOMMAND\fP: There's a bad !checksrc! instruction in the code\&. See the \fBIgnore certain warnings\fP section below for details\&.
+.IP "\(bu" 2
+\fCBANNEDFUNC\fP: \fBA\fP banned function was used\&. The functions sprintf, vsprintf, strcat, strncat, gets are \fBnever\fP allowed in curl source code\&.
+.IP "\(bu" 2
+\fCBRACEELSE\fP: '} else' on the same line\&. The else is supposed to be on the following line\&.
+.IP "\(bu" 2
+\fCBRACEPOS\fP: wrong position for an open brace (\fC{\fP)\&.
+.IP "\(bu" 2
+\fCBRACEWHILE\fP: more than once space between end brace and while keyword
+.IP "\(bu" 2
+\fCCOMMANOSPACE\fP: a comma without following space
+.IP "\(bu" 2
+\fCCOPYRIGHT\fP: the file is missing a copyright statement!
+.IP "\(bu" 2
+\fCCPPCOMMENTS\fP: \fC//\fP comment detected, that's not C89 compliant
+.IP "\(bu" 2
+\fCDOBRACE\fP: only use one space after do before open brace
+.IP "\(bu" 2
+\fCEMPTYLINEBRACE\fP: found empty line before open brace
+.IP "\(bu" 2
+\fCEQUALSNOSPACE\fP: no space after \fC=\fP sign
+.IP "\(bu" 2
+\fCEQUALSNULL\fP: comparison with \fC== NULL\fP used in if/while\&. We use \fC!var\fP\&.
+.IP "\(bu" 2
+\fCEXCLAMATIONSPACE\fP: space found after exclamations mark
+.IP "\(bu" 2
+\fCFOPENMODE\fP: \fCfopen()\fP needs a macro for the mode string, use it
+.IP "\(bu" 2
+\fCINDENTATION\fP: detected a wrong start column for code\&. Note that this warning only checks some specific places and will certainly miss many bad indentations\&.
+.IP "\(bu" 2
+\fCLONGLINE\fP: \fBA\fP line is longer than 79 columns\&.
+.IP "\(bu" 2
+\fCMULTISPACE\fP: Multiple spaces were found where only one should be used\&.
+.IP "\(bu" 2
+\fCNOSPACEEQUALS\fP: An equals sign was found without preceding space\&. We prefer \fCa = 2\fP and \fInot\fP \fCa=2\fP\&.
+.IP "\(bu" 2
+\fCNOTEQUALSZERO\fP: check found using \fC!= 0\fP\&. We use plain \fCif(var)\fP\&.
+.IP "\(bu" 2
+\fCONELINECONDITION\fP: do not put the conditional block on the same line as \fCif()\fP
+.IP "\(bu" 2
+\fCOPENCOMMENT\fP: File ended with a comment (\fC/*\fP) still 'open'\&.
+.IP "\(bu" 2
+\fCPARENBRACE\fP: \fC){\fP was used without sufficient space in between\&.
+.IP "\(bu" 2
+\fCRETURNNOSPACE\fP: \fCreturn\fP was used without space between the keyword and the following value\&.
+.IP "\(bu" 2
+\fCSEMINOSPACE\fP: There was no space (or newline) following a semicolon\&.
+.IP "\(bu" 2
+\fCSIZEOFNOPAREN\fP: Found use of sizeof without parentheses\&. We prefer \fCsizeof(int)\fP style\&.
+.IP "\(bu" 2
+\fCSNPRINTF\fP - Found use of \fCsnprintf()\fP\&. Since we use an internal replacement with a different return code etc, we prefer \fCmsnprintf()\fP\&.
+.IP "\(bu" 2
+\fCSPACEAFTERPAREN\fP: there was a space after open parenthesis, \fC( text\fP\&.
+.IP "\(bu" 2
+\fCSPACEBEFORECLOSE\fP: there was a space before a close parenthesis, \fCtext )\fP\&.
+.IP "\(bu" 2
+\fCSPACEBEFORECOMMA\fP: there was a space before a comma, \fCone , two\fP\&.
+.IP "\(bu" 2
+\fCSPACEBEFOREPAREN\fP: there was a space before an open parenthesis, \fCif (\fP, where one was not expected
+.IP "\(bu" 2
+\fCSPACESEMICOLON\fP: there was a space before semicolon, \fC;\fP\&.
+.IP "\(bu" 2
+\fCTABS\fP: TAB characters are not allowed!
+.IP "\(bu" 2
+\fCTRAILINGSPACE\fP: Trailing whitespace on the line
+.IP "\(bu" 2
+\fCTYPEDEFSTRUCT\fP: we frown upon (most) typedefed structs
+.IP "\(bu" 2
+\fCUNUSEDIGNORE\fP: a checksrc inlined warning ignore was asked for but not used, that's an ignore that should be removed or changed to get used\&.
+.PP
+.SS "Extended warnings"
+Some warnings are quite computationally expensive to perform, so they are turned off by default\&. To enable these warnings, place a \fC\&.checksrc\fP file in the directory where they should be activated with commands to enable the warnings you are interested in\&. The format of the file is to enable one warning per line like so: \fCenable <EXTENDEDWARNING>\fP
+.PP
+Currently there is one extended warning which can be enabled:
+.PP
+.IP "\(bu" 2
+\fCCOPYRIGHTYEAR\fP: the current changeset hasn't updated the copyright year in the source file
+.PP
+.SH "Ignore certain warnings"
+.PP
+Due to the nature of the source code and the flaws of the checksrc tool, there is sometimes a need to ignore specific warnings\&. checksrc allows a few different ways to do this\&.
+.SS "Inline ignore"
+You can control what to ignore within a specific source file by providing instructions to checksrc in the source code itself\&. You need a magic marker that is \fC!checksrc!\fP followed by the instruction\&. The instruction can ask to ignore a specific warning N number of times or you ignore all of them until you mark the end of the ignored section\&.
+.PP
+Inline ignores are only done for that single specific source code file\&.
+.PP
+Example 
+.PP
+.nf
+/* !checksrc! disable LONGLINE all */
+
+.fi
+.PP
+ This will ignore the warning for overly long lines until it is re-enabled with: 
+.PP
+.nf
+/* !checksrc! enable LONGLINE */
+
+.fi
+.PP
+ If the enabling isn't performed before the end of the file, it will be enabled automatically for the next file\&.
+.PP
+You can also opt to ignore just N violations so that if you have a single long line you just can't shorten and is agreed to be fine anyway: 
+.PP
+.nf
+/* !checksrc! disable LONGLINE 1 */
+
+.fi
+.PP
+ \&.\&.\&. and the warning for long lines will be enabled again automatically after it has ignored that single warning\&. The number \fC1\fP can of course be changed to any other integer number\&. It can be used to make sure only the exact intended instances are ignored and nothing extra\&.
+.SS "Directory wide ignore patterns"
+This is a method we've transitioned away from\&. Use inline ignores as far as possible\&.
+.PP
+Make a \fCchecksrc\&.skip\fP file in the directory of the source code with the false positive, and include the full offending line into this file\&. 

@@ -1,0 +1,65 @@
+\hypertarget{_tengu_2spdlog_2sinks_2msvc__sink_8h_source}{}\doxysection{msvc\+\_\+sink.\+h}
+\label{_tengu_2spdlog_2sinks_2msvc__sink_8h_source}\index{Tengu/Tengu/spdlog/sinks/msvc\_sink.h@{Tengu/Tengu/spdlog/sinks/msvc\_sink.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2016\ Alexander\ Dalshov\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#if\ defined(\_WIN32)}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#\ \ \ \ include\ <spdlog/details/null\_mutex.h>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#\ \ \ \ include\ <spdlog/sinks/base\_sink.h>}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#\ \ \ \ include\ <mutex>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#\ \ \ \ include\ <string>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{comment}{//\ Avoid\ including\ windows.h\ (https://stackoverflow.com/a/30741042)}}
+\DoxyCodeLine{00016\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \_\_declspec(dllimport)\ \textcolor{keywordtype}{void}\ \_\_stdcall\ OutputDebugStringA(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *lpOutputString);}
+\DoxyCodeLine{00017\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \_\_declspec(dllimport)\ \textcolor{keywordtype}{int}\ \_\_stdcall\ IsDebuggerPresent();}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00020\ \textcolor{keyword}{namespace\ }sinks\ \{}
+\DoxyCodeLine{00021\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ MSVC\ sink\ (logging\ using\ OutputDebugStringA)}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00024\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Mutex>}
+\DoxyCodeLine{00025\ \textcolor{keyword}{class\ }msvc\_sink\ :\ \textcolor{keyword}{public}\ base\_sink<Mutex>}
+\DoxyCodeLine{00026\ \{}
+\DoxyCodeLine{00027\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00028\ \ \ \ \ msvc\_sink()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00029\ \ \ \ \ msvc\_sink(\textcolor{keywordtype}{bool}\ check\_debugger\_present)}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ :\ check\_debugger\_present\_\{check\_debugger\_present\}\ \{\};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordtype}{void}\ sink\_it\_(\textcolor{keyword}{const}\ details::log\_msg\ \&msg)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00034\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (check\_debugger\_present\_\ \&\&\ !IsDebuggerPresent())}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ memory\_buf\_t\ formatted;}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ base\_sink<Mutex>::formatter\_-\/>format(msg,\ formatted);}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ formatted.push\_back(\textcolor{charliteral}{'\(\backslash\)0'});\ \textcolor{comment}{//\ add\ a\ null\ terminator\ for\ OutputDebugStringA}}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ OutputDebugStringA(formatted.data());}
+\DoxyCodeLine{00043\ \ \ \ \ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{void}\ flush\_()\textcolor{keyword}{\ override\ }\{\}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{bool}\ check\_debugger\_present\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00048\ \};}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{keyword}{using\ }msvc\_sink\_mt\ =\ msvc\_sink<std::mutex>;}
+\DoxyCodeLine{00051\ \textcolor{keyword}{using\ }msvc\_sink\_st\ =\ msvc\_sink<details::null\_mutex>;}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{keyword}{using\ }windebug\_sink\_mt\ =\ msvc\_sink\_mt;}
+\DoxyCodeLine{00054\ \textcolor{keyword}{using\ }windebug\_sink\_st\ =\ msvc\_sink\_st;}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \}\ \textcolor{comment}{//\ namespace\ sinks}}
+\DoxyCodeLine{00057\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

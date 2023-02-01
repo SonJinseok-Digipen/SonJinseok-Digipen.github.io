@@ -1,0 +1,197 @@
+\hypertarget{lossless__common_8h_source}{}\doxysection{lossless\+\_\+common.\+h}
+\label{lossless__common_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dsp/lossless\_common.h@{AseSprite/aseprite/third\_party/libwebp/src/dsp/lossless\_common.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Image\ transforms\ and\ color\ space\ conversion\ methods\ for\ lossless\ decoder.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Authors:\ Vikas\ Arora\ (vikaas.arora@gmail.com)}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ Jyrki\ Alakuijala\ (jyrki@google.com)}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ Vincent\ Rabaud\ (vrabaud@google.com)}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DSP\_LOSSLESS\_COMMON\_H\_}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_LOSSLESS\_COMMON\_H\_}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/utils/utils.h"{}}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00024\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00028\ \textcolor{comment}{//\ Decoding}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ color\ mapping\ related\ functions.}}
+\DoxyCodeLine{00031\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ VP8GetARGBIndex(uint32\_t\ idx)\ \{}
+\DoxyCodeLine{00032\ \ \ \textcolor{keywordflow}{return}\ (idx\ >>\ 8)\ \&\ 0xff;}
+\DoxyCodeLine{00033\ \}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint8\_t\ VP8GetAlphaIndex(uint8\_t\ idx)\ \{}
+\DoxyCodeLine{00036\ \ \ \textcolor{keywordflow}{return}\ idx;}
+\DoxyCodeLine{00037\ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ VP8GetARGBValue(uint32\_t\ val)\ \{}
+\DoxyCodeLine{00040\ \ \ \textcolor{keywordflow}{return}\ val;}
+\DoxyCodeLine{00041\ \}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint8\_t\ VP8GetAlphaValue(uint32\_t\ val)\ \{}
+\DoxyCodeLine{00044\ \ \ \textcolor{keywordflow}{return}\ (val\ >>\ 8)\ \&\ 0xff;}
+\DoxyCodeLine{00045\ \}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00048\ \textcolor{comment}{//\ Misc\ methods.}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ Computes\ sampled\ size\ of\ 'size'\ when\ sampling\ using\ 'sampling\ bits'.}}
+\DoxyCodeLine{00051\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ VP8LSubSampleSize(uint32\_t\ size,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ sampling\_bits)\ \{}
+\DoxyCodeLine{00053\ \ \ \textcolor{keywordflow}{return}\ (size\ +\ (1\ <<\ sampling\_bits)\ -\/\ 1)\ >>\ sampling\_bits;}
+\DoxyCodeLine{00054\ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{comment}{//\ Converts\ near\ lossless\ quality\ into\ max\ number\ of\ bits\ shaved\ off.}}
+\DoxyCodeLine{00057\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8LNearLosslessBits(\textcolor{keywordtype}{int}\ near\_lossless\_quality)\ \{}
+\DoxyCodeLine{00058\ \ \ \textcolor{comment}{//\ \ \ \ 100\ -\/>\ 0}}
+\DoxyCodeLine{00059\ \ \ \textcolor{comment}{//\ 80..99\ -\/>\ 1}}
+\DoxyCodeLine{00060\ \ \ \textcolor{comment}{//\ 60..79\ -\/>\ 2}}
+\DoxyCodeLine{00061\ \ \ \textcolor{comment}{//\ 40..59\ -\/>\ 3}}
+\DoxyCodeLine{00062\ \ \ \textcolor{comment}{//\ 20..39\ -\/>\ 4}}
+\DoxyCodeLine{00063\ \ \ \textcolor{comment}{//\ \ 0..19\ -\/>\ 5}}
+\DoxyCodeLine{00064\ \ \ \textcolor{keywordflow}{return}\ 5\ -\/\ near\_lossless\_quality\ /\ 20;}
+\DoxyCodeLine{00065\ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00068\ \textcolor{comment}{//\ Faster\ logarithm\ for\ integers.\ Small\ values\ use\ a\ look-\/up\ table.}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//\ The\ threshold\ till\ approximate\ version\ of\ log\_2\ can\ be\ used.}}
+\DoxyCodeLine{00071\ \textcolor{comment}{//\ Practically,\ we\ can\ get\ rid\ of\ the\ call\ to\ log()\ as\ the\ two\ values\ match\ to}}
+\DoxyCodeLine{00072\ \textcolor{comment}{//\ very\ high\ degree\ (the\ ratio\ of\ these\ two\ is\ 0.99999x).}}
+\DoxyCodeLine{00073\ \textcolor{comment}{//\ Keeping\ a\ high\ threshold\ for\ now.}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ APPROX\_LOG\_WITH\_CORRECTION\_MAX\ \ 65536}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#define\ APPROX\_LOG\_MAX\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4096}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#define\ LOG\_2\_RECIPROCAL\ 1.44269504088896338700465094007086}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ LOG\_LOOKUP\_IDX\_MAX\ 256}}
+\DoxyCodeLine{00078\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ kLog2Table[LOG\_LOOKUP\_IDX\_MAX];}
+\DoxyCodeLine{00079\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ kSLog2Table[LOG\_LOOKUP\_IDX\_MAX];}
+\DoxyCodeLine{00080\ \textcolor{keyword}{typedef}\ float\ (*VP8LFastLog2SlowFunc)(uint32\_t\ v);}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{extern}\ VP8LFastLog2SlowFunc\ VP8LFastLog2Slow;}
+\DoxyCodeLine{00083\ \textcolor{keyword}{extern}\ VP8LFastLog2SlowFunc\ VP8LFastSLog2Slow;}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{float}\ VP8LFastLog2(uint32\_t\ v)\ \{}
+\DoxyCodeLine{00086\ \ \ \textcolor{keywordflow}{return}\ (v\ <\ LOG\_LOOKUP\_IDX\_MAX)\ ?\ kLog2Table[v]\ :\ VP8LFastLog2Slow(v);}
+\DoxyCodeLine{00087\ \}}
+\DoxyCodeLine{00088\ \textcolor{comment}{//\ Fast\ calculation\ of\ v\ *\ log2(v)\ for\ integer\ input.}}
+\DoxyCodeLine{00089\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{float}\ VP8LFastSLog2(uint32\_t\ v)\ \{}
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordflow}{return}\ (v\ <\ LOG\_LOOKUP\_IDX\_MAX)\ ?\ kSLog2Table[v]\ :\ VP8LFastSLog2Slow(v);}
+\DoxyCodeLine{00091\ \}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00094\ \textcolor{comment}{//\ PrefixEncode()}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{comment}{//\ Splitting\ of\ distance\ and\ length\ codes\ into\ prefixes\ and}}
+\DoxyCodeLine{00097\ \textcolor{comment}{//\ extra\ bits.\ The\ prefixes\ are\ encoded\ with\ an\ entropy\ code}}
+\DoxyCodeLine{00098\ \textcolor{comment}{//\ while\ the\ extra\ bits\ are\ stored\ just\ as\ normal\ bits.}}
+\DoxyCodeLine{00099\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8LPrefixEncodeBitsNoLUT(\textcolor{keywordtype}{int}\ distance,\ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcode}{code}},}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ extra\_bits)\ \{}
+\DoxyCodeLine{00101\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ highest\_bit\ =\ BitsLog2Floor(-\/-\/distance);}
+\DoxyCodeLine{00102\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ second\_highest\_bit\ =\ (distance\ >>\ (highest\_bit\ -\/\ 1))\ \&\ 1;}
+\DoxyCodeLine{00103\ \ \ *extra\_bits\ =\ highest\_bit\ -\/\ 1;}
+\DoxyCodeLine{00104\ \ \ *\mbox{\hyperlink{structcode}{code}}\ =\ 2\ *\ highest\_bit\ +\ second\_highest\_bit;}
+\DoxyCodeLine{00105\ \}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8LPrefixEncodeNoLUT(\textcolor{keywordtype}{int}\ distance,\ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcode}{code}},}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ extra\_bits,}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ extra\_bits\_value)\ \{}
+\DoxyCodeLine{00110\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ highest\_bit\ =\ BitsLog2Floor(-\/-\/distance);}
+\DoxyCodeLine{00111\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ second\_highest\_bit\ =\ (distance\ >>\ (highest\_bit\ -\/\ 1))\ \&\ 1;}
+\DoxyCodeLine{00112\ \ \ *extra\_bits\ =\ highest\_bit\ -\/\ 1;}
+\DoxyCodeLine{00113\ \ \ *extra\_bits\_value\ =\ distance\ \&\ ((1\ <<\ *extra\_bits)\ -\/\ 1);}
+\DoxyCodeLine{00114\ \ \ *\mbox{\hyperlink{structcode}{code}}\ =\ 2\ *\ highest\_bit\ +\ second\_highest\_bit;}
+\DoxyCodeLine{00115\ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ PREFIX\_LOOKUP\_IDX\_MAX\ \ \ 512}}
+\DoxyCodeLine{00118\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00119\ \ \ int8\_t\ code\_;}
+\DoxyCodeLine{00120\ \ \ int8\_t\ extra\_bits\_;}
+\DoxyCodeLine{00121\ \}\ \mbox{\hyperlink{struct_v_p8_l_prefix_code}{VP8LPrefixCode}};}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \textcolor{comment}{//\ These\ tables\ are\ derived\ using\ VP8LPrefixEncodeNoLUT.}}
+\DoxyCodeLine{00124\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_prefix_code}{VP8LPrefixCode}}\ kPrefixEncodeCode[PREFIX\_LOOKUP\_IDX\_MAX];}
+\DoxyCodeLine{00125\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint8\_t\ kPrefixEncodeExtraBitsValue[PREFIX\_LOOKUP\_IDX\_MAX];}
+\DoxyCodeLine{00126\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8LPrefixEncodeBits(\textcolor{keywordtype}{int}\ distance,\ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcode}{code}},}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ extra\_bits)\ \{}
+\DoxyCodeLine{00128\ \ \ \textcolor{keywordflow}{if}\ (distance\ <\ PREFIX\_LOOKUP\_IDX\_MAX)\ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_prefix_code}{VP8LPrefixCode}}\ prefix\_code\ =\ kPrefixEncodeCode[distance];}
+\DoxyCodeLine{00130\ \ \ \ \ *\mbox{\hyperlink{structcode}{code}}\ =\ prefix\_code.code\_;}
+\DoxyCodeLine{00131\ \ \ \ \ *extra\_bits\ =\ prefix\_code.extra\_bits\_;}
+\DoxyCodeLine{00132\ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ VP8LPrefixEncodeBitsNoLUT(distance,\ \mbox{\hyperlink{structcode}{code}},\ extra\_bits);}
+\DoxyCodeLine{00134\ \ \ \}}
+\DoxyCodeLine{00135\ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8LPrefixEncode(\textcolor{keywordtype}{int}\ distance,\ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcode}{code}},}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ extra\_bits,}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ extra\_bits\_value)\ \{}
+\DoxyCodeLine{00140\ \ \ \textcolor{keywordflow}{if}\ (distance\ <\ PREFIX\_LOOKUP\_IDX\_MAX)\ \{}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_prefix_code}{VP8LPrefixCode}}\ prefix\_code\ =\ kPrefixEncodeCode[distance];}
+\DoxyCodeLine{00142\ \ \ \ \ *\mbox{\hyperlink{structcode}{code}}\ =\ prefix\_code.code\_;}
+\DoxyCodeLine{00143\ \ \ \ \ *extra\_bits\ =\ prefix\_code.extra\_bits\_;}
+\DoxyCodeLine{00144\ \ \ \ \ *extra\_bits\_value\ =\ kPrefixEncodeExtraBitsValue[distance];}
+\DoxyCodeLine{00145\ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00146\ \ \ \ \ VP8LPrefixEncodeNoLUT(distance,\ \mbox{\hyperlink{structcode}{code}},\ extra\_bits,\ extra\_bits\_value);}
+\DoxyCodeLine{00147\ \ \ \}}
+\DoxyCodeLine{00148\ \}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{comment}{//\ Sum\ of\ each\ component,\ mod\ 256.}}
+\DoxyCodeLine{00151\ \textcolor{keyword}{static}\ WEBP\_UBSAN\_IGNORE\_UNSIGNED\_OVERFLOW\ WEBP\_INLINE}
+\DoxyCodeLine{00152\ uint32\_t\ VP8LAddPixels(uint32\_t\ \mbox{\hyperlink{structa}{a}},\ uint32\_t\ b)\ \{}
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{const}\ uint32\_t\ alpha\_and\_green\ =\ (\mbox{\hyperlink{structa}{a}}\ \&\ 0xff00ff00u)\ +\ (b\ \&\ 0xff00ff00u);}
+\DoxyCodeLine{00154\ \ \ \textcolor{keyword}{const}\ uint32\_t\ red\_and\_blue\ =\ (\mbox{\hyperlink{structa}{a}}\ \&\ 0x00ff00ffu)\ +\ (b\ \&\ 0x00ff00ffu);}
+\DoxyCodeLine{00155\ \ \ \textcolor{keywordflow}{return}\ (alpha\_and\_green\ \&\ 0xff00ff00u)\ |\ (red\_and\_blue\ \&\ 0x00ff00ffu);}
+\DoxyCodeLine{00156\ \}}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \textcolor{comment}{//\ Difference\ of\ each\ component,\ mod\ 256.}}
+\DoxyCodeLine{00159\ \textcolor{keyword}{static}\ WEBP\_UBSAN\_IGNORE\_UNSIGNED\_OVERFLOW\ WEBP\_INLINE}
+\DoxyCodeLine{00160\ uint32\_t\ VP8LSubPixels(uint32\_t\ \mbox{\hyperlink{structa}{a}},\ uint32\_t\ b)\ \{}
+\DoxyCodeLine{00161\ \ \ \textcolor{keyword}{const}\ uint32\_t\ alpha\_and\_green\ =}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ 0x00ff00ffu\ +\ (\mbox{\hyperlink{structa}{a}}\ \&\ 0xff00ff00u)\ -\/\ (b\ \&\ 0xff00ff00u);}
+\DoxyCodeLine{00163\ \ \ \textcolor{keyword}{const}\ uint32\_t\ red\_and\_blue\ =}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ 0xff00ff00u\ +\ (\mbox{\hyperlink{structa}{a}}\ \&\ 0x00ff00ffu)\ -\/\ (b\ \&\ 0x00ff00ffu);}
+\DoxyCodeLine{00165\ \ \ \textcolor{keywordflow}{return}\ (alpha\_and\_green\ \&\ 0xff00ff00u)\ |\ (red\_and\_blue\ \&\ 0x00ff00ffu);}
+\DoxyCodeLine{00166\ \}}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00169\ \textcolor{comment}{//\ Transform-\/related\ functions\ use\ din\ both\ encoding\ and\ decoding.}}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \textcolor{comment}{//\ Macros\ used\ to\ create\ a\ batch\ predictor\ that\ iteratively\ uses\ a}}
+\DoxyCodeLine{00172\ \textcolor{comment}{//\ one-\/pixel\ predictor.}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{comment}{//\ The\ predictor\ is\ added\ to\ the\ output\ pixel\ (which}}
+\DoxyCodeLine{00175\ \textcolor{comment}{//\ is\ therefore\ considered\ as\ a\ residual)\ to\ get\ the\ final\ prediction.}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ GENERATE\_PREDICTOR\_ADD(PREDICTOR,\ PREDICTOR\_ADD)\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{static\ void\ PREDICTOR\_ADD(const\ uint32\_t*\ in,\ const\ uint32\_t*\ upper,\ \(\backslash\)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int\ num\_pixels,\ uint32\_t*\ out)\ \{\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ int\ x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ assert(upper\ !=\ NULL);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\ \ for\ (x\ =\ 0;\ x\ <\ num\_pixels;\ ++x)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\ \ \ \ const\ uint32\_t\ pred\ =\ (PREDICTOR)(out[x\ -\/\ 1],\ upper\ +\ x);\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\ \ \ \ out[x]\ =\ VP8LAddPixels(in[x],\ pred);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\}}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00188\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DSP\_LOSSLESS\_COMMON\_H\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,238 @@
+\hypertarget{json11_8hpp_source}{}\doxysection{json11.\+hpp}
+\label{json11_8hpp_source}\index{AseSprite/aseprite/third\_party/json11/json11.hpp@{AseSprite/aseprite/third\_party/json11/json11.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*\ json11}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ json11\ is\ a\ tiny\ JSON\ library\ for\ C++11,\ providing\ JSON\ parsing\ and\ serialization.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ The\ core\ object\ provided\ by\ the\ library\ is\ json11::Json.\ A\ Json\ object\ represents\ any\ JSON}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ value:\ null,\ bool,\ number\ (int\ or\ double),\ string\ (std::string),\ array\ (std::vector),\ or}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ object\ (std::map).}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ Json\ objects\ act\ like\ values:\ they\ can\ be\ assigned,\ copied,\ moved,\ compared\ for\ equality\ or}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ order,\ etc.\ There\ are\ also\ helper\ methods\ Json::dump,\ to\ serialize\ a\ Json\ to\ a\ string,\ and}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ Json::parse\ (static)\ to\ parse\ a\ std::string\ as\ a\ Json\ object.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ Internally,\ the\ various\ types\ of\ Json\ object\ are\ represented\ by\ the\ JsonValue\ class}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ hierarchy.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ A\ note\ on\ numbers\ -\/\ JSON\ specifies\ the\ syntax\ of\ number\ formatting\ but\ not\ its\ semantics,}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ so\ some\ JSON\ implementations\ distinguish\ between\ integers\ and\ floating-\/point\ numbers,\ while}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ some\ don't.\ In\ json11,\ we\ choose\ the\ latter.\ Because\ some\ JSON\ implementations\ (namely}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ Javascript\ itself)\ treat\ all\ numbers\ as\ the\ same\ type,\ distinguishing\ the\ two\ leads}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ to\ JSON\ that\ will\ be\ *silently*\ changed\ by\ a\ round-\/trip\ through\ those\ implementations.}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ Dangerous!\ To\ avoid\ that\ risk,\ json11\ stores\ all\ numbers\ as\ double\ internally,\ but\ also}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ provides\ integer\ helpers.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Fortunately,\ double-\/precision\ IEEE754\ ('double')\ can\ precisely\ store\ any\ integer\ in\ the}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ range\ +/-\/2\string^53,\ which\ includes\ every\ 'int'\ on\ most\ systems.\ (Timestamps\ often\ use\ int64}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ or\ long\ long\ to\ avoid\ the\ Y2038K\ problem;\ a\ double\ storing\ microseconds\ since\ some\ epoch}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ will\ be\ exact\ for\ +/-\/\ 275\ years.)}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{/*\ Copyright\ (c)\ 2013\ Dropbox,\ Inc.}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ free\ of\ charge,\ to\ any\ person\ obtaining\ a\ copy}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ of\ this\ software\ and\ associated\ documentation\ files\ (the\ "{}Software"{}),\ to\ deal}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ in\ the\ Software\ without\ restriction,\ including\ without\ limitation\ the\ rights}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute,\ sublicense,\ and/or\ sell}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ to\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ subject\ to\ the\ following\ conditions:}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ The\ above\ copyright\ notice\ and\ this\ permission\ notice\ shall\ be\ included\ in}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ all\ copies\ or\ substantial\ portions\ of\ the\ Software.}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ THE\ SOFTWARE\ IS\ PROVIDED\ "{}AS\ IS"{},\ WITHOUT\ WARRANTY\ OF\ ANY\ KIND,\ EXPRESS\ OR}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ IMPLIED,\ INCLUDING\ BUT\ NOT\ LIMITED\ TO\ THE\ WARRANTIES\ OF\ MERCHANTABILITY,}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ AND\ NONINFRINGEMENT.\ IN\ NO\ EVENT\ SHALL\ THE}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ AUTHORS\ OR\ COPYRIGHT\ HOLDERS\ BE\ LIABLE\ FOR\ ANY\ CLAIM,\ DAMAGES\ OR\ OTHER}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ LIABILITY,\ WHETHER\ IN\ AN\ ACTION\ OF\ CONTRACT,\ TORT\ OR\ OTHERWISE,\ ARISING\ FROM,}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *\ OUT\ OF\ OR\ IN\ CONNECTION\ WITH\ THE\ SOFTWARE\ OR\ THE\ USE\ OR\ OTHER\ DEALINGS\ IN}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ THE\ SOFTWARE.}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#include\ <map>}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#include\ <initializer\_list>}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#ifdef\ \_MSC\_VER}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\ \ \ \ \#if\ \_MSC\_VER\ <=\ 1800\ }\textcolor{comment}{//\ VS\ 2013}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#ifndef\ noexcept}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \#define\ noexcept\ throw()}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#endif}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#ifndef\ snprintf}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \#define\ snprintf\ \_snprintf\_s}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#endif}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{namespace\ }json11\ \{}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{enum}\ JsonParse\ \{}
+\DoxyCodeLine{00074\ \ \ \ \ STANDARD,\ COMMENTS}
+\DoxyCodeLine{00075\ \};}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{keyword}{class\ }JsonValue;}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classjson11_1_1_json}{Json}}\ final\ \{}
+\DoxyCodeLine{00080\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{comment}{//\ Types}}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{enum}\ Type\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ NUL,\ NUMBER,\ BOOL,\ STRING,\ ARRAY,\ OBJECT}
+\DoxyCodeLine{00084\ \ \ \ \ \};}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{comment}{//\ Array\ and\ object\ typedefs}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keyword}{typedef}\ std::vector<Json>\ array;}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keyword}{typedef}\ std::map<std::string,\ Json>\ object;}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//\ Constructors\ for\ the\ various\ types\ of\ JSON\ value.}}
+\DoxyCodeLine{00091\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}()\ \textcolor{keyword}{noexcept};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ NUL}}
+\DoxyCodeLine{00092\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(std::nullptr\_t)\ \textcolor{keyword}{noexcept};\ \ \textcolor{comment}{//\ NUL}}
+\DoxyCodeLine{00093\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keywordtype}{double}\ \mbox{\hyperlink{classvalue}{value}});\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ NUMBER}}
+\DoxyCodeLine{00094\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{classvalue}{value}});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ NUMBER}}
+\DoxyCodeLine{00095\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classvalue}{value}});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ BOOL}}
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keyword}{const}\ std::string\ \&\mbox{\hyperlink{classvalue}{value}});\ \textcolor{comment}{//\ STRING}}
+\DoxyCodeLine{00097\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(std::string\ \&\&\mbox{\hyperlink{classvalue}{value}});\ \ \ \ \ \ \textcolor{comment}{//\ STRING}}
+\DoxyCodeLine{00098\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \mbox{\hyperlink{classvalue}{value}});\ \ \ \ \ \ \ \textcolor{comment}{//\ STRING}}
+\DoxyCodeLine{00099\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keyword}{const}\ array\ \&values);\ \ \ \ \ \ \textcolor{comment}{//\ ARRAY}}
+\DoxyCodeLine{00100\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(array\ \&\&values);\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ ARRAY}}
+\DoxyCodeLine{00101\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{object}\ \&values);\ \ \ \ \ \textcolor{comment}{//\ OBJECT}}
+\DoxyCodeLine{00102\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keywordtype}{object}\ \&\&values);\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ OBJECT}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ Implicit\ constructor:\ anything\ with\ a\ to\_json()\ function.}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{class}\ T,\ \textcolor{keyword}{class}\ =\ decltype(\&T::to\_json)>}
+\DoxyCodeLine{00106\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keyword}{const}\ T\ \&\ t)\ :\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(t.to\_json())\ \{\}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{comment}{//\ Implicit\ constructor:\ map-\/like\ objects\ (std::map,\ std::unordered\_map,\ etc)}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{class\ }M,\ \textcolor{keyword}{typename}\ std::enable\_if<}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ std::is\_constructible<std::string,\ decltype(std::declval<M>().begin()-\/>first)>\mbox{\hyperlink{classvalue}{::value}}}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \&\&\ std::is\_constructible<\mbox{\hyperlink{classjson11_1_1_json}{Json}},\ \textcolor{keyword}{decltype}(std::declval<M>().begin()-\/>second)>\mbox{\hyperlink{classvalue}{::value}},}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}>::type\ =\ 0>}
+\DoxyCodeLine{00113\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keyword}{const}\ M\ \&\ m)\ :\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keywordtype}{object}(m.begin(),\ m.end()))\ \{\}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{comment}{//\ Implicit\ constructor:\ vector-\/like\ objects\ (std::list,\ std::vector,\ std::set,\ etc)}}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{class\ }V,\ \textcolor{keyword}{typename}\ std::enable\_if<}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ std::is\_constructible<Json,\ decltype(*std::declval<V>().begin())>\mbox{\hyperlink{classvalue}{::value}},}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}>::type\ =\ 0>}
+\DoxyCodeLine{00119\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keyword}{const}\ V\ \&\ v)\ :\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(array(v.begin(),\ v.end()))\ \{\}}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{comment}{//\ This\ prevents\ Json(some\_pointer)\ from\ accidentally\ producing\ a\ bool.\ Use}}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{comment}{//\ Json(bool(some\_pointer))\ if\ that\ behavior\ is\ desired.}}
+\DoxyCodeLine{00123\ \ \ \ \ \mbox{\hyperlink{classjson11_1_1_json}{Json}}(\textcolor{keywordtype}{void}\ *)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{comment}{//\ Accessors}}
+\DoxyCodeLine{00126\ \ \ \ \ Type\ type()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_null()\textcolor{keyword}{\ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ type()\ ==\ NUL;\ \}}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_number()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ type()\ ==\ NUMBER;\ \}}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_bool()\textcolor{keyword}{\ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ type()\ ==\ BOOL;\ \}}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structis__string}{is\_string}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ type()\ ==\ STRING;\ \}}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_array()\textcolor{keyword}{\ \ const\ }\{\ \textcolor{keywordflow}{return}\ type()\ ==\ ARRAY;\ \}}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_object()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ type()\ ==\ OBJECT;\ \}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{comment}{//\ Return\ the\ enclosed\ value\ if\ this\ is\ a\ number,\ 0\ otherwise.\ Note\ that\ json11\ does\ not}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{comment}{//\ distinguish\ between\ integer\ and\ non-\/integer\ numbers\ -\/\ number\_value()\ and\ int\_value()}}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{comment}{//\ can\ both\ be\ applied\ to\ a\ NUMBER-\/typed\ object.}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keywordtype}{double}\ number\_value()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordtype}{int}\ int\_value()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{comment}{//\ Return\ the\ enclosed\ value\ if\ this\ is\ a\ boolean,\ false\ otherwise.}}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{bool}\ bool\_value()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{comment}{//\ Return\ the\ enclosed\ string\ if\ this\ is\ a\ string,\ "{}"{}\ otherwise.}}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keyword}{const}\ std::string\ \&\mbox{\hyperlink{structstring__value}{string\_value}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{comment}{//\ Return\ the\ enclosed\ std::vector\ if\ this\ is\ an\ array,\ or\ an\ empty\ vector\ otherwise.}}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keyword}{const}\ array\ \&array\_items()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{comment}{//\ Return\ the\ enclosed\ std::map\ if\ this\ is\ an\ object,\ or\ an\ empty\ map\ otherwise.}}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{object}\ \&object\_items()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{comment}{//\ Return\ a\ reference\ to\ arr[i]\ if\ this\ is\ an\ array,\ Json()\ otherwise.}}
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&\ operator[](\textcolor{keywordtype}{size\_t}\ i)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{comment}{//\ Return\ a\ reference\ to\ obj[key]\ if\ this\ is\ an\ object,\ Json()\ otherwise.}}
+\DoxyCodeLine{00153\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&\ operator[](\textcolor{keyword}{const}\ std::string\ \&key)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{comment}{//\ Serialize.}}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordtype}{void}\ dump(std::string\ \&out)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00157\ \ \ \ \ std::string\ dump()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ std::string\ out;}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ dump(out);}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{00161\ \ \ \ \ \}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{comment}{//\ Parse.\ If\ parse\ fails,\ return\ Json()\ and\ assign\ an\ error\ message\ to\ err.}}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ parse(\textcolor{keyword}{const}\ std::string\ \&\ in,}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ \&\ err,}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JsonParse\ strategy\ =\ JsonParse::STANDARD);}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ parse(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ in,\ \textcolor{keywordtype}{size\_t}\ count,}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::string\ \&\ err,}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JsonParse\ strategy\ =\ JsonParse::STANDARD)\ \{}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (in)\ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ parse(std::string(in,\ count),\ err,\ strategy);}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ err\ =\ \textcolor{stringliteral}{"{}null\ input"{}};}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00176\ \ \ \ \ \}}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{comment}{//\ Parse\ multiple\ objects,\ concatenated\ or\ separated\ by\ whitespace}}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keyword}{static}\ std::vector<Json>\ parse\_multi(}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\ \&\ in,}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ std::string::size\_type\ \&\ parser\_stop\_pos,}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ std::string\ \&\ err,}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ JsonParse\ strategy\ =\ JsonParse::STANDARD);}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ std::vector<Json>\ parse\_multi(}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\ \&\ in,}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ std::string\ \&\ err,}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ JsonParse\ strategy\ =\ JsonParse::STANDARD)\ \{}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ std::string::size\_type\ parser\_stop\_pos;}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ parse\_multi(in,\ parser\_stop\_pos,\ err,\ strategy);}
+\DoxyCodeLine{00190\ \ \ \ \ \}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&rhs)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator<\ \ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&rhs)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&rhs)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ ==\ rhs);\ \}}
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator<=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&rhs)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(rhs\ <\ *\textcolor{keyword}{this});\ \}}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator>\ \ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&rhs)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \ (rhs\ <\ *\textcolor{keyword}{this});\ \}}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator>=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&rhs)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ <\ rhs);\ \}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{comment}{/*\ has\_shape(types,\ err)}}
+\DoxyCodeLine{00200\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00201\ \textcolor{comment}{\ \ \ \ \ *\ Return\ true\ if\ this\ is\ a\ JSON\ object\ and,\ for\ each\ item\ in\ types,\ has\ a\ field\ of}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ \ \ \ \ *\ the\ given\ type.\ If\ not,\ return\ false\ and\ set\ err\ to\ a\ descriptive\ message.}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keyword}{typedef}\ std::initializer\_list<std::pair<std::string,\ Type>>\ shape;}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_shape(\textcolor{keyword}{const}\ shape\ \&\ types,\ std::string\ \&\ err)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00208\ \ \ \ \ std::shared\_ptr<JsonValue>\ m\_ptr;}
+\DoxyCodeLine{00209\ \};}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \textcolor{comment}{//\ Internal\ class\ hierarchy\ -\/\ JsonValue\ objects\ are\ not\ exposed\ to\ users\ of\ this\ API.}}
+\DoxyCodeLine{00212\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classjson11_1_1_json_value}{JsonValue}}\ \{}
+\DoxyCodeLine{00213\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classjson11_1_1_json}{Json}};}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classjson11_1_1_json_int}{JsonInt}};}
+\DoxyCodeLine{00216\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classjson11_1_1_json_double}{JsonDouble}};}
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{keyword}{virtual}\ Json::Type\ type()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ equals(\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json_value}{JsonValue}}\ *\ other)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ less(\textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json_value}{JsonValue}}\ *\ other)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ dump(std::string\ \&out)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{double}\ number\_value()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ int\_value()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00223\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ bool\_value()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ std::string\ \&\mbox{\hyperlink{structstring__value}{string\_value}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00225\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ Json::array\ \&array\_items()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&operator[](\textcolor{keywordtype}{size\_t}\ i)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ Json::object\ \&object\_items()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00228\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classjson11_1_1_json}{Json}}\ \&operator[](\textcolor{keyword}{const}\ std::string\ \&key)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classjson11_1_1_json_value}{\string~JsonValue}}()\ \{\}}
+\DoxyCodeLine{00230\ \};}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \}\ \textcolor{comment}{//\ namespace\ json11}}
+
+\end{DoxyCode}

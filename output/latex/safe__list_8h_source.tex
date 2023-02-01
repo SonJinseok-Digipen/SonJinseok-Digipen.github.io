@@ -1,0 +1,472 @@
+\hypertarget{safe__list_8h_source}{}\doxysection{safe\+\_\+list.\+h}
+\label{safe__list_8h_source}\index{AseSprite/aseprite/src/observable/obs/safe\_list.h@{AseSprite/aseprite/src/observable/obs/safe\_list.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Observable\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2016-\/2017\ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ OBS\_SAFE\_LIST\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ OBS\_SAFE\_LIST\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <cassert>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <chrono>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <condition\_variable>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <iterator>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{namespace\ }obs\ \{}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{comment}{//\ A\ STL-\/like\ list\ which\ is\ safe\ to\ remove/add\ items\ from\ multiple}}
+\DoxyCodeLine{00023\ \textcolor{comment}{//\ threads\ while\ it's\ being\ iterated\ by\ multiple\ threads\ too.}}
+\DoxyCodeLine{00024\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00025\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classobs_1_1safe__list}{safe\_list}}\ \{}
+\DoxyCodeLine{00026\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00030\ \ \ \textcolor{comment}{//\ A\ node\ in\ the\ linked\ list.}}
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{struct\ }node\ \{}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{comment}{//\ Pointer\ to\ a\ slot\ or\ an\ observer\ instance.}}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{comment}{//\ As\ we\ cannot\ modify\ the\ list\ when\ we\ are\ in\ for-\/loops\ iterating}}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{comment}{//\ the\ list,\ we\ can\ temporally\ mark\ nodes\ as\ disabled\ changing}}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{comment}{//\ this\ "{}value"{}\ member\ to\ nullptr\ when\ we\ use\ erase(),\ Then\ when}}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{comment}{//\ the\ list\ is\ not\ iterated\ anymore\ (m\_ref==0),\ we\ call}}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{comment}{//\ delete\_nodes()\ to\ remove\ all\ disabled\ nodes\ from\ the\ list.}}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{comment}{//\ We\ try\ to\ skip\ nodes\ with\ value=nullptr\ in\ the\ iteration}}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{comment}{//\ process\ (iterator::operator++).\ But\ it\ isn't\ possible\ to\ ensure}}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{comment}{//\ that\ an\ iterator\ will\ always\ return\ a\ non-\/nullptr\ value\ (so\ the}}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{comment}{//\ client\ have\ to\ check\ the\ return\ value\ from\ iterators).}}
+\DoxyCodeLine{00044\ \ \ \ \ T*\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{comment}{//\ Number\ of\ locks\ for\ this\ node,\ it\ means\ the\ number\ of\ iterators}}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{comment}{//\ being\ used\ and\ currently\ pointing\ to\ this\ node.}}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{comment}{//\ This\ variable\ is\ incremented/decremented\ only\ when}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{comment}{//\ m\_mutex\_nodes\ is\ locked.}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{int}\ locks\ =\ 0;}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{comment}{//\ Next\ node\ in\ the\ list.\ It's\ nullptr\ for\ the\ last\ node\ in\ the\ list.}}
+\DoxyCodeLine{00054\ \ \ \ \ node*\ next\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//\ Thread\ used\ to\ add\ the\ node\ to\ the\ list\ (i.e.\ the\ thread\ where}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{comment}{//\ safe\_list::push\_back()\ was\ used).\ We\ suppose\ that\ the\ same}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//\ thread\ will\ remove\ the\ node.}}
+\DoxyCodeLine{00059\ \ \ \ \ std::thread::id\ creator\_thread;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{comment}{//\ Pointer\ to\ the\ first\ iterator\ that\ locked\ this\ node\ in\ the\ same}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{comment}{//\ thread\ it\ was\ created.\ It\ is\ used\ to\ unlock()\ the\ node\ when}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ erase()\ is\ called\ in\ the\ same\ iterator\ loop/call.}}
+\DoxyCodeLine{00064\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}*\ creator\_thread\_iterator\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ node(T*\ \mbox{\hyperlink{classvalue}{value}}\ =\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classvalue}{value}}(\mbox{\hyperlink{classvalue}{value}}),}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ creator\_thread(std::this\_thread::get\_id())\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ node(\textcolor{keyword}{const}\ node\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00072\ \ \ \ \ node\&\ operator=(\textcolor{keyword}{const}\ node\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ we\ are\ using\ this\ node\ from\ the\ same\ thread}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ where\ it\ was\ created.\ (i.e.\ the\ thread\ where}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{comment}{//\ safe\_list::push\_back()\ was\ used.)}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{comment}{//\ This\ function\ is\ used\ to\ know\ if\ an\ iterator\ that\ locks/unlocks}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{comment}{//\ a\ node\ belongs\ to\ the\ same\ "{}creator\ thread,"{}\ so\ when\ we\ erase()}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{comment}{//\ the\ node,\ we\ can\ (must)\ unlock\ all\ those\ iterators.}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{bool}\ in\_creator\_thread()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (creator\_thread\ ==\ std::this\_thread::get\_id());}
+\DoxyCodeLine{00083\ \ \ \ \ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{comment}{//\ Locks\ the\ node\ by\ the\ given\ iterator.\ It\ means\ that}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{comment}{//\ iterator::operator*()\ is\ going\ to\ return\ the\ node's\ value\ so\ we}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{comment}{//\ can\ use\ it.\ (E.g.\ in\ case\ of\ a\ slot,\ we\ can\ call\ the\ slot}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//\ function.)}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{void}\ lock(\mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}*\ it);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ Indicates\ that\ the\ node\ is\ not\ being\ used\ by\ the\ given\ iterator}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{comment}{//\ anymore.\ So\ we\ could\ delete\ it\ in\ case\ that\ erase()\ is}}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{comment}{//\ called.}}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordtype}{void}\ unlock(\mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}*\ it);}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{comment}{//\ Notifies\ to\ all\ iterators\ in\ the\ "{}creator\ thread"{}\ that\ they}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{comment}{//\ don't\ own\ a\ node\ lock\ anymore.\ It's\ used\ to\ erase()\ the\ node.}}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{void}\ unlock\_all();}
+\DoxyCodeLine{00099\ \ \ \};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \textcolor{comment}{//\ Mutex\ used\ to\ modify\ the\ linked-\/list\ (m\_first/m\_last\ and\ node::next).}}
+\DoxyCodeLine{00102\ \ \ \textcolor{keyword}{mutable}\ std::mutex\ m\_mutex\_nodes;}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \textcolor{comment}{//\ Used\ to\ iterate\ the\ list\ from\ the\ first\ element\ to\ the\ last\ one.}}
+\DoxyCodeLine{00105\ \ \ node*\ m\_first\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \textcolor{comment}{//\ Used\ to\ add\ new\ items\ at\ the\ end\ of\ the\ list\ (with\ push\_back()).}}
+\DoxyCodeLine{00108\ \ \ node*\ m\_last\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \textcolor{comment}{//\ "{}m\_ref"{}\ indicates\ the\ number\ of\ times\ this\ list\ is\ being\ iterated}}
+\DoxyCodeLine{00111\ \ \ \textcolor{comment}{//\ simultaneously.\ \ When\ "{}m\_ref"{}\ reaches\ 0,\ the\ delete\_nodes()}}
+\DoxyCodeLine{00112\ \ \ \textcolor{comment}{//\ function\ is\ called\ to\ delete\ all\ unused\ nodes\ (unlocked\ nodes}}
+\DoxyCodeLine{00113\ \ \ \textcolor{comment}{//\ with\ value=nullptr).\ While\ "{}m\_ref"{}\ >\ 0\ it\ means\ that\ we\ shouldn't}}
+\DoxyCodeLine{00114\ \ \ \textcolor{comment}{//\ remove\ nodes\ (so\ we\ can\ ensure\ that\ an\ actual\ node\ reference\ is}}
+\DoxyCodeLine{00115\ \ \ \textcolor{comment}{//\ still\ valid\ until\ the\ next\ unref()).}}
+\DoxyCodeLine{00116\ \ \ std::atomic<int>\ m\_ref\ =\ \{\ 0\ \};}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \textcolor{comment}{//\ Flag\ that\ indicates\ if\ some\ node\ was\ erased\ and\ delete\_nodes()}}
+\DoxyCodeLine{00119\ \ \ \textcolor{comment}{//\ should\ iterate\ the\ whole\ list\ to\ clean\ disabled\ nodes\ (nodes\ with}}
+\DoxyCodeLine{00120\ \ \ \textcolor{comment}{//\ value\ =\ nullptr).}}
+\DoxyCodeLine{00121\ \ \ \textcolor{keywordtype}{bool}\ m\_delete\_nodes\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \textcolor{comment}{//\ Used\ to\ notify\ when\ a\ node's\ locks\ is\ zero\ so\ erase()\ can\ continue.}}
+\DoxyCodeLine{00124\ \ \ std::condition\_variable\ m\_delete\_cv;}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \textcolor{comment}{//\ A\ STL-\/like\ iterator\ for\ safe\_list.\ It\ is\ not\ a\ fully\ working}}
+\DoxyCodeLine{00129\ \ \ \textcolor{comment}{//\ iterator,\ and\ shouldn't\ be\ used\ directly,\ it's\ expected\ to\ be}}
+\DoxyCodeLine{00130\ \ \ \textcolor{comment}{//\ used\ only\ in\ range-\/based\ for\ loops.}}
+\DoxyCodeLine{00131\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00132\ \ \ \textcolor{comment}{//\ The\ iterator\ works\ in\ the\ following\ way:}}
+\DoxyCodeLine{00133\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00134\ \ \ \textcolor{comment}{//\ 1.\ It\ adds\ a\ new\ reference\ (ref()/unref())\ to\ the\ safe\_list\ so}}
+\DoxyCodeLine{00135\ \ \ \textcolor{comment}{//\ \ \ \ nodes\ are\ not\ deleted\ while\ the\ iterator\ is\ alive.}}
+\DoxyCodeLine{00136\ \ \ \textcolor{comment}{//\ 2.\ It\ "{}locks"{}\ the\ given\ node\ in\ iterator()\ ctor\ so\ the\ node\ is}}
+\DoxyCodeLine{00137\ \ \ \textcolor{comment}{//\ \ \ \ not\ deleted\ when\ there\ is\ an\ existent\ iterator\ pointing\ to\ it.}}
+\DoxyCodeLine{00138\ \ \ \textcolor{comment}{//\ 3.\ operator*()\ returns\ the\ node's\ value.}}
+\DoxyCodeLine{00139\ \ \ \textcolor{comment}{//\ 4.\ When\ the\ iterator\ is\ incremented\ (operator++)\ it\ unlocks\ the}}
+\DoxyCodeLine{00140\ \ \ \textcolor{comment}{//\ \ \ \ previous\ node,\ goes\ to\ the\ next\ one,\ and\ locks\ it.}}
+\DoxyCodeLine{00141\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}\ \{}
+\DoxyCodeLine{00142\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{struct\ }node;}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keyword}{typedef}\ T*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ value\_type;}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keyword}{typedef}\ std::ptrdiff\_t\ \ \ \ \ \ \ \ \ \ \ \ difference\_type;}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keyword}{typedef}\ T**\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pointer;}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keyword}{typedef}\ T*\&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reference;}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keyword}{typedef}\ std::forward\_iterator\_tag\ iterator\_category;}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}(\mbox{\hyperlink{classobs_1_1safe__list}{safe\_list}}\&\ list,\ node*\ node)}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ :\ m\_list(list),}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ m\_node(node)\ \{}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ m\_list.ref();}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \textcolor{comment}{//\ Lock\ the\ node\ because\ this\ iterator\ is\ pointing\ to\ it.}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_node)}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ lock();}
+\DoxyCodeLine{00159\ \ \ \ \ \}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{comment}{//\ Cannot\ copy\ iterators}}
+\DoxyCodeLine{00162\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00163\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{comment}{//\ We\ can\ only\ move\ iterators}}
+\DoxyCodeLine{00166\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}(\mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}\&\&\ other)}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ :\ m\_list(other.m\_list),}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ m\_node(other.m\_node)\ \{}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ assert(!other.m\_locked);}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ m\_list.ref();}
+\DoxyCodeLine{00171\ \ \ \ \ \}}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{\string~iterator}}()\ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_node)\ \{}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ std::lock\_guard<std::mutex>\ l(m\_list.m\_mutex\_nodes);}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ unlock();}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \ \ assert(!m\_locked);}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ m\_list.unref();}
+\DoxyCodeLine{00181\ \ \ \ \ \}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ \ \ \textcolor{comment}{//\ Called\ when\ erase()\ is\ used\ from\ the\ iterators\ created\ in\ the}}
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{comment}{//\ "{}creator\ thread"{}.}}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordtype}{void}\ notify\_unlock(\textcolor{keyword}{const}\ node*\ node)\ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_locked)\ \{}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ assert(m\_node\ ==\ node);}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ assert(m\_locked);}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ m\_locked\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00191\ \ \ \ \ \}}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{comment}{//\ Unlocks\ the\ current\ m\_node\ and\ goes\ to\ the\ next\ one\ and\ locks\ it.}}
+\DoxyCodeLine{00194\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}\&\ operator++()\ \{}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ std::lock\_guard<std::mutex>\ l(m\_list.m\_mutex\_nodes);}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ assert(m\_node);}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_node)\ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ unlock();}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Go\ to\ the\ next\ node.}}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ m\_node\ =\ m\_node-\/>next;}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Lock\ the\ new\ node\ that\ we're\ pointing\ to\ now.}}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_node)}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ lock();}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00208\ \ \ \ \ \}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ node's\ value.\ The\ node\ at\ this\ point\ is\ locked.}}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{comment}{//\ If\ the\ node\ was\ already\ deleted,\ it\ will\ return\ nullptr\ and\ the}}
+\DoxyCodeLine{00213\ \ \ \ \ \textcolor{comment}{//\ client\ will\ need\ to\ call\ operator++()\ again.\ We\ cannot}}
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{comment}{//\ guarantee\ that\ this\ function\ will\ return\ a\ value\ !=\ nullptr.}}
+\DoxyCodeLine{00215\ \ \ \ \ T*\ operator*()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ assert(m\_node\ \&\&\ m\_locked);}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_value;}
+\DoxyCodeLine{00218\ \ \ \ \ \}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{comment}{//\ This\ can\ be\ used\ only\ to\ compare\ an\ iterator\ created\ from}}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{comment}{//\ begin()\ (in\ "{}this"{}\ pointer)\ with\ end()\ ("{}other"{}\ argument).}}
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}\&\ other)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ std::lock\_guard<std::mutex>\ l(m\_list.m\_mutex\_nodes);}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_node\ \&\&\ other.m\_node)}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_node\ !=\ other.m\_node-\/>next);}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00228\ \ \ \ \ \}}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{comment}{//\ Adds\ a\ lock\ to\ m\_node\ before\ we\ access\ to\ its\ value.\ It's\ used}}
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{comment}{//\ to\ keep\ track\ of\ how\ many\ iterators\ are\ using\ the\ node\ in\ the}}
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{comment}{//\ list.}}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keywordtype}{void}\ lock()\ \{}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_locked)}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ \ \ \ \ assert(m\_node);}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ m\_node-\/>lock(\textcolor{keyword}{this});}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ m\_value\ =\ m\_node-\/>value;}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ m\_locked\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00242\ \ \ \ \ \}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keywordtype}{void}\ unlock()\ \{}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_locked)}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \ \ \ \ assert(m\_node);}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ m\_node-\/>unlock(\textcolor{keyword}{this});}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ m\_value\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ m\_locked\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \textcolor{comment}{//\ node's\ locks\ count\ is\ zero}}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_node-\/>locks\ ==\ 0)}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ m\_list.m\_delete\_cv.notify\_all();}
+\DoxyCodeLine{00256\ \ \ \ \ \}}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list}{safe\_list}}\&\ m\_list;}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{comment}{//\ Current\ node\ being\ iterated.\ It\ is\ never\ nullptr.}}
+\DoxyCodeLine{00261\ \ \ \ \ node*\ m\_node;}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \ \ \ \ \textcolor{comment}{//\ Cached\ value\ of\ m\_node-\/>value}}
+\DoxyCodeLine{00264\ \ \ \ \ T*\ m\_value\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \ \ \textcolor{comment}{//\ True\ if\ this\ iterator\ has\ added\ a\ lock\ to\ the\ "{}m\_node"{}}}
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_locked\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{comment}{//\ Next\ iterator\ locking\ the\ same\ "{}m\_node"{}\ from\ its\ creator}}
+\DoxyCodeLine{00270\ \ \ \ \ \textcolor{comment}{//\ thread.}}
+\DoxyCodeLine{00271\ \ \ \ \ \mbox{\hyperlink{classobs_1_1safe__list_1_1iterator}{iterator}}*\ m\_next\_iterator\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00272\ \ \ \};}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \ \ \mbox{\hyperlink{classobs_1_1safe__list}{safe\_list}}()\ \{}
+\DoxyCodeLine{00275\ \ \ \}}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \mbox{\hyperlink{classobs_1_1safe__list}{\string~safe\_list}}()\ \{}
+\DoxyCodeLine{00278\ \ \ \ \ assert(m\_ref\ ==\ 0);}
+\DoxyCodeLine{00279\ \ \ \ \ delete\_nodes(\textcolor{keyword}{true});}
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ \ \ \ \ assert(m\_first\ ==\ m\_last);}
+\DoxyCodeLine{00282\ \ \ \ \ assert(m\_first\ ==\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00283\ \ \ \}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \ \ \textcolor{keywordtype}{bool}\ empty()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00286\ \ \ \ \ std::lock\_guard<std::mutex>\ lock(m\_mutex\_nodes);}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_first\ ==\ m\_last);}
+\DoxyCodeLine{00288\ \ \ \}}
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \ \ \textcolor{keywordtype}{void}\ push\_back(T*\ \mbox{\hyperlink{classvalue}{value}})\ \{}
+\DoxyCodeLine{00291\ \ \ \ \ node*\ n\ =\ \textcolor{keyword}{new}\ node(\mbox{\hyperlink{classvalue}{value}});}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ \ std::lock\_guard<std::mutex>\ lock(m\_mutex\_nodes);}
+\DoxyCodeLine{00294\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_first)}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ m\_first\ =\ m\_last\ =\ n;}
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ m\_last-\/>next\ =\ n;}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ m\_last\ =\ n;}
+\DoxyCodeLine{00299\ \ \ \ \ \}}
+\DoxyCodeLine{00300\ \ \ \}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \textcolor{keywordtype}{void}\ erase(T*\ \mbox{\hyperlink{classvalue}{value}})\ \{}
+\DoxyCodeLine{00303\ \ \ \ \ \textcolor{comment}{//\ We\ add\ a\ ref\ to\ avoid\ calling\ delete\_nodes().}}
+\DoxyCodeLine{00304\ \ \ \ \ ref();}
+\DoxyCodeLine{00305\ \ \ \ \ \{}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ std::unique\_lock<std::mutex>\ lock(m\_mutex\_nodes);}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (node*\ node=m\_first;\ node;\ node=node-\/>next)\ \{}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (node-\/>value\ ==\ \mbox{\hyperlink{classvalue}{value}})\ \{}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ We\ disable\ the\ node\ so\ it\ isn't\ used\ anymore\ by\ other}}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ iterators.}}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ assert(node-\/>value);}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ node-\/>unlock\_all();}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \ \ node-\/>value\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ m\_delete\_nodes\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ In\ this\ case\ we\ should\ wait\ until\ the\ node\ is\ unlocked,}}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ because\ after\ erase()\ the\ client\ could\ be\ deleting\ the}}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ value\ that\ we\ are\ using\ in\ other\ thread.}}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (node-\/>locks)\ \{}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Wait\ until\ the\ node\ is\ completely\ unlocked\ by\ other}}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ threads.}}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \ \ \ \ \ \ m\_delete\_cv.wait(lock,\ [node]\{\ \textcolor{keywordflow}{return}\ node-\/>locks\ ==\ 0;\ \});}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ \ \ assert(node-\/>locks\ ==\ 0);}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ The\ node\ will\ be\ finally\ deleted\ when\ we\ leave\ the}}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ iteration\ loop\ (m\_ref==0,\ i.e.\ the\ end()\ iterator\ is}}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ destroyed)}}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00334\ \ \ \ \ \}}
+\DoxyCodeLine{00335\ \ \ \ \ unref();}
+\DoxyCodeLine{00336\ \ \ \}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \ \ iterator\ begin()\ \{}
+\DoxyCodeLine{00339\ \ \ \ \ std::lock\_guard<std::mutex>\ lock(m\_mutex\_nodes);}
+\DoxyCodeLine{00340\ \ \ \ \ \textcolor{keywordflow}{return}\ iterator(*\textcolor{keyword}{this},\ m\_first);}
+\DoxyCodeLine{00341\ \ \ \}}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ iterator\ end()\ \{}
+\DoxyCodeLine{00344\ \ \ \ \ std::lock\_guard<std::mutex>\ lock(m\_mutex\_nodes);}
+\DoxyCodeLine{00345\ \ \ \ \ \textcolor{keywordflow}{return}\ iterator(*\textcolor{keyword}{this},\ m\_last);}
+\DoxyCodeLine{00346\ \ \ \}}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \ \ \textcolor{keywordtype}{void}\ ref()\ \{}
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\#if\ !defined(NDEBUG)}}
+\DoxyCodeLine{00350\ \ \ \ \ \textcolor{keywordtype}{int}\ v\ =}
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00352\ \ \ \ \ m\_ref.fetch\_add(1);}
+\DoxyCodeLine{00353\ \ \ \ \ assert(v\ >=\ 0);}
+\DoxyCodeLine{00354\ \ \ \}}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \ \ \textcolor{keywordtype}{void}\ unref()\ \{}
+\DoxyCodeLine{00357\ \ \ \ \ \textcolor{keywordtype}{int}\ v\ =\ m\_ref.fetch\_sub(1);}
+\DoxyCodeLine{00358\ \ \ \ \ assert(v\ >=\ 1);}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ ==\ 1)}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ delete\_nodes(\textcolor{keyword}{false});}
+\DoxyCodeLine{00361\ \ \ \}}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00364\ \ \ \textcolor{comment}{//\ Deletes\ nodes\ from\ the\ list.\ If\ "{}all"{}\ is\ true,\ deletes\ all\ nodes,}}
+\DoxyCodeLine{00365\ \ \ \textcolor{comment}{//\ if\ it's\ false,\ it\ deletes\ only\ nodes\ with\ value\ ==\ nullptr,\ which}}
+\DoxyCodeLine{00366\ \ \ \textcolor{comment}{//\ are\ nodes\ that\ were\ disabled}}
+\DoxyCodeLine{00367\ \ \ \textcolor{keywordtype}{void}\ delete\_nodes(\textcolor{keywordtype}{bool}\ all)\ \{}
+\DoxyCodeLine{00368\ \ \ \ \ std::lock\_guard<std::mutex>\ lock(m\_mutex\_nodes);}
+\DoxyCodeLine{00369\ \ \ \ \ \textcolor{keywordflow}{if}\ (!all\ \&\&\ !m\_delete\_nodes)}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00371\ }
+\DoxyCodeLine{00372\ \ \ \ \ node*\ prev\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00373\ \ \ \ \ node*\ next\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \ \ \ \ \textcolor{keywordflow}{for}\ (node*\ node=m\_first;\ node;\ node=next)\ \{}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ next\ =\ node-\/>next;}
+\DoxyCodeLine{00377\ }
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (all\ ||\ (!node-\/>value\ \&\&\ !node-\/>locks))\ \{}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (prev)\ \{}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \ \ \ \ prev-\/>next\ =\ next;}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (node\ ==\ m\_last)}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \ \ \ \ m\_last\ =\ prev;}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \ \ m\_first\ =\ next;}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (node\ ==\ m\_last)}
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \ \ \ \ \ \ m\_last\ =\ m\_first;}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \ \ \ \ \ \ \ \ assert(!node-\/>locks);}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ \textcolor{keyword}{delete}\ node;}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \ \ prev\ =\ node;}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00396\ \ \ \ \ \}}
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ \ \ \ \ m\_delete\_nodes\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00399\ \ \ \}}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \};}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00404\ \textcolor{keywordtype}{void}\ safe\_list<T>::node::lock(iterator*\ it)\ \{}
+\DoxyCodeLine{00405\ \ \ ++locks;}
+\DoxyCodeLine{00406\ \ \ assert(locks\ >\ 0);}
+\DoxyCodeLine{00407\ }
+\DoxyCodeLine{00408\ \ \ \textcolor{comment}{//\ If\ we\ are\ in\ the\ creator\ thread,\ we\ add\ this\ iterator\ in\ the}}
+\DoxyCodeLine{00409\ \ \ \textcolor{comment}{//\ "{}creator\ thread\ iterators"{}\ linked-\/list\ so\ the\ iterator\ is}}
+\DoxyCodeLine{00410\ \ \ \textcolor{comment}{//\ notified\ in\ case\ that\ the\ node\ is\ erased.}}
+\DoxyCodeLine{00411\ \ \ \textcolor{keywordflow}{if}\ (in\_creator\_thread())\ \{}
+\DoxyCodeLine{00412\ \ \ \ \ it-\/>m\_next\_iterator\ =\ creator\_thread\_iterator;}
+\DoxyCodeLine{00413\ \ \ \ \ creator\_thread\_iterator\ =\ it;}
+\DoxyCodeLine{00414\ \ \ \}}
+\DoxyCodeLine{00415\ \}}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00418\ \textcolor{keywordtype}{void}\ safe\_list<T>::node::unlock(iterator*\ it)\ \{}
+\DoxyCodeLine{00419\ \ \ assert(it);}
+\DoxyCodeLine{00420\ }
+\DoxyCodeLine{00421\ \ \ \textcolor{comment}{//\ In\ this\ case\ we\ are\ unlocking\ just\ one\ iterator,\ if\ we\ are\ in\ the}}
+\DoxyCodeLine{00422\ \ \ \textcolor{comment}{//\ creator\ thread,\ we've\ to\ remove\ this\ iterator\ from\ the\ "{}creator}}
+\DoxyCodeLine{00423\ \ \ \textcolor{comment}{//\ thread\ iterators"{}\ linked-\/list.}}
+\DoxyCodeLine{00424\ \ \ \textcolor{keywordflow}{if}\ (in\_creator\_thread())\ \{}
+\DoxyCodeLine{00425\ \ \ \ \ iterator*\ prev\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00426\ \ \ \ \ iterator*\ next\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00427\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ it2=creator\_thread\_iterator;\ it2;\ it2=next)\ \{}
+\DoxyCodeLine{00428\ \ \ \ \ \ \ next\ =\ it2-\/>m\_next\_iterator;}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (it2\ ==\ it)\ \{}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (prev)}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \ \ \ \ prev-\/>m\_next\_iterator\ =\ next;}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ \ \ \ \ creator\_thread\_iterator\ =\ next;}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00437\ \ \ \ \ \ \ prev\ =\ it2;}
+\DoxyCodeLine{00438\ \ \ \ \ \}}
+\DoxyCodeLine{00439\ \ \ \}}
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00441\ \ \ assert(locks\ >\ 0);}
+\DoxyCodeLine{00442\ \ \ -\/-\/locks;}
+\DoxyCodeLine{00443\ \}}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \textcolor{comment}{//\ In\ this\ case\ we've\ called\ erase()\ to\ delete\ this\ node,\ so\ we\ have}}
+\DoxyCodeLine{00446\ \textcolor{comment}{//\ to\ unlock\ the\ node\ from\ the\ creator\ thread\ if\ we\ are\ in\ the}}
+\DoxyCodeLine{00447\ \textcolor{comment}{//\ creator\ thread.}}
+\DoxyCodeLine{00448\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00449\ \textcolor{keywordtype}{void}\ safe\_list<T>::node::unlock\_all()\ \{}
+\DoxyCodeLine{00450\ \ \ \textcolor{keywordflow}{if}\ (in\_creator\_thread())\ \{}
+\DoxyCodeLine{00451\ \ \ \ \ \textcolor{comment}{//\ Notify\ to\ all\ iterators\ in\ the\ creator\ thread\ that\ they\ don't}}
+\DoxyCodeLine{00452\ \ \ \ \ \textcolor{comment}{//\ have\ the\ node\ locked\ anymore.\ In\ this\ way\ we\ can\ continue\ the}}
+\DoxyCodeLine{00453\ \ \ \ \ \textcolor{comment}{//\ erase()\ call.}}
+\DoxyCodeLine{00454\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ it=creator\_thread\_iterator;\ it;\ it=it-\/>m\_next\_iterator)\ \{}
+\DoxyCodeLine{00455\ \ \ \ \ \ \ it-\/>notify\_unlock(\textcolor{keyword}{this});}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ \ \ \ \ \ \ assert(locks\ >\ 0);}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ -\/-\/locks;}
+\DoxyCodeLine{00459\ \ \ \ \ \}}
+\DoxyCodeLine{00460\ \ \ \ \ creator\_thread\_iterator\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00461\ \ \ \}}
+\DoxyCodeLine{00462\ \}}
+\DoxyCodeLine{00463\ }
+\DoxyCodeLine{00464\ \}\ \textcolor{comment}{//\ namespace\ obs}}
+\DoxyCodeLine{00465\ }
+\DoxyCodeLine{00466\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,412 @@
+\hypertarget{hb-vector_8hh_source}{}\doxysection{hb-\/vector.hh}
+\label{hb-vector_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/vector.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/vector.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2017,2018\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_VECTOR\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_VECTOR\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}hb-\/array.hh"{}}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/null.hh"{}}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ sorted=\textcolor{keyword}{false}>}
+\DoxyCodeLine{00037\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ :\ std::conditional<sorted,\ hb\_vector\_t<Type,\ false>,\ hb\_empty\_t>::type}
+\DoxyCodeLine{00038\ \{}
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{typedef}\ Type\ item\_t;}
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ item\_size\ =\ \mbox{\hyperlink{struct__hb__static__size}{hb\_static\_size}}\ (Type);}
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structarray__t}{array\_t}}\ =\ \textcolor{keyword}{typename}\ std::conditional<sorted,\ hb\_sorted\_array\_t<Type>,\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<Type>}}>::type;}
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{using\ }c\_array\_t\ =\ \textcolor{keyword}{typename}\ std::conditional<sorted,\ hb\_sorted\_array\_t<const\ Type>,\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<const\ Type>}}>::type;}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00045\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ (std::initializer\_list<Type>\ lst)\ :\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ ()}
+\DoxyCodeLine{00046\ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ alloc\ (lst.size\ ());}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\&\&\ item\ :\ lst)}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ push\ (item);}
+\DoxyCodeLine{00050\ \ \ \}}
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00053\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ (\textcolor{keyword}{const}\ Iterable\ \&o)\ :\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ ()}
+\DoxyCodeLine{00054\ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_iter\ (o).is\_random\_access\_iterator)}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ alloc\ (hb\_len\ (hb\_iter\ (o)));}
+\DoxyCodeLine{00057\ \ \ \ \ hb\_copy\ (o,\ *\textcolor{keyword}{this});}
+\DoxyCodeLine{00058\ \ \ \}}
+\DoxyCodeLine{00059\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ \&o)\ :\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ ()}
+\DoxyCodeLine{00060\ \ \ \{}
+\DoxyCodeLine{00061\ \ \ \ \ alloc\ (o.length);}
+\DoxyCodeLine{00062\ \ \ \ \ hb\_copy\ (o,\ *\textcolor{keyword}{this});}
+\DoxyCodeLine{00063\ \ \ \}}
+\DoxyCodeLine{00064\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ (\mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ \&\&o)}
+\DoxyCodeLine{00065\ \ \ \{}
+\DoxyCodeLine{00066\ \ \ \ \ allocated\ =\ o.allocated;}
+\DoxyCodeLine{00067\ \ \ \ \ length\ =\ o.length;}
+\DoxyCodeLine{00068\ \ \ \ \ arrayZ\ =\ o.arrayZ;}
+\DoxyCodeLine{00069\ \ \ \ \ o.init\ ();}
+\DoxyCodeLine{00070\ \ \ \}}
+\DoxyCodeLine{00071\ \ \ \mbox{\hyperlink{structhb__vector__t}{\string~hb\_vector\_t}}\ ()\ \{\ fini\ ();\ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00074\ \ \ \textcolor{keywordtype}{int}\ allocated\ =\ 0;\ \textcolor{comment}{/*\ ==\ -\/1\ means\ allocation\ failed.\ */}}
+\DoxyCodeLine{00075\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ length\ =\ 0;}
+\DoxyCodeLine{00077\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00078\ \ \ Type\ *arrayZ\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \textcolor{keywordtype}{void}\ init\ ()}
+\DoxyCodeLine{00081\ \ \ \{}
+\DoxyCodeLine{00082\ \ \ \ \ allocated\ =\ length\ =\ 0;}
+\DoxyCodeLine{00083\ \ \ \ \ arrayZ\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00084\ \ \ \}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{keywordtype}{void}\ fini\ ()}
+\DoxyCodeLine{00087\ \ \ \{}
+\DoxyCodeLine{00088\ \ \ \ \ shrink\_vector\ (0);}
+\DoxyCodeLine{00089\ \ \ \ \ hb\_free\ (arrayZ);}
+\DoxyCodeLine{00090\ \ \ \ \ init\ ();}
+\DoxyCodeLine{00091\ \ \ \}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \textcolor{keywordtype}{void}\ reset\ ()}
+\DoxyCodeLine{00094\ \ \ \{}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ allocated\ =\ length;\ \textcolor{comment}{//\ Big\ hack!}}
+\DoxyCodeLine{00097\ \ \ \ \ resize\ (0);}
+\DoxyCodeLine{00098\ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \textcolor{keyword}{friend}\ \textcolor{keywordtype}{void}\ swap\ (\mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\&\ \mbox{\hyperlink{structa}{a}},\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\&\ b)}
+\DoxyCodeLine{00101\ \ \ \{}
+\DoxyCodeLine{00102\ \ \ \ \ hb\_swap\ (\mbox{\hyperlink{structa}{a}}.allocated,\ b.allocated);}
+\DoxyCodeLine{00103\ \ \ \ \ hb\_swap\ (\mbox{\hyperlink{structa}{a}}.length,\ b.length);}
+\DoxyCodeLine{00104\ \ \ \ \ hb\_swap\ (\mbox{\hyperlink{structa}{a}}.arrayZ,\ b.arrayZ);}
+\DoxyCodeLine{00105\ \ \ \}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\&\ operator\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ \&o)}
+\DoxyCodeLine{00108\ \ \ \{}
+\DoxyCodeLine{00109\ \ \ \ \ reset\ ();}
+\DoxyCodeLine{00110\ \ \ \ \ alloc\ (o.length);}
+\DoxyCodeLine{00111\ \ \ \ \ hb\_copy\ (o,\ *\textcolor{keyword}{this});}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00113\ \ \ \}}
+\DoxyCodeLine{00114\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\&\ operator\ =\ (\mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ \&\&o)}
+\DoxyCodeLine{00115\ \ \ \{}
+\DoxyCodeLine{00116\ \ \ \ \ hb\_swap\ (*\textcolor{keyword}{this},\ o);}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00118\ \ \ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ as\_bytes\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00121\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ ((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ arrayZ,\ length\ *\ item\_size);\ \}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \textcolor{keywordtype}{bool}\ operator\ ==\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ \&o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ()\ ==\ o.as\_array\ ();\ \}}
+\DoxyCodeLine{00124\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\ \&o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ ==\ o);\ \}}
+\DoxyCodeLine{00125\ \ \ uint32\_t\ hash\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ().hash\ ();\ \}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ Type\&\ operator\ []\ (\textcolor{keywordtype}{int}\ i\_)}
+\DoxyCodeLine{00128\ \ \ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ (\textcolor{keywordtype}{unsigned}\ int)\ i\_;}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (i\ >=\ length))}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ Crap\ (Type);}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordflow}{return}\ arrayZ[i];}
+\DoxyCodeLine{00133\ \ \ \}}
+\DoxyCodeLine{00134\ \ \ \textcolor{keyword}{const}\ Type\&\ operator\ []\ (\textcolor{keywordtype}{int}\ i\_)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00135\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ (\textcolor{keywordtype}{unsigned}\ int)\ i\_;}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (i\ >=\ length))}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_null}{Null}}\ (Type);}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordflow}{return}\ arrayZ[i];}
+\DoxyCodeLine{00140\ \ \ \}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ Type\&\ tail\ ()\ \{\ \textcolor{keywordflow}{return}\ (*\textcolor{keyword}{this})[length\ -\/\ 1];\ \}}
+\DoxyCodeLine{00143\ \ \ \textcolor{keyword}{const}\ Type\&\ tail\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (*\textcolor{keyword}{this})[length\ -\/\ 1];\ \}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \textcolor{keyword}{explicit}\ \textcolor{keyword}{operator}\ bool\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ length;\ \}}
+\DoxyCodeLine{00146\ \ \ \textcolor{keywordtype}{unsigned}\ get\_size\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ length\ *\ item\_size;\ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \textcolor{comment}{/*\ Sink\ interface.\ */}}
+\DoxyCodeLine{00149\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00150\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}\&\ operator\ <<\ (T\&\&\ v)\ \{\ push\ (std::forward<T>\ (v));\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ \mbox{\hyperlink{structarray__t}{array\_t}}\ \ \ as\_array\ ()\ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ hb\_array\ (arrayZ,\ length);\ \}}
+\DoxyCodeLine{00153\ \ \ c\_array\_t\ as\_array\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hb\_array\ (arrayZ,\ length);\ \}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \textcolor{comment}{/*\ Iterator.\ */}}
+\DoxyCodeLine{00156\ \ \ \textcolor{keyword}{typedef}\ c\_array\_t\ \ \ iter\_t;}
+\DoxyCodeLine{00157\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structarray__t}{array\_t}}\ \ \ writer\_t;}
+\DoxyCodeLine{00158\ \ \ \ \ iter\_t\ \ \ iter\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ();\ \}}
+\DoxyCodeLine{00159\ \ \ writer\_t\ writer\ ()\ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ as\_array\ ();\ \}}
+\DoxyCodeLine{00160\ \ \ \textcolor{keyword}{operator}\ \ \ iter\_t\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \ \ iter\ ();\ \}}
+\DoxyCodeLine{00161\ \ \ \textcolor{keyword}{operator}\ writer\_t\ ()\ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ writer\ ();\ \}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ c\_array\_t\ sub\_array\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\_offset,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00164\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ().sub\_array\ (start\_offset,\ count);\ \}}
+\DoxyCodeLine{00165\ \ \ c\_array\_t\ sub\_array\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\_offset,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *count\ =\ \textcolor{keyword}{nullptr}\ \textcolor{comment}{/*\ IN/OUT\ */})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00166\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ().sub\_array\ (start\_offset,\ count);\ \}}
+\DoxyCodeLine{00167\ \ \ \mbox{\hyperlink{structarray__t}{array\_t}}\ sub\_array\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\_offset,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count)}
+\DoxyCodeLine{00168\ \ \ \{\ \textcolor{keywordflow}{return}\ as\_array\ ().sub\_array\ (start\_offset,\ count);\ \}}
+\DoxyCodeLine{00169\ \ \ \mbox{\hyperlink{structarray__t}{array\_t}}\ sub\_array\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\_offset,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *count\ =\ \textcolor{keyword}{nullptr}\ \textcolor{comment}{/*\ IN/OUT\ */})}
+\DoxyCodeLine{00170\ \ \ \{\ \textcolor{keywordflow}{return}\ as\_array\ ().sub\_array\ (start\_offset,\ count);\ \}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \mbox{\hyperlink{structhb__sorted__array__t}{hb\_sorted\_array\_t<Type>}}\ as\_sorted\_array\ ()}
+\DoxyCodeLine{00173\ \ \ \{\ \textcolor{keywordflow}{return}\ hb\_sorted\_array\ (arrayZ,\ length);\ \}}
+\DoxyCodeLine{00174\ \ \ \mbox{\hyperlink{structhb__sorted__array__t}{hb\_sorted\_array\_t<const\ Type>}}\ as\_sorted\_array\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00175\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ hb\_sorted\_array\ (arrayZ,\ length);\ \}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{explicit}\ \textcolor{keyword}{operator}\ T\ *\ ()\ \{\ \textcolor{keywordflow}{return}\ arrayZ;\ \}}
+\DoxyCodeLine{00178\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{explicit}\ \textcolor{keyword}{operator}\ \textcolor{keyword}{const}\ T\ *\ ()\ \textcolor{keyword}{const}\ \{\ \textcolor{keywordflow}{return}\ arrayZ;\ \}}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ Type\ *\ operator\ \ +\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)\ \{\ \textcolor{keywordflow}{return}\ arrayZ\ +\ i;\ \}}
+\DoxyCodeLine{00181\ \ \ \textcolor{keyword}{const}\ Type\ *\ operator\ \ +\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ arrayZ\ +\ i;\ \}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ Type\ *push\ ()}
+\DoxyCodeLine{00184\ \ \ \{}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!resize\ (length\ +\ 1)))}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&Crap\ (Type);}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordflow}{return}\ \&arrayZ[length\ -\/\ 1];}
+\DoxyCodeLine{00188\ \ \ \}}
+\DoxyCodeLine{00189\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00190\ \ \ Type\ *push\ (T\&\&\ v)}
+\DoxyCodeLine{00191\ \ \ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{comment}{/*\ TODO\ Emplace?\ */}}
+\DoxyCodeLine{00193\ \ \ \ \ Type\ *p\ =\ push\ ();}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\ ==\ \&Crap\ (Type))}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \textcolor{comment}{//\ If\ push\ failed\ to\ allocate\ then\ don't\ copy\ v,\ since\ this\ may\ cause}}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \textcolor{comment}{//\ the\ created\ copy\ to\ leak\ memory\ since\ we\ won't\ have\ stored\ a}}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \textcolor{comment}{//\ reference\ to\ it.}}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ p;}
+\DoxyCodeLine{00199\ \ \ \ \ *p\ =\ std::forward<T>\ (v);}
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{keywordflow}{return}\ p;}
+\DoxyCodeLine{00201\ \ \ \}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \textcolor{keywordtype}{bool}\ in\_error\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ allocated\ <\ 0;\ \}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (std::is\_trivially\_copy\_assignable<T>::value)>}
+\DoxyCodeLine{00207\ \ \ Type\ *}
+\DoxyCodeLine{00208\ \ \ realloc\_vector\ (\textcolor{keywordtype}{unsigned}\ new\_allocated)}
+\DoxyCodeLine{00209\ \ \ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keywordflow}{return}\ (Type\ *)\ hb\_realloc\ (arrayZ,\ new\_allocated\ *\ \textcolor{keyword}{sizeof}\ (Type));}
+\DoxyCodeLine{00211\ \ \ \}}
+\DoxyCodeLine{00212\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (!std::is\_trivially\_copy\_assignable<T>::value)>}
+\DoxyCodeLine{00214\ \ \ Type\ *}
+\DoxyCodeLine{00215\ \ \ realloc\_vector\ (\textcolor{keywordtype}{unsigned}\ new\_allocated)}
+\DoxyCodeLine{00216\ \ \ \{}
+\DoxyCodeLine{00217\ \ \ \ \ Type\ *new\_array\ =\ (Type\ *)\ hb\_malloc\ (new\_allocated\ *\ \textcolor{keyword}{sizeof}\ (Type));}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (new\_array))}
+\DoxyCodeLine{00219\ \ \ \ \ \{}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ length;\ i++)}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keyword}{new}\ (std::addressof\ (new\_array[i]))\ Type\ ();}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ (unsigned)\ length;\ i++)}
+\DoxyCodeLine{00223\ \ \ \ \ new\_array[i]\ =\ std::move\ (arrayZ[i]);}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ old\_length\ =\ length;}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ shrink\_vector\ (0);}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ length\ =\ old\_length;}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ hb\_free\ (arrayZ);}
+\DoxyCodeLine{00228\ \ \ \ \ \}}
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{keywordflow}{return}\ new\_array;}
+\DoxyCodeLine{00230\ \ \ \}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (std::is\_trivially\_constructible<T>::value\ ||}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !std::is\_default\_constructible<T>::value)>}
+\DoxyCodeLine{00235\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00236\ \ \ grow\_vector\ (\textcolor{keywordtype}{unsigned}\ size)}
+\DoxyCodeLine{00237\ \ \ \{}
+\DoxyCodeLine{00238\ \ \ \ \ memset\ (arrayZ\ +\ length,\ 0,\ (size\ -\/\ length)\ *\ \textcolor{keyword}{sizeof}\ (*arrayZ));}
+\DoxyCodeLine{00239\ \ \ \ \ length\ =\ size;}
+\DoxyCodeLine{00240\ \ \ \}}
+\DoxyCodeLine{00241\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (!std::is\_trivially\_constructible<T>::value\ \&\&}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<T>::value)>}
+\DoxyCodeLine{00244\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00245\ \ \ grow\_vector\ (\textcolor{keywordtype}{unsigned}\ size)}
+\DoxyCodeLine{00246\ \ \ \{}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordflow}{while}\ (length\ <\ size)}
+\DoxyCodeLine{00248\ \ \ \ \ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ length++;}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \textcolor{keyword}{new}\ (std::addressof\ (arrayZ[length\ -\/\ 1]))\ Type\ ();}
+\DoxyCodeLine{00251\ \ \ \ \ \}}
+\DoxyCodeLine{00252\ \ \ \}}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (std::is\_trivially\_destructible<T>::value)>}
+\DoxyCodeLine{00256\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00257\ \ \ shrink\_vector\ (\textcolor{keywordtype}{unsigned}\ size)}
+\DoxyCodeLine{00258\ \ \ \{}
+\DoxyCodeLine{00259\ \ \ \ \ length\ =\ size;}
+\DoxyCodeLine{00260\ \ \ \}}
+\DoxyCodeLine{00261\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (!std::is\_trivially\_destructible<T>::value)>}
+\DoxyCodeLine{00263\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00264\ \ \ shrink\_vector\ (\textcolor{keywordtype}{unsigned}\ size)}
+\DoxyCodeLine{00265\ \ \ \{}
+\DoxyCodeLine{00266\ \ \ \ \ \textcolor{keywordflow}{while}\ ((\textcolor{keywordtype}{unsigned})\ length\ >\ size)}
+\DoxyCodeLine{00267\ \ \ \ \ \{}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ arrayZ[(unsigned)\ length\ -\/\ 1].\string~Type\ ();}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ length-\/-\/;}
+\DoxyCodeLine{00270\ \ \ \ \ \}}
+\DoxyCodeLine{00271\ \ \ \}}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (std::is\_trivially\_copy\_assignable<T>::value)>}
+\DoxyCodeLine{00275\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00276\ \ \ shift\_down\_vector\ (\textcolor{keywordtype}{unsigned}\ i)}
+\DoxyCodeLine{00277\ \ \ \{}
+\DoxyCodeLine{00278\ \ \ \ \ memmove\ (\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{void}\ *\textcolor{keyword}{>}\ (\&arrayZ[i\ -\/\ 1]),}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{void}\ *\textcolor{keyword}{>}\ (\&arrayZ[i]),}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ (length\ -\/\ i)\ *\ \textcolor{keyword}{sizeof}\ (Type));}
+\DoxyCodeLine{00281\ \ \ \}}
+\DoxyCodeLine{00282\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ Type,}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (!std::is\_trivially\_copy\_assignable<T>::value)>}
+\DoxyCodeLine{00284\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00285\ \ \ shift\_down\_vector\ (\textcolor{keywordtype}{unsigned}\ i)}
+\DoxyCodeLine{00286\ \ \ \{}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ i\ <\ length;\ i++)}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ arrayZ[i\ -\/\ 1]\ =\ std::move\ (arrayZ[i]);}
+\DoxyCodeLine{00289\ \ \ \}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \ \ \textcolor{comment}{/*\ Allocate\ for\ size\ but\ don't\ adjust\ length.\ */}}
+\DoxyCodeLine{00292\ \ \ \textcolor{keywordtype}{bool}\ alloc\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size)}
+\DoxyCodeLine{00293\ \ \ \{}
+\DoxyCodeLine{00294\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00296\ }
+\DoxyCodeLine{00297\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (size\ <=\ (\textcolor{keywordtype}{unsigned})\ allocated))}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \ \ \ \ \textcolor{comment}{/*\ Reallocate\ */}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ new\_allocated\ =\ allocated;}
+\DoxyCodeLine{00303\ \ \ \ \ \textcolor{keywordflow}{while}\ (size\ >=\ new\_allocated)}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ new\_allocated\ +=\ (new\_allocated\ >>\ 1)\ +\ 8;}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \ \ \ \ Type\ *new\_array\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00307\ \ \ \ \ \textcolor{keywordtype}{bool}\ overflows\ =}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ (int)\ in\_error\ ()\ ||}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ (new\_allocated\ <\ (unsigned)\ allocated)\ ||}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ hb\_unsigned\_mul\_overflows\ (new\_allocated,\ \textcolor{keyword}{sizeof}\ (Type));}
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (!overflows))}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ new\_array\ =\ realloc\_vector\ (new\_allocated);}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!new\_array))}
+\DoxyCodeLine{00315\ \ \ \ \ \{}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ allocated\ =\ -\/1;}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00318\ \ \ \ \ \}}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \ \ \ \ arrayZ\ =\ new\_array;}
+\DoxyCodeLine{00321\ \ \ \ \ allocated\ =\ new\_allocated;}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00324\ \ \ \}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \ \ \textcolor{keywordtype}{bool}\ resize\ (\textcolor{keywordtype}{int}\ size\_)}
+\DoxyCodeLine{00327\ \ \ \{}
+\DoxyCodeLine{00328\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size\ =\ size\_\ <\ 0\ ?\ 0u\ :\ (\textcolor{keywordtype}{unsigned}\ int)\ size\_;}
+\DoxyCodeLine{00329\ \ \ \ \ \textcolor{keywordflow}{if}\ (!alloc\ (size))}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ >\ length)}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ grow\_vector\ (size);}
+\DoxyCodeLine{00334\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (size\ <\ length)}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ shrink\_vector\ (size);}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \ \ \ \ length\ =\ size;}
+\DoxyCodeLine{00338\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00339\ \ \ \}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \ \ Type\ pop\ ()}
+\DoxyCodeLine{00342\ \ \ \{}
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{keywordflow}{if}\ (!length)\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_null}{Null}}\ (Type);}
+\DoxyCodeLine{00344\ \ \ \ \ Type\ v\ =\ std::move\ (arrayZ[length\ -\/\ 1]);}
+\DoxyCodeLine{00345\ \ \ \ \ arrayZ[length\ -\/\ 1].\string~Type\ ();}
+\DoxyCodeLine{00346\ \ \ \ \ length-\/-\/;}
+\DoxyCodeLine{00347\ \ \ \ \ \textcolor{keywordflow}{return}\ v;}
+\DoxyCodeLine{00348\ \ \ \}}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \ \ \textcolor{keywordtype}{void}\ remove\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)}
+\DoxyCodeLine{00351\ \ \ \{}
+\DoxyCodeLine{00352\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (i\ >=\ length))}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00354\ \ \ \ \ arrayZ[i].\string~Type\ ();}
+\DoxyCodeLine{00355\ \ \ \ \ shift\_down\_vector\ (i\ +\ 1);}
+\DoxyCodeLine{00356\ \ \ \ \ length-\/-\/;}
+\DoxyCodeLine{00357\ \ \ \}}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \ \ \textcolor{keywordtype}{void}\ shrink\ (\textcolor{keywordtype}{int}\ size\_)}
+\DoxyCodeLine{00360\ \ \ \{}
+\DoxyCodeLine{00361\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size\ =\ size\_\ <\ 0\ ?\ 0u\ :\ (\textcolor{keywordtype}{unsigned}\ int)\ size\_;}
+\DoxyCodeLine{00362\ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ >=\ length)}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \ \ \ \ shrink\_vector\ (size);}
+\DoxyCodeLine{00366\ \ \ \}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ \ \ \textcolor{comment}{/*\ Sorting\ API.\ */}}
+\DoxyCodeLine{00370\ \ \ \textcolor{keywordtype}{void}\ qsort\ (\textcolor{keywordtype}{int}\ (*cmp)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*))}
+\DoxyCodeLine{00371\ \ \ \{\ as\_array\ ().qsort\ (cmp);\ \}}
+\DoxyCodeLine{00372\ \ \ \textcolor{keywordtype}{void}\ qsort\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ 0,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})\ -\/1)}
+\DoxyCodeLine{00373\ \ \ \{\ as\_array\ ().qsort\ (start,\ end);\ \}}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \ \ \textcolor{comment}{/*\ Unsorted\ search\ API.\ */}}
+\DoxyCodeLine{00376\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00377\ \ \ Type\ *lsearch\ (\textcolor{keyword}{const}\ T\ \&x,\ Type\ *not\_found\ =\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00378\ \ \ \{\ \textcolor{keywordflow}{return}\ as\_array\ ().lsearch\ (x,\ not\_found);\ \}}
+\DoxyCodeLine{00379\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00380\ \ \ \textcolor{keyword}{const}\ Type\ *lsearch\ (\textcolor{keyword}{const}\ T\ \&x,\ \textcolor{keyword}{const}\ Type\ *not\_found\ =\ \textcolor{keyword}{nullptr})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00381\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ().lsearch\ (x,\ not\_found);\ \}}
+\DoxyCodeLine{00382\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00383\ \ \ \textcolor{keywordtype}{bool}\ lfind\ (\textcolor{keyword}{const}\ T\ \&x,\ \textcolor{keywordtype}{unsigned}\ *pos\ =\ \textcolor{keyword}{nullptr})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00384\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ().lfind\ (x,\ pos);\ \}}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \textcolor{comment}{/*\ Sorted\ search\ API.\ */}}
+\DoxyCodeLine{00387\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ Sorted=sorted,\ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (Sorted)>}
+\DoxyCodeLine{00389\ \ \ Type\ *bsearch\ (\textcolor{keyword}{const}\ T\ \&x,\ Type\ *not\_found\ =\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00390\ \ \ \{\ \textcolor{keywordflow}{return}\ as\_array\ ().bsearch\ (x,\ not\_found);\ \}}
+\DoxyCodeLine{00391\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ Sorted=sorted,\ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (Sorted)>}
+\DoxyCodeLine{00393\ \ \ \textcolor{keyword}{const}\ Type\ *bsearch\ (\textcolor{keyword}{const}\ T\ \&x,\ \textcolor{keyword}{const}\ Type\ *not\_found\ =\ \textcolor{keyword}{nullptr})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00394\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ().bsearch\ (x,\ not\_found);\ \}}
+\DoxyCodeLine{00395\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ Sorted=sorted,\ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (Sorted)>}
+\DoxyCodeLine{00397\ \ \ \textcolor{keywordtype}{bool}\ bfind\ (\textcolor{keyword}{const}\ T\ \&x,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *i\ =\ \textcolor{keyword}{nullptr},}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ \ \ hb\_not\_found\_t\ not\_found\ =\ HB\_NOT\_FOUND\_DONT\_STORE,}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ to\_store\ =\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})\ -\/1)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00400\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ as\_array\ ().bfind\ (x,\ i,\ not\_found,\ to\_store);\ \}}
+\DoxyCodeLine{00401\ \};}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00404\ \textcolor{keyword}{using\ }\mbox{\hyperlink{structhb__vector__t}{hb\_sorted\_vector\_t}}\ =\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<Type,\ true>}};}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_VECTOR\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

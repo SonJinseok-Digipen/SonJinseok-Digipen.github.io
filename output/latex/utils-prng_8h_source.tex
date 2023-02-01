@@ -1,0 +1,176 @@
+\hypertarget{utils-prng_8h_source}{}\doxysection{utils-\/prng.h}
+\label{utils-prng_8h_source}\index{AseSprite/aseprite/third\_party/pixman/test/utils-\/prng.h@{AseSprite/aseprite/third\_party/pixman/test/utils-\/prng.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012\ Siarhei\ Siamashka\ <siarhei.siamashka@gmail.com>}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Based\ on\ the\ public\ domain\ implementation\ of\ small\ noncryptographic\ PRNG}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ authored\ by\ Bob\ Jenkins:\ http://burtleburtle.net/bob/rand/smallprng.html}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ free\ of\ charge,\ to\ any\ person\ obtaining\ a}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ copy\ of\ this\ software\ and\ associated\ documentation\ files\ (the\ "{}Software"{}),}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ to\ deal\ in\ the\ Software\ without\ restriction,\ including\ without\ limitation}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ the\ rights\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute,\ sublicense,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ and/or\ sell\ copies\ of\ the\ Software,\ and\ to\ permit\ persons\ to\ whom\ the}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ Software\ is\ furnished\ to\ do\ so,\ subject\ to\ the\ following\ conditions:}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ The\ above\ copyright\ notice\ and\ this\ permission\ notice\ (including\ the\ next}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ paragraph)\ shall\ be\ included\ in\ all\ copies\ or\ substantial\ portions\ of\ the}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ Software.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ SOFTWARE\ IS\ PROVIDED\ "{}AS\ IS"{},\ WITHOUT\ WARRANTY\ OF\ ANY\ KIND,\ EXPRESS\ OR}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ IMPLIED,\ INCLUDING\ BUT\ NOT\ LIMITED\ TO\ THE\ WARRANTIES\ OF\ MERCHANTABILITY,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ AND\ NONINFRINGEMENT.\ \ IN\ NO\ EVENT\ SHALL}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ THE\ AUTHORS\ OR\ COPYRIGHT\ HOLDERS\ BE\ LIABLE\ FOR\ ANY\ CLAIM,\ DAMAGES\ OR\ OTHER}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ LIABILITY,\ WHETHER\ IN\ AN\ ACTION\ OF\ CONTRACT,\ TORT\ OR\ OTHERWISE,\ ARISING}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ FROM,\ OUT\ OF\ OR\ IN\ CONNECTION\ WITH\ THE\ SOFTWARE\ OR\ THE\ USE\ OR\ OTHER}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ DEALINGS\ IN\ THE\ SOFTWARE.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ \_\_UTILS\_PRNG\_H\_\_}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ \_\_UTILS\_PRNG\_H\_\_}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ This\ file\ provides\ a\ fast\ SIMD-\/optimized\ noncryptographic\ PRNG\ (pseudorandom}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ number\ generator),\ with\ the\ output\ good\ enough\ to\ pass\ "{}Big\ Crush"{}\ tests}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ from\ TestU01\ (http://en.wikipedia.org/wiki/TestU01).}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ SIMD\ code\ uses\ http://gcc.gnu.org/onlinedocs/gcc/Vector-\/Extensions.html}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ which\ is\ a\ GCC\ specific\ extension.\ There\ is\ also\ a\ slower\ alternative}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ code\ path,\ which\ should\ work\ with\ any\ C\ compiler.}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ The\ "{}prng\_t"{}\ structure\ keeps\ the\ internal\ state\ of\ the\ random\ number}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ generator.\ It\ is\ possible\ to\ have\ multiple\ instances\ of\ the\ random\ number}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ generator\ active\ at\ the\ same\ time,\ in\ this\ case\ each\ of\ them\ needs\ to\ have}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ its\ own\ "{}prng\_t"{}.\ All\ the\ functions\ take\ a\ pointer\ to\ "{}prng\_t"{}}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ as\ the\ first\ argument.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ Functions:}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ void\ prng\_srand\_r\ (prng\_t\ *prng,\ uint32\_t\ seed);}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ Initialize\ the\ pseudorandom\ number\ generator.\ The\ sequence\ of\ preudorandom}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ numbers\ is\ deterministic\ and\ only\ depends\ on\ "{}seed"{}.\ Any\ two\ generators}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ initialized\ with\ the\ same\ seed\ will\ produce\ exactly\ the\ same\ sequence.}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *\ uint32\_t\ prng\_rand\_r\ (prng\_t\ *prng);}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ *\ Generate\ a\ single\ uniformly\ distributed\ 32-\/bit\ pseudorandom\ value.}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ *\ void\ prng\_randmemset\_r\ (prng\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *prng,}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ void\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *buffer,}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size,}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ prng\_randmemset\_flags\_t\ \ flags);}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ *\ Fills\ the\ memory\ buffer\ "{}buffer"{}\ with\ "{}size"{}\ bytes\ of\ pseudorandom\ data.}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ *\ The\ "{}flags"{}\ argument\ may\ be\ used\ to\ tweak\ some\ statistics\ properties:}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ *\ \ \ \ RANDMEMSET\_MORE\_00\ -\/\ set\ \string~25\%\ of\ bytes\ to\ 0x00}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ *\ \ \ \ RANDMEMSET\_MORE\_FF\ -\/\ set\ \string~25\%\ of\ bytes\ to\ 0xFF}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ *\ The\ flags\ can\ be\ combined.\ This\ allows\ a\ bit\ better\ simulation\ of\ typical}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ *\ pixel\ data,\ which\ normally\ contains\ a\ lot\ of\ fully\ transparent\ or\ fully}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ *\ opaque\ pixels.}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#ifdef\ HAVE\_CONFIG\_H}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#include\ <config.h>}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#include\ "{}pixman-\/private.h"{}}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{/*****************************************************************************/}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#ifdef\ HAVE\_GCC\_VECTOR\_EXTENSIONS}}
+\DoxyCodeLine{00083\ \textcolor{keyword}{typedef}\ uint32\_t\ uint32x4\ \_\_attribute\_\_\ ((vector\_size(16)));}
+\DoxyCodeLine{00084\ \textcolor{keyword}{typedef}\ uint8\_t\ \ uint8x16\ \_\_attribute\_\_\ ((vector\_size(16)));}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00088\ \{}
+\DoxyCodeLine{00089\ \ \ \ \ uint32\_t\ \mbox{\hyperlink{structa}{a}},\ b,\ c,\ d;}
+\DoxyCodeLine{00090\ \}\ \mbox{\hyperlink{structsmallprng__t}{smallprng\_t}};}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00093\ \{}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#ifdef\ HAVE\_GCC\_VECTOR\_EXTENSIONS}}
+\DoxyCodeLine{00095\ \ \ \ \ uint32x4\ \mbox{\hyperlink{structa}{a}},\ b,\ c,\ d;}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00097\ \ \ \ \ \mbox{\hyperlink{structsmallprng__t}{smallprng\_t}}\ p1,\ p2,\ p3,\ p4;}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00099\ \ \ \ \ \mbox{\hyperlink{structsmallprng__t}{smallprng\_t}}\ p0;}
+\DoxyCodeLine{00100\ \}\ \mbox{\hyperlink{structprng__t}{prng\_t}};}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{union}}
+\DoxyCodeLine{00103\ \{}
+\DoxyCodeLine{00104\ \ \ \ \ uint8\_t\ \ b[16];}
+\DoxyCodeLine{00105\ \ \ \ \ uint32\_t\ w[4];}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#ifdef\ HAVE\_GCC\_VECTOR\_EXTENSIONS}}
+\DoxyCodeLine{00107\ \ \ \ \ uint8x16\ vb;}
+\DoxyCodeLine{00108\ \ \ \ \ uint32x4\ vw;}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00110\ \}\ \mbox{\hyperlink{unionprng__rand__128__data__t}{prng\_rand\_128\_data\_t}};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{/*****************************************************************************/}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00115\ smallprng\_rand\_r\ (\mbox{\hyperlink{structsmallprng__t}{smallprng\_t}}\ *x)}
+\DoxyCodeLine{00116\ \{}
+\DoxyCodeLine{00117\ \ \ \ \ uint32\_t\ e\ =\ x-\/>a\ -\/\ ((x-\/>b\ <<\ 27)\ +\ (x-\/>b\ >>\ (32\ -\/\ 27)));}
+\DoxyCodeLine{00118\ \ \ \ \ x-\/>a\ =\ x-\/>b\ \string^\ ((x-\/>c\ <<\ 17)\ \string^\ (x-\/>c\ >>\ (32\ -\/\ 17)));}
+\DoxyCodeLine{00119\ \ \ \ \ x-\/>b\ =\ x-\/>c\ +\ x-\/>d;}
+\DoxyCodeLine{00120\ \ \ \ \ x-\/>c\ =\ x-\/>d\ +\ e;}
+\DoxyCodeLine{00121\ \ \ \ \ x-\/>d\ =\ e\ +\ x-\/>a;}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordflow}{return}\ x-\/>d;}
+\DoxyCodeLine{00123\ \}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{/*\ Generate\ 4\ bytes\ (32-\/bits)\ of\ random\ data\ */}}
+\DoxyCodeLine{00126\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00127\ prng\_rand\_r\ (\mbox{\hyperlink{structprng__t}{prng\_t}}\ *x)}
+\DoxyCodeLine{00128\ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordflow}{return}\ smallprng\_rand\_r\ (\&x-\/>p0);}
+\DoxyCodeLine{00130\ \}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{comment}{/*\ Generate\ 16\ bytes\ (128-\/bits)\ of\ random\ data\ */}}
+\DoxyCodeLine{00133\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00134\ prng\_rand\_128\_r\ (\mbox{\hyperlink{structprng__t}{prng\_t}}\ *x,\ \mbox{\hyperlink{unionprng__rand__128__data__t}{prng\_rand\_128\_data\_t}}\ *\mbox{\hyperlink{structdata}{data}})}
+\DoxyCodeLine{00135\ \{}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#ifdef\ HAVE\_GCC\_VECTOR\_EXTENSIONS}}
+\DoxyCodeLine{00137\ \ \ \ \ uint32x4\ e\ =\ x-\/>a\ -\/\ ((x-\/>b\ <<\ 27)\ +\ (x-\/>b\ >>\ (32\ -\/\ 27)));}
+\DoxyCodeLine{00138\ \ \ \ \ x-\/>a\ =\ x-\/>b\ \string^\ ((x-\/>c\ <<\ 17)\ \string^\ (x-\/>c\ >>\ (32\ -\/\ 17)));}
+\DoxyCodeLine{00139\ \ \ \ \ x-\/>b\ =\ x-\/>c\ +\ x-\/>d;}
+\DoxyCodeLine{00140\ \ \ \ \ x-\/>c\ =\ x-\/>d\ +\ e;}
+\DoxyCodeLine{00141\ \ \ \ \ x-\/>d\ =\ e\ +\ x-\/>a;}
+\DoxyCodeLine{00142\ \ \ \ \ \mbox{\hyperlink{structdata}{data}}-\/>vw\ =\ x-\/>d;}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00144\ \ \ \ \ \mbox{\hyperlink{structdata}{data}}-\/>w[0]\ =\ smallprng\_rand\_r\ (\&x-\/>p1);}
+\DoxyCodeLine{00145\ \ \ \ \ \mbox{\hyperlink{structdata}{data}}-\/>w[1]\ =\ smallprng\_rand\_r\ (\&x-\/>p2);}
+\DoxyCodeLine{00146\ \ \ \ \ \mbox{\hyperlink{structdata}{data}}-\/>w[2]\ =\ smallprng\_rand\_r\ (\&x-\/>p3);}
+\DoxyCodeLine{00147\ \ \ \ \ \mbox{\hyperlink{structdata}{data}}-\/>w[3]\ =\ smallprng\_rand\_r\ (\&x-\/>p4);}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00149\ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00152\ \{}
+\DoxyCodeLine{00153\ \ \ \ \ RANDMEMSET\_MORE\_00\ \ \ \ \ \ \ \ =\ 1,\ \textcolor{comment}{/*\ \string~25\%\ chance\ for\ 0x00\ bytes\ */}}
+\DoxyCodeLine{00154\ \ \ \ \ RANDMEMSET\_MORE\_FF\ \ \ \ \ \ \ \ =\ 2,\ \textcolor{comment}{/*\ \string~25\%\ chance\ for\ 0xFF\ bytes\ */}}
+\DoxyCodeLine{00155\ \ \ \ \ RANDMEMSET\_MORE\_00000000\ \ =\ 4,\ \textcolor{comment}{/*\ \string~25\%\ chance\ for\ 0x00000000\ clusters\ */}}
+\DoxyCodeLine{00156\ \ \ \ \ RANDMEMSET\_MORE\_FFFFFFFF\ \ =\ 8,\ \textcolor{comment}{/*\ \string~25\%\ chance\ for\ 0xFFFFFFFF\ clusters\ */}}
+\DoxyCodeLine{00157\ \ \ \ \ RANDMEMSET\_MORE\_00\_AND\_FF\ =\ (RANDMEMSET\_MORE\_00\ |\ RANDMEMSET\_MORE\_00000000\ |}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ RANDMEMSET\_MORE\_FF\ |\ RANDMEMSET\_MORE\_FFFFFFFF)}
+\DoxyCodeLine{00159\ \}\ prng\_randmemset\_flags\_t;}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{comment}{/*\ Set\ the\ 32-\/bit\ seed\ for\ PRNG\ */}}
+\DoxyCodeLine{00162\ \textcolor{keywordtype}{void}\ prng\_srand\_r\ (\mbox{\hyperlink{structprng__t}{prng\_t}}\ *prng,\ uint32\_t\ seed);}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{comment}{/*\ Fill\ memory\ buffer\ with\ random\ data\ */}}
+\DoxyCodeLine{00165\ \textcolor{keywordtype}{void}\ prng\_randmemset\_r\ (\mbox{\hyperlink{structprng__t}{prng\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *prng,}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size,}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ prng\_randmemset\_flags\_t\ \ flags);}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

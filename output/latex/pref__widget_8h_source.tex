@@ -1,0 +1,82 @@
+\hypertarget{pref__widget_8h_source}{}\doxysection{pref\+\_\+widget.\+h}
+\label{pref__widget_8h_source}\index{AseSprite/aseprite/src/app/ui/pref\_widget.h@{AseSprite/aseprite/src/app/ui/pref\_widget.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018\ \ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ APP\_UI\_PREF\_WIDGET\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ APP\_UI\_PREF\_WIDGET\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}app/pref/preferences.h"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}base/split\_string.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}base/exception.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}ui/message.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}ui/register\_message.h"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{classui_1_1_register_message}{ui::RegisterMessage}}\ kSavePreferencesMessage;}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Base>}
+\DoxyCodeLine{00022\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_bool_pref_widget}{BoolPrefWidget}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_base}{Base}}\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...Args>}
+\DoxyCodeLine{00025\ \ \ \mbox{\hyperlink{classapp_1_1_bool_pref_widget}{BoolPrefWidget}}(Args\&\&...args)}
+\DoxyCodeLine{00026\ \ \ \ \ :\ \mbox{\hyperlink{class_base}{Base}}(args...)}
+\DoxyCodeLine{00027\ \ \ \ \ ,\ m\_option(\textcolor{keyword}{nullptr})\ \{}
+\DoxyCodeLine{00028\ \ \ \}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \textcolor{keywordtype}{void}\ setPref(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ prefString)\ \{}
+\DoxyCodeLine{00031\ \ \ \ \ ASSERT(prefString);}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ std::vector<std::string>\ parts;}
+\DoxyCodeLine{00034\ \ \ \ \ base::split\_string(prefString,\ parts,\ \textcolor{stringliteral}{"{}."{}});}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keywordflow}{if}\ (parts.size()\ ==\ 2)\ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \textcolor{keyword}{auto}\&\ pref\ =\ Preferences::instance();}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ section\ =\ pref.section(parts[0].c\_str());}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!section)}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}(\textcolor{stringliteral}{"{}Preference\ section\ not\ found:\ \%s"{}},\ prefString);}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \ \ \ \ m\_option\ =}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \textcolor{keyword}{dynamic\_cast<}\mbox{\hyperlink{classapp_1_1_option}{Option<bool>}}*\textcolor{keyword}{>}(}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ section-\/>option(parts[1].c\_str()));}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_option)}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}(\textcolor{stringliteral}{"{}Preference\ option\ not\ found:\ \%s"{}},\ prefString);}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \textcolor{comment}{//\ Load\ option\ value}}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ this-\/>setSelected((*m\_option)());}
+\DoxyCodeLine{00050\ \ \ \ \ \}}
+\DoxyCodeLine{00051\ \ \ \}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \textcolor{keywordtype}{void}\ resetWithDefaultValue()\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{comment}{//\ Reset\ to\ default\ value\ in\ preferences}}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_option)}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ this-\/>setSelected(m\_option-\/>defaultValue());}
+\DoxyCodeLine{00057\ \ \ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00060\ \ \ \textcolor{keywordtype}{bool}\ onProcessMessage(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type()\ ==\ kSavePreferencesMessage)\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ ASSERT(m\_option);}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \textcolor{comment}{//\ Update\ Option\ value.}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ (*m\_option)(this-\/>isSelected());}
+\DoxyCodeLine{00066\ \ \ \ \ \}}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordflow}{return}\ Base::onProcessMessage(msg);}
+\DoxyCodeLine{00068\ \ \ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00071\ \ \ \mbox{\hyperlink{classapp_1_1_option}{Option<bool>}}*\ m\_option;}
+\DoxyCodeLine{00072\ \};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

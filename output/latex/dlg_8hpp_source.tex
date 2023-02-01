@@ -1,0 +1,305 @@
+\hypertarget{dlg_8hpp_source}{}\doxysection{dlg.\+hpp}
+\label{dlg_8hpp_source}\index{AseSprite/aseprite/third\_party/freetype2/subprojects/dlg/include/dlg/dlg.hpp@{AseSprite/aseprite/third\_party/freetype2/subprojects/dlg/include/dlg/dlg.hpp}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ (c)\ 2019\ nyorain}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ Boost\ Software\ License,\ Version\ 1.0.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ See\ accompanying\ file\ LICENSE\ or\ copy\ at\ http://www.boost.org/LICENSE\_1\_0.txt}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#ifndef\ INC\_DLG\_DLG\_HPP\_}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#define\ INC\_DLG\_DLG\_HPP\_}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{comment}{//\ By\ default\ this\ header\ automatically\ uses\ a\ different,\ typesafe\ formatting}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ function.\ Make\ sure\ to\ never\ include\ dlg.h\ in\ your\ translation\ unit\ before}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ including\ dlg.hpp\ to\ make\ this\ work.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ The\ new\ formatting\ function\ works\ like\ a\ type-\/safe\ version\ of\ printf,\ see\ dlg::format.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ TODO:\ override\ the\ default\ (via\ undef)\ if\ a\ dlg.h\ was\ included\ before\ this\ file?}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ DLG\_FMT\_FUNC}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \ \ \#define\ DLG\_FMT\_FUNC\ ::dlg::detail::tlformat}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <dlg/dlg.h>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <dlg/output.h>}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <streambuf>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <ostream>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ <sstream>}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <type\_traits>}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{//\ Define\ this\ macro\ as\ 1\ to\ disable\ all\ dlg\_check*\ blocks.}}
+\DoxyCodeLine{00032\ \textcolor{comment}{//\ Note\ that\ checking\ is\ defined\ separately\ from\ DLG\_DISABLE.}}
+\DoxyCodeLine{00033\ \textcolor{comment}{//\ By\ default\ this\ is\ defined\ to\ 1\ if\ NDEBUG\ is\ defined\ OR\ DLG\_DISABLe\ is\ 1.}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#ifndef\ DLG\_DISABLE\_CHECK}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\ \ \ \ \#if\ defined(NDEBUG)\ ||\ defined(DLG\_DISABLE)}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ DLG\_DISABLE\_CHECK\ 1}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ \#else}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \#define\ DLG\_DISABLE\_CHECK\ 0}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{comment}{//\ The\ default\ string\ to\ replace\ by\ the\ dlg::*format\ functions.}}
+\DoxyCodeLine{00043\ \textcolor{comment}{//\ Used\ as\ default\ by\ tlformat\ (set\ as\ new\ DLG\_FMT\_FUNC)\ or\ dlg::format.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{//\ If\ a\ custom\ replace\ string\ is\ required\ in\ certain\ situations\ without}}
+\DoxyCodeLine{00045\ \textcolor{comment}{//\ overriding\ this\ macro,\ use\ dlg::rformat\ or\ dlg::gformat.}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#ifndef\ DLG\_FORMAT\_DEFAULT\_REPLACE}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\ \ \ \ \#define\ DLG\_FORMAT\_DEFAULT\_REPLACE\ "{}\{\}"{}}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{keyword}{namespace\ }dlg\ \{}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{comment}{//\ Sets\ dlg\ tags\ on\ its\ construction\ and\ removes\ them\ on\ its\ destruction.}}
+\DoxyCodeLine{00053\ \textcolor{comment}{//\ Instead\ of\ explicitly\ constructing\ an\ object,\ just\ use\ the\ dlg\_tags\ and}}
+\DoxyCodeLine{00054\ \textcolor{comment}{//\ dlg\_tags\_global\ macros\ which\ will\ construct\ one\ in\ the\ current\ scope.}}
+\DoxyCodeLine{00055\ \textcolor{comment}{//\ Just\ forwards\ the\ arguments\ on\ construction\ to\ dlg\_add\_tag,\ so\ if\ func}}
+\DoxyCodeLine{00056\ \textcolor{comment}{//\ is\ nullptr\ the\ tags\ will\ be\ applied\ even\ to\ called\ functions\ from\ the\ current}}
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ scope,\ otherwise\ only\ to\ calls\ coming\ directly\ from\ the\ current\ function.}}
+\DoxyCodeLine{00058\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdlg_1_1_tags_guard}{TagsGuard}}\ \{}
+\DoxyCodeLine{00059\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00060\ \ \ \ \ \mbox{\hyperlink{classdlg_1_1_tags_guard}{TagsGuard}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}**\ tags,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ func)\ :\ tags\_(tags),\ func\_(func)\ \{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(*tags)\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ \ \ dlg\_add\_tag(*tags,\ func);}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ ++tags;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00065\ \ \ \ \ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \mbox{\hyperlink{classdlg_1_1_tags_guard}{\string~TagsGuard}}()\ \{}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}(*tags\_)\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ dlg\_remove\_tag(*tags\_,\ func\_);}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ ++tags\_;}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00072\ \ \ \ \ \}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}**\ tags\_;}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ func\_;}
+\DoxyCodeLine{00077\ \};}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#ifdef\ DLG\_DISABLE}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{comment}{//\ Constructs\ a\ dlg::TagsGuard\ in\ the\ current\ scope,\ passing\ correctly\ the}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{comment}{//\ current\ function,\ i.e.\ only\ dlg\ calls\ made\ from\ other\ functions}}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{comment}{//\ that\ are\ called\ in\ the\ current\ scope\ will\ not\ use\ the\ given\ tags.}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//\ Expects\ the\ tags\ to\ be\ set\ as\ parameters\ like\ this:}}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{comment}{//\ ```dlg\_tags("{}tag1"{},\ "{}tag2"{})```.}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_tags(...)}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{comment}{//\ Constructs\ a\ dlg::TagsGuard\ in\ the\ current\ scope,\ passing\ nullptr\ as\ func.}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//\ This\ means\ that\ even\ dlg\ calls\ made\ from\ other\ functions\ called\ in\ the\ current}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{comment}{//\ scope\ will\ use\ those\ tags.}}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//\ Expects\ the\ tags\ to\ be\ set\ as\ parameters\ like\ this:}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ ```dlg\_tags\_global("{}tag1"{},\ "{}tag2"{})```.}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_tags\_global(...)}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_tags(...)\ \(\backslash\)}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ const\ char*\ \_dlgtags\_[]\ =\ \{\_\_VA\_ARGS\_\_,\ nullptr\};\ \(\backslash\)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ::dlg::TagsGuard\ \_dlgltg\_(\_dlgtags\_,\ \_\_func\_\_)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_tags\_global(...)\ \(\backslash\)}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ const\ char*\ \_dlgtags\_[]\ =\ \{\_\_VA\_ARGS\_\_,\ nullptr\};\ \(\backslash\)}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ::dlg::TagsGuard\ \_dlggtg\_(\_dlgtags\_.begin(),\ nullptr)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{comment}{//\ TODO:\ move\ this\ to\ the\ c\ api?\ together\ with\ (a\ scoped\ version\ of)\ dlg\_tags?}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#if\ DLG\_DISABLE\_CHECK}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ Executes\ the\ given\ block\ only\ if\ dlg\ checking\ is\ enabled}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_check(code)}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{comment}{//\ Executes\ the\ given\ blocks\ with\ the\ given\ tags\ only\ if\ dlg\ checking\ is\ enabled}}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{comment}{//\ The\ tags\ must\ have\ the\ default\ `("{}tag1"{},\ "{}tag2"{})`\ format.}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_checkt(tags,\ code)}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_check(code)\ do\ code\ while(0)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_checkt(tags,\ code)\ do\ \{\ dlg\_tags(tags);\ code\ \}\ while(0)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00116\ \textcolor{keyword}{using\ }Handler\ =\ std::function<void(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}\&\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ str)>;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}\ \{}
+\DoxyCodeLine{00121\ \ \ \ \ \mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}(\textcolor{keyword}{const}\ std::string\&\ s)\ :\ str(s.c\_str())\ \{\}}
+\DoxyCodeLine{00122\ \ \ \ \ \mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ s)\ :\ str(s)\ \{\}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ str;}
+\DoxyCodeLine{00125\ \};}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00131\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ set\_handler(Handler\ handler);}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \textcolor{comment}{//\ TODO:\ maybe\ don't\ use\ exceptions\ for\ wrong\ formats?}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00150\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Arg,\ \textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00151\ \textcolor{keywordtype}{void}\ gformat(std::ostream\&\ os,\ \mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}\ replace,\ \mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}\ fmt,\ Arg\&\&\ arg,\ Args\&\&...\ args);}
+\DoxyCodeLine{00152\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ gformat(std::ostream\&\ os,\ \mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}\ replace,\ \mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}\ fmt);}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00156\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00157\ std::string\ rformat(\mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}\ replace,\ \mbox{\hyperlink{structdlg_1_1_string_param}{StringParam}}\ fmt,\ Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00158\ \ \ \ \ std::stringstream\ sstream;}
+\DoxyCodeLine{00159\ \ \ \ \ gformat(sstream,\ replace,\ fmt,\ std::forward<Args>(args)...);}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keywordflow}{return}\ sstream.str();}
+\DoxyCodeLine{00161\ \}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00165\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00166\ std::string\ format(StringParam\ fmt,\ Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordflow}{return}\ rformat(DLG\_FORMAT\_DEFAULT\_REPLACE,\ fmt,\ std::forward<Args>(args)...);}
+\DoxyCodeLine{00168\ \}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00171\ \textcolor{keyword}{inline}\ std::string\ generic\_output(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ features,}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}\&\ origin,\ StringParam\ \textcolor{keywordtype}{string},}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ styles[6]\ =\ dlg\_default\_output\_styles);}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{comment}{//\ -\/\ Private\ interface\ \&\ implementation\ -\/}}
+\DoxyCodeLine{00177\ \textcolor{keyword}{namespace\ }detail\ \{}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ handler\_wrapper(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}*\ origin,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ str,\ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}})\ \{}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keyword}{auto}\&\ handler\ =\ *\textcolor{keyword}{static\_cast<}Handler*\textcolor{keyword}{>}(\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordflow}{try}\ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ handler(*origin,\ str);}
+\DoxyCodeLine{00183\ \ \ \ \ \}\ \textcolor{keywordflow}{catch}(\textcolor{keyword}{const}\ std::exception\&\ err)\ \{}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}dlg.hpp:\ handler\ has\ thrown\ exception:\ '\%s'\(\backslash\)n"{}},\ err.what());}
+\DoxyCodeLine{00185\ \ \ \ \ \}\ \textcolor{keywordflow}{catch}(...)\ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ fprintf(stderr,\ \textcolor{stringliteral}{"{}dlg.hpp:\ handler\ has\ thrown\ something\ else\ than\ std::exception"{}});}
+\DoxyCodeLine{00187\ \ \ \ \ \}}
+\DoxyCodeLine{00188\ \}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \textcolor{comment}{//\ Implements\ std::basic\_streambuf\ into\ the\ dlg\_thread\_buffer.}}
+\DoxyCodeLine{00191\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdlg_1_1detail_1_1_stream_buffer}{StreamBuffer}}\ :\ \textcolor{keyword}{public}\ std::basic\_streambuf<char>\ \{}
+\DoxyCodeLine{00192\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00193\ \ \ \ \ \mbox{\hyperlink{classdlg_1_1detail_1_1_stream_buffer}{StreamBuffer}}(\textcolor{keywordtype}{char}*\&\ \mbox{\hyperlink{structbuf}{buf}},\ std::size\_t\&\ size)\ :\ buf\_(\mbox{\hyperlink{structbuf}{buf}}),\ size\_(size)\ \{}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ setp(\mbox{\hyperlink{structbuf}{buf}},\ \mbox{\hyperlink{structbuf}{buf}}\ +\ size);\ \textcolor{comment}{//\ we\ will\ only\ read\ from\ it}}
+\DoxyCodeLine{00195\ \ \ \ \ \}}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \ \ \ \ \mbox{\hyperlink{classdlg_1_1detail_1_1_stream_buffer}{\string~StreamBuffer}}()\ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ make\ sure\ only\ the\ end\ has\ a\ null\ terminator}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ setp(std::remove(buf\_,\ pptr(),\ \textcolor{charliteral}{'\(\backslash\)0'}),\ buf\_\ +\ size\_);}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ sputc(\textcolor{charliteral}{'\(\backslash\)0'});}
+\DoxyCodeLine{00201\ \ \ \ \ \}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ int\_type\ overflow(int\_type\ ch\ =\ traits\_type::eof())\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(pptr()\ >=\ epptr())\ \{}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ off\ =\ pptr()\ -\/\ buf\_;}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ size\_\ =\ size\_\ *\ 2\ +\ 1;}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ buf\_\ =\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{char}*\textcolor{keyword}{>}(std::realloc(buf\_,\ size\_));}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!buf\_)\ \{}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size\_\ =\ 0;}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ setp(\textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ traits\_type::eof();}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ setp(buf\_\ +\ off,\ buf\_\ +\ size\_);}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(!traits\_type::eq\_int\_type(ch,\ traits\_type::eof()))\ \{}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ *pptr()\ =\ (char\_type)\ ch;}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ pbump(1);}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00223\ \ \ \ \ \}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordtype}{char}*\&\ buf\_;}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keywordtype}{size\_t}\&\ size\_;}
+\DoxyCodeLine{00228\ \};}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \textcolor{comment}{//\ Like\ std::strstr\ but\ only\ matches\ if\ target\ is\ not\ wrapped\ in\ backslashes,}}
+\DoxyCodeLine{00231\ \textcolor{comment}{//\ otherwise\ prints\ the\ target.}}
+\DoxyCodeLine{00232\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ find\_next(std::ostream\&\ os,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\&\ src,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ target)\ \{}
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{keyword}{auto}\ len\ =\ std::strlen(target);}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ next\ =\ std::strstr(src,\ target);}
+\DoxyCodeLine{00235\ \ \ \ \ \textcolor{keywordflow}{while}(next\ \&\&\ next\ >\ src\ \&\&\ *(next\ -\/\ 1)\ ==\ \textcolor{charliteral}{'\(\backslash\)\(\backslash\)'}\ \&\&\ *(next\ +\ len)\ ==\ \textcolor{charliteral}{'\(\backslash\)\(\backslash\)'})\ \{}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ os.write(src,\ next\ -\/\ src\ -\/\ 1);}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ os.write(target,\ len);}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ src\ =\ next\ +\ len\ +\ 1;}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ next\ =\ std::strstr(next\ +\ 1,\ target);}
+\DoxyCodeLine{00240\ \ \ \ \ \}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \ \ \textcolor{keywordflow}{return}\ next;}
+\DoxyCodeLine{00243\ \}}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{comment}{//\ Used\ as\ DLG\_FMT\_FUNC,\ uses\ a\ threadlocal\ stringstream\ to\ not\ allocate}}
+\DoxyCodeLine{00246\ \textcolor{comment}{//\ a\ new\ buffer\ on\ every\ call}}
+\DoxyCodeLine{00247\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00248\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ tlformat(StringParam\ fmt,\ Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \{}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ std::size\_t*\ size;}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}**\ dbuf\ =\ dlg\_thread\_buffer(\&size);}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ detail::StreamBuffer\ \mbox{\hyperlink{structbuf}{buf}}(*dbuf,\ *size);}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ std::ostream\ output(\&\mbox{\hyperlink{structbuf}{buf}});}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ gformat(output,\ DLG\_FORMAT\_DEFAULT\_REPLACE,\ fmt,\ std::forward<Args>(args)...);}
+\DoxyCodeLine{00255\ \ \ \ \ \}}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{keywordflow}{return}\ *dlg\_thread\_buffer(\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00258\ \}}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Arg,\ \textcolor{keyword}{typename}\ =\ \textcolor{keyword}{typename}\ std::enable\_if<}
+\DoxyCodeLine{00261\ \ \ \ \ !std::is\_convertible<Arg,\ StringParam>::value>::type>}
+\DoxyCodeLine{00262\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ tlformat(Arg\ arg)\ \{}
+\DoxyCodeLine{00263\ \ \ \ \ \{}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ std::size\_t*\ size;}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}**\ dbuf\ =\ dlg\_thread\_buffer(\&size);}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ detail::StreamBuffer\ \mbox{\hyperlink{structbuf}{buf}}(*dbuf,\ *size);}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ std::ostream\ output(\&\mbox{\hyperlink{structbuf}{buf}});}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ output\ <<\ arg;}
+\DoxyCodeLine{00269\ \ \ \ \ \}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \ \ \ \ \textcolor{keywordflow}{return}\ *dlg\_thread\_buffer(\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00272\ \}}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \}\ \textcolor{comment}{//\ namespace\ detail}}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \textcolor{keywordtype}{void}\ gformat(std::ostream\&\ os,\ StringParam\ replace,\ StringParam\ fmt)\ \{}
+\DoxyCodeLine{00277\ \ \ \ \ \textcolor{keywordflow}{if}(detail::find\_next(os,\ fmt.str,\ replace.str))\ \{}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::invalid\_argument(\textcolor{stringliteral}{"{}Too\ few\ arguments\ given\ to\ format"{}});}
+\DoxyCodeLine{00279\ \ \ \ \ \}}
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ \ \ \ \ os\ <<\ fmt.str;}
+\DoxyCodeLine{00282\ \}}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Arg,\ \textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00285\ \textcolor{keywordtype}{void}\ gformat(std::ostream\&\ os,\ StringParam\ replace,\ StringParam\ fmt,\ Arg\&\&\ arg,\ Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ next\ =\ detail::find\_next(os,\ fmt.str,\ replace.str);}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordflow}{if}(!next)\ \{}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::invalid\_argument(\textcolor{stringliteral}{"{}Too\ many\ arguments\ to\ format\ supplied"{}});}
+\DoxyCodeLine{00289\ \ \ \ \ \}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \ \ \ \ \textcolor{comment}{//\ XXX:\ any\ drawback\ compared\ to\ formatted?}}
+\DoxyCodeLine{00292\ \ \ \ \ \textcolor{comment}{//\ this\ allows\ to\ use\ temporary\ ostream\ modifiers\ only\ to\ real\ arguments}}
+\DoxyCodeLine{00293\ \ \ \ \ os.write(fmt.str,\ next\ -\/\ fmt.str);}
+\DoxyCodeLine{00294\ \ \ \ \ os\ <<\ std::forward<Arg>(arg);}
+\DoxyCodeLine{00295\ \ \ \ \ \textcolor{keyword}{auto}\ len\ =\ std::strlen(replace.str);}
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{keywordflow}{return}\ gformat(os,\ replace,\ next\ +\ len,\ std::forward<Args>(args)...);}
+\DoxyCodeLine{00297\ \}}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \textcolor{keywordtype}{void}\ set\_handler(Handler\ handler)\ \{}
+\DoxyCodeLine{00300\ \ \ \ \ \textcolor{keyword}{static}\ Handler\ handler\_;}
+\DoxyCodeLine{00301\ \ \ \ \ handler\_\ =\ std::move(handler);}
+\DoxyCodeLine{00302\ \ \ \ \ dlg\_set\_handler(\&detail::handler\_wrapper,\ \&handler\_);}
+\DoxyCodeLine{00303\ \}}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ std::string\ generic\_output(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ features,}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__origin}{dlg\_origin}}\&\ origin,\ StringParam\ \textcolor{keywordtype}{string},}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdlg__style}{dlg\_style}}\ styles[6])\ \{}
+\DoxyCodeLine{00308\ \ \ \ \ std::size\_t\ size;}
+\DoxyCodeLine{00309\ \ \ \ \ dlg\_generic\_output\_buf(\textcolor{keyword}{nullptr},\ \&size,\ features,\ \&origin,}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{string}.str,\ styles);}
+\DoxyCodeLine{00311\ \ \ \ \ std::string\ ret(++size,\ \textcolor{charliteral}{'\ '});}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{comment}{//\ NOTE:\ this\ might\ (theoretically)\ cause\ problems\ before\ C++17}}
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{comment}{//\ \ but\ this\ function\ should\ return\ a\ string\ and\ all\ compilers}}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{comment}{//\ \ make\ it\ work.\ If\ you\ want\ to\ go\ sure,\ just\ use\ C++17}}
+\DoxyCodeLine{00316\ \ \ \ \ \textcolor{comment}{//\ \ where\ it\ is\ guaranteed\ that\ this\ works\ (everybody\ is}}
+\DoxyCodeLine{00317\ \ \ \ \ \textcolor{comment}{//\ \ using\ it\ anyways\ so\ shit\ will\ blow\ up\ if\ this\ fails)}}
+\DoxyCodeLine{00318\ \ \ \ \ dlg\_generic\_output\_buf(\&ret[0],\ \&size,\ features,\ \&origin,}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{string}.str,\ styles);}
+\DoxyCodeLine{00320\ \ \ \ \ ret.pop\_back();\ \textcolor{comment}{//\ terminating\ null-\/char}}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00322\ \}}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \}\ \textcolor{comment}{//\ namespace\ dlg}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ header\ guard}}
+
+\end{DoxyCode}

@@ -1,0 +1,190 @@
+\hypertarget{hb-set-digest_8hh_source}{}\doxysection{hb-\/set-\/digest.hh}
+\label{hb-set-digest_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/set-\/digest.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/set-\/digest.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_SET\_DIGEST\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_SET\_DIGEST\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ The\ set\ digests\ here\ implement\ various\ "{}filters"{}\ that\ support}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ "{}approximate\ member\ query"{}.\ \ Conceptually\ these\ are\ like\ Bloom}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ Filter\ and\ Quotient\ Filter,\ however,\ much\ smaller,\ faster,\ and}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ designed\ to\ fit\ the\ requirements\ of\ our\ uses\ for\ glyph\ coverage}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ queries.}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ Our\ filters\ are\ highly\ accurate\ if\ the\ lookup\ covers\ fairly\ local}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ set\ of\ glyphs,\ but\ fully\ flooded\ and\ ineffective\ if\ coverage\ is}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ all\ over\ the\ place.}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ The\ frozen-\/set\ can\ be\ used\ instead\ of\ a\ digest,\ to\ trade\ more}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ memory\ for\ 100\%\ accuracy,\ but\ in\ practice,\ that\ doesn't\ look\ like}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ an\ attractive\ trade-\/off.}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ mask\_t,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ shift>}
+\DoxyCodeLine{00049\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__set__digest__lowest__bits__t}{hb\_set\_digest\_lowest\_bits\_t}}}
+\DoxyCodeLine{00050\ \{}
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ mask\_bytes\ =\ \textcolor{keyword}{sizeof}\ (mask\_t);}
+\DoxyCodeLine{00052\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ mask\_bits\ =\ \textcolor{keyword}{sizeof}\ (mask\_t)\ *\ 8;}
+\DoxyCodeLine{00053\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ num\_bits\ =\ 0}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (mask\_bytes\ >=\ 1\ ?\ 3\ :\ 0)}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (mask\_bytes\ >=\ 2\ ?\ 1\ :\ 0)}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (mask\_bytes\ >=\ 4\ ?\ 1\ :\ 0)}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (mask\_bytes\ >=\ 8\ ?\ 1\ :\ 0)}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (mask\_bytes\ >=\ 16?\ 1\ :\ 0)}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ 0;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \textcolor{keyword}{static\_assert}\ ((shift\ <\ \textcolor{keyword}{sizeof}\ (hb\_codepoint\_t)\ *\ 8),\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00062\ \ \ \textcolor{keyword}{static\_assert}\ ((shift\ +\ num\_bits\ <=\ \textcolor{keyword}{sizeof}\ (hb\_codepoint\_t)\ *\ 8),\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \textcolor{keywordtype}{void}\ init\ ()\ \{\ mask\ =\ 0;\ \}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \textcolor{keywordtype}{void}\ add\ (hb\_codepoint\_t\ g)\ \{\ mask\ |=\ mask\_for\ (g);\ \}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \textcolor{keywordtype}{bool}\ add\_range\ (hb\_codepoint\_t\ \mbox{\hyperlink{structa}{a}},\ hb\_codepoint\_t\ b)}
+\DoxyCodeLine{00069\ \ \ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordflow}{if}\ ((b\ >>\ shift)\ -\/\ (\mbox{\hyperlink{structa}{a}}\ >>\ shift)\ >=\ mask\_bits\ -\/\ 1)}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ mask\ =\ (mask\_t)\ -\/1;}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ mask\_t\ ma\ =\ mask\_for\ (\mbox{\hyperlink{structa}{a}});}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ mask\_t\ mb\ =\ mask\_for\ (b);}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ mask\ |=\ mb\ +\ (mb\ -\/\ ma)\ -\/\ (mb\ <\ ma);}
+\DoxyCodeLine{00076\ \ \ \ \ \}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00078\ \ \ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00081\ \ \ \textcolor{keywordtype}{void}\ add\_array\ (\textcolor{keyword}{const}\ T\ *array,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stride=\textcolor{keyword}{sizeof}(T))}
+\DoxyCodeLine{00082\ \ \ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ i++)}
+\DoxyCodeLine{00084\ \ \ \ \ \{}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ add\ (*array);}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ array\ =\ (\textcolor{keyword}{const}\ T\ *)\ (stride\ +\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ array);}
+\DoxyCodeLine{00087\ \ \ \ \ \}}
+\DoxyCodeLine{00088\ \ \ \}}
+\DoxyCodeLine{00089\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordtype}{void}\ add\_array\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<const\ T>}}\&\ arr)\ \{\ add\_array\ (\&arr,\ arr.len\ ());\ \}}
+\DoxyCodeLine{00091\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00092\ \ \ \textcolor{keywordtype}{bool}\ add\_sorted\_array\ (\textcolor{keyword}{const}\ T\ *array,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stride=\textcolor{keyword}{sizeof}(T))}
+\DoxyCodeLine{00093\ \ \ \{}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ i++)}
+\DoxyCodeLine{00095\ \ \ \ \ \{}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ add\ (*array);}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ array\ =\ (\textcolor{keyword}{const}\ T\ *)\ (stride\ +\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ array);}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00100\ \ \ \}}
+\DoxyCodeLine{00101\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00102\ \ \ \textcolor{keywordtype}{bool}\ add\_sorted\_array\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__sorted__array__t}{hb\_sorted\_array\_t<const\ T>}}\&\ arr)\ \{\ \textcolor{keywordflow}{return}\ add\_sorted\_array\ (\&arr,\ arr.len\ ());\ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \textcolor{keywordtype}{bool}\ may\_have\ (hb\_codepoint\_t\ g)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00105\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ !!(mask\ \&\ mask\_for\ (g));\ \}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \textcolor{keyword}{static}\ mask\_t\ mask\_for\ (hb\_codepoint\_t\ g)}
+\DoxyCodeLine{00110\ \ \ \{\ \textcolor{keywordflow}{return}\ ((mask\_t)\ 1)\ <<\ ((g\ >>\ shift)\ \&\ (mask\_bits\ -\/\ 1));\ \}}
+\DoxyCodeLine{00111\ \ \ mask\_t\ mask;}
+\DoxyCodeLine{00112\ \};}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ head\_t,\ \textcolor{keyword}{typename}\ tail\_t>}
+\DoxyCodeLine{00115\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__set__digest__combiner__t}{hb\_set\_digest\_combiner\_t}}}
+\DoxyCodeLine{00116\ \{}
+\DoxyCodeLine{00117\ \ \ \textcolor{keywordtype}{void}\ init\ ()}
+\DoxyCodeLine{00118\ \ \ \{}
+\DoxyCodeLine{00119\ \ \ \ \ head.init\ ();}
+\DoxyCodeLine{00120\ \ \ \ \ tail.init\ ();}
+\DoxyCodeLine{00121\ \ \ \}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \textcolor{keywordtype}{void}\ add\ (hb\_codepoint\_t\ g)}
+\DoxyCodeLine{00124\ \ \ \{}
+\DoxyCodeLine{00125\ \ \ \ \ head.add\ (g);}
+\DoxyCodeLine{00126\ \ \ \ \ tail.add\ (g);}
+\DoxyCodeLine{00127\ \ \ \}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \textcolor{keywordtype}{bool}\ add\_range\ (hb\_codepoint\_t\ \mbox{\hyperlink{structa}{a}},\ hb\_codepoint\_t\ b)}
+\DoxyCodeLine{00130\ \ \ \{}
+\DoxyCodeLine{00131\ \ \ \ \ head.add\_range\ (\mbox{\hyperlink{structa}{a}},\ b);}
+\DoxyCodeLine{00132\ \ \ \ \ tail.add\_range\ (\mbox{\hyperlink{structa}{a}},\ b);}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00134\ \ \ \}}
+\DoxyCodeLine{00135\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00136\ \ \ \textcolor{keywordtype}{void}\ add\_array\ (\textcolor{keyword}{const}\ T\ *array,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stride=\textcolor{keyword}{sizeof}(T))}
+\DoxyCodeLine{00137\ \ \ \{}
+\DoxyCodeLine{00138\ \ \ \ \ head.add\_array\ (array,\ count,\ stride);}
+\DoxyCodeLine{00139\ \ \ \ \ tail.add\_array\ (array,\ count,\ stride);}
+\DoxyCodeLine{00140\ \ \ \}}
+\DoxyCodeLine{00141\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00142\ \ \ \textcolor{keywordtype}{void}\ add\_array\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<const\ T>}}\&\ arr)\ \{\ add\_array\ (\&arr,\ arr.len\ ());\ \}}
+\DoxyCodeLine{00143\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00144\ \ \ \textcolor{keywordtype}{bool}\ add\_sorted\_array\ (\textcolor{keyword}{const}\ T\ *array,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stride=\textcolor{keyword}{sizeof}(T))}
+\DoxyCodeLine{00145\ \ \ \{}
+\DoxyCodeLine{00146\ \ \ \ \ head.add\_sorted\_array\ (array,\ count,\ stride);}
+\DoxyCodeLine{00147\ \ \ \ \ tail.add\_sorted\_array\ (array,\ count,\ stride);}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00149\ \ \ \}}
+\DoxyCodeLine{00150\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00151\ \ \ \textcolor{keywordtype}{bool}\ add\_sorted\_array\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__sorted__array__t}{hb\_sorted\_array\_t<const\ T>}}\&\ arr)\ \{\ \textcolor{keywordflow}{return}\ add\_sorted\_array\ (\&arr,\ arr.len\ ());\ \}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \ \ \textcolor{keywordtype}{bool}\ may\_have\ (hb\_codepoint\_t\ g)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00154\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keywordflow}{return}\ head.may\_have\ (g)\ \&\&\ tail.may\_have\ (g);}
+\DoxyCodeLine{00156\ \ \ \}}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00159\ \ \ head\_t\ head;}
+\DoxyCodeLine{00160\ \ \ tail\_t\ tail;}
+\DoxyCodeLine{00161\ \};}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ *\ hb\_set\_digest\_t}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ *\ This\ is\ a\ combination\ of\ digests\ that\ performs\ "{}best"{}.}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ *\ There\ is\ not\ much\ science\ to\ this:\ it's\ a\ result\ of\ intuition}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ *\ and\ testing.}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00171\ \textcolor{keyword}{using\ }\mbox{\hyperlink{structhb__set__digest__combiner__t}{hb\_set\_digest\_t}}\ =}
+\DoxyCodeLine{00172\ \ \ \mbox{\hyperlink{structhb__set__digest__combiner__t}{hb\_set\_digest\_combiner\_t}}}
+\DoxyCodeLine{00173\ \ \ <}
+\DoxyCodeLine{00174\ \ \ \ \ \mbox{\hyperlink{structhb__set__digest__lowest__bits__t}{hb\_set\_digest\_lowest\_bits\_t<unsigned\ long,\ 4>}},}
+\DoxyCodeLine{00175\ \ \ \ \ \mbox{\hyperlink{structhb__set__digest__combiner__t}{hb\_set\_digest\_combiner\_t}}}
+\DoxyCodeLine{00176\ \ \ \ \ <}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__digest__lowest__bits__t}{hb\_set\_digest\_lowest\_bits\_t<unsigned\ long,\ 0>}},}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__digest__lowest__bits__t}{hb\_set\_digest\_lowest\_bits\_t<unsigned\ long,\ 9>}}}
+\DoxyCodeLine{00179\ \ \ \ \ >}
+\DoxyCodeLine{00180\ \ \ >}
+\DoxyCodeLine{00181\ ;}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_SET\_DIGEST\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

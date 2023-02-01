@@ -1,0 +1,93 @@
+\hypertarget{slot_8h_source}{}\doxysection{slot.\+h}
+\label{slot_8h_source}\index{AseSprite/aseprite/src/observable/obs/slot.h@{AseSprite/aseprite/src/observable/obs/slot.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Observable\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2016-\/2020\ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ OBS\_SLOT\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ OBS\_SLOT\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <type\_traits>}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{namespace\ }obs\ \{}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00017\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structobs_1_1is__callable__without__args}{is\_callable\_without\_args}}\ :\ std::is\_convertible<T,\ std::function<void()>>\ \{\ \};}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}\ \{}
+\DoxyCodeLine{00020\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00021\ \ \ \mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}()\ \{\ \}}
+\DoxyCodeLine{00022\ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classobs_1_1slot__base}{\string~slot\_base}}()\ \{\ \}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \textcolor{comment}{//\ Disable\ copy}}
+\DoxyCodeLine{00025\ \ \ \mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00026\ \ \ \mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00027\ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{comment}{//\ Generic\ slot}}
+\DoxyCodeLine{00030\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Callable>}
+\DoxyCodeLine{00031\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classobs_1_1slot}{slot}}\ \{\ \};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ R,\ \textcolor{keyword}{typename}...Args>}
+\DoxyCodeLine{00034\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classobs_1_1slot}{slot}}<R(Args...)>\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}\ \{}
+\DoxyCodeLine{00035\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ F,}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ =\ \textcolor{keyword}{typename}\ std::enable\_if<(\textcolor{keyword}{sizeof}...(Args)\ ==\ 0\ ||}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !\mbox{\hyperlink{structobs_1_1is__callable__without__args}{is\_callable\_without\_args<F>::value}})>::type>}
+\DoxyCodeLine{00039\ \ \ \mbox{\hyperlink{classobs_1_1slot}{slot}}(F\&\&\ f)\ :\ f(std::forward<F>(f))\ \{\ \}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ G,}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ =\ \textcolor{keyword}{typename}\ std::enable\_if<(\textcolor{keyword}{sizeof}...(Args)\ !=\ 0\ \&\&}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structobs_1_1is__callable__without__args}{is\_callable\_without\_args<G>::value}})>::type>}
+\DoxyCodeLine{00044\ \ \ \mbox{\hyperlink{classobs_1_1slot}{slot}}(G\ g)\ :\ f([g](Args...)\ -\/>\ R\ \{\ return\ g();\ \})\ \{\ \}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \mbox{\hyperlink{classobs_1_1slot}{slot}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classobs_1_1slot}{slot}}\&\ s)\ \{\ (void)s;\ \}}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classobs_1_1slot}{\string~slot}}()\ \{\ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...Args2>}
+\DoxyCodeLine{00050\ \ \ R\ operator()(Args2\&\&...args)\ \{}
+\DoxyCodeLine{00051\ \ \ \ \ assert(f);}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keywordflow}{return}\ f(std::forward<Args2>(args)...);}
+\DoxyCodeLine{00053\ \ \ \}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00056\ \ \ std::function<R(Args...)>\ f;}
+\DoxyCodeLine{00057\ \};}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...Args>}
+\DoxyCodeLine{00060\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classobs_1_1slot}{slot}}<void(Args...)>\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classobs_1_1slot__base}{slot\_base}}\ \{}
+\DoxyCodeLine{00061\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00062\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ F,}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ =\ \textcolor{keyword}{typename}\ std::enable\_if<(\textcolor{keyword}{sizeof}...(Args)\ ==\ 0\ ||}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !\mbox{\hyperlink{structobs_1_1is__callable__without__args}{is\_callable\_without\_args<F>::value}})>::type>}
+\DoxyCodeLine{00065\ \ \ \mbox{\hyperlink{classobs_1_1slot}{slot}}(F\&\&\ f)\ :\ f(std::forward<F>(f))\ \{\ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ G,}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ =\ \textcolor{keyword}{typename}\ std::enable\_if<(\textcolor{keyword}{sizeof}...(Args)\ !=\ 0\ \&\&}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structobs_1_1is__callable__without__args}{is\_callable\_without\_args<G>::value}})>::type>}
+\DoxyCodeLine{00070\ \ \ \mbox{\hyperlink{classobs_1_1slot}{slot}}(G\ g)\ :\ f([g](Args...)\{\ g();\ \})\ \{\ \}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ slot(\textcolor{keyword}{const}\ slot\&\ s)\ \{\ (void)s;\ \}}
+\DoxyCodeLine{00073\ \ \ \textcolor{keyword}{virtual}\ \string~slot()\ \{\ \}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...Args2>}
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordtype}{void}\ operator()(Args2\&\&...args)\ \{}
+\DoxyCodeLine{00077\ \ \ \ \ assert(f);}
+\DoxyCodeLine{00078\ \ \ \ \ f(std::forward<Args2>(args)...);}
+\DoxyCodeLine{00079\ \ \ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00082\ \ \ std::function<void(Args...)>\ f;}
+\DoxyCodeLine{00083\ \};}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \}\ \textcolor{comment}{//\ namespace\ obs}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

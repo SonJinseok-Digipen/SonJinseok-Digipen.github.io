@@ -1,0 +1,554 @@
+\hypertarget{encode_8h_source}{}\doxysection{encode.\+h}
+\label{encode_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/webp/encode.h@{AseSprite/aseprite/third\_party/libwebp/src/webp/encode.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2011\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ \ \ WebP\ encoder:\ main\ interface}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_WEBP\_ENCODE\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_WEBP\_ENCODE\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}./types.h"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00020\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ WEBP\_ENCODER\_ABI\_VERSION\ 0x020f\ \ \ \ }\textcolor{comment}{//\ MAJOR(8b)\ +\ MINOR(8b)}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{comment}{//\ Note:\ forward\ declaring\ enumerations\ is\ not\ allowed\ in\ (strict)\ C\ and\ C++,}}
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ the\ types\ are\ left\ here\ for\ reference.}}
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ typedef\ enum\ WebPImageHint\ WebPImageHint;}}
+\DoxyCodeLine{00028\ \textcolor{comment}{//\ typedef\ enum\ WebPEncCSP\ WebPEncCSP;}}
+\DoxyCodeLine{00029\ \textcolor{comment}{//\ typedef\ enum\ WebPPreset\ WebPPreset;}}
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ typedef\ enum\ WebPEncodingError\ WebPEncodingError;}}
+\DoxyCodeLine{00031\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_config}{WebPConfig}}\ \mbox{\hyperlink{struct_web_p_config}{WebPConfig}};}
+\DoxyCodeLine{00032\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}};\ \ \ \textcolor{comment}{//\ main\ structure\ for\ I/O}}
+\DoxyCodeLine{00033\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_aux_stats}{WebPAuxStats}}\ \mbox{\hyperlink{struct_web_p_aux_stats}{WebPAuxStats}};}
+\DoxyCodeLine{00034\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_memory_writer}{WebPMemoryWriter}}\ \mbox{\hyperlink{struct_web_p_memory_writer}{WebPMemoryWriter}};}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ Return\ the\ encoder's\ version\ number,\ packed\ in\ hexadecimal\ using\ 8bits\ for}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ each\ of\ major/minor/revision.\ E.g:\ v2.5.7\ is\ 0x020507.}}
+\DoxyCodeLine{00038\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPGetEncoderVersion(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00041\ \textcolor{comment}{//\ One-\/stop-\/shop\ call!\ No\ questions\ asked:}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{comment}{//\ Returns\ the\ size\ of\ the\ compressed\ data\ (pointed\ to\ by\ *output),\ or\ 0\ if}}
+\DoxyCodeLine{00044\ \textcolor{comment}{//\ an\ error\ occurred.\ The\ compressed\ data\ must\ be\ released\ by\ the\ caller}}
+\DoxyCodeLine{00045\ \textcolor{comment}{//\ using\ the\ call\ 'WebPFree(*output)'.}}
+\DoxyCodeLine{00046\ \textcolor{comment}{//\ These\ functions\ compress\ using\ the\ lossy\ format,\ and\ the\ quality\_factor}}
+\DoxyCodeLine{00047\ \textcolor{comment}{//\ can\ go\ from\ 0\ (smaller\ output,\ lower\ quality)\ to\ 100\ (best\ quality,}}
+\DoxyCodeLine{00048\ \textcolor{comment}{//\ larger\ output).}}
+\DoxyCodeLine{00049\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeRGB(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structrgb}{rgb}},}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ quality\_factor,\ uint8\_t**\ output);}
+\DoxyCodeLine{00052\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeBGR(\textcolor{keyword}{const}\ uint8\_t*\ bgr,}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ quality\_factor,\ uint8\_t**\ output);}
+\DoxyCodeLine{00055\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeRGBA(\textcolor{keyword}{const}\ uint8\_t*\ rgba,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ quality\_factor,\ uint8\_t**\ output);}
+\DoxyCodeLine{00058\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeBGRA(\textcolor{keyword}{const}\ uint8\_t*\ bgra,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ quality\_factor,\ uint8\_t**\ output);}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{comment}{//\ These\ functions\ are\ the\ equivalent\ of\ the\ above,\ but\ compressing\ in\ a}}
+\DoxyCodeLine{00063\ \textcolor{comment}{//\ lossless\ manner.\ Files\ are\ usually\ larger\ than\ lossy\ format,\ but\ will}}
+\DoxyCodeLine{00064\ \textcolor{comment}{//\ not\ suffer\ any\ compression\ loss.}}
+\DoxyCodeLine{00065\ \textcolor{comment}{//\ Note\ these\ functions,\ like\ the\ lossy\ versions,\ use\ the\ library's\ default}}
+\DoxyCodeLine{00066\ \textcolor{comment}{//\ settings.\ For\ lossless\ this\ means\ 'exact'\ is\ disabled.\ RGB\ values\ in}}
+\DoxyCodeLine{00067\ \textcolor{comment}{//\ transparent\ areas\ will\ be\ modified\ to\ improve\ compression.\ To\ avoid\ this,}}
+\DoxyCodeLine{00068\ \textcolor{comment}{//\ use\ WebPEncode()\ and\ set\ WebPConfig::exact\ to\ 1.}}
+\DoxyCodeLine{00069\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeLosslessRGB(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structrgb}{rgb}},}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t**\ output);}
+\DoxyCodeLine{00072\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeLosslessBGR(\textcolor{keyword}{const}\ uint8\_t*\ bgr,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t**\ output);}
+\DoxyCodeLine{00075\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeLosslessRGBA(\textcolor{keyword}{const}\ uint8\_t*\ rgba,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t**\ output);}
+\DoxyCodeLine{00078\ WEBP\_EXTERN\ \textcolor{keywordtype}{size\_t}\ WebPEncodeLosslessBGRA(\textcolor{keyword}{const}\ uint8\_t*\ bgra,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t**\ output);}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00083\ \textcolor{comment}{//\ Coding\ parameters}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{comment}{//\ Image\ characteristics\ hint\ for\ the\ underlying\ encoder.}}
+\DoxyCodeLine{00086\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPImageHint\ \{}
+\DoxyCodeLine{00087\ \ \ WEBP\_HINT\_DEFAULT\ =\ 0,\ \ \textcolor{comment}{//\ default\ preset.}}
+\DoxyCodeLine{00088\ \ \ WEBP\_HINT\_PICTURE,\ \ \ \ \ \ \textcolor{comment}{//\ digital\ picture,\ like\ portrait,\ inner\ shot}}
+\DoxyCodeLine{00089\ \ \ WEBP\_HINT\_PHOTO,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ outdoor\ photograph,\ with\ natural\ lighting}}
+\DoxyCodeLine{00090\ \ \ WEBP\_HINT\_GRAPH,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Discrete\ tone\ image\ (graph,\ map-\/tile\ etc).}}
+\DoxyCodeLine{00091\ \ \ WEBP\_HINT\_LAST}
+\DoxyCodeLine{00092\ \}\ WebPImageHint;}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{comment}{//\ Compression\ parameters.}}
+\DoxyCodeLine{00095\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_config}{WebPConfig}}\ \{}
+\DoxyCodeLine{00096\ \ \ \textcolor{keywordtype}{int}\ lossless;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Lossless\ encoding\ (0=lossy(default),\ 1=lossless).}}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordtype}{float}\ quality;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ between\ 0\ and\ 100.\ For\ lossy,\ 0\ gives\ the\ smallest}}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ size\ and\ 100\ the\ largest.\ For\ lossless,\ this}}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ parameter\ is\ the\ amount\ of\ effort\ put\ into\ the}}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ compression:\ 0\ is\ the\ fastest\ but\ gives\ larger}}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ files\ compared\ to\ the\ slowest,\ but\ best,\ 100.}}
+\DoxyCodeLine{00102\ \ \ \textcolor{keywordtype}{int}\ method;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ quality/speed\ trade-\/off\ (0=fast,\ 6=slower-\/better)}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ WebPImageHint\ image\_hint;\ \ \textcolor{comment}{//\ Hint\ for\ image\ type\ (lossless\ only\ for\ now).}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \textcolor{keywordtype}{int}\ target\_size;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ non-\/zero,\ set\ the\ desired\ target\ size\ in\ bytes.}}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Takes\ precedence\ over\ the\ 'compression'\ parameter.}}
+\DoxyCodeLine{00108\ \ \ \textcolor{keywordtype}{float}\ target\_PSNR;\ \ \ \ \ \ \textcolor{comment}{//\ if\ non-\/zero,\ specifies\ the\ minimal\ distortion\ to}}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ try\ to\ achieve.\ Takes\ precedence\ over\ target\_size.}}
+\DoxyCodeLine{00110\ \ \ \textcolor{keywordtype}{int}\ segments;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ maximum\ number\ of\ segments\ to\ use,\ in\ [1..4]}}
+\DoxyCodeLine{00111\ \ \ \textcolor{keywordtype}{int}\ sns\_strength;\ \ \ \ \ \ \ \textcolor{comment}{//\ Spatial\ Noise\ Shaping.\ 0=off,\ 100=maximum.}}
+\DoxyCodeLine{00112\ \ \ \textcolor{keywordtype}{int}\ filter\_strength;\ \ \ \ \textcolor{comment}{//\ range:\ [0\ =\ off\ ..\ 100\ =\ strongest]}}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordtype}{int}\ filter\_sharpness;\ \ \ \textcolor{comment}{//\ range:\ [0\ =\ off\ ..\ 7\ =\ least\ sharp]}}
+\DoxyCodeLine{00114\ \ \ \textcolor{keywordtype}{int}\ filter\_type;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ filtering\ type:\ 0\ =\ simple,\ 1\ =\ strong\ (only\ used}}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ filter\_strength\ >\ 0\ or\ autofilter\ >\ 0)}}
+\DoxyCodeLine{00116\ \ \ \textcolor{keywordtype}{int}\ autofilter;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Auto\ adjust\ filter's\ strength\ [0\ =\ off,\ 1\ =\ on]}}
+\DoxyCodeLine{00117\ \ \ \textcolor{keywordtype}{int}\ alpha\_compression;\ \ \textcolor{comment}{//\ Algorithm\ for\ encoding\ the\ alpha\ plane\ (0\ =\ none,}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 1\ =\ compressed\ with\ WebP\ lossless).\ Default\ is\ 1.}}
+\DoxyCodeLine{00119\ \ \ \textcolor{keywordtype}{int}\ alpha\_filtering;\ \ \ \ \textcolor{comment}{//\ Predictive\ filtering\ method\ for\ alpha\ plane.}}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \ 0:\ none,\ 1:\ fast,\ 2:\ best.\ Default\ if\ 1.}}
+\DoxyCodeLine{00121\ \ \ \textcolor{keywordtype}{int}\ alpha\_quality;\ \ \ \ \ \ \textcolor{comment}{//\ Between\ 0\ (smallest\ size)\ and\ 100\ (lossless).}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Default\ is\ 100.}}
+\DoxyCodeLine{00123\ \ \ \textcolor{keywordtype}{int}\ pass;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ entropy-\/analysis\ passes\ (in\ [1..10]).}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \textcolor{keywordtype}{int}\ show\_compressed;\ \ \ \ \textcolor{comment}{//\ if\ true,\ export\ the\ compressed\ picture\ back.}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ In-\/loop\ filtering\ is\ not\ applied.}}
+\DoxyCodeLine{00127\ \ \ \textcolor{keywordtype}{int}\ preprocessing;\ \ \ \ \ \ \textcolor{comment}{//\ preprocessing\ filter:}}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0=none,\ 1=segment-\/smooth,\ 2=pseudo-\/random\ dithering}}
+\DoxyCodeLine{00129\ \ \ \textcolor{keywordtype}{int}\ partitions;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ log2(number\ of\ token\ partitions)\ in\ [0..3].\ Default}}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ is\ set\ to\ 0\ for\ easier\ progressive\ decoding.}}
+\DoxyCodeLine{00131\ \ \ \textcolor{keywordtype}{int}\ partition\_limit;\ \ \ \ \textcolor{comment}{//\ quality\ degradation\ allowed\ to\ fit\ the\ 512k\ limit}}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ on\ prediction\ modes\ coding\ (0:\ no\ degradation,}}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 100:\ maximum\ possible\ degradation).}}
+\DoxyCodeLine{00134\ \ \ \textcolor{keywordtype}{int}\ emulate\_jpeg\_size;\ \ \textcolor{comment}{//\ If\ true,\ compression\ parameters\ will\ be\ remapped}}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ to\ better\ match\ the\ expected\ output\ size\ from}}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ JPEG\ compression.\ Generally,\ the\ output\ size\ will}}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ be\ similar\ but\ the\ degradation\ will\ be\ lower.}}
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordtype}{int}\ thread\_level;\ \ \ \ \ \ \ \textcolor{comment}{//\ If\ non-\/zero,\ try\ and\ use\ multi-\/threaded\ encoding.}}
+\DoxyCodeLine{00139\ \ \ \textcolor{keywordtype}{int}\ low\_memory;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ set,\ reduce\ memory\ usage\ (but\ increase\ CPU\ use).}}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \textcolor{keywordtype}{int}\ near\_lossless;\ \ \ \ \ \ \textcolor{comment}{//\ Near\ lossless\ encoding\ [0\ =\ max\ loss\ ..\ 100\ =\ off}}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ (default)].}}
+\DoxyCodeLine{00143\ \ \ \textcolor{keywordtype}{int}\ exact;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ non-\/zero,\ preserve\ the\ exact\ RGB\ values\ under}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ transparent\ area.\ Otherwise,\ discard\ this\ invisible}}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ RGB\ information\ for\ better\ compression.\ The\ default}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ value\ is\ 0.}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \textcolor{keywordtype}{int}\ use\_delta\_palette;\ \ \textcolor{comment}{//\ reserved\ for\ future\ lossless\ feature}}
+\DoxyCodeLine{00149\ \ \ \textcolor{keywordtype}{int}\ use\_sharp\_yuv;\ \ \ \ \ \ \textcolor{comment}{//\ if\ needed,\ use\ sharp\ (and\ slow)\ RGB-\/>YUV\ conversion}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{keywordtype}{int}\ qmin;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ minimum\ permissible\ quality\ factor}}
+\DoxyCodeLine{00152\ \ \ \textcolor{keywordtype}{int}\ qmax;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ maximum\ permissible\ quality\ factor}}
+\DoxyCodeLine{00153\ \};}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \textcolor{comment}{//\ Enumerate\ some\ predefined\ settings\ for\ WebPConfig,\ depending\ on\ the\ type}}
+\DoxyCodeLine{00156\ \textcolor{comment}{//\ of\ source\ picture.\ These\ presets\ are\ used\ when\ calling\ WebPConfigPreset().}}
+\DoxyCodeLine{00157\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPPreset\ \{}
+\DoxyCodeLine{00158\ \ \ WEBP\_PRESET\_DEFAULT\ =\ 0,\ \ \textcolor{comment}{//\ default\ preset.}}
+\DoxyCodeLine{00159\ \ \ WEBP\_PRESET\_PICTURE,\ \ \ \ \ \ \textcolor{comment}{//\ digital\ picture,\ like\ portrait,\ inner\ shot}}
+\DoxyCodeLine{00160\ \ \ WEBP\_PRESET\_PHOTO,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ outdoor\ photograph,\ with\ natural\ lighting}}
+\DoxyCodeLine{00161\ \ \ WEBP\_PRESET\_DRAWING,\ \ \ \ \ \ \textcolor{comment}{//\ hand\ or\ line\ drawing,\ with\ high-\/contrast\ details}}
+\DoxyCodeLine{00162\ \ \ WEBP\_PRESET\_ICON,\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ small-\/sized\ colorful\ images}}
+\DoxyCodeLine{00163\ \ \ WEBP\_PRESET\_TEXT\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ text-\/like}}
+\DoxyCodeLine{00164\ \}\ WebPPreset;}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00167\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPConfigInitInternal(\mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*,\ WebPPreset,\ \textcolor{keywordtype}{float},\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \textcolor{comment}{//\ Should\ always\ be\ called,\ to\ initialize\ a\ fresh\ WebPConfig\ structure\ before}}
+\DoxyCodeLine{00170\ \textcolor{comment}{//\ modification.\ Returns\ false\ in\ case\ of\ version\ mismatch.\ WebPConfigInit()}}
+\DoxyCodeLine{00171\ \textcolor{comment}{//\ must\ have\ succeeded\ before\ using\ the\ 'config'\ object.}}
+\DoxyCodeLine{00172\ \textcolor{comment}{//\ Note\ that\ the\ default\ values\ are\ lossless=0\ and\ quality=75.}}
+\DoxyCodeLine{00173\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPConfigInit(\mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}})\ \{}
+\DoxyCodeLine{00174\ \ \ \textcolor{keywordflow}{return}\ WebPConfigInitInternal(\mbox{\hyperlink{structconfig__s}{config}},\ WEBP\_PRESET\_DEFAULT,\ 75.f,}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WEBP\_ENCODER\_ABI\_VERSION);}
+\DoxyCodeLine{00176\ \}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \textcolor{comment}{//\ This\ function\ will\ initialize\ the\ configuration\ according\ to\ a\ predefined}}
+\DoxyCodeLine{00179\ \textcolor{comment}{//\ set\ of\ parameters\ (referred\ to\ by\ 'preset')\ and\ a\ given\ quality\ factor.}}
+\DoxyCodeLine{00180\ \textcolor{comment}{//\ This\ function\ can\ be\ called\ as\ a\ replacement\ to\ WebPConfigInit().\ Will}}
+\DoxyCodeLine{00181\ \textcolor{comment}{//\ return\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00182\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPConfigPreset(\mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}},}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WebPPreset\ preset,\ \textcolor{keywordtype}{float}\ quality)\ \{}
+\DoxyCodeLine{00184\ \ \ \textcolor{keywordflow}{return}\ WebPConfigInitInternal(\mbox{\hyperlink{structconfig__s}{config}},\ preset,\ quality,}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WEBP\_ENCODER\_ABI\_VERSION);}
+\DoxyCodeLine{00186\ \}}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \textcolor{comment}{//\ Activate\ the\ lossless\ compression\ mode\ with\ the\ desired\ efficiency\ level}}
+\DoxyCodeLine{00189\ \textcolor{comment}{//\ between\ 0\ (fastest,\ lowest\ compression)\ and\ 9\ (slower,\ best\ compression).}}
+\DoxyCodeLine{00190\ \textcolor{comment}{//\ A\ good\ default\ level\ is\ '6',\ providing\ a\ fair\ tradeoff\ between\ compression}}
+\DoxyCodeLine{00191\ \textcolor{comment}{//\ speed\ and\ final\ compressed\ size.}}
+\DoxyCodeLine{00192\ \textcolor{comment}{//\ This\ function\ will\ overwrite\ several\ fields\ from\ config:\ 'method',\ 'quality'}}
+\DoxyCodeLine{00193\ \textcolor{comment}{//\ and\ 'lossless'.\ Returns\ false\ in\ case\ of\ parameter\ error.}}
+\DoxyCodeLine{00194\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPConfigLosslessPreset(\mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}},\ \textcolor{keywordtype}{int}\ level);}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{comment}{//\ Returns\ true\ if\ 'config'\ is\ non-\/NULL\ and\ all\ configuration\ parameters\ are}}
+\DoxyCodeLine{00197\ \textcolor{comment}{//\ within\ their\ valid\ ranges.}}
+\DoxyCodeLine{00198\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPValidateConfig(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}});}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00201\ \textcolor{comment}{//\ Input\ /\ Output}}
+\DoxyCodeLine{00202\ \textcolor{comment}{//\ Structure\ for\ storing\ auxiliary\ statistics.}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_aux_stats}{WebPAuxStats}}\ \{}
+\DoxyCodeLine{00205\ \ \ \textcolor{keywordtype}{int}\ coded\_size;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ final\ size}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \textcolor{keywordtype}{float}\ PSNR[5];\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ peak-\/signal-\/to-\/noise\ ratio\ for\ Y/U/V/All/Alpha}}
+\DoxyCodeLine{00208\ \ \ \textcolor{keywordtype}{int}\ block\_count[3];\ \ \ \ \ \textcolor{comment}{//\ number\ of\ intra4/intra16/skipped\ macroblocks}}
+\DoxyCodeLine{00209\ \ \ \textcolor{keywordtype}{int}\ header\_bytes[2];\ \ \ \ \textcolor{comment}{//\ approximate\ number\ of\ bytes\ spent\ for\ header}}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ and\ mode-\/partition\ \#0}}
+\DoxyCodeLine{00211\ \ \ \textcolor{keywordtype}{int}\ residual\_bytes[3][4];\ \ \textcolor{comment}{//\ approximate\ number\ of\ bytes\ spent\ for}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ DC/AC/uv\ coefficients\ for\ each\ (0..3)\ segments.}}
+\DoxyCodeLine{00213\ \ \ \textcolor{keywordtype}{int}\ segment\_size[4];\ \ \ \ \textcolor{comment}{//\ number\ of\ macroblocks\ in\ each\ segments}}
+\DoxyCodeLine{00214\ \ \ \textcolor{keywordtype}{int}\ segment\_quant[4];\ \ \ \textcolor{comment}{//\ quantizer\ values\ for\ each\ segments}}
+\DoxyCodeLine{00215\ \ \ \textcolor{keywordtype}{int}\ segment\_level[4];\ \ \ \textcolor{comment}{//\ filtering\ strength\ for\ each\ segments\ [0..63]}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \textcolor{keywordtype}{int}\ alpha\_data\_size;\ \ \ \ \textcolor{comment}{//\ size\ of\ the\ transparency\ data}}
+\DoxyCodeLine{00218\ \ \ \textcolor{keywordtype}{int}\ layer\_data\_size;\ \ \ \ \textcolor{comment}{//\ size\ of\ the\ enhancement\ layer\ data}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \textcolor{comment}{//\ lossless\ encoder\ statistics}}
+\DoxyCodeLine{00221\ \ \ uint32\_t\ lossless\_features;\ \ \textcolor{comment}{//\ bit0:predictor\ bit1:cross-\/color\ transform}}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ bit2:subtract-\/green\ bit3:color\ indexing}}
+\DoxyCodeLine{00223\ \ \ \textcolor{keywordtype}{int}\ histogram\_bits;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ precision\ bits\ of\ histogram}}
+\DoxyCodeLine{00224\ \ \ \textcolor{keywordtype}{int}\ transform\_bits;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ precision\ bits\ for\ transform}}
+\DoxyCodeLine{00225\ \ \ \textcolor{keywordtype}{int}\ cache\_bits;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ bits\ for\ color\ cache\ lookup}}
+\DoxyCodeLine{00226\ \ \ \textcolor{keywordtype}{int}\ palette\_size;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ color\ in\ palette,\ if\ used}}
+\DoxyCodeLine{00227\ \ \ \textcolor{keywordtype}{int}\ lossless\_size;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ final\ lossless\ size}}
+\DoxyCodeLine{00228\ \ \ \textcolor{keywordtype}{int}\ lossless\_hdr\_size;\ \ \ \ \ \ \ \textcolor{comment}{//\ lossless\ header\ (transform,\ huffman\ etc)\ size}}
+\DoxyCodeLine{00229\ \ \ \textcolor{keywordtype}{int}\ lossless\_data\_size;\ \ \ \ \ \ \textcolor{comment}{//\ lossless\ image\ data\ size}}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \ \ uint32\_t\ pad[2];\ \ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00232\ \};}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{comment}{//\ Signature\ for\ output\ function.\ Should\ return\ true\ if\ writing\ was\ successful.}}
+\DoxyCodeLine{00235\ \textcolor{comment}{//\ data/data\_size\ is\ the\ segment\ of\ data\ to\ write,\ and\ 'picture'\ is\ for}}
+\DoxyCodeLine{00236\ \textcolor{comment}{//\ reference\ (and\ so\ one\ can\ make\ use\ of\ picture-\/>custom\_ptr).}}
+\DoxyCodeLine{00237\ \textcolor{keyword}{typedef}\ int\ (*WebPWriterFunction)(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \textcolor{comment}{//\ WebPMemoryWrite:\ a\ special\ WebPWriterFunction\ that\ writes\ to\ memory\ using}}
+\DoxyCodeLine{00241\ \textcolor{comment}{//\ the\ following\ WebPMemoryWriter\ object\ (to\ be\ set\ as\ a\ custom\_ptr).}}
+\DoxyCodeLine{00242\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_memory_writer}{WebPMemoryWriter}}\ \{}
+\DoxyCodeLine{00243\ \ \ uint8\_t*\ mem;\ \ \ \ \ \ \ \textcolor{comment}{//\ final\ buffer\ (of\ size\ 'max\_size',\ larger\ than\ 'size').}}
+\DoxyCodeLine{00244\ \ \ \textcolor{keywordtype}{size\_t}\ \ \ size;\ \ \ \ \ \ \textcolor{comment}{//\ final\ size}}
+\DoxyCodeLine{00245\ \ \ \textcolor{keywordtype}{size\_t}\ \ \ max\_size;\ \ \textcolor{comment}{//\ total\ capacity}}
+\DoxyCodeLine{00246\ \ \ uint32\_t\ pad[1];\ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00247\ \};}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \textcolor{comment}{//\ The\ following\ must\ be\ called\ first\ before\ any\ use.}}
+\DoxyCodeLine{00250\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPMemoryWriterInit(\mbox{\hyperlink{struct_web_p_memory_writer}{WebPMemoryWriter}}*\ writer);}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \textcolor{comment}{//\ The\ following\ must\ be\ called\ to\ deallocate\ writer-\/>mem\ memory.\ The\ 'writer'}}
+\DoxyCodeLine{00253\ \textcolor{comment}{//\ object\ itself\ is\ not\ deallocated.}}
+\DoxyCodeLine{00254\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPMemoryWriterClear(\mbox{\hyperlink{struct_web_p_memory_writer}{WebPMemoryWriter}}*\ writer);}
+\DoxyCodeLine{00255\ \textcolor{comment}{//\ The\ custom\ writer\ to\ be\ used\ with\ WebPMemoryWriter\ as\ custom\_ptr.\ Upon}}
+\DoxyCodeLine{00256\ \textcolor{comment}{//\ completion,\ writer.mem\ and\ writer.size\ will\ hold\ the\ coded\ data.}}
+\DoxyCodeLine{00257\ \textcolor{comment}{//\ writer.mem\ must\ be\ freed\ by\ calling\ WebPMemoryWriterClear.}}
+\DoxyCodeLine{00258\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPMemoryWrite(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \textcolor{comment}{//\ Progress\ hook,\ called\ from\ time\ to\ time\ to\ report\ progress.\ It\ can\ return}}
+\DoxyCodeLine{00262\ \textcolor{comment}{//\ false\ to\ request\ an\ abort\ of\ the\ encoding\ process,\ or\ true\ otherwise\ if}}
+\DoxyCodeLine{00263\ \textcolor{comment}{//\ everything\ is\ OK.}}
+\DoxyCodeLine{00264\ \textcolor{keyword}{typedef}\ int\ (*WebPProgressHook)(\textcolor{keywordtype}{int}\ percent,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \textcolor{comment}{//\ Color\ spaces.}}
+\DoxyCodeLine{00267\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPEncCSP\ \{}
+\DoxyCodeLine{00268\ \ \ \textcolor{comment}{//\ chroma\ sampling}}
+\DoxyCodeLine{00269\ \ \ WEBP\_YUV420\ \ =\ 0,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ 4:2:0}}
+\DoxyCodeLine{00270\ \ \ WEBP\_YUV420A\ =\ 4,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ alpha\ channel\ variant}}
+\DoxyCodeLine{00271\ \ \ WEBP\_CSP\_UV\_MASK\ =\ 3,\ \ \ \ \textcolor{comment}{//\ bit-\/mask\ to\ get\ the\ UV\ sampling\ factors}}
+\DoxyCodeLine{00272\ \ \ WEBP\_CSP\_ALPHA\_BIT\ =\ 4\ \ \ \textcolor{comment}{//\ bit\ that\ is\ set\ if\ alpha\ is\ present}}
+\DoxyCodeLine{00273\ \}\ WebPEncCSP;}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \textcolor{comment}{//\ Encoding\ error\ conditions.}}
+\DoxyCodeLine{00276\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPEncodingError\ \{}
+\DoxyCodeLine{00277\ \ \ VP8\_ENC\_OK\ =\ 0,}
+\DoxyCodeLine{00278\ \ \ VP8\_ENC\_ERROR\_OUT\_OF\_MEMORY,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ memory\ error\ allocating\ objects}}
+\DoxyCodeLine{00279\ \ \ VP8\_ENC\_ERROR\_BITSTREAM\_OUT\_OF\_MEMORY,\ \ \textcolor{comment}{//\ memory\ error\ while\ flushing\ bits}}
+\DoxyCodeLine{00280\ \ \ VP8\_ENC\_ERROR\_NULL\_PARAMETER,\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ a\ pointer\ parameter\ is\ NULL}}
+\DoxyCodeLine{00281\ \ \ VP8\_ENC\_ERROR\_INVALID\_CONFIGURATION,\ \ \ \ \textcolor{comment}{//\ configuration\ is\ invalid}}
+\DoxyCodeLine{00282\ \ \ VP8\_ENC\_ERROR\_BAD\_DIMENSION,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ picture\ has\ invalid\ width/height}}
+\DoxyCodeLine{00283\ \ \ VP8\_ENC\_ERROR\_PARTITION0\_OVERFLOW,\ \ \ \ \ \ \textcolor{comment}{//\ partition\ is\ bigger\ than\ 512k}}
+\DoxyCodeLine{00284\ \ \ VP8\_ENC\_ERROR\_PARTITION\_OVERFLOW,\ \ \ \ \ \ \ \textcolor{comment}{//\ partition\ is\ bigger\ than\ 16M}}
+\DoxyCodeLine{00285\ \ \ VP8\_ENC\_ERROR\_BAD\_WRITE,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ error\ while\ flushing\ bytes}}
+\DoxyCodeLine{00286\ \ \ VP8\_ENC\_ERROR\_FILE\_TOO\_BIG,\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ file\ is\ bigger\ than\ 4G}}
+\DoxyCodeLine{00287\ \ \ VP8\_ENC\_ERROR\_USER\_ABORT,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ abort\ request\ by\ user}}
+\DoxyCodeLine{00288\ \ \ VP8\_ENC\_ERROR\_LAST\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ list\ terminator.\ always\ last.}}
+\DoxyCodeLine{00289\ \}\ WebPEncodingError;}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \textcolor{comment}{//\ maximum\ width/height\ allowed\ (inclusive),\ in\ pixels}}
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\#define\ WEBP\_MAX\_DIMENSION\ 16383}}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \textcolor{comment}{//\ Main\ exchange\ structure\ (input\ samples,\ output\ bytes,\ statistics)}}
+\DoxyCodeLine{00295\ \textcolor{comment}{//}}
+\DoxyCodeLine{00296\ \textcolor{comment}{//\ Once\ WebPPictureInit()\ has\ been\ called,\ it's\ ok\ to\ make\ all\ the\ INPUT\ fields}}
+\DoxyCodeLine{00297\ \textcolor{comment}{//\ (use\_argb,\ y/u/v,\ argb,\ ...)\ point\ to\ user-\/owned\ data,\ even\ if}}
+\DoxyCodeLine{00298\ \textcolor{comment}{//\ WebPPictureAlloc()\ has\ been\ called.\ Depending\ on\ the\ value\ use\_argb,}}
+\DoxyCodeLine{00299\ \textcolor{comment}{//\ it's\ guaranteed\ that\ either\ *argb\ or\ *y/*u/*v\ content\ will\ be\ kept\ untouched.}}
+\DoxyCodeLine{00300\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}\ \{}
+\DoxyCodeLine{00301\ \ \ \textcolor{comment}{//\ \ \ INPUT}}
+\DoxyCodeLine{00303\ \textcolor{comment}{}\ \ \textcolor{comment}{//\ Main\ flag\ for\ encoder\ selecting\ between\ ARGB\ or\ YUV\ input.}}
+\DoxyCodeLine{00304\ \ \ \textcolor{comment}{//\ It\ is\ recommended\ to\ use\ ARGB\ input\ (*argb,\ argb\_stride)\ for\ lossless}}
+\DoxyCodeLine{00305\ \ \ \textcolor{comment}{//\ compression,\ and\ YUV\ input\ (*y,\ *u,\ *v,\ etc.)\ for\ lossy\ compression}}
+\DoxyCodeLine{00306\ \ \ \textcolor{comment}{//\ since\ these\ are\ the\ respective\ native\ colorspace\ for\ these\ formats.}}
+\DoxyCodeLine{00307\ \ \ \textcolor{keywordtype}{int}\ use\_argb;}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \textcolor{comment}{//\ YUV\ input\ (mostly\ used\ for\ input\ to\ lossy\ compression)}}
+\DoxyCodeLine{00310\ \ \ WebPEncCSP\ colorspace;\ \ \ \ \ \textcolor{comment}{//\ colorspace:\ should\ be\ YUV420\ for\ now\ (=Y'CbCr).}}
+\DoxyCodeLine{00311\ \ \ \textcolor{keywordtype}{int}\ width,\ height;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ dimensions\ (less\ or\ equal\ to\ WEBP\_MAX\_DIMENSION)}}
+\DoxyCodeLine{00312\ \ \ uint8\_t*\ y,\ *u,\ *v;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ pointers\ to\ luma/chroma\ planes.}}
+\DoxyCodeLine{00313\ \ \ \textcolor{keywordtype}{int}\ y\_stride,\ uv\_stride;\ \ \ \textcolor{comment}{//\ luma/chroma\ strides.}}
+\DoxyCodeLine{00314\ \ \ uint8\_t*\ \mbox{\hyperlink{structa}{a}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ pointer\ to\ the\ alpha\ plane}}
+\DoxyCodeLine{00315\ \ \ \textcolor{keywordtype}{int}\ a\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ stride\ of\ the\ alpha\ plane}}
+\DoxyCodeLine{00316\ \ \ uint32\_t\ pad1[2];\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ \textcolor{comment}{//\ ARGB\ input\ (mostly\ used\ for\ input\ to\ lossless\ compression)}}
+\DoxyCodeLine{00319\ \ \ uint32\_t*\ argb;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Pointer\ to\ argb\ (32\ bit)\ plane.}}
+\DoxyCodeLine{00320\ \ \ \textcolor{keywordtype}{int}\ argb\_stride;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ This\ is\ stride\ in\ pixels\ units,\ not\ bytes.}}
+\DoxyCodeLine{00321\ \ \ uint32\_t\ pad2[3];\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \textcolor{comment}{//\ \ \ OUTPUT}}
+\DoxyCodeLine{00325\ \textcolor{comment}{}\ \ \textcolor{comment}{//\ Byte-\/emission\ hook,\ to\ store\ compressed\ bytes\ as\ they\ are\ ready.}}
+\DoxyCodeLine{00326\ \ \ WebPWriterFunction\ writer;\ \ \textcolor{comment}{//\ can\ be\ NULL}}
+\DoxyCodeLine{00327\ \ \ \textcolor{keywordtype}{void}*\ custom\_ptr;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ can\ be\ used\ by\ the\ writer.}}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \ \ \textcolor{comment}{//\ map\ for\ extra\ information\ (only\ for\ lossy\ compression\ mode)}}
+\DoxyCodeLine{00330\ \ \ \textcolor{keywordtype}{int}\ extra\_info\_type;\ \ \ \ \textcolor{comment}{//\ 1:\ intra\ type,\ 2:\ segment,\ 3:\ quant}}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 4:\ intra-\/16\ prediction\ mode,}}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 5:\ chroma\ prediction\ mode,}}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 6:\ bit\ cost,\ 7:\ distortion}}
+\DoxyCodeLine{00334\ \ \ uint8\_t*\ extra\_info;\ \ \ \ \textcolor{comment}{//\ if\ not\ NULL,\ points\ to\ an\ array\ of\ size}}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ ((width\ +\ 15)\ /\ 16)\ *\ ((height\ +\ 15)\ /\ 16)\ that}}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ will\ be\ filled\ with\ a\ macroblock\ map,\ depending}}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ on\ extra\_info\_type.}}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \ \ \textcolor{comment}{//\ \ \ STATS\ AND\ REPORTS}}
+\DoxyCodeLine{00341\ \textcolor{comment}{}\ \ \textcolor{comment}{//\ Pointer\ to\ side\ statistics\ (updated\ only\ if\ not\ NULL)}}
+\DoxyCodeLine{00342\ \ \ \mbox{\hyperlink{struct_web_p_aux_stats}{WebPAuxStats}}*\ stats;}
+\DoxyCodeLine{00343\ }
+\DoxyCodeLine{00344\ \ \ \textcolor{comment}{//\ Error\ code\ for\ the\ latest\ error\ encountered\ during\ encoding}}
+\DoxyCodeLine{00345\ \ \ WebPEncodingError\ error\_code;}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ \ \ \textcolor{comment}{//\ If\ not\ NULL,\ report\ progress\ during\ encoding.}}
+\DoxyCodeLine{00348\ \ \ WebPProgressHook\ progress\_hook;}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \ \ \textcolor{keywordtype}{void}*\ user\_data;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ this\ field\ is\ free\ to\ be\ set\ to\ any\ value\ and}}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ used\ during\ callbacks\ (like\ progress-\/report\ e.g.).}}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ uint32\_t\ pad3[3];\ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \ \ \textcolor{comment}{//\ Unused\ for\ now}}
+\DoxyCodeLine{00356\ \ \ uint8\_t*\ pad4,\ *pad5;}
+\DoxyCodeLine{00357\ \ \ uint32\_t\ pad6[8];\ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \ \ \textcolor{comment}{//\ PRIVATE\ FIELDS}}
+\DoxyCodeLine{00361\ \textcolor{comment}{}\ \ \textcolor{keywordtype}{void}*\ memory\_;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ row\ chunk\ of\ memory\ for\ yuva\ planes}}
+\DoxyCodeLine{00362\ \ \ \textcolor{keywordtype}{void}*\ memory\_argb\_;\ \ \ \ \ \textcolor{comment}{//\ and\ for\ argb\ too.}}
+\DoxyCodeLine{00363\ \ \ \textcolor{keywordtype}{void}*\ pad7[2];\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00364\ \};}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00367\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureInitInternal(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ \textcolor{comment}{//\ Should\ always\ be\ called,\ to\ initialize\ the\ structure.\ Returns\ false\ in\ case}}
+\DoxyCodeLine{00370\ \textcolor{comment}{//\ of\ version\ mismatch.\ WebPPictureInit()\ must\ have\ succeeded\ before\ using\ the}}
+\DoxyCodeLine{00371\ \textcolor{comment}{//\ 'picture'\ object.}}
+\DoxyCodeLine{00372\ \textcolor{comment}{//\ Note\ that,\ by\ default,\ use\_argb\ is\ false\ and\ colorspace\ is\ WEBP\_YUV420.}}
+\DoxyCodeLine{00373\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPPictureInit(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture)\ \{}
+\DoxyCodeLine{00374\ \ \ \textcolor{keywordflow}{return}\ WebPPictureInitInternal(picture,\ WEBP\_ENCODER\_ABI\_VERSION);}
+\DoxyCodeLine{00375\ \}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00378\ \textcolor{comment}{//\ WebPPicture\ utils}}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \textcolor{comment}{//\ Convenience\ allocation\ /\ deallocation\ based\ on\ picture-\/>width/height:}}
+\DoxyCodeLine{00381\ \textcolor{comment}{//\ Allocate\ y/u/v\ buffers\ as\ per\ colorspace/width/height\ specification.}}
+\DoxyCodeLine{00382\ \textcolor{comment}{//\ Note!\ This\ function\ will\ free\ the\ previous\ buffer\ if\ needed.}}
+\DoxyCodeLine{00383\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ memory\ error.}}
+\DoxyCodeLine{00384\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureAlloc(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \textcolor{comment}{//\ Release\ the\ memory\ allocated\ by\ WebPPictureAlloc()\ or\ WebPPictureImport*().}}
+\DoxyCodeLine{00387\ \textcolor{comment}{//\ Note\ that\ this\ function\ does\ \_not\_\ free\ the\ memory\ used\ by\ the\ 'picture'}}
+\DoxyCodeLine{00388\ \textcolor{comment}{//\ object\ itself.}}
+\DoxyCodeLine{00389\ \textcolor{comment}{//\ Besides\ memory\ (which\ is\ reclaimed)\ all\ other\ fields\ of\ 'picture'\ are}}
+\DoxyCodeLine{00390\ \textcolor{comment}{//\ preserved.}}
+\DoxyCodeLine{00391\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPPictureFree(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \textcolor{comment}{//\ Copy\ the\ pixels\ of\ *src\ into\ *dst,\ using\ WebPPictureAlloc.\ Upon\ return,\ *dst}}
+\DoxyCodeLine{00394\ \textcolor{comment}{//\ will\ fully\ own\ the\ copied\ pixels\ (this\ is\ not\ a\ view).\ The\ 'dst'\ picture\ need}}
+\DoxyCodeLine{00395\ \textcolor{comment}{//\ not\ be\ initialized\ as\ its\ content\ is\ overwritten.}}
+\DoxyCodeLine{00396\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ memory\ allocation\ error.}}
+\DoxyCodeLine{00397\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureCopy(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ src,\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ dst);}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \textcolor{comment}{//\ Compute\ the\ single\ distortion\ for\ packed\ planes\ of\ samples.}}
+\DoxyCodeLine{00400\ \textcolor{comment}{//\ 'src'\ will\ be\ compared\ to\ 'ref',\ and\ the\ raw\ distortion\ stored\ into}}
+\DoxyCodeLine{00401\ \textcolor{comment}{//\ '*distortion'.\ The\ refined\ metric\ (log(MSE),\ log(1\ -\/\ ssim),...'\ will\ be}}
+\DoxyCodeLine{00402\ \textcolor{comment}{//\ stored\ in\ '*result'.}}
+\DoxyCodeLine{00403\ \textcolor{comment}{//\ 'x\_step'\ is\ the\ horizontal\ stride\ (in\ bytes)\ between\ samples.}}
+\DoxyCodeLine{00404\ \textcolor{comment}{//\ 'src/ref\_stride'\ is\ the\ byte\ distance\ between\ rows.}}
+\DoxyCodeLine{00405\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error\ (bad\ parameter,\ memory\ allocation\ error,\ ...).}}
+\DoxyCodeLine{00406\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPlaneDistortion(\textcolor{keyword}{const}\ uint8\_t*\ src,\ \textcolor{keywordtype}{size\_t}\ src\_stride,}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ ref,\ \textcolor{keywordtype}{size\_t}\ ref\_stride,}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ x\_step,}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ type,\ \ \ \textcolor{comment}{//\ 0\ =\ PSNR,\ 1\ =\ SSIM,\ 2\ =\ LSIM}}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}*\ distortion,\ \textcolor{keywordtype}{float}*\ result);}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ \textcolor{comment}{//\ Compute\ PSNR,\ SSIM\ or\ LSIM\ distortion\ metric\ between\ two\ pictures.\ Results}}
+\DoxyCodeLine{00414\ \textcolor{comment}{//\ are\ in\ dB,\ stored\ in\ result[]\ in\ the\ B/G/R/A/All\ order.\ The\ distortion\ is}}
+\DoxyCodeLine{00415\ \textcolor{comment}{//\ always\ performed\ using\ ARGB\ samples.\ Hence\ if\ the\ input\ is\ YUV(A),\ the}}
+\DoxyCodeLine{00416\ \textcolor{comment}{//\ picture\ will\ be\ internally\ converted\ to\ ARGB\ (just\ for\ the\ measurement).}}
+\DoxyCodeLine{00417\ \textcolor{comment}{//\ Warning:\ this\ function\ is\ rather\ CPU-\/intensive.}}
+\DoxyCodeLine{00418\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureDistortion(}
+\DoxyCodeLine{00419\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ src,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ ref,}
+\DoxyCodeLine{00420\ \ \ \ \ \textcolor{keywordtype}{int}\ metric\_type,\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0\ =\ PSNR,\ 1\ =\ SSIM,\ 2\ =\ LSIM}}
+\DoxyCodeLine{00421\ \ \ \ \ \textcolor{keywordtype}{float}\ result[5]);}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \textcolor{comment}{//\ self-\/crops\ a\ picture\ to\ the\ rectangle\ defined\ by\ top/left/width/height.}}
+\DoxyCodeLine{00424\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ memory\ allocation\ error,\ or\ if\ the\ rectangle\ is}}
+\DoxyCodeLine{00425\ \textcolor{comment}{//\ outside\ of\ the\ source\ picture.}}
+\DoxyCodeLine{00426\ \textcolor{comment}{//\ The\ rectangle\ for\ the\ view\ is\ defined\ by\ the\ top-\/left\ corner\ pixel}}
+\DoxyCodeLine{00427\ \textcolor{comment}{//\ coordinates\ (left,\ top)\ as\ well\ as\ its\ width\ and\ height.\ This\ rectangle}}
+\DoxyCodeLine{00428\ \textcolor{comment}{//\ must\ be\ fully\ be\ comprised\ inside\ the\ 'src'\ source\ picture.\ If\ the\ source}}
+\DoxyCodeLine{00429\ \textcolor{comment}{//\ picture\ uses\ the\ YUV420\ colorspace,\ the\ top\ and\ left\ coordinates\ will\ be}}
+\DoxyCodeLine{00430\ \textcolor{comment}{//\ snapped\ to\ even\ values.}}
+\DoxyCodeLine{00431\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureCrop(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ left,\ \textcolor{keywordtype}{int}\ top,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \textcolor{comment}{//\ Extracts\ a\ view\ from\ 'src'\ picture\ into\ 'dst'.\ The\ rectangle\ for\ the\ view}}
+\DoxyCodeLine{00435\ \textcolor{comment}{//\ is\ defined\ by\ the\ top-\/left\ corner\ pixel\ coordinates\ (left,\ top)\ as\ well}}
+\DoxyCodeLine{00436\ \textcolor{comment}{//\ as\ its\ width\ and\ height.\ This\ rectangle\ must\ be\ fully\ be\ comprised\ inside}}
+\DoxyCodeLine{00437\ \textcolor{comment}{//\ the\ 'src'\ source\ picture.\ If\ the\ source\ picture\ uses\ the\ YUV420\ colorspace,}}
+\DoxyCodeLine{00438\ \textcolor{comment}{//\ the\ top\ and\ left\ coordinates\ will\ be\ snapped\ to\ even\ values.}}
+\DoxyCodeLine{00439\ \textcolor{comment}{//\ Picture\ 'src'\ must\ out-\/live\ 'dst'\ picture.\ Self-\/extraction\ of\ view\ is\ allowed}}
+\DoxyCodeLine{00440\ \textcolor{comment}{//\ ('src'\ equal\ to\ 'dst')\ as\ a\ mean\ of\ fast-\/cropping\ (but\ note\ that\ doing\ so,}}
+\DoxyCodeLine{00441\ \textcolor{comment}{//\ the\ original\ dimension\ will\ be\ lost).\ Picture\ 'dst'\ need\ not\ be\ initialized}}
+\DoxyCodeLine{00442\ \textcolor{comment}{//\ with\ WebPPictureInit()\ if\ it\ is\ different\ from\ 'src',\ since\ its\ content\ will}}
+\DoxyCodeLine{00443\ \textcolor{comment}{//\ be\ overwritten.}}
+\DoxyCodeLine{00444\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ memory\ allocation\ error\ or\ invalid\ parameters.}}
+\DoxyCodeLine{00445\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureView(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ src,}
+\DoxyCodeLine{00446\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ left,\ \textcolor{keywordtype}{int}\ top,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00447\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ dst);}
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ \textcolor{comment}{//\ Returns\ true\ if\ the\ 'picture'\ is\ actually\ a\ view\ and\ therefore\ does}}
+\DoxyCodeLine{00450\ \textcolor{comment}{//\ not\ own\ the\ memory\ for\ pixels.}}
+\DoxyCodeLine{00451\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureIsView(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \textcolor{comment}{//\ Rescale\ a\ picture\ to\ new\ dimension\ width\ x\ height.}}
+\DoxyCodeLine{00454\ \textcolor{comment}{//\ If\ either\ 'width'\ or\ 'height'\ (but\ not\ both)\ is\ 0\ the\ corresponding}}
+\DoxyCodeLine{00455\ \textcolor{comment}{//\ dimension\ will\ be\ calculated\ preserving\ the\ aspect\ ratio.}}
+\DoxyCodeLine{00456\ \textcolor{comment}{//\ No\ gamma\ correction\ is\ applied.}}
+\DoxyCodeLine{00457\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error\ (invalid\ parameter\ or\ insufficient\ memory).}}
+\DoxyCodeLine{00458\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureRescale(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ pic,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{00459\ }
+\DoxyCodeLine{00460\ \textcolor{comment}{//\ Colorspace\ conversion\ function\ to\ import\ RGB\ samples.}}
+\DoxyCodeLine{00461\ \textcolor{comment}{//\ Previous\ buffer\ will\ be\ free'd,\ if\ any.}}
+\DoxyCodeLine{00462\ \textcolor{comment}{//\ *rgb\ buffer\ should\ have\ a\ size\ of\ at\ least\ height\ *\ rgb\_stride.}}
+\DoxyCodeLine{00463\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ memory\ error.}}
+\DoxyCodeLine{00464\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureImportRGB(}
+\DoxyCodeLine{00465\ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,\ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structrgb}{rgb}},\ \textcolor{keywordtype}{int}\ rgb\_stride);}
+\DoxyCodeLine{00466\ \textcolor{comment}{//\ Same,\ but\ for\ RGBA\ buffer.}}
+\DoxyCodeLine{00467\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureImportRGBA(}
+\DoxyCodeLine{00468\ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,\ \textcolor{keyword}{const}\ uint8\_t*\ rgba,\ \textcolor{keywordtype}{int}\ rgba\_stride);}
+\DoxyCodeLine{00469\ \textcolor{comment}{//\ Same,\ but\ for\ RGBA\ buffer.\ Imports\ the\ RGB\ direct\ from\ the\ 32-\/bit\ format}}
+\DoxyCodeLine{00470\ \textcolor{comment}{//\ input\ buffer\ ignoring\ the\ alpha\ channel.\ Avoids\ needing\ to\ copy\ the\ data}}
+\DoxyCodeLine{00471\ \textcolor{comment}{//\ to\ a\ temporary\ 24-\/bit\ RGB\ buffer\ to\ import\ the\ RGB\ only.}}
+\DoxyCodeLine{00472\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureImportRGBX(}
+\DoxyCodeLine{00473\ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,\ \textcolor{keyword}{const}\ uint8\_t*\ rgbx,\ \textcolor{keywordtype}{int}\ rgbx\_stride);}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \textcolor{comment}{//\ Variants\ of\ the\ above,\ but\ taking\ BGR(A|X)\ input.}}
+\DoxyCodeLine{00476\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureImportBGR(}
+\DoxyCodeLine{00477\ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,\ \textcolor{keyword}{const}\ uint8\_t*\ bgr,\ \textcolor{keywordtype}{int}\ bgr\_stride);}
+\DoxyCodeLine{00478\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureImportBGRA(}
+\DoxyCodeLine{00479\ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,\ \textcolor{keyword}{const}\ uint8\_t*\ bgra,\ \textcolor{keywordtype}{int}\ bgra\_stride);}
+\DoxyCodeLine{00480\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureImportBGRX(}
+\DoxyCodeLine{00481\ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,\ \textcolor{keyword}{const}\ uint8\_t*\ bgrx,\ \textcolor{keywordtype}{int}\ bgrx\_stride);}
+\DoxyCodeLine{00482\ }
+\DoxyCodeLine{00483\ \textcolor{comment}{//\ Converts\ picture-\/>argb\ data\ to\ the\ YUV420A\ format.\ The\ 'colorspace'}}
+\DoxyCodeLine{00484\ \textcolor{comment}{//\ parameter\ is\ deprecated\ and\ should\ be\ equal\ to\ WEBP\_YUV420.}}
+\DoxyCodeLine{00485\ \textcolor{comment}{//\ Upon\ return,\ picture-\/>use\_argb\ is\ set\ to\ false.\ The\ presence\ of\ real}}
+\DoxyCodeLine{00486\ \textcolor{comment}{//\ non-\/opaque\ transparent\ values\ is\ detected,\ and\ 'colorspace'\ will\ be}}
+\DoxyCodeLine{00487\ \textcolor{comment}{//\ adjusted\ accordingly.\ Note\ that\ this\ method\ is\ lossy.}}
+\DoxyCodeLine{00488\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00489\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureARGBToYUVA(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WebPEncCSP\ \textcolor{comment}{/*colorspace\ =\ WEBP\_YUV420*/});}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \textcolor{comment}{//\ Same\ as\ WebPPictureARGBToYUVA(),\ but\ the\ conversion\ is\ done\ using}}
+\DoxyCodeLine{00493\ \textcolor{comment}{//\ pseudo-\/random\ dithering\ with\ a\ strength\ 'dithering'\ between}}
+\DoxyCodeLine{00494\ \textcolor{comment}{//\ 0.0\ (no\ dithering)\ and\ 1.0\ (maximum\ dithering).\ This\ is\ useful}}
+\DoxyCodeLine{00495\ \textcolor{comment}{//\ for\ photographic\ picture.}}
+\DoxyCodeLine{00496\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureARGBToYUVADithered(}
+\DoxyCodeLine{00497\ \ \ \ \ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture,\ WebPEncCSP\ colorspace,\ \textcolor{keywordtype}{float}\ dithering);}
+\DoxyCodeLine{00498\ }
+\DoxyCodeLine{00499\ \textcolor{comment}{//\ Performs\ 'sharp'\ RGBA-\/>YUVA420\ downsampling\ and\ colorspace\ conversion.}}
+\DoxyCodeLine{00500\ \textcolor{comment}{//\ Downsampling\ is\ handled\ with\ extra\ care\ in\ case\ of\ color\ clipping.\ This}}
+\DoxyCodeLine{00501\ \textcolor{comment}{//\ method\ is\ roughly\ 2x\ slower\ than\ WebPPictureARGBToYUVA()\ but\ produces\ better}}
+\DoxyCodeLine{00502\ \textcolor{comment}{//\ and\ sharper\ YUV\ representation.}}
+\DoxyCodeLine{00503\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00504\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureSharpARGBToYUVA(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00505\ \textcolor{comment}{//\ kept\ for\ backward\ compatibility:}}
+\DoxyCodeLine{00506\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureSmartARGBToYUVA(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00507\ }
+\DoxyCodeLine{00508\ \textcolor{comment}{//\ Converts\ picture-\/>yuv\ to\ picture-\/>argb\ and\ sets\ picture-\/>use\_argb\ to\ true.}}
+\DoxyCodeLine{00509\ \textcolor{comment}{//\ The\ input\ format\ must\ be\ YUV\_420\ or\ YUV\_420A.\ The\ conversion\ from\ YUV420\ to}}
+\DoxyCodeLine{00510\ \textcolor{comment}{//\ ARGB\ incurs\ a\ small\ loss\ too.}}
+\DoxyCodeLine{00511\ \textcolor{comment}{//\ Note\ that\ the\ use\ of\ this\ colorspace\ is\ discouraged\ if\ one\ has\ access\ to\ the}}
+\DoxyCodeLine{00512\ \textcolor{comment}{//\ raw\ ARGB\ samples,\ since\ using\ YUV420\ is\ comparatively\ lossy.}}
+\DoxyCodeLine{00513\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00514\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureYUVAToARGB(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \textcolor{comment}{//\ Helper\ function:\ given\ a\ width\ x\ height\ plane\ of\ RGBA\ or\ YUV(A)\ samples}}
+\DoxyCodeLine{00517\ \textcolor{comment}{//\ clean-\/up\ or\ smoothen\ the\ YUV\ or\ RGB\ samples\ under\ fully\ transparent\ area,}}
+\DoxyCodeLine{00518\ \textcolor{comment}{//\ to\ help\ compressibility\ (no\ guarantee,\ though).}}
+\DoxyCodeLine{00519\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPCleanupTransparentArea(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00520\ }
+\DoxyCodeLine{00521\ \textcolor{comment}{//\ Scan\ the\ picture\ 'picture'\ for\ the\ presence\ of\ non\ fully\ opaque\ alpha\ values.}}
+\DoxyCodeLine{00522\ \textcolor{comment}{//\ Returns\ true\ in\ such\ case.\ Otherwise\ returns\ false\ (indicating\ that\ the}}
+\DoxyCodeLine{00523\ \textcolor{comment}{//\ alpha\ plane\ can\ be\ ignored\ altogether\ e.g.).}}
+\DoxyCodeLine{00524\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPPictureHasTransparency(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00525\ }
+\DoxyCodeLine{00526\ \textcolor{comment}{//\ Remove\ the\ transparency\ information\ (if\ present)\ by\ blending\ the\ color\ with}}
+\DoxyCodeLine{00527\ \textcolor{comment}{//\ the\ background\ color\ 'background\_rgb'\ (specified\ as\ 24bit\ RGB\ triplet).}}
+\DoxyCodeLine{00528\ \textcolor{comment}{//\ After\ this\ call,\ all\ alpha\ values\ are\ reset\ to\ 0xff.}}
+\DoxyCodeLine{00529\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPBlendAlpha(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ pic,\ uint32\_t\ background\_rgb);}
+\DoxyCodeLine{00530\ }
+\DoxyCodeLine{00531\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00532\ \textcolor{comment}{//\ Main\ call}}
+\DoxyCodeLine{00533\ }
+\DoxyCodeLine{00534\ \textcolor{comment}{//\ Main\ encoding\ call,\ after\ config\ and\ picture\ have\ been\ initialized.}}
+\DoxyCodeLine{00535\ \textcolor{comment}{//\ 'picture'\ must\ be\ less\ than\ 16384x16384\ in\ dimension\ (cf\ WEBP\_MAX\_DIMENSION),}}
+\DoxyCodeLine{00536\ \textcolor{comment}{//\ and\ the\ 'config'\ object\ must\ be\ a\ valid\ one.}}
+\DoxyCodeLine{00537\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error,\ true\ otherwise.}}
+\DoxyCodeLine{00538\ \textcolor{comment}{//\ In\ case\ of\ error,\ picture-\/>error\_code\ is\ updated\ accordingly.}}
+\DoxyCodeLine{00539\ \textcolor{comment}{//\ 'picture'\ can\ hold\ the\ source\ samples\ in\ both\ YUV(A)\ or\ ARGB\ input,\ depending}}
+\DoxyCodeLine{00540\ \textcolor{comment}{//\ on\ the\ value\ of\ 'picture-\/>use\_argb'.\ It\ is\ highly\ recommended\ to\ use}}
+\DoxyCodeLine{00541\ \textcolor{comment}{//\ the\ former\ for\ lossy\ encoding,\ and\ the\ latter\ for\ lossless\ encoding}}
+\DoxyCodeLine{00542\ \textcolor{comment}{//\ (when\ config.lossless\ is\ true).\ Automatic\ conversion\ from\ one\ format\ to}}
+\DoxyCodeLine{00543\ \textcolor{comment}{//\ another\ is\ provided\ but\ they\ both\ incur\ some\ loss.}}
+\DoxyCodeLine{00544\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPEncode(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}},\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ picture);}
+\DoxyCodeLine{00545\ }
+\DoxyCodeLine{00546\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00549\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00550\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00551\ }
+\DoxyCodeLine{00552\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_WEBP\_ENCODE\_H\_}}
+
+\end{DoxyCode}

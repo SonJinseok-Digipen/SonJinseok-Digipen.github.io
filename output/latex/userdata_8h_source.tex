@@ -1,0 +1,129 @@
+\hypertarget{userdata_8h_source}{}\doxysection{userdata.\+h}
+\label{userdata_8h_source}\index{AseSprite/aseprite/src/app/script/userdata.h@{AseSprite/aseprite/src/app/script/userdata.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2023\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_SCRIPT\_USERDATA\_HELPER\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_SCRIPT\_USERDATA\_HELPER\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/cmd/set\_user\_data.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/cmd/set\_user\_data\_properties.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/color.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/color\_utils.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}app/script/luacpp.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}app/script/values.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}app/tx.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}doc/cel.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}doc/with\_user\_data.h"{}}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{namespace\ }script\ \{}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00026\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{classdoc_1_1_with_user_data}{doc::WithUserData}}*\ get\_WithUserData(T*\ obj)\ \{}
+\DoxyCodeLine{00027\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classdoc_1_1_with_user_data}{doc::WithUserData}}*\textcolor{keyword}{>}(obj);}
+\DoxyCodeLine{00028\ \}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00031\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{classdoc_1_1_with_user_data}{doc::WithUserData}}*\ get\_WithUserData<doc::Cel>(\mbox{\hyperlink{classdoc_1_1_cel}{doc::Cel}}*\ obj)\ \{}
+\DoxyCodeLine{00032\ \ \ \textcolor{keywordflow}{return}\ obj-\/>data();}
+\DoxyCodeLine{00033\ \}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00036\ \textcolor{keywordtype}{int}\ UserData\_get\_text(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L)\ \{}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{auto}\ obj\ =\ get\_docobj<T>(L,\ 1);}
+\DoxyCodeLine{00038\ \ \ lua\_pushstring(L,\ get\_WithUserData<T>(obj)-\/>userData().text().c\_str());}
+\DoxyCodeLine{00039\ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00040\ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00043\ \textcolor{keywordtype}{int}\ UserData\_get\_color(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L)\ \{}
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{auto}\ obj\ =\ get\_docobj<T>(L,\ 1);}
+\DoxyCodeLine{00045\ \ \ doc::color\_t\ docColor\ =\ get\_WithUserData<T>(obj)-\/>userData().color();}
+\DoxyCodeLine{00046\ \ \ \mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ appColor\ =\ app::Color::fromRgb(doc::rgba\_getr(docColor),}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc::rgba\_getg(docColor),}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc::rgba\_getb(docColor),}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc::rgba\_geta(docColor));}
+\DoxyCodeLine{00050\ \ \ \textcolor{keywordflow}{if}\ (appColor.getAlpha()\ ==\ 0)}
+\DoxyCodeLine{00051\ \ \ \ \ appColor\ =\ app::Color::fromMask();}
+\DoxyCodeLine{00052\ \ \ push\_obj<app::Color>(L,\ appColor);}
+\DoxyCodeLine{00053\ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00054\ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00057\ \textcolor{keywordtype}{int}\ UserData\_get\_properties(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L)\ \{}
+\DoxyCodeLine{00058\ \ \ \textcolor{keyword}{auto}\ obj\ =\ get\_docobj<T>(L,\ 1);}
+\DoxyCodeLine{00059\ \ \ push\_properties(L,\ get\_WithUserData<T>(obj),\ std::string());}
+\DoxyCodeLine{00060\ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00061\ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00064\ \textcolor{keywordtype}{int}\ UserData\_set\_text(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L)\ \{}
+\DoxyCodeLine{00065\ \ \ \textcolor{keyword}{auto}\ obj\ =\ get\_docobj<T>(L,\ 1);}
+\DoxyCodeLine{00066\ \ \ \textcolor{keyword}{auto}\ spr\ =\ obj-\/>sprite();}
+\DoxyCodeLine{00067\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ text\ =\ lua\_tostring(L,\ 2);}
+\DoxyCodeLine{00068\ \ \ \textcolor{keyword}{auto}\ wud\ =\ get\_WithUserData<T>(obj);}
+\DoxyCodeLine{00069\ \ \ UserData\ ud\ =\ wud-\/>userData();}
+\DoxyCodeLine{00070\ \ \ ud.setText(text);}
+\DoxyCodeLine{00071\ \ \ \textcolor{keywordflow}{if}\ (spr)\ \{}
+\DoxyCodeLine{00072\ \ \ \ \ Tx\ tx;}
+\DoxyCodeLine{00073\ \ \ \ \ tx(\textcolor{keyword}{new}\ cmd::SetUserData(wud,\ ud,\ \textcolor{keyword}{static\_cast<}Doc*\textcolor{keyword}{>}(spr-\/>document())));}
+\DoxyCodeLine{00074\ \ \ \ \ tx.commit();}
+\DoxyCodeLine{00075\ \ \ \}}
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00077\ \ \ \ \ wud-\/>setUserData(ud);}
+\DoxyCodeLine{00078\ \ \ \}}
+\DoxyCodeLine{00079\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00080\ \}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00083\ \textcolor{keywordtype}{int}\ UserData\_set\_color(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L)\ \{}
+\DoxyCodeLine{00084\ \ \ \textcolor{keyword}{auto}\ obj\ =\ get\_docobj<T>(L,\ 1);}
+\DoxyCodeLine{00085\ \ \ \textcolor{keyword}{auto}\ spr\ =\ obj-\/>sprite();}
+\DoxyCodeLine{00086\ \ \ doc::color\_t\ docColor\ =\ convert\_args\_into\_pixel\_color(L,\ 2,\ doc::IMAGE\_RGB);}
+\DoxyCodeLine{00087\ \ \ \textcolor{keyword}{auto}\ wud\ =\ get\_WithUserData<T>(obj);}
+\DoxyCodeLine{00088\ \ \ UserData\ ud\ =\ wud-\/>userData();}
+\DoxyCodeLine{00089\ \ \ ud.setColor(docColor);}
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordflow}{if}\ (spr)\ \{}
+\DoxyCodeLine{00091\ \ \ \ \ Tx\ tx;}
+\DoxyCodeLine{00092\ \ \ \ \ tx(\textcolor{keyword}{new}\ cmd::SetUserData(wud,\ ud,\ \textcolor{keyword}{static\_cast<}Doc*\textcolor{keyword}{>}(spr-\/>document())));}
+\DoxyCodeLine{00093\ \ \ \ \ tx.commit();}
+\DoxyCodeLine{00094\ \ \ \}}
+\DoxyCodeLine{00095\ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00096\ \ \ \ \ wud-\/>setUserData(ud);}
+\DoxyCodeLine{00097\ \ \ \}}
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00099\ \}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00102\ \textcolor{keywordtype}{int}\ UserData\_set\_properties(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L)\ \{}
+\DoxyCodeLine{00103\ \ \ \textcolor{keyword}{auto}\ obj\ =\ get\_docobj<T>(L,\ 1);}
+\DoxyCodeLine{00104\ \ \ \textcolor{keyword}{auto}\ wud\ =\ get\_WithUserData<T>(obj);}
+\DoxyCodeLine{00105\ \ \ \textcolor{keyword}{auto}\ newProperties\ =\ get\_value\_from\_lua<doc::UserData::Properties>(L,\ 2);}
+\DoxyCodeLine{00106\ \ \ \textcolor{keywordflow}{if}\ (obj-\/>sprite())\ \{}
+\DoxyCodeLine{00107\ \ \ \ \ Tx\ tx;}
+\DoxyCodeLine{00108\ \ \ \ \ tx(\textcolor{keyword}{new}\ cmd::SetUserDataProperties(wud,}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::string(),}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::move(newProperties)));}
+\DoxyCodeLine{00111\ \ \ \ \ tx.commit();}
+\DoxyCodeLine{00112\ \ \ \}}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keyword}{auto}\&\ properties\ =\ wud-\/>userData().properties();}
+\DoxyCodeLine{00115\ \ \ \ \ properties\ =\ std::move(newProperties);}
+\DoxyCodeLine{00116\ \ \ \}}
+\DoxyCodeLine{00117\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00118\ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \}\ \textcolor{comment}{//\ namespace\ script}}
+\DoxyCodeLine{00121\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

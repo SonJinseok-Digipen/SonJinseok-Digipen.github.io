@@ -1,0 +1,240 @@
+\hypertarget{autohint_8h_source}{}\doxysection{autohint.\+h}
+\label{autohint_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/autohint.h@{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/autohint.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ autohint.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ High-\/level\ 'autohint'\ module-\/specific\ interface\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ \ \ *\ The\ auto-\/hinter\ is\ used\ to\ load\ and\ automatically\ hint\ glyphs\ if\ a}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ \ \ *\ format-\/specific\ hinter\ isn't\ available.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ AUTOHINT\_H\_}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ AUTOHINT\_H\_}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ \ *\ A\ small\ technical\ note\ regarding\ automatic\ hinting\ in\ order\ to\ clarify}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ *\ this\ module\ interface.}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ *\ An\ automatic\ hinter\ might\ compute\ two\ kinds\ of\ data\ for\ a\ given\ face:}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ *\ -\/\ global\ hints:\ Usually\ some\ metrics\ that\ describe\ global\ properties}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ of\ the\ face.\ \ It\ is\ computed\ by\ scanning\ more\ or\ less}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ aggressively\ the\ glyphs\ in\ the\ face,\ and\ thus\ can\ be}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ very\ slow\ to\ compute\ (even\ if\ the\ size\ of\ global\ hints}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ is\ really\ small).}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ \ *\ -\/\ glyph\ hints:\ These\ describe\ some\ important\ features\ of\ the\ glyph}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ outline,\ as\ well\ as\ how\ to\ align\ them.\ \ They\ are}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ generally\ much\ faster\ to\ compute\ than\ global\ hints.}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ *\ The\ current\ FreeType\ auto-\/hinter\ does\ a\ pretty\ good\ job\ while\ performing}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ *\ fast\ computations\ for\ both\ global\ and\ glyph\ hints.\ \ However,\ we\ might\ be}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ *\ interested\ in\ introducing\ more\ complex\ and\ powerful\ algorithms\ in\ the}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ *\ future,\ like\ the\ one\ described\ in\ the\ John\ D.\ Hobby\ paper,\ which}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ *\ unfortunately\ requires\ a\ lot\ more\ horsepower.}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ *\ Because\ a\ sufficiently\ sophisticated\ font\ management\ system\ would}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ *\ typically\ implement\ an\ LRU\ cache\ of\ opened\ face\ objects\ to\ reduce\ memory}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ *\ usage,\ it\ is\ a\ good\ idea\ to\ be\ able\ to\ avoid\ recomputing\ global\ hints}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ *\ every\ time\ the\ same\ face\ is\ re-\/opened.}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ *\ We\ thus\ provide\ the\ ability\ to\ cache\ global\ hints\ outside\ of\ the\ face}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ *\ object,\ in\ order\ to\ speed\ up\ font\ re-\/opening\ time.\ \ Of\ course,\ this}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *\ feature\ is\ purely\ optional,\ so\ most\ client\ programs\ won't\ even\ notice}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *\ it.}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *\ I\ initially\ thought\ that\ it\ would\ be\ a\ good\ idea\ to\ cache\ the\ glyph}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *\ hints\ too.\ \ However,\ my\ general\ idea\ now\ is\ that\ if\ you\ really\ need\ to}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *\ cache\ these\ too,\ you\ are\ simply\ in\ need\ of\ a\ new\ font\ format,\ where\ all}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *\ this\ information\ could\ be\ stored\ within\ the\ font\ file\ and\ decoded\ on\ the}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *\ fly.}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#include\ <freetype/freetype.h>}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }FT\_AutoHinterRec\_\ \ *FT\_AutoHinter;}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ *\ \ \ FT\_AutoHinter\_GlobalGetFunc}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *\ \ \ Retrieve\ the\ global\ hints\ computed\ for\ a\ given\ face\ object.\ \ The}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ *\ \ \ resulting\ data\ is\ dissociated\ from\ the\ face\ and\ will\ survive\ a\ call\ to}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ *\ \ \ FT\_Done\_Face().\ \ It\ must\ be\ discarded\ through\ the\ API}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ *\ \ \ FT\_AutoHinter\_GlobalDoneFunc().}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ *\ \ \ hinter\ ::}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ source\ auto-\/hinter.}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ source\ face\ object.}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ \ \ *\ \ \ global\_hints\ ::}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ typeless\ pointer\ to\ the\ global\ hints.}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ *\ \ \ global\_len\ ::}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ size\ in\ bytes\ of\ the\ global\ hints.}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00107\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00108\ \ \ (*FT\_AutoHinter\_GlobalGetFunc)(\ FT\_AutoHinter\ \ hinter,}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}**\ \ \ \ \ \ \ \ \ global\_hints,}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{long}*\ \ \ \ \ \ \ \ \ \ global\_len\ );}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ \ \ *\ \ \ FT\_AutoHinter\_GlobalDoneFunc}}
+\DoxyCodeLine{00118\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00119\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ \ \ *\ \ \ Discard\ the\ global\ hints\ retrieved\ through}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ \ \ *\ \ \ FT\_AutoHinter\_GlobalGetFunc().\ \ This\ is\ the\ only\ way\ these\ hints\ are}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ \ \ *\ \ \ freed\ from\ memory.}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ \ \ *\ \ \ hinter\ ::}}
+\DoxyCodeLine{00126\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ auto-\/hinter\ module.}}
+\DoxyCodeLine{00127\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ *\ \ \ global\ ::}}
+\DoxyCodeLine{00129\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ pointer\ to\ retrieved\ global\ hints\ to\ discard.}}
+\DoxyCodeLine{00130\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00131\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00132\ \ \ (*FT\_AutoHinter\_GlobalDoneFunc)(\ FT\_AutoHinter\ \ hinter,}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ global\ );}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00137\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00138\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00139\ \textcolor{comment}{\ \ \ *\ \ \ FT\_AutoHinter\_GlobalResetFunc}}
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ is\ used\ to\ recompute\ the\ global\ metrics\ in\ a\ given\ font.}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ \ *\ \ \ This\ is\ useful\ when\ global\ font\ data\ changes\ (e.g.\ Multiple\ Masters}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *\ \ \ fonts\ where\ blend\ coordinates\ change).}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ *\ \ \ hinter\ ::}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ source\ auto-\/hinter.}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ face.}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00154\ \ \ (*FT\_AutoHinter\_GlobalResetFunc)(\ FT\_AutoHinter\ \ hinter,}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ \ \ \ face\ );}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00160\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00161\ \textcolor{comment}{\ \ \ *\ \ \ FT\_AutoHinter\_GlyphLoadFunc}}
+\DoxyCodeLine{00162\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00163\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00164\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ is\ used\ to\ load,\ scale,\ and\ automatically\ hint\ a\ glyph}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ \ \ *\ \ \ from\ a\ given\ face.}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ face.}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ \ \ *\ \ \ glyph\_index\ ::}}
+\DoxyCodeLine{00172\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index.}}
+\DoxyCodeLine{00173\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ \ \ *\ \ \ load\_flags\ ::}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ load\ flags.}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00178\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ is\ capable\ of\ loading\ composite\ glyphs\ by\ hinting\ each}}
+\DoxyCodeLine{00179\ \textcolor{comment}{\ \ \ *\ \ \ sub-\/glyph\ independently\ (which\ improves\ quality).}}
+\DoxyCodeLine{00180\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00181\ \textcolor{comment}{\ \ \ *\ \ \ It\ will\ call\ the\ font\ driver\ with\ @FT\_Load\_Glyph,\ with}}
+\DoxyCodeLine{00182\ \textcolor{comment}{\ \ \ *\ \ \ @FT\_LOAD\_NO\_SCALE\ set.}}
+\DoxyCodeLine{00183\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00184\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00185\ \ \ (*FT\_AutoHinter\_GlyphLoadFunc)(\ FT\_AutoHinter\ \ hinter,}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_slot_rec__}{FT\_GlyphSlot}}\ \ \ slot,}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___size_rec__}{FT\_Size}}\ \ \ \ \ \ \ \ size,}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ glyph\_index,}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int32\ \ \ \ \ \ \ load\_flags\ );}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00193\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ \ \ *\ \ \ FT\_AutoHinter\_InterfaceRec}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ \ *\ \ \ The\ auto-\/hinter\ module's\ interface.}}
+\DoxyCodeLine{00199\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00200\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t___auto_hinter___interface_rec__}{FT\_AutoHinter\_InterfaceRec\_}}}
+\DoxyCodeLine{00201\ \ \ \{}
+\DoxyCodeLine{00202\ \ \ \ \ FT\_AutoHinter\_GlobalResetFunc\ \ reset\_face;}
+\DoxyCodeLine{00203\ \ \ \ \ FT\_AutoHinter\_GlobalGetFunc\ \ \ \ get\_global\_hints;}
+\DoxyCodeLine{00204\ \ \ \ \ FT\_AutoHinter\_GlobalDoneFunc\ \ \ done\_global\_hints;}
+\DoxyCodeLine{00205\ \ \ \ \ FT\_AutoHinter\_GlyphLoadFunc\ \ \ \ load\_glyph;}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \}\ \mbox{\hyperlink{struct_f_t___auto_hinter___interface_rec__}{FT\_AutoHinter\_InterfaceRec}},\ *\mbox{\hyperlink{struct_f_t___auto_hinter___interface_rec__}{FT\_AutoHinter\_Interface}};}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#define\ FT\_DECLARE\_AUTOHINTER\_INTERFACE(\ class\_\ )\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\ \ FT\_CALLBACK\_TABLE\ const\ FT\_AutoHinter\_InterfaceRec\ \ class\_;}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#define\ FT\_DEFINE\_AUTOHINTER\_INTERFACE(\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ class\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ reset\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_global\_hints\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ done\_global\_hints\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_glyph\_\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\ \ FT\_CALLBACK\_TABLE\_DEF\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00220\ \textcolor{preprocessor}{\ \ const\ FT\_AutoHinter\_InterfaceRec\ \ class\_\ =\ \ \(\backslash\)}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\ \ \ \ reset\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\ \ \ \ get\_global\_hints\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ \ \ done\_global\_hints\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\ \ \ \ load\_glyph\_\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\ \ \};}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ FT\_END\_HEADER}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ AUTOHINT\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

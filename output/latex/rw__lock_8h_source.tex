@@ -1,0 +1,92 @@
+\hypertarget{rw__lock_8h_source}{}\doxysection{rw\+\_\+lock.\+h}
+\label{rw__lock_8h_source}\index{AseSprite/aseprite/laf/base/rw\_lock.h@{AseSprite/aseprite/laf/base/rw\_lock.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ Base\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2020-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2016\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ BASE\_RW\_LOCK\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ BASE\_RW\_LOCK\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}base/disable\_copying.h"{}}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }base\ \{}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \ \ \textcolor{comment}{//\ A\ readers-\/writer\ lock\ implementation}}
+\DoxyCodeLine{00020\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbase_1_1_r_w_lock}{RWLock}}\ \{}
+\DoxyCodeLine{00021\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keyword}{enum}\ LockType\ \{}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ ReadLock,}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ WriteLock}
+\DoxyCodeLine{00025\ \ \ \ \ \};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{enum}\ WeakLock\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ WeakUnlocked,}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ WeakUnlocking,}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ WeakLocked,}
+\DoxyCodeLine{00031\ \ \ \ \ \};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_r_w_lock}{RWLock}}();}
+\DoxyCodeLine{00034\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_r_w_lock}{\string~RWLock}}();}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ we\ can\ lock\ this\ object\ for\ writting\ purposes}}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{comment}{//\ in\ case\ that\ the\ current\ thread\ has\ it\ locked\ for\ reading.}}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{bool}\ canWriteLockFromRead()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{comment}{//\ Locks\ the\ object\ to\ read\ or\ write\ on\ it,\ returning\ true\ if\ the}}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{comment}{//\ object\ can\ be\ accessed\ in\ the\ desired\ mode.}}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{bool}\ lock(LockType\ lockType,\ \textcolor{keywordtype}{int}\ timeout);}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{comment}{//\ If\ you've\ locked\ the\ object\ to\ read,\ using\ this\ method\ you\ can}}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{comment}{//\ raise\ your\ access\ level\ to\ write\ it.}}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{bool}\ upgradeToWrite(\textcolor{keywordtype}{int}\ timeout);}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{comment}{//\ If\ we've\ locked\ the\ object\ to\ write,\ using\ this\ method\ we\ can}}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{comment}{//\ lower\ our\ access\ to\ read-\/only.}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{void}\ downgradeToRead();}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{comment}{//\ Unlocks\ a\ previously\ successfully\ lock()\ operation.}}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{void}\ unlock();}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{comment}{//\ Tries\ to\ lock\ the\ object\ for\ read\ access\ in\ a\ "{}weak\ way"{}\ so}}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//\ other\ thread\ (e.g.\ UI\ thread)\ can\ lock\ the\ object\ removing\ this}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{comment}{//\ weak\ lock.}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{comment}{//\ The\ "{}weak\_lock\_flag"{}\ is\ used\ to\ notify\ when\ the\ "{}weak\ lock"{}\ is}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{comment}{//\ lost.}}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{bool}\ weakLock(std::atomic<WeakLock>*\ weak\_lock\_flag);}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordtype}{void}\ weakUnlock();}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{comment}{//\ Mutex\ to\ modify\ the\ 'locked'\ flag.}}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{mutable}\ std::mutex\ m\_mutex;}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{comment}{//\ True\ if\ some\ thread\ is\ writing\ the\ object.}}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_write\_lock;}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{comment}{//\ Greater\ than\ zero\ when\ one\ or\ more\ threads\ are\ reading\ the\ object.}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_read\_locks;}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{comment}{//\ If\ this\ isn'\ nullptr,\ it\ means\ that\ it\ points\ to\ an\ unique}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ "{}weak"{}\ lock\ that\ can\ be\ unlocked\ from\ other\ thread.\ E.g.\ the}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{comment}{//\ backup/data\ recovery\ thread\ might\ weakly\ lock\ the\ object\ so\ if}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{comment}{//\ the\ user\ UI\ thread\ needs\ the\ object\ again,\ the\ backup\ process}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{comment}{//\ can\ stop.}}
+\DoxyCodeLine{00079\ \ \ \ \ std::atomic<WeakLock>*\ m\_weak\_lock;}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ DISABLE\_COPYING(\mbox{\hyperlink{classbase_1_1_r_w_lock}{RWLock}});}
+\DoxyCodeLine{00082\ \ \ \};}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \}\ \textcolor{comment}{//\ namespace\ base}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

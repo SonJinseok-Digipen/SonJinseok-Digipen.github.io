@@ -1,0 +1,147 @@
+\hypertarget{ftsdfcommon_8h_source}{}\doxysection{ftsdfcommon.\+h}
+\label{ftsdfcommon_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/sdf/ftsdfcommon.h@{AseSprite/aseprite/third\_party/freetype2/src/sdf/ftsdfcommon.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftsdfcommon.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Auxiliary\ data\ for\ Signed\ Distance\ Field\ support\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2020-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Written\ by\ Anuj\ Verma.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{comment}{\ \ /****************************************************}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ \ \ *\ This\ file\ contains\ common\ functions\ and\ properties}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ \ \ *\ for\ both\ the\ 'sdf'\ and\ 'bsdf'\ renderers.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#ifndef\ FTSDFCOMMON\_H\_}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ FTSDFCOMMON\_H\_}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ <ft2build.h>}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ FT\_CONFIG\_CONFIG\_H}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ <freetype/internal/ftobjs.h>}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ *\ default\ values\ (cannot\ be\ set\ individually\ for\ each\ renderer)}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{comment}{/*\ default\ spread\ value\ */}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ DEFAULT\_SPREAD\ \ 8}}
+\DoxyCodeLine{00047\ \ \ \textcolor{comment}{/*\ minimum\ spread\ supported\ by\ the\ renderer\ */}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ MIN\_SPREAD\ \ \ \ \ \ 2}}
+\DoxyCodeLine{00049\ \ \ \textcolor{comment}{/*\ maximum\ spread\ supported\ by\ the\ renderer\ */}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#define\ MAX\_SPREAD\ \ \ \ \ \ 32}}
+\DoxyCodeLine{00051\ \ \ \textcolor{comment}{/*\ pixel\ size\ in\ 26.6\ */}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ ONE\_PIXEL\ \ \ \ \ \ \ (\ 1\ <<\ 6\ )}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ *\ common\ definitions\ (cannot\ be\ set\ individually\ for\ each\ renderer)}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \textcolor{comment}{/*\ If\ this\ macro\ is\ set\ to\ 1\ the\ rasterizer\ uses\ squared\ distances\ for\ */}}
+\DoxyCodeLine{00062\ \ \ \textcolor{comment}{/*\ computation.\ \ It\ can\ greatly\ improve\ the\ performance\ but\ there\ is\ a\ */}}
+\DoxyCodeLine{00063\ \ \ \textcolor{comment}{/*\ chance\ of\ overflow\ and\ artifacts.\ \ You\ can\ safely\ use\ it\ up\ to\ a\ \ \ \ */}}
+\DoxyCodeLine{00064\ \ \ \textcolor{comment}{/*\ pixel\ size\ of\ 128.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#ifndef\ USE\_SQUARED\_DISTANCES}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#define\ USE\_SQUARED\_DISTANCES\ \ 0}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ *\ common\ macros}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \textcolor{comment}{/*\ convert\ int\ to\ 26.6\ fixed-\/point\ \ \ */}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ FT\_INT\_26D6(\ x\ )\ \ \ (\ x\ *\ 64\ )}}
+\DoxyCodeLine{00078\ \ \ \textcolor{comment}{/*\ convert\ int\ to\ 16.16\ fixed-\/point\ \ */}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ FT\_INT\_16D16(\ x\ )\ \ (\ x\ *\ 65536\ )}}
+\DoxyCodeLine{00080\ \ \ \textcolor{comment}{/*\ convert\ 26.6\ to\ 16.16\ fixed-\/point\ */}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#define\ FT\_26D6\_16D16(\ x\ )\ (\ x\ *\ 1024\ )}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \textcolor{comment}{/*\ Convenience\ macro\ to\ call\ a\ function;\ it\ \ */}}
+\DoxyCodeLine{00085\ \ \ \textcolor{comment}{/*\ jumps\ to\ label\ `Exit`\ if\ an\ error\ occurs.\ */}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ FT\_CALL(\ x\ )\ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ error\ =\ (\ x\ );\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (\ error\ !=\ FT\_Err\_Ok\ )\ \(\backslash\)}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ Exit;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (\ 0\ )}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *\ The\ macro\ `VECTOR\_LENGTH\_16D16`\ computes\ either\ squared\ distances\ or}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ *\ actual\ distances,\ depending\ on\ the\ value\ of\ `USE\_SQUARED\_DISTANCES`.}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ *\ By\ using\ squared\ distances\ the\ performance\ can\ be\ greatly\ improved\ but}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *\ there\ is\ a\ risk\ of\ overflow.}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#if\ USE\_SQUARED\_DISTANCES}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ VECTOR\_LENGTH\_16D16(\ v\ )\ \ (\ FT\_MulFix(\ v.x,\ v.x\ )\ +\ \(\backslash\)}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_MulFix(\ v.y,\ v.y\ )\ )}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ VECTOR\_LENGTH\_16D16(\ v\ )\ \ FT\_Vector\_Length(\ \&v\ )}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ common\ typedefs}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \mbox{\hyperlink{struct_f_t___vector__}{FT\_26D6\_Vec}};\ \ \ \textcolor{comment}{/*\ with\ 26.6\ fixed-\/point\ components\ \ */}}
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \mbox{\hyperlink{struct_f_t___vector__}{FT\_16D16\_Vec}};\ \ \textcolor{comment}{/*\ with\ 16.16\ fixed-\/point\ components\ */}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \textcolor{keyword}{typedef}\ FT\_Fixed\ \ FT\_16D16;\ \ \ \ \ \ \textcolor{comment}{/*\ 16.16\ fixed-\/point\ representation\ \ */}}
+\DoxyCodeLine{00119\ \ \ \textcolor{keyword}{typedef}\ FT\_Fixed\ \ FT\_26D6;\ \ \ \ \ \ \ \textcolor{comment}{/*\ 26.6\ fixed-\/point\ representation\ \ \ */}}
+\DoxyCodeLine{00120\ \ \ \textcolor{keyword}{typedef}\ FT\_Byte\ \ \ FT\_SDFFormat;\ \ \textcolor{comment}{/*\ format\ to\ represent\ SDF\ data\ \ \ \ \ \ */}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_f_t___b_box__}{FT\_BBox}}\ \ \ \mbox{\hyperlink{struct_f_t___b_box__}{FT\_CBox}};\ \ \ \ \ \ \ \textcolor{comment}{/*\ control\ box\ of\ a\ curve\ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ FT\_LOCAL(\ FT\_16D16\ )}
+\DoxyCodeLine{00126\ \ \ square\_root(\ FT\_16D16\ \ val\ );}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ FT\_LOCAL(\ FT\_SDFFormat\ )}
+\DoxyCodeLine{00129\ \ \ map\_fixed\_to\_sdf(\ FT\_16D16\ \ dist,}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_16D16\ \ max\_value\ );}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ FT\_LOCAL(\ FT\_SDFFormat\ )}
+\DoxyCodeLine{00133\ \ \ invert\_sign(\ FT\_SDFFormat\ \ dist\ );}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ FT\_END\_HEADER}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTSDFCOMMON\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

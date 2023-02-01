@@ -1,0 +1,250 @@
+\hypertarget{lossless_8h_source}{}\doxysection{lossless.\+h}
+\label{lossless_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dsp/lossless.h@{AseSprite/aseprite/third\_party/libwebp/src/dsp/lossless.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Image\ transforms\ and\ color\ space\ conversion\ methods\ for\ lossless\ decoder.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Authors:\ Vikas\ Arora\ (vikaas.arora@gmail.com)}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ Jyrki\ Alakuijala\ (jyrki@google.com)}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DSP\_LOSSLESS\_H\_}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_LOSSLESS\_H\_}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}src/webp/decode.h"{}}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/enc/histogram\_enc.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}src/utils/utils.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00025\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00029\ \textcolor{comment}{//\ Decoding}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{typedef}\ uint32\_t\ (*VP8LPredictorFunc)(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00032\ \textcolor{keyword}{extern}\ VP8LPredictorFunc\ VP8LPredictors[16];}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ uint32\_t\ VP8LPredictor0\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00035\ uint32\_t\ VP8LPredictor1\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00036\ uint32\_t\ VP8LPredictor2\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00037\ uint32\_t\ VP8LPredictor3\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00038\ uint32\_t\ VP8LPredictor4\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00039\ uint32\_t\ VP8LPredictor5\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00040\ uint32\_t\ VP8LPredictor6\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00041\ uint32\_t\ VP8LPredictor7\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00042\ uint32\_t\ VP8LPredictor8\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00043\ uint32\_t\ VP8LPredictor9\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00044\ uint32\_t\ VP8LPredictor10\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00045\ uint32\_t\ VP8LPredictor11\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00046\ uint32\_t\ VP8LPredictor12\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00047\ uint32\_t\ VP8LPredictor13\_C(uint32\_t\ left,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ top);}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{comment}{//\ These\ Add/Sub\ function\ expects\ upper[-\/1]\ and\ out[-\/1]\ to\ be\ readable.}}
+\DoxyCodeLine{00050\ \textcolor{keyword}{typedef}\ void\ (*VP8LPredictorAddSubFunc)(\textcolor{keyword}{const}\ uint32\_t*\ in,}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ upper,\ \textcolor{keywordtype}{int}\ num\_pixels,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ out);}
+\DoxyCodeLine{00053\ \textcolor{keyword}{extern}\ VP8LPredictorAddSubFunc\ VP8LPredictorsAdd[16];}
+\DoxyCodeLine{00054\ \textcolor{keyword}{extern}\ VP8LPredictorAddSubFunc\ VP8LPredictorsAdd\_C[16];}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{typedef}\ void\ (*VP8LProcessDecBlueAndRedFunc)(\textcolor{keyword}{const}\ uint32\_t*\ src,}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ num\_pixels,\ uint32\_t*\ dst);}
+\DoxyCodeLine{00058\ \textcolor{keyword}{extern}\ VP8LProcessDecBlueAndRedFunc\ VP8LAddGreenToBlueAndRed;}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00061\ \ \ \textcolor{comment}{//\ Note:\ the\ members\ are\ uint8\_t,\ so\ that\ any\ negative\ values\ are}}
+\DoxyCodeLine{00062\ \ \ \textcolor{comment}{//\ automatically\ converted\ to\ "{}mod\ 256"{}\ values.}}
+\DoxyCodeLine{00063\ \ \ uint8\_t\ green\_to\_red\_;}
+\DoxyCodeLine{00064\ \ \ uint8\_t\ green\_to\_blue\_;}
+\DoxyCodeLine{00065\ \ \ uint8\_t\ red\_to\_blue\_;}
+\DoxyCodeLine{00066\ \}\ \mbox{\hyperlink{struct_v_p8_l_multipliers}{VP8LMultipliers}};}
+\DoxyCodeLine{00067\ \textcolor{keyword}{typedef}\ void\ (*VP8LTransformColorInverseFunc)(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_multipliers}{VP8LMultipliers}}*\ \textcolor{keyword}{const}\ m,}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ src,}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ num\_pixels,\ uint32\_t*\ dst);}
+\DoxyCodeLine{00070\ \textcolor{keyword}{extern}\ VP8LTransformColorInverseFunc\ VP8LTransformColorInverse;}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_transform}{VP8LTransform}};\ \ \textcolor{comment}{//\ Defined\ in\ dec/vp8li.h.}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{comment}{//\ Performs\ inverse\ transform\ of\ data\ given\ transform\ information,\ start\ and\ end}}
+\DoxyCodeLine{00075\ \textcolor{comment}{//\ rows.\ Transform\ will\ be\ applied\ to\ rows\ [row\_start,\ row\_end[.}}
+\DoxyCodeLine{00076\ \textcolor{comment}{//\ The\ *in\ and\ *out\ pointers\ refer\ to\ source\ and\ destination\ data\ respectively}}
+\DoxyCodeLine{00077\ \textcolor{comment}{//\ corresponding\ to\ the\ intermediate\ row\ (row\_start).}}
+\DoxyCodeLine{00078\ \textcolor{keywordtype}{void}\ VP8LInverseTransform(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_v_p8_l_transform}{VP8LTransform}}*\ \textcolor{keyword}{const}\ transform,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ row\_start,\ \textcolor{keywordtype}{int}\ row\_end,}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ in,\ uint32\_t*\ \textcolor{keyword}{const}\ out);}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{//\ Color\ space\ conversion.}}
+\DoxyCodeLine{00083\ \textcolor{keyword}{typedef}\ void\ (*VP8LConvertFunc)(\textcolor{keyword}{const}\ uint32\_t*\ src,\ \textcolor{keywordtype}{int}\ num\_pixels,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ dst);}
+\DoxyCodeLine{00085\ \textcolor{keyword}{extern}\ VP8LConvertFunc\ VP8LConvertBGRAToRGB;}
+\DoxyCodeLine{00086\ \textcolor{keyword}{extern}\ VP8LConvertFunc\ VP8LConvertBGRAToRGBA;}
+\DoxyCodeLine{00087\ \textcolor{keyword}{extern}\ VP8LConvertFunc\ VP8LConvertBGRAToRGBA4444;}
+\DoxyCodeLine{00088\ \textcolor{keyword}{extern}\ VP8LConvertFunc\ VP8LConvertBGRAToRGB565;}
+\DoxyCodeLine{00089\ \textcolor{keyword}{extern}\ VP8LConvertFunc\ VP8LConvertBGRAToBGR;}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{//\ Converts\ from\ BGRA\ to\ other\ color\ spaces.}}
+\DoxyCodeLine{00092\ \textcolor{keywordtype}{void}\ VP8LConvertFromBGRA(\textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ in\_data,\ \textcolor{keywordtype}{int}\ num\_pixels,}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WEBP\_CSP\_MODE\ out\_colorspace,\ uint8\_t*\ \textcolor{keyword}{const}\ rgba);}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{typedef}\ void\ (*VP8LMapARGBFunc)(\textcolor{keyword}{const}\ uint32\_t*\ src,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ color\_map,}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ dst,\ \textcolor{keywordtype}{int}\ y\_start,}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y\_end,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00099\ \textcolor{keyword}{typedef}\ void\ (*VP8LMapAlphaFunc)(\textcolor{keyword}{const}\ uint8\_t*\ src,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ color\_map,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ dst,\ \textcolor{keywordtype}{int}\ y\_start,}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ y\_end,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{keyword}{extern}\ VP8LMapARGBFunc\ VP8LMapColor32b;}
+\DoxyCodeLine{00105\ \textcolor{keyword}{extern}\ VP8LMapAlphaFunc\ VP8LMapColor8b;}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{comment}{//\ Similar\ to\ the\ static\ method\ ColorIndexInverseTransform()\ that\ is\ part\ of}}
+\DoxyCodeLine{00108\ \textcolor{comment}{//\ lossless.c,\ but\ used\ only\ for\ alpha\ decoding.\ It\ takes\ uint8\_t\ (rather\ than}}
+\DoxyCodeLine{00109\ \textcolor{comment}{//\ uint32\_t)\ arguments\ for\ 'src'\ and\ 'dst'.}}
+\DoxyCodeLine{00110\ \textcolor{keywordtype}{void}\ VP8LColorIndexInverseTransformAlpha(}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_v_p8_l_transform}{VP8LTransform}}*\ \textcolor{keyword}{const}\ transform,\ \textcolor{keywordtype}{int}\ y\_start,\ \textcolor{keywordtype}{int}\ y\_end,}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{comment}{//\ Expose\ some\ C-\/only\ fallback\ functions}}
+\DoxyCodeLine{00115\ \textcolor{keywordtype}{void}\ VP8LTransformColorInverse\_C(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_multipliers}{VP8LMultipliers}}*\ \textcolor{keyword}{const}\ m,}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ src,\ \textcolor{keywordtype}{int}\ num\_pixels,}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ dst);}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{keywordtype}{void}\ VP8LConvertBGRAToRGB\_C(\textcolor{keyword}{const}\ uint32\_t*\ src,\ \textcolor{keywordtype}{int}\ num\_pixels,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00120\ \textcolor{keywordtype}{void}\ VP8LConvertBGRAToRGBA\_C(\textcolor{keyword}{const}\ uint32\_t*\ src,\ \textcolor{keywordtype}{int}\ num\_pixels,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00121\ \textcolor{keywordtype}{void}\ VP8LConvertBGRAToRGBA4444\_C(\textcolor{keyword}{const}\ uint32\_t*\ src,}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ num\_pixels,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00123\ \textcolor{keywordtype}{void}\ VP8LConvertBGRAToRGB565\_C(\textcolor{keyword}{const}\ uint32\_t*\ src,}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ num\_pixels,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00125\ \textcolor{keywordtype}{void}\ VP8LConvertBGRAToBGR\_C(\textcolor{keyword}{const}\ uint32\_t*\ src,\ \textcolor{keywordtype}{int}\ num\_pixels,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00126\ \textcolor{keywordtype}{void}\ VP8LAddGreenToBlueAndRed\_C(\textcolor{keyword}{const}\ uint32\_t*\ src,\ \textcolor{keywordtype}{int}\ num\_pixels,}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ dst);}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{comment}{//\ Must\ be\ called\ before\ calling\ any\ of\ the\ above\ methods.}}
+\DoxyCodeLine{00130\ \textcolor{keywordtype}{void}\ VP8LDspInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00133\ \textcolor{comment}{//\ Encoding}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{keyword}{typedef}\ void\ (*VP8LProcessEncBlueAndRedFunc)(uint32\_t*\ dst,\ \textcolor{keywordtype}{int}\ num\_pixels);}
+\DoxyCodeLine{00136\ \textcolor{keyword}{extern}\ VP8LProcessEncBlueAndRedFunc\ VP8LSubtractGreenFromBlueAndRed;}
+\DoxyCodeLine{00137\ \textcolor{keyword}{typedef}\ void\ (*VP8LTransformColorFunc)(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_multipliers}{VP8LMultipliers}}*\ \textcolor{keyword}{const}\ m,}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ dst,\ \textcolor{keywordtype}{int}\ num\_pixels);}
+\DoxyCodeLine{00139\ \textcolor{keyword}{extern}\ VP8LTransformColorFunc\ VP8LTransformColor;}
+\DoxyCodeLine{00140\ \textcolor{keyword}{typedef}\ void\ (*VP8LCollectColorBlueTransformsFunc)(}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ argb,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{int}\ tile\_width,\ \textcolor{keywordtype}{int}\ tile\_height,}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keywordtype}{int}\ green\_to\_blue,\ \textcolor{keywordtype}{int}\ red\_to\_blue,\ \textcolor{keywordtype}{int}\ histo[]);}
+\DoxyCodeLine{00144\ \textcolor{keyword}{extern}\ VP8LCollectColorBlueTransformsFunc\ VP8LCollectColorBlueTransforms;}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{keyword}{typedef}\ void\ (*VP8LCollectColorRedTransformsFunc)(}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ argb,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordtype}{int}\ tile\_width,\ \textcolor{keywordtype}{int}\ tile\_height,}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordtype}{int}\ green\_to\_red,\ \textcolor{keywordtype}{int}\ histo[]);}
+\DoxyCodeLine{00150\ \textcolor{keyword}{extern}\ VP8LCollectColorRedTransformsFunc\ VP8LCollectColorRedTransforms;}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \textcolor{comment}{//\ Expose\ some\ C-\/only\ fallback\ functions}}
+\DoxyCodeLine{00153\ \textcolor{keywordtype}{void}\ VP8LTransformColor\_C(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_multipliers}{VP8LMultipliers}}*\ \textcolor{keyword}{const}\ m,}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{int}\ num\_pixels);}
+\DoxyCodeLine{00155\ \textcolor{keywordtype}{void}\ VP8LSubtractGreenFromBlueAndRed\_C(uint32\_t*\ argb\_data,\ \textcolor{keywordtype}{int}\ num\_pixels);}
+\DoxyCodeLine{00156\ \textcolor{keywordtype}{void}\ VP8LCollectColorRedTransforms\_C(\textcolor{keyword}{const}\ uint32\_t*\ argb,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ tile\_width,\ \textcolor{keywordtype}{int}\ tile\_height,}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ green\_to\_red,\ \textcolor{keywordtype}{int}\ histo[]);}
+\DoxyCodeLine{00159\ \textcolor{keywordtype}{void}\ VP8LCollectColorBlueTransforms\_C(\textcolor{keyword}{const}\ uint32\_t*\ argb,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ tile\_width,\ \textcolor{keywordtype}{int}\ tile\_height,}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ green\_to\_blue,\ \textcolor{keywordtype}{int}\ red\_to\_blue,}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ histo[]);}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{keyword}{extern}\ VP8LPredictorAddSubFunc\ VP8LPredictorsSub[16];}
+\DoxyCodeLine{00165\ \textcolor{keyword}{extern}\ VP8LPredictorAddSubFunc\ VP8LPredictorsSub\_C[16];}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00168\ \textcolor{comment}{//\ Huffman-\/cost\ related\ functions.}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{keyword}{typedef}\ double\ (*VP8LCostFunc)(\textcolor{keyword}{const}\ uint32\_t*\ population,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{00171\ \textcolor{keyword}{typedef}\ double\ (*VP8LCostCombinedFunc)(\textcolor{keyword}{const}\ uint32\_t*\ X,\ \textcolor{keyword}{const}\ uint32\_t*\ Y,}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{00173\ \textcolor{keyword}{typedef}\ float\ (*VP8LCombinedShannonEntropyFunc)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ X[256],}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ Y[256]);}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{keyword}{extern}\ VP8LCostFunc\ VP8LExtraCost;}
+\DoxyCodeLine{00177\ \textcolor{keyword}{extern}\ VP8LCostCombinedFunc\ VP8LExtraCostCombined;}
+\DoxyCodeLine{00178\ \textcolor{keyword}{extern}\ VP8LCombinedShannonEntropyFunc\ VP8LCombinedShannonEntropy;}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ small\ struct\ to\ hold\ counters}}
+\DoxyCodeLine{00181\ \ \ \textcolor{keywordtype}{int}\ counts[2];\ \ \ \ \ \ \ \ \textcolor{comment}{//\ index:\ 0=zero\ streak,\ 1=non-\/zero\ streak}}
+\DoxyCodeLine{00182\ \ \ \textcolor{keywordtype}{int}\ streaks[2][2];\ \ \ \ \textcolor{comment}{//\ [zero/non-\/zero][streak<3\ /\ streak>=3]}}
+\DoxyCodeLine{00183\ \}\ \mbox{\hyperlink{struct_v_p8_l_streaks}{VP8LStreaks}};}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ small\ struct\ to\ hold\ bit\ entropy\ results}}
+\DoxyCodeLine{00186\ \ \ \textcolor{keywordtype}{double}\ entropy;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ entropy}}
+\DoxyCodeLine{00187\ \ \ uint32\_t\ sum;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ sum\ of\ the\ population}}
+\DoxyCodeLine{00188\ \ \ \textcolor{keywordtype}{int}\ nonzeros;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ non-\/zero\ elements\ in\ the\ population}}
+\DoxyCodeLine{00189\ \ \ uint32\_t\ max\_val;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ maximum\ value\ in\ the\ population}}
+\DoxyCodeLine{00190\ \ \ uint32\_t\ nonzero\_code;\ \ \ \ \textcolor{comment}{//\ index\ of\ the\ last\ non-\/zero\ in\ the\ population}}
+\DoxyCodeLine{00191\ \}\ \mbox{\hyperlink{struct_v_p8_l_bit_entropy}{VP8LBitEntropy}};}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \textcolor{keywordtype}{void}\ VP8LBitEntropyInit(\mbox{\hyperlink{struct_v_p8_l_bit_entropy}{VP8LBitEntropy}}*\ \textcolor{keyword}{const}\ entropy);}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{comment}{//\ Get\ the\ combined\ symbol\ bit\ entropy\ and\ Huffman\ cost\ stats\ for\ the}}
+\DoxyCodeLine{00196\ \textcolor{comment}{//\ distributions\ 'X'\ and\ 'Y'.\ Those\ results\ can\ then\ be\ refined\ according\ to}}
+\DoxyCodeLine{00197\ \textcolor{comment}{//\ codec\ specific\ heuristics.}}
+\DoxyCodeLine{00198\ \textcolor{keyword}{typedef}\ void\ (*VP8LGetCombinedEntropyUnrefinedFunc)(}
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ X[],\ \textcolor{keyword}{const}\ uint32\_t\ Y[],\ \textcolor{keywordtype}{int}\ length,}
+\DoxyCodeLine{00200\ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_entropy}{VP8LBitEntropy}}*\ \textcolor{keyword}{const}\ bit\_entropy,\ \mbox{\hyperlink{struct_v_p8_l_streaks}{VP8LStreaks}}*\ \textcolor{keyword}{const}\ stats);}
+\DoxyCodeLine{00201\ \textcolor{keyword}{extern}\ VP8LGetCombinedEntropyUnrefinedFunc\ VP8LGetCombinedEntropyUnrefined;}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \textcolor{comment}{//\ Get\ the\ entropy\ for\ the\ distribution\ 'X'.}}
+\DoxyCodeLine{00204\ \textcolor{keyword}{typedef}\ void\ (*VP8LGetEntropyUnrefinedFunc)(\textcolor{keyword}{const}\ uint32\_t\ X[],\ \textcolor{keywordtype}{int}\ length,}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_entropy}{VP8LBitEntropy}}*\ \textcolor{keyword}{const}\ bit\_entropy,}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_streaks}{VP8LStreaks}}*\ \textcolor{keyword}{const}\ stats);}
+\DoxyCodeLine{00207\ \textcolor{keyword}{extern}\ VP8LGetEntropyUnrefinedFunc\ VP8LGetEntropyUnrefined;}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \textcolor{keywordtype}{void}\ VP8LBitsEntropyUnrefined(\textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ array,\ \textcolor{keywordtype}{int}\ n,}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_entropy}{VP8LBitEntropy}}*\ \textcolor{keyword}{const}\ entropy);}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \textcolor{keyword}{typedef}\ void\ (*VP8LAddVectorFunc)(\textcolor{keyword}{const}\ uint32\_t*\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ uint32\_t*\ b,}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ out,\ \textcolor{keywordtype}{int}\ size);}
+\DoxyCodeLine{00214\ \textcolor{keyword}{extern}\ VP8LAddVectorFunc\ VP8LAddVector;}
+\DoxyCodeLine{00215\ \textcolor{keyword}{typedef}\ void\ (*VP8LAddVectorEqFunc)(\textcolor{keyword}{const}\ uint32\_t*\ \mbox{\hyperlink{structa}{a}},\ uint32\_t*\ out,\ \textcolor{keywordtype}{int}\ size);}
+\DoxyCodeLine{00216\ \textcolor{keyword}{extern}\ VP8LAddVectorEqFunc\ VP8LAddVectorEq;}
+\DoxyCodeLine{00217\ \textcolor{keywordtype}{void}\ VP8LHistogramAdd(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ b,}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ out);}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00222\ \textcolor{comment}{//\ PrefixEncode()}}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \textcolor{keyword}{typedef}\ int\ (*VP8LVectorMismatchFunc)(\textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ array1,}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ array2,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{00226\ \textcolor{comment}{//\ Returns\ the\ first\ index\ where\ array1\ and\ array2\ are\ different.}}
+\DoxyCodeLine{00227\ \textcolor{keyword}{extern}\ VP8LVectorMismatchFunc\ VP8LVectorMismatch;}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{keyword}{typedef}\ void\ (*VP8LBundleColorMapFunc)(\textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ row,\ \textcolor{keywordtype}{int}\ width,}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ xbits,\ uint32\_t*\ dst);}
+\DoxyCodeLine{00231\ \textcolor{keyword}{extern}\ VP8LBundleColorMapFunc\ VP8LBundleColorMap;}
+\DoxyCodeLine{00232\ \textcolor{keywordtype}{void}\ VP8LBundleColorMap\_C(\textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ row,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ xbits,}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ dst);}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \textcolor{comment}{//\ Must\ be\ called\ before\ calling\ any\ of\ the\ above\ methods.}}
+\DoxyCodeLine{00236\ \textcolor{keywordtype}{void}\ VP8LEncDspInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00241\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DSP\_LOSSLESS\_H\_}}
+
+\end{DoxyCode}

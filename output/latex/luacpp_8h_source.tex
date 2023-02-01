@@ -1,0 +1,148 @@
+\hypertarget{luacpp_8h_source}{}\doxysection{luacpp.\+h}
+\label{luacpp_8h_source}\index{AseSprite/aseprite/src/app/script/luacpp.h@{AseSprite/aseprite/src/app/script/luacpp.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2019\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_SCRIPT\_LUACPP\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_SCRIPT\_LUACPP\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\ \ \#include\ "{}lua.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\ \ \#include\ "{}lualib.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\ \ \#include\ "{}lauxlib.h"{}}}
+\DoxyCodeLine{00016\ \}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}base/debug.h"{}}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <type\_traits>}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00024\ \textcolor{keyword}{namespace\ }script\ \{}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#if\ LUA\_TNONE\ !=\ -\/1}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \#error\ Invalid\ LUA\_TNONE\ value}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#if\ LUA\_TNIL\ !=\ 0}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \#error\ Invalid\ LUA\_TNIL\ value}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ VALID\_LUATYPE(type)\ ((type)\ >\ 0)}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{//\ Some\ of\ these\ auxiliary\ methods\ are\ based\ on\ code\ from\ the\ Skia}}
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ library\ (SkLua.cpp\ file)\ by\ Google\ Inc.}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ get\_mtname();}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ DEF\_MTNAME(T)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ template\ <>\ const\ char*\ get\_mtname<T>()\ \{\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\ \ \ \ return\ \#T;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ \}}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ DEF\_MTNAME\_ALIAS(T,\ ALIAS)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \ template\ <>\ const\ char*\ get\_mtname<ALIAS>()\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \ \ \ return\ \#T;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\ \ \}}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}...\ Args>\ T*\ push\_new(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00049\ \ \ T*\ addr\ =\ (T*)lua\_newuserdata(L,\ \textcolor{keyword}{sizeof}(T));}
+\DoxyCodeLine{00050\ \ \ \textcolor{keyword}{new}\ (addr)\ T(std::forward<Args>(args)...);}
+\DoxyCodeLine{00051\ \ \ luaL\_getmetatable(L,\ get\_mtname<T>());}
+\DoxyCodeLine{00052\ \ \ lua\_setmetatable(L,\ -\/2);}
+\DoxyCodeLine{00053\ \ \ \textcolor{keywordflow}{return}\ addr;}
+\DoxyCodeLine{00054\ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keywordtype}{void}\ push\_obj(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keyword}{const}\ T\&\ obj)\ \{}
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{new}\ (lua\_newuserdata(L,\ \textcolor{keyword}{sizeof}(T)))\ T(obj);}
+\DoxyCodeLine{00058\ \ \ luaL\_getmetatable(L,\ get\_mtname<T>());}
+\DoxyCodeLine{00059\ \ \ lua\_setmetatable(L,\ -\/2);}
+\DoxyCodeLine{00060\ \}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ T*\ push\_ptr(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ T*\ ptr)\ \{}
+\DoxyCodeLine{00063\ \ \ *(T**)lua\_newuserdata(L,\ \textcolor{keyword}{sizeof}(T*))\ =\ ptr;}
+\DoxyCodeLine{00064\ \ \ luaL\_getmetatable(L,\ get\_mtname<T>());}
+\DoxyCodeLine{00065\ \ \ lua\_setmetatable(L,\ -\/2);}
+\DoxyCodeLine{00066\ \ \ \textcolor{keywordflow}{return}\ ptr;}
+\DoxyCodeLine{00067\ \}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ T*\ get\_ptr(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keywordtype}{int}\ index)\ \{}
+\DoxyCodeLine{00070\ \ \ \textcolor{keywordflow}{return}\ *(T**)luaL\_checkudata(L,\ index,\ get\_mtname<T>());}
+\DoxyCodeLine{00071\ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ T*\ get\_obj(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keywordtype}{int}\ index)\ \{}
+\DoxyCodeLine{00074\ \ \ T*\ ptr\ =\ (T*)luaL\_checkudata(L,\ index,\ get\_mtname<T>());}
+\DoxyCodeLine{00075\ \ \ ASSERT(\textcolor{keyword}{typeid}(*ptr)\ ==\ \textcolor{keyword}{typeid}(T));}
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordflow}{return}\ ptr;}
+\DoxyCodeLine{00077\ \}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{//\ Returns\ nil\ if\ the\ index\ doesn't\ have\ the\ given\ metatable}}
+\DoxyCodeLine{00080\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ T*\ may\_get\_ptr(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keywordtype}{int}\ index)\ \{}
+\DoxyCodeLine{00081\ \ \ T**\ ptr\ =\ (T**)luaL\_testudata(L,\ index,\ get\_mtname<T>());}
+\DoxyCodeLine{00082\ \ \ \textcolor{keywordflow}{if}\ (ptr)\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ ASSERT(\textcolor{keyword}{typeid}(**ptr)\ ==\ \textcolor{keyword}{typeid}(T));}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordflow}{return}\ *ptr;}
+\DoxyCodeLine{00085\ \ \ \}}
+\DoxyCodeLine{00086\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00088\ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{//\ Returns\ nil\ if\ the\ index\ doesn't\ have\ the\ given\ metatable}}
+\DoxyCodeLine{00091\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ T*\ may\_get\_obj(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keywordtype}{int}\ index)\ \{}
+\DoxyCodeLine{00092\ \ \ \textcolor{keywordflow}{return}\ (T*)luaL\_testudata(L,\ index,\ get\_mtname<T>());}
+\DoxyCodeLine{00093\ \}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ lua2bool(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keywordtype}{int}\ index)\ \{}
+\DoxyCodeLine{00096\ \ \ \textcolor{keywordflow}{return}\ !!lua\_toboolean(L,\ index);}
+\DoxyCodeLine{00097\ \}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00100\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ setfield\_integer(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ key,\ \textcolor{keyword}{const}\ T\&\ \mbox{\hyperlink{classvalue}{value}})\ \{}
+\DoxyCodeLine{00101\ \ \ lua\_pushinteger(L,\ \textcolor{keywordtype}{int}(\mbox{\hyperlink{classvalue}{value}}));}
+\DoxyCodeLine{00102\ \ \ lua\_setfield(L,\ -\/2,\ key);}
+\DoxyCodeLine{00103\ \}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ REG\_CLASS(L,\ T)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ luaL\_newmetatable(L,\ get\_mtname<T>());\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\ \ \ \ lua\_getglobal(L,\ "{}\_\_generic\_mt\_index"{}});\ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00108\ \ \ \ \ lua\_setfield(L,\ -\/2,\ "{}\_\_index"{});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00109\ \ \ \ \ lua\_getglobal(L,\ "{}\_\_generic\_mt\_newindex"{});\ \ \ \(\backslash\)}
+\DoxyCodeLine{00110\ \ \ \ \ lua\_setfield(L,\ -\/2,\ "{}\_\_newindex"{});\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00111\ \ \ \ \ luaL\_setfuncs(L,\ T\#\#\_methods,\ 0);\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00112\ \ \ \ \ lua\_pop(L,\ 1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00113\ \ \ \}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ REG\_CLASS\_NEW(L,\ T)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\ \ \ \ lua\_pushcfunction(L,\ T\#\#\_new);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\ \ \ \ lua\_setglobal(L,\ \#T);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\ \ \}}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structapp_1_1script_1_1_property}{Property}}\ \{}
+\DoxyCodeLine{00121\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name;}
+\DoxyCodeLine{00122\ \ \ lua\_CFunction\ getter;}
+\DoxyCodeLine{00123\ \ \ lua\_CFunction\ setter;}
+\DoxyCodeLine{00124\ \};}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{keywordtype}{void}\ run\_mt\_index\_code(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L);}
+\DoxyCodeLine{00127\ \textcolor{keywordtype}{void}\ create\_mt\_getters\_setters(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ tname,}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1script_1_1_property}{Property}}*\ properties);}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{keywordtype}{bool}\ lua\_is\_key\_true(\mbox{\hyperlink{structlua___state}{lua\_State}}*\ L,\ \textcolor{keywordtype}{int}\ tableIndex,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ keyName);}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ REG\_CLASS\_PROPERTIES(L,\ T)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\ \ \ \ luaL\_getmetatable(L,\ get\_mtname<T>());\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\ \ \ \ create\_mt\_getters\_setters(L,\ get\_mtname<T>(),\ T\#\#\_properties);\ \ \(\backslash\)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\ \ \ \ lua\_pop(L,\ 1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\ \ \}}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \}\ \textcolor{comment}{//\ namespace\ script}}
+\DoxyCodeLine{00140\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

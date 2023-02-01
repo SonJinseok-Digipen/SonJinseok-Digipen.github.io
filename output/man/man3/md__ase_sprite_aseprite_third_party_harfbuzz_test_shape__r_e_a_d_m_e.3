@@ -1,0 +1,43 @@
+.TH "md__ase_sprite_aseprite_third_party_harfbuzz_test_shape__r_e_a_d_m_e" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_harfbuzz_test_shape__r_e_a_d_m_e \- Adding tests 
+.PP
+You can test shaping of a unicode sequence against a font like this: 
+.PP
+.nf
+$ \&./hb\-unicode\-encode 41 42 43 627 | \&.\&./\&.\&./util/hb\-shape font\&.ttf
+
+.fi
+.PP
+ assuming an in-tree build\&. The 41 42 43 627 here is a sequence of Unicode codepoints: U+0041,0042,0043,0627\&. When you are happy with the shape results, you can use the \fCrecord-test\&.sh\fP script to add this to the test suite\&. \fCrecord-test\&.sh\fP requires \fCpyftsubset\fP to be installed\&. You can get \fCpyftsubset\fP by installing FontTools from https://github.com/behdad/fonttools\&.
+.PP
+To use \fCrecord-test\&.sh\fP, just put it right before the \fChb-shape\fP invocation: 
+.PP
+.nf
+$ \&./hb\-unicode\-encode 41 42 43 627 | \&./record\-test\&.sh \&.\&./\&.\&./util/hb\-shape font\&.ttf
+
+.fi
+.PP
+ what this does is:
+.IP "\(bu" 2
+Subset the font for the sequence of Unicode characters requested,
+.IP "\(bu" 2
+Compare the \fChb-shape\fP output of the original font versus the subset font for the input sequence,
+.IP "\(bu" 2
+If the outputs differ, perhaps it is because the font does not have glyph names; it then compares the output of \fChb-view\fP for both fonts\&.
+.IP "\(bu" 2
+If the outputs differ, recording fails\&. Otherwise, it will move the subset font file into \fCdata/in-house/fonts\fP and name it after its hash, and print out the test case input, which you can then redirect to an existing or new test file in \fCdata/in-house/tests\fP using \fC-o\fP, e\&.g\&.: 
+.PP
+.nf
+$ \&./hb\-unicode\-encode 41 42 43 627 | \&./record\-test\&.sh \-o data/in\-house/tests/test\-name\&.test \&.\&./\&.\&./util/hb\-shape font\&.ttf
+
+.fi
+.PP
+
+.PP
+.PP
+If you created a new test file, add it to \fCdata/in-house/Makefile\&.sources\fP so it is run\&. Check that \fCmake check\fP does indeed run it, and that the test passes\&. When everything looks good, \fCgit add\fP the new font as well as the new test file if you created any\&. You can see what new files are there by running \fCgit status data/in-house\fP\&. And commit!
+.PP
+\fINote!\fP Please only add tests using Open Source fonts, preferably under OFL or similar license\&. 

@@ -1,0 +1,216 @@
+\hypertarget{fs__win32_8h_source}{}\doxysection{fs\+\_\+win32.\+h}
+\label{fs__win32_8h_source}\index{AseSprite/aseprite/laf/base/fs\_win32.h@{AseSprite/aseprite/laf/base/fs\_win32.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ Base\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2020\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (c)\ 2001-\/2018\ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <stdexcept>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <windows.h>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <shlobj.h>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}base/paths.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}base/string.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}base/time.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}base/version.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}base/win/win32\_exception.h"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }base\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keywordtype}{bool}\ is\_file(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00022\ \{}
+\DoxyCodeLine{00023\ \ \ DWORD\ attr\ =\ ::GetFileAttributes(from\_utf8(path).c\_str());}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \textcolor{comment}{//\ GetFileAttributes\ returns\ INVALID\_FILE\_ATTRIBUTES\ in\ case\ of}}
+\DoxyCodeLine{00026\ \ \ \textcolor{comment}{//\ fail.}}
+\DoxyCodeLine{00027\ \ \ \textcolor{keywordflow}{return}\ ((attr\ !=\ INVALID\_FILE\_ATTRIBUTES)\ \&\&}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \ \ !(attr\ \&\ FILE\_ATTRIBUTE\_DIRECTORY));}
+\DoxyCodeLine{00029\ \}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keywordtype}{bool}\ is\_directory(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00032\ \{}
+\DoxyCodeLine{00033\ \ \ DWORD\ attr\ =\ ::GetFileAttributes(from\_utf8(path).c\_str());}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \textcolor{keywordflow}{return}\ ((attr\ !=\ INVALID\_FILE\_ATTRIBUTES)\ \&\&}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ ((attr\ \&\ FILE\_ATTRIBUTE\_DIRECTORY)\ ==\ FILE\_ATTRIBUTE\_DIRECTORY));}
+\DoxyCodeLine{00037\ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keywordtype}{size\_t}\ file\_size(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00040\ \{}
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{struct\ }\_stat\ sts;}
+\DoxyCodeLine{00042\ \ \ \textcolor{keywordflow}{return}\ (\_wstat(from\_utf8(path).c\_str(),\ \&sts)\ ==\ 0)\ ?\ sts.st\_size:\ 0;}
+\DoxyCodeLine{00043\ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \textcolor{keywordtype}{void}\ move\_file(\textcolor{keyword}{const}\ std::string\&\ src,\ \textcolor{keyword}{const}\ std::string\&\ dst)}
+\DoxyCodeLine{00046\ \{}
+\DoxyCodeLine{00047\ \ \ BOOL\ result\ =\ ::MoveFile(from\_utf8(src).c\_str(),\ from\_utf8(dst).c\_str());}
+\DoxyCodeLine{00048\ \ \ \textcolor{keywordflow}{if}\ (result\ ==\ 0)}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keywordflow}{throw}\ Win32Exception(\textcolor{stringliteral}{"{}Error\ moving\ file"{}});}
+\DoxyCodeLine{00050\ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keywordtype}{void}\ copy\_file(\textcolor{keyword}{const}\ std::string\&\ src,\ \textcolor{keyword}{const}\ std::string\&\ dst,\ \textcolor{keywordtype}{bool}\ overwrite)}
+\DoxyCodeLine{00053\ \{}
+\DoxyCodeLine{00054\ \ \ BOOL\ result\ =\ ::CopyFile(from\_utf8(src).c\_str(),\ from\_utf8(dst).c\_str(),\ !overwrite);}
+\DoxyCodeLine{00055\ \ \ \textcolor{keywordflow}{if}\ (result\ ==\ 0)}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordflow}{throw}\ Win32Exception(\textcolor{stringliteral}{"{}Error\ copying\ file"{}});}
+\DoxyCodeLine{00057\ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{keywordtype}{void}\ delete\_file(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00060\ \{}
+\DoxyCodeLine{00061\ \ \ BOOL\ result\ =\ ::DeleteFile(from\_utf8(path).c\_str());}
+\DoxyCodeLine{00062\ \ \ \textcolor{keywordflow}{if}\ (result\ ==\ 0)}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordflow}{throw}\ Win32Exception(\textcolor{stringliteral}{"{}Error\ deleting\ file"{}});}
+\DoxyCodeLine{00064\ \}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keywordtype}{bool}\ has\_readonly\_attr(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00067\ \{}
+\DoxyCodeLine{00068\ \ \ DWORD\ attr\ =\ ::GetFileAttributes(from\_utf8(path).c\_str());}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \textcolor{keywordflow}{return}\ ((attr\ !=\ INVALID\_FILE\_ATTRIBUTES)\ \&\&}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ ((attr\ \&\ FILE\_ATTRIBUTE\_READONLY)\ ==\ FILE\_ATTRIBUTE\_READONLY));}
+\DoxyCodeLine{00072\ \}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{keywordtype}{void}\ remove\_readonly\_attr(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00075\ \{}
+\DoxyCodeLine{00076\ \ \ std::wstring\ fn\ =\ from\_utf8(path);}
+\DoxyCodeLine{00077\ \ \ DWORD\ attr\ =\ ::GetFileAttributes(fn.c\_str());}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \textcolor{keywordflow}{if}\ ((attr\ !=\ INVALID\_FILE\_ATTRIBUTES)\ \&\&}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ (attr\ \&\ FILE\_ATTRIBUTE\_READONLY)\ ==\ FILE\_ATTRIBUTE\_READONLY)\ \{}
+\DoxyCodeLine{00081\ \ \ \ \ ::SetFileAttributes(fn.c\_str(),\ attr\ \&\ \string~FILE\_ATTRIBUTE\_READONLY);}
+\DoxyCodeLine{00082\ \ \ \}}
+\DoxyCodeLine{00083\ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ Time\ get\_modification\_time(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00086\ \{}
+\DoxyCodeLine{00087\ \ \ WIN32\_FILE\_ATTRIBUTE\_DATA\ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00088\ \ \ ZeroMemory(\&\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{structdata}{data}}));}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ std::wstring\ fn\ =\ from\_utf8(path);}
+\DoxyCodeLine{00091\ \ \ \textcolor{keywordflow}{if}\ (!GetFileAttributesEx(fn.c\_str(),\ GetFileExInfoStandard,\ (LPVOID)\&\mbox{\hyperlink{structdata}{data}}))}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordflow}{return}\ Time();}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ SYSTEMTIME\ utc,\ local;}
+\DoxyCodeLine{00095\ \ \ FileTimeToSystemTime(\&\mbox{\hyperlink{structdata}{data}}.ftLastWriteTime,\ \&utc);}
+\DoxyCodeLine{00096\ \ \ SystemTimeToTzSpecificLocalTime(NULL,\ \&utc,\ \&local);}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordflow}{return}\ Time(}
+\DoxyCodeLine{00099\ \ \ \ \ local.wYear,\ local.wMonth,\ local.wDay,}
+\DoxyCodeLine{00100\ \ \ \ \ local.wHour,\ local.wMinute,\ local.wSecond);}
+\DoxyCodeLine{00101\ \}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keywordtype}{void}\ make\_directory(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00104\ \{}
+\DoxyCodeLine{00105\ \ \ BOOL\ result\ =\ ::CreateDirectory(from\_utf8(path).c\_str(),\ NULL);}
+\DoxyCodeLine{00106\ \ \ \textcolor{keywordflow}{if}\ (result\ ==\ 0)}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordflow}{throw}\ Win32Exception(\textcolor{stringliteral}{"{}Error\ creating\ directory"{}});}
+\DoxyCodeLine{00108\ \}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{keywordtype}{void}\ remove\_directory(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00111\ \{}
+\DoxyCodeLine{00112\ \ \ BOOL\ result\ =\ ::RemoveDirectory(from\_utf8(path).c\_str());}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordflow}{if}\ (result\ ==\ 0)}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordflow}{throw}\ Win32Exception(\textcolor{stringliteral}{"{}Error\ removing\ directory"{}});}
+\DoxyCodeLine{00115\ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ std::string\ get\_current\_path()}
+\DoxyCodeLine{00118\ \{}
+\DoxyCodeLine{00119\ \ \ TCHAR\ \mbox{\hyperlink{classbuffer}{buffer}}[MAX\_PATH+1];}
+\DoxyCodeLine{00120\ \ \ \textcolor{keywordflow}{if}\ (::GetCurrentDirectory(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{classbuffer}{buffer}})/\textcolor{keyword}{sizeof}(TCHAR),\ \mbox{\hyperlink{classbuffer}{buffer}}))}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordflow}{return}\ to\_utf8(\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00122\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{00124\ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ std::string\ get\_app\_path()}
+\DoxyCodeLine{00127\ \{}
+\DoxyCodeLine{00128\ \ \ TCHAR\ \mbox{\hyperlink{classbuffer}{buffer}}[MAX\_PATH+1];}
+\DoxyCodeLine{00129\ \ \ \textcolor{keywordflow}{if}\ (::GetModuleFileName(NULL,\ \mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{classbuffer}{buffer}})/\textcolor{keyword}{sizeof}(TCHAR)))}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordflow}{return}\ to\_utf8(\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00131\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{00133\ \}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ std::string\ get\_temp\_path()}
+\DoxyCodeLine{00136\ \{}
+\DoxyCodeLine{00137\ \ \ TCHAR\ \mbox{\hyperlink{classbuffer}{buffer}}[MAX\_PATH+1];}
+\DoxyCodeLine{00138\ \ \ DWORD\ result\ =\ ::GetTempPath(\textcolor{keyword}{sizeof}(\mbox{\hyperlink{classbuffer}{buffer}})/\textcolor{keyword}{sizeof}(TCHAR),\ \mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00139\ \ \ \textcolor{keywordflow}{return}\ to\_utf8(\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00140\ \}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ std::string\ get\_user\_docs\_folder()}
+\DoxyCodeLine{00143\ \{}
+\DoxyCodeLine{00144\ \ \ TCHAR\ \mbox{\hyperlink{classbuffer}{buffer}}[MAX\_PATH+1];}
+\DoxyCodeLine{00145\ \ \ HRESULT\ hr\ =\ SHGetFolderPath(}
+\DoxyCodeLine{00146\ \ \ \ \ NULL,\ CSIDL\_MYDOCUMENTS,\ NULL,\ SHGFP\_TYPE\_CURRENT,}
+\DoxyCodeLine{00147\ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00148\ \ \ \textcolor{keywordflow}{if}\ (hr\ ==\ S\_OK)}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordflow}{return}\ to\_utf8(\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00150\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}"{}};}
+\DoxyCodeLine{00152\ \}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ std::string\ get\_canonical\_path(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00155\ \{}
+\DoxyCodeLine{00156\ \ \ TCHAR\ \mbox{\hyperlink{classbuffer}{buffer}}[MAX\_PATH+1];}
+\DoxyCodeLine{00157\ \ \ GetFullPathName(}
+\DoxyCodeLine{00158\ \ \ \ \ from\_utf8(path).c\_str(),}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keyword}{sizeof}(\mbox{\hyperlink{classbuffer}{buffer}})/\textcolor{keyword}{sizeof}(TCHAR),}
+\DoxyCodeLine{00160\ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00162\ \ \ \textcolor{keywordflow}{return}\ to\_utf8(\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00163\ \}}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ paths\ list\_files(\textcolor{keyword}{const}\ std::string\&\ path)}
+\DoxyCodeLine{00166\ \{}
+\DoxyCodeLine{00167\ \ \ WIN32\_FIND\_DATA\ fd;}
+\DoxyCodeLine{00168\ \ \ paths\ \mbox{\hyperlink{structfiles}{files}};}
+\DoxyCodeLine{00169\ \ \ HANDLE\ handle\ =\ FindFirstFile(base::from\_utf8(base::join\_path(path,\ \textcolor{stringliteral}{"{}*"{}})).c\_str(),\ \&fd);}
+\DoxyCodeLine{00170\ \ \ \textcolor{keywordflow}{if}\ (handle)\ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordflow}{do}\ \{}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ std::string\ filename\ =\ base::to\_utf8(fd.cFileName);}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (filename\ !=\ \textcolor{stringliteral}{"{}."{}}\ \&\&\ filename\ !=\ \textcolor{stringliteral}{"{}.."{}})}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structfiles}{files}}.push\_back(filename);}
+\DoxyCodeLine{00175\ \ \ \ \ \}\ \textcolor{keywordflow}{while}\ (FindNextFile(handle,\ \&fd));}
+\DoxyCodeLine{00176\ \ \ \ \ FindClose(handle);}
+\DoxyCodeLine{00177\ \ \ \}}
+\DoxyCodeLine{00178\ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structfiles}{files}};}
+\DoxyCodeLine{00179\ \}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ Version\ get\_file\_version(\textcolor{keyword}{const}\ std::string\&\ filename)}
+\DoxyCodeLine{00182\ \{}
+\DoxyCodeLine{00183\ \ \ \textcolor{keywordflow}{return}\ get\_file\_version(from\_utf8(filename).c\_str());}
+\DoxyCodeLine{00184\ \}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ Version\ get\_file\_version(\textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}*\ filename)}
+\DoxyCodeLine{00187\ \{}
+\DoxyCodeLine{00188\ \ \ DWORD\ handle;\ \textcolor{comment}{//\ From\ MS\ docs,\ this\ is\ set\ to\ zero\ by\ GetFileVersionInfoSizeW()}}
+\DoxyCodeLine{00189\ \ \ DWORD\ size\ =\ GetFileVersionInfoSizeW(filename,\ \&handle);}
+\DoxyCodeLine{00190\ \ \ \textcolor{keywordflow}{if}\ (size\ ==\ 0)}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordflow}{return}\ Version();}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \textcolor{comment}{//\ The\ second\ param\ of\ GetFileVersionInfoW()\ is\ ignored,\ so\ we\ pass\ just\ 0}}
+\DoxyCodeLine{00194\ \ \ std::vector<uint8\_t>\ \mbox{\hyperlink{structdata}{data}}(size);}
+\DoxyCodeLine{00195\ \ \ \textcolor{keywordflow}{if}\ (!GetFileVersionInfoW(filename,\ 0,\ size,\ \&\mbox{\hyperlink{structdata}{data}}[0]))}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{keywordflow}{return}\ Version();}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ VS\_FIXEDFILEINFO*\ fi\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00199\ \ \ UINT\ fiLen\ =\ 0;}
+\DoxyCodeLine{00200\ \ \ \textcolor{keywordflow}{if}\ (!VerQueryValueW(\&\mbox{\hyperlink{structdata}{data}}[0],\ L\textcolor{stringliteral}{"{}\(\backslash\)\(\backslash\)"{}},\ (LPVOID*)\&fi,\ \&fiLen)\ ||}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ fiLen\ <\ \textcolor{keyword}{sizeof}(VS\_FIXEDFILEINFO)\ ||}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ fi-\/>dwSignature\ !=\ 0xfeef04bd)\ \{}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keywordflow}{return}\ Version();}
+\DoxyCodeLine{00204\ \ \ \}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ \textcolor{keywordflow}{return}\ Version(fi-\/>dwFileVersionMS\ >>\ 16,\ fi-\/>dwFileVersionMS\ \&\ 0xffff,}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fi-\/>dwFileVersionLS\ >>\ 16,\ fi-\/>dwFileVersionLS\ \&\ 0xffff);}
+\DoxyCodeLine{00208\ \}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \}}
+
+\end{DoxyCode}

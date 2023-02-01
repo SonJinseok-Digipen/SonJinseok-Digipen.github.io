@@ -1,0 +1,134 @@
+\hypertarget{histogram__enc_8h_source}{}\doxysection{histogram\+\_\+enc.\+h}
+\label{histogram__enc_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/enc/histogram\_enc.h@{AseSprite/aseprite/third\_party/libwebp/src/enc/histogram\_enc.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Author:\ Jyrki\ Alakuijala\ (jyrki@google.com)}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Models\ the\ histograms\ of\ literal\ and\ distance\ codes.}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_ENC\_HISTOGRAM\_ENC\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_ENC\_HISTOGRAM\_ENC\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}src/enc/backward\_references\_enc.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}src/webp/format\_constants.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00024\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ Not\ a\ trivial\ literal\ symbol.}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ VP8L\_NON\_TRIVIAL\_SYM\ (0xffffffff)}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ A\ simple\ container\ for\ histograms\ of\ data.}}
+\DoxyCodeLine{00031\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00032\ \ \ \textcolor{comment}{//\ literal\_\ contains\ green\ literal,\ palette-\/code\ and}}
+\DoxyCodeLine{00033\ \ \ \textcolor{comment}{//\ copy-\/length-\/prefix\ histogram}}
+\DoxyCodeLine{00034\ \ \ uint32\_t*\ literal\_;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Pointer\ to\ the\ allocated\ buffer\ for\ literal.}}
+\DoxyCodeLine{00035\ \ \ uint32\_t\ red\_[NUM\_LITERAL\_CODES];}
+\DoxyCodeLine{00036\ \ \ uint32\_t\ blue\_[NUM\_LITERAL\_CODES];}
+\DoxyCodeLine{00037\ \ \ uint32\_t\ alpha\_[NUM\_LITERAL\_CODES];}
+\DoxyCodeLine{00038\ \ \ \textcolor{comment}{//\ Backward\ reference\ prefix-\/code\ histogram.}}
+\DoxyCodeLine{00039\ \ \ uint32\_t\ distance\_[NUM\_DISTANCE\_CODES];}
+\DoxyCodeLine{00040\ \ \ \textcolor{keywordtype}{int}\ palette\_code\_bits\_;}
+\DoxyCodeLine{00041\ \ \ uint32\_t\ trivial\_symbol\_;\ \ \textcolor{comment}{//\ True,\ if\ histograms\ for\ Red,\ Blue\ \&\ Alpha}}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ literal\ symbols\ are\ single\ valued.}}
+\DoxyCodeLine{00043\ \ \ \textcolor{keywordtype}{double}\ bit\_cost\_;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ cached\ value\ of\ bit\ cost.}}
+\DoxyCodeLine{00044\ \ \ \textcolor{keywordtype}{double}\ literal\_cost\_;\ \ \ \ \ \ \textcolor{comment}{//\ Cached\ values\ of\ dominant\ entropy\ costs:}}
+\DoxyCodeLine{00045\ \ \ \textcolor{keywordtype}{double}\ red\_cost\_;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ literal,\ red\ \&\ blue.}}
+\DoxyCodeLine{00046\ \ \ \textcolor{keywordtype}{double}\ blue\_cost\_;}
+\DoxyCodeLine{00047\ \ \ uint8\_t\ is\_used\_[5];\ \ \ \ \ \ \ \textcolor{comment}{//\ 5\ for\ literal,\ red,\ blue,\ alpha,\ distance}}
+\DoxyCodeLine{00048\ \}\ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}};}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ Collection\ of\ histograms\ with\ fixed\ capacity,\ allocated\ as\ one}}
+\DoxyCodeLine{00051\ \textcolor{comment}{//\ big\ memory\ chunk.\ Can\ be\ destroyed\ by\ calling\ WebPSafeFree().}}
+\DoxyCodeLine{00052\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00053\ \ \ \textcolor{keywordtype}{int}\ size;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ slots\ currently\ in\ use}}
+\DoxyCodeLine{00054\ \ \ \textcolor{keywordtype}{int}\ max\_size;\ \ \ \ \ \textcolor{comment}{//\ maximum\ capacity}}
+\DoxyCodeLine{00055\ \ \ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}**\ histograms;}
+\DoxyCodeLine{00056\ \}\ \mbox{\hyperlink{struct_v_p8_l_histogram_set}{VP8LHistogramSet}};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ Create\ the\ histogram.}}
+\DoxyCodeLine{00059\ \textcolor{comment}{//}}
+\DoxyCodeLine{00060\ \textcolor{comment}{//\ The\ input\ data\ is\ the\ PixOrCopy\ data,\ which\ models\ the\ literals,\ stop}}
+\DoxyCodeLine{00061\ \textcolor{comment}{//\ codes\ and\ backward\ references\ (both\ distances\ and\ lengths).\ \ Also:\ if}}
+\DoxyCodeLine{00062\ \textcolor{comment}{//\ palette\_code\_bits\ is\ >=\ 0,\ initialize\ the\ histogram\ with\ this\ value.}}
+\DoxyCodeLine{00063\ \textcolor{keywordtype}{void}\ VP8LHistogramCreate(\mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ p,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}*\ \textcolor{keyword}{const}\ refs,}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ palette\_code\_bits);}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{//\ Return\ the\ size\ of\ the\ histogram\ for\ a\ given\ cache\_bits.}}
+\DoxyCodeLine{00068\ \textcolor{keywordtype}{int}\ VP8LGetHistogramSize(\textcolor{keywordtype}{int}\ cache\_bits);}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//\ Set\ the\ palette\_code\_bits\ and\ reset\ the\ stats.}}
+\DoxyCodeLine{00071\ \textcolor{comment}{//\ If\ init\_arrays\ is\ true,\ the\ arrays\ are\ also\ filled\ with\ 0's.}}
+\DoxyCodeLine{00072\ \textcolor{keywordtype}{void}\ VP8LHistogramInit(\mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ p,\ \textcolor{keywordtype}{int}\ palette\_code\_bits,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ init\_arrays);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{comment}{//\ Collect\ all\ the\ references\ into\ a\ histogram\ (without\ reset)}}
+\DoxyCodeLine{00076\ \textcolor{keywordtype}{void}\ VP8LHistogramStoreRefs(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}*\ \textcolor{keyword}{const}\ refs,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ histo);}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{//\ Free\ the\ memory\ allocated\ for\ the\ histogram.}}
+\DoxyCodeLine{00080\ \textcolor{keywordtype}{void}\ VP8LFreeHistogram(\mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ histo);}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{//\ Free\ the\ memory\ allocated\ for\ the\ histogram\ set.}}
+\DoxyCodeLine{00083\ \textcolor{keywordtype}{void}\ VP8LFreeHistogramSet(\mbox{\hyperlink{struct_v_p8_l_histogram_set}{VP8LHistogramSet}}*\ \textcolor{keyword}{const}\ histo);}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{comment}{//\ Allocate\ an\ array\ of\ pointer\ to\ histograms,\ allocated\ and\ initialized}}
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ using\ 'cache\_bits'.\ Return\ NULL\ in\ case\ of\ memory\ error.}}
+\DoxyCodeLine{00087\ \mbox{\hyperlink{struct_v_p8_l_histogram_set}{VP8LHistogramSet}}*\ VP8LAllocateHistogramSet(\textcolor{keywordtype}{int}\ size,\ \textcolor{keywordtype}{int}\ cache\_bits);}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{comment}{//\ Set\ the\ histograms\ in\ set\ to\ 0.}}
+\DoxyCodeLine{00090\ \textcolor{keywordtype}{void}\ VP8LHistogramSetClear(\mbox{\hyperlink{struct_v_p8_l_histogram_set}{VP8LHistogramSet}}*\ \textcolor{keyword}{const}\ set);}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{comment}{//\ Allocate\ and\ initialize\ histogram\ object\ with\ specified\ 'cache\_bits'.}}
+\DoxyCodeLine{00093\ \textcolor{comment}{//\ Returns\ NULL\ in\ case\ of\ memory\ error.}}
+\DoxyCodeLine{00094\ \textcolor{comment}{//\ Special\ case\ of\ VP8LAllocateHistogramSet,\ with\ size\ equals\ 1.}}
+\DoxyCodeLine{00095\ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ VP8LAllocateHistogram(\textcolor{keywordtype}{int}\ cache\_bits);}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{comment}{//\ Accumulate\ a\ token\ 'v'\ into\ a\ histogram.}}
+\DoxyCodeLine{00098\ \textcolor{keywordtype}{void}\ VP8LHistogramAddSinglePixOrCopy(\mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ histo,}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ v,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*\textcolor{keyword}{const}\ distance\_modifier)(\textcolor{keywordtype}{int},\ \textcolor{keywordtype}{int}),}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ distance\_modifier\_arg0);}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8LHistogramNumCodes(\textcolor{keywordtype}{int}\ palette\_code\_bits)\ \{}
+\DoxyCodeLine{00104\ \ \ \textcolor{keywordflow}{return}\ NUM\_LITERAL\_CODES\ +\ NUM\_LENGTH\_CODES\ +}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ ((palette\_code\_bits\ >\ 0)\ ?\ (1\ <<\ palette\_code\_bits)\ :\ 0);}
+\DoxyCodeLine{00106\ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{comment}{//\ Builds\ the\ histogram\ image.}}
+\DoxyCodeLine{00109\ \textcolor{keywordtype}{int}\ VP8LGetHistoImageSymbols(\textcolor{keywordtype}{int}\ xsize,\ \textcolor{keywordtype}{int}\ ysize,}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}*\ \textcolor{keyword}{const}\ refs,}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ quality,\ \textcolor{keywordtype}{int}\ low\_effort,}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ histogram\_bits,\ \textcolor{keywordtype}{int}\ cache\_bits,}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_histogram_set}{VP8LHistogramSet}}*\ \textcolor{keyword}{const}\ image\_histo,}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ tmp\_histo,}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t*\ \textcolor{keyword}{const}\ histogram\_symbols);}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{comment}{//\ Returns\ the\ entropy\ for\ the\ symbols\ in\ the\ input\ array.}}
+\DoxyCodeLine{00118\ \textcolor{keywordtype}{double}\ VP8LBitsEntropy(\textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ array,\ \textcolor{keywordtype}{int}\ n);}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{comment}{//\ Estimate\ how\ many\ bits\ the\ combined\ entropy\ of\ literals\ and\ distance}}
+\DoxyCodeLine{00121\ \textcolor{comment}{//\ approximately\ maps\ to.}}
+\DoxyCodeLine{00122\ \textcolor{keywordtype}{double}\ VP8LHistogramEstimateBits(\mbox{\hyperlink{struct_v_p8_l_histogram}{VP8LHistogram}}*\ \textcolor{keyword}{const}\ p);}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00125\ \}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_ENC\_HISTOGRAM\_ENC\_H\_}}
+
+\end{DoxyCode}

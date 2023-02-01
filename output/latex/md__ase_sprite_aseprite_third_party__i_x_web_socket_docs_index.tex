@@ -1,0 +1,150 @@
+IXWeb\+Socket is a C++ library for Web\+Socket client and server development. It has minimal dependencies (no boost), is very simple to use and support everything you\textquotesingle{}ll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc...). \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} client and server code is also available, but it hasn\textquotesingle{}t received as much testing.
+
+It is been used on big mobile video game titles sending and receiving tons of messages since 2017 (i\+OS and Android). It was tested on mac\+OS, i\+OS, Linux, Android, Windows and Free\+BSD. Note that the Min\+GW compiler is not supported at this point. Two important design goals are simplicity and correctness.
+
+\mbox{\hyperlink{class_a}{A}} bad security bug affecting users compiling with SSL enabled and Open\+SSL as the backend was just fixed in newly released version 11.\+0.\+0. Please upgrade ! (more details in the \mbox{[}\href{https://github.com/machinezone/IXWebSocket/pull/250}{\texttt{ https\+://github.\+com/machinezone/\+IXWeb\+Socket/pull/250}}\mbox{]}(PR).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{/*}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ main.cpp}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ Author:\ Benjamin\ Sergeant}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ Copyright\ (c)\ 2020\ Machine\ Zone,\ Inc.\ All\ rights\ reserved.}}
+\DoxyCodeLine{\textcolor{comment}{\ *}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ Super\ simple\ standalone\ example.\ See\ ws\ folder,\ unittest\ and\ doc/usage.md\ for\ more.}}
+\DoxyCodeLine{\textcolor{comment}{\ *}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ On\ macOS}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ \$\ mkdir\ -\/p\ build\ ;\ (cd\ build\ ;\ cmake\ -\/DUSE\_TLS=1\ ..\ ;\ make\ -\/j\ ;\ make\ install)}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ \$\ clang++\ -\/-\/std=c++11\ -\/-\/stdlib=libc++\ main.cpp\ -\/lixwebsocket\ -\/lz\ -\/framework\ Security\ -\/framework\ Foundation}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ \$\ ./a.out}}
+\DoxyCodeLine{\textcolor{comment}{\ *}}
+\DoxyCodeLine{\textcolor{comment}{\ *\ \ Or\ use\ cmake\ -\/DBUILD\_DEMO=ON\ option\ for\ other\ platforms}}
+\DoxyCodeLine{\textcolor{comment}{\ */}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXNetSystem.h>}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXWebSocket.h>}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXUserAgent.h>}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <iostream>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keywordtype}{int}\ main()}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Required\ on\ Windows}}
+\DoxyCodeLine{\ \ \ \ ix::initNetSystem();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Our\ websocket\ object}}
+\DoxyCodeLine{\ \ \ \ \mbox{\hyperlink{classix_1_1_web_socket}{ix::WebSocket}}\ webSocket;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Connect\ to\ a\ server\ with\ encryption}}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ See\ https://machinezone.github.io/IXWebSocket/usage/\#tls-\/support-\/and-\/configuration}}
+\DoxyCodeLine{\ \ \ \ std::string\ url(\textcolor{stringliteral}{"{}wss://echo.websocket.org"{}});}
+\DoxyCodeLine{\ \ \ \ webSocket.setUrl(url);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Connecting\ to\ "{}}\ <<\ url\ <<\ \textcolor{stringliteral}{"{}..."{}}\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Setup\ a\ callback\ to\ be\ fired\ (in\ a\ background\ thread,\ watch\ out\ for\ race\ conditions\ !)}}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ when\ a\ message\ or\ an\ event\ (open,\ close,\ error)\ is\ received}}
+\DoxyCodeLine{\ \ \ \ webSocket.setOnMessageCallback([](\textcolor{keyword}{const}\ ix::WebSocketMessagePtr\&\ msg)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Message)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}received\ message:\ "{}}\ <<\ msg-\/>str\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}>\ "{}}\ <<\ std::flush;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ if\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Open)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Connection\ established"{}}\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}>\ "{}}\ <<\ std::flush;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ if\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Error)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Maybe\ SSL\ is\ not\ configured\ properly}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Connection\ error:\ "{}}\ <<\ msg-\/>errorInfo.reason\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}>\ "{}}\ <<\ std::flush;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ );}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Now\ that\ our\ callback\ is\ setup,\ we\ can\ start\ our\ background\ thread\ and\ receive\ messages}}
+\DoxyCodeLine{\ \ \ \ webSocket.start();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Send\ a\ message\ to\ the\ server\ (default\ to\ TEXT\ mode)}}
+\DoxyCodeLine{\ \ \ \ webSocket.send(\textcolor{stringliteral}{"{}hello\ world"{}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Display\ a\ prompt}}
+\DoxyCodeLine{\ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}>\ "{}}\ <<\ std::flush;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ std::string\ text;}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Read\ text\ from\ the\ console\ and\ send\ messages\ in\ text\ mode.}}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Exit\ with\ Ctrl-\/D\ on\ Unix\ or\ Ctrl-\/Z\ on\ Windows.}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{while}\ (std::getline(std::cin,\ text))}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ webSocket.send(text);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}>\ "{}}\ <<\ std::flush;}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+Interested? Go read the \href{https://machinezone.github.io/IXWebSocket/}{\texttt{ docs}}! If things don\textquotesingle{}t work as expected, please create an issue on Git\+Hub, or even better a pull request if you know how to fix your problem.
+
+IXWeb\+Socket is actively being developed, check out the \href{https://machinezone.github.io/IXWebSocket/CHANGELOG/}{\texttt{ changelog}} to know what\textquotesingle{}s cooking. If you are looking for a real time messaging service (the chat-\/like \textquotesingle{}server\textquotesingle{} your websocket code will talk to) with many features such as history, backed by Redis, look at \href{https://github.com/machinezone/cobra}{\texttt{ cobra}}.
+
+IXWeb\+Socket client code is autobahn compliant beginning with the 6.\+0.\+0 version. See the current \href{https://bsergean.github.io/autobahn/reports/clients/index.html}{\texttt{ test results}}. Some tests are still failing in the server code.
+
+Starting with the 11.\+0.\+8 release, IXWeb\+Socket should be fully C++11 compatible.\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index_autotoc_md1733}{}\doxysection{Users}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index_autotoc_md1733}
+If your company or project is using this library, feel free to open an issue or PR to amend this list.
+
+
+\begin{DoxyItemize}
+\item \href{https://www.mz.com}{\texttt{ Machine Zone}}
+\item \href{https://gitlab.com/HCInk/tokio}{\texttt{ Tokio}}, a discord library focused on audio playback with node bindings.
+\item \href{https://github.com/tostc/libDiscordBot/tree/master}{\texttt{ lib\+Discord\+Bot}}, an easy to use Discord-\/bot framework.
+\item \href{https://github.com/norrbotten/gwebsocket}{\texttt{ gwebsocket}}, a websocket (lua) module for Garry\textquotesingle{}s Mod
+\item \href{https://github.com/DisCPP/DisCPP}{\texttt{ Dis\+CPP}}, a simple but feature rich Discord API wrapper
+\item \href{https://github.com/luccanunes/discord.cpp}{\texttt{ discord.\+cpp}}, a discord library for making bots
+\item \href{http://teleportconnect.com/}{\texttt{ Teleport}}, Teleport is your own personal remote robot avatar
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index_autotoc_md1734}{}\doxysection{Alternative libraries}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index_autotoc_md1734}
+There are plenty of great websocket libraries out there, which might work for you. Here are a couple of serious ones.
+
+
+\begin{DoxyItemize}
+\item \href{https://github.com/zaphoyd/websocketpp}{\texttt{ websocketpp}} -\/ C++
+\item \href{https://github.com/boostorg/beast}{\texttt{ beast}} -\/ C++
+\item \href{https://libwebsockets.org/}{\texttt{ libwebsockets}} -\/ C
+\item \href{https://github.com/uNetworking/uWebSockets}{\texttt{ µ\+Web\+Sockets}} -\/ C
+\item \href{https://github.com/tatsuhiro-t/wslay}{\texttt{ wslay}} -\/ C
+\end{DoxyItemize}
+
+\href{https://github.com/bsergean/uvweb}{\texttt{ uvweb}} is a library written by the IXWeb\+Socket author which is built on top of \href{https://github.com/skypjack/uvw}{\texttt{ uvw}}, which is a C++ wrapper for \href{https://libuv.org/}{\texttt{ libuv}}. It has more dependencies and does not support SSL at this point, but it can be used to open multiple connections within a single OS thread thanks to libuv.
+
+To check the performance of a websocket library, you can look at the \href{https://github.com/bsergean/autoroute}{\texttt{ autoroute}} project.\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index_autotoc_md1735}{}\doxysection{Continuous Integration}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index_autotoc_md1735}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{4}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ OS   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ TLS   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Sanitizer   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Status    }\\\cline{1-4}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ OS   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ TLS   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Sanitizer   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Status    }\\\cline{1-4}
+\endhead
+Linux   &Open\+SSL   &None   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}    \\\cline{1-4}
+mac\+OS   &Secure Transport   &Thread Sanitizer   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}    \\\cline{1-4}
+mac\+OS   &Open\+SSL   &Thread Sanitizer   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}    \\\cline{1-4}
+mac\+OS   &Mbed\+TLS   &Thread Sanitizer   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}    \\\cline{1-4}
+Windows   &Disabled   &None   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}    \\\cline{1-4}
+UWP   &Disabled   &None   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}    \\\cline{1-4}
+Linux   &Open\+SSL   &Address Sanitizer   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}    \\\cline{1-4}
+Mingw   &Disabled   &None   &\href{https://github.com/machinezone/IXWebSocket}{\texttt{ }}   \\\cline{1-4}
+\end{longtabu}
+
+
+
+\begin{DoxyItemize}
+\item ASAN fails on Linux because of a known problem, we need a
+\item Some tests are disabled on Windows/\+UWP because of a pathing problem
+\item TLS and ZLIB are disabled on Windows/\+UWP because enabling make the CI run takes a lot of time, for setting up vcpkg. 
+\end{DoxyItemize}

@@ -1,0 +1,167 @@
+\hypertarget{multihandle_8h_source}{}\doxysection{multihandle.\+h}
+\label{multihandle_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/multihandle.h@{AseSprite/aseprite/third\_party/curl/lib/multihandle.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_MULTIHANDLE\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_MULTIHANDLE\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1998\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}llist.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}hash.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}conncache.h"{}}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ "{}psl.h"{}}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ "{}socketpair.h"{}}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconnectdata}{connectdata}};}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__message}{Curl\_message}}\ \{}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__llist__element}{Curl\_llist\_element}}\ list;}
+\DoxyCodeLine{00035\ \ \ \textcolor{comment}{/*\ the\ 'CURLMsg'\ is\ the\ part\ that\ is\ visible\ to\ the\ external\ user\ */}}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_u_r_l_msg}{CURLMsg}}\ extmsg;}
+\DoxyCodeLine{00037\ \};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{comment}{/*\ NOTE:\ if\ you\ add\ a\ state\ here,\ add\ the\ name\ to\ the\ statename[]\ array\ as}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ well!}}
+\DoxyCodeLine{00041\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00042\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00043\ \ \ MSTATE\_INIT,\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 0\ -\/\ start\ in\ this\ state\ */}}
+\DoxyCodeLine{00044\ \ \ MSTATE\_PENDING,\ \ \ \ \ \ \textcolor{comment}{/*\ 1\ -\/\ no\ connections,\ waiting\ for\ one\ */}}
+\DoxyCodeLine{00045\ \ \ MSTATE\_CONNECT,\ \ \ \ \ \ \textcolor{comment}{/*\ 2\ -\/\ resolve/connect\ has\ been\ sent\ off\ */}}
+\DoxyCodeLine{00046\ \ \ MSTATE\_RESOLVING,\ \ \ \ \textcolor{comment}{/*\ 3\ -\/\ awaiting\ the\ resolve\ to\ finalize\ */}}
+\DoxyCodeLine{00047\ \ \ MSTATE\_CONNECTING,\ \ \ \textcolor{comment}{/*\ 4\ -\/\ awaiting\ the\ TCP\ connect\ to\ finalize\ */}}
+\DoxyCodeLine{00048\ \ \ MSTATE\_TUNNELING,\ \ \ \ \textcolor{comment}{/*\ 5\ -\/\ awaiting\ HTTPS\ proxy\ SSL\ initialization\ to}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ complete\ and/or\ proxy\ CONNECT\ to\ finalize\ */}}
+\DoxyCodeLine{00050\ \ \ MSTATE\_PROTOCONNECT,\ \textcolor{comment}{/*\ 6\ -\/\ initiate\ protocol\ connect\ procedure\ */}}
+\DoxyCodeLine{00051\ \ \ MSTATE\_PROTOCONNECTING,\ \textcolor{comment}{/*\ 7\ -\/\ completing\ the\ protocol-\/specific\ connect}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ phase\ */}}
+\DoxyCodeLine{00053\ \ \ MSTATE\_DO,\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 8\ -\/\ start\ send\ off\ the\ request\ (part\ 1)\ */}}
+\DoxyCodeLine{00054\ \ \ MSTATE\_DOING,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 9\ -\/\ sending\ off\ the\ request\ (part\ 1)\ */}}
+\DoxyCodeLine{00055\ \ \ MSTATE\_DOING\_MORE,\ \ \ \textcolor{comment}{/*\ 10\ -\/\ send\ off\ the\ request\ (part\ 2)\ */}}
+\DoxyCodeLine{00056\ \ \ MSTATE\_DID,\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 11\ -\/\ done\ sending\ off\ request\ */}}
+\DoxyCodeLine{00057\ \ \ MSTATE\_PERFORMING,\ \ \ \textcolor{comment}{/*\ 12\ -\/\ transfer\ data\ */}}
+\DoxyCodeLine{00058\ \ \ MSTATE\_RATELIMITING,\ \textcolor{comment}{/*\ 13\ -\/\ wait\ because\ limit-\/rate\ exceeded\ */}}
+\DoxyCodeLine{00059\ \ \ MSTATE\_DONE,\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 14\ -\/\ post\ data\ transfer\ operation\ */}}
+\DoxyCodeLine{00060\ \ \ MSTATE\_COMPLETED,\ \ \ \ \textcolor{comment}{/*\ 15\ -\/\ operation\ complete\ */}}
+\DoxyCodeLine{00061\ \ \ MSTATE\_MSGSENT,\ \ \ \ \ \ \textcolor{comment}{/*\ 16\ -\/\ the\ operation\ complete\ message\ is\ sent\ */}}
+\DoxyCodeLine{00062\ \ \ MSTATE\_LAST\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 17\ -\/\ not\ a\ true\ state,\ never\ use\ this\ */}}
+\DoxyCodeLine{00063\ \}\ CURLMstate;}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{comment}{/*\ we\ support\ N\ sockets\ per\ easy\ handle.\ Set\ the\ corresponding\ bit\ to\ what}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ action\ we\ should\ wait\ for\ */}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#define\ MAX\_SOCKSPEREASYHANDLE\ 5}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#define\ GETSOCK\_READABLE\ (0x00ff)}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#define\ GETSOCK\_WRITABLE\ (0xff00)}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#define\ CURLPIPE\_ANY\ (CURLPIPE\_MULTIPLEX)}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#if\ !defined(CURL\_DISABLE\_SOCKETPAIR)}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ ENABLE\_WAKEUP}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{comment}{/*\ value\ for\ MAXIMUM\ CONCURRENT\ STREAMS\ upper\ limit\ */}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#define\ INITIAL\_MAX\_CONCURRENT\_STREAMS\ ((1U\ <<\ 31)\ -\/\ 1)}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{/*\ This\ is\ the\ struct\ known\ as\ CURLM\ on\ the\ outside\ */}}
+\DoxyCodeLine{00081\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__multi}{Curl\_multi}}\ \{}
+\DoxyCodeLine{00082\ \ \ \textcolor{comment}{/*\ First\ a\ simple\ identifier\ to\ easier\ detect\ if\ a\ user\ mix\ up}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ \ \ this\ multi\ handle\ with\ an\ easy\ handle.\ Set\ this\ to\ CURL\_MULTI\_HANDLE.\ */}}
+\DoxyCodeLine{00084\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ magic;}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{comment}{/*\ We\ have\ a\ doubly-\/linked\ list\ with\ easy\ handles\ */}}
+\DoxyCodeLine{00087\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *easyp;}
+\DoxyCodeLine{00088\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *easylp;\ \textcolor{comment}{/*\ last\ node\ */}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordtype}{int}\ num\_easy;\ \textcolor{comment}{/*\ amount\ of\ entries\ in\ the\ linked\ list\ above.\ */}}
+\DoxyCodeLine{00091\ \ \ \textcolor{keywordtype}{int}\ num\_alive;\ \textcolor{comment}{/*\ amount\ of\ easy\ handles\ that\ are\ added\ but\ have\ not\ yet}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reached\ COMPLETE\ state\ */}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__llist}{Curl\_llist}}\ msglist;\ \textcolor{comment}{/*\ a\ list\ of\ messages\ from\ completed\ transfers\ */}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__llist}{Curl\_llist}}\ pending;\ \textcolor{comment}{/*\ Curl\_easys\ that\ are\ in\ the}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MSTATE\_PENDING\ state\ */}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \textcolor{comment}{/*\ callback\ function\ and\ user\ data\ pointer\ for\ the\ *socket()\ API\ */}}
+\DoxyCodeLine{00100\ \ \ curl\_socket\_callback\ socket\_cb;}
+\DoxyCodeLine{00101\ \ \ \textcolor{keywordtype}{void}\ *socket\_userp;}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \textcolor{comment}{/*\ callback\ function\ and\ user\ data\ pointer\ for\ server\ push\ */}}
+\DoxyCodeLine{00104\ \ \ curl\_push\_callback\ push\_cb;}
+\DoxyCodeLine{00105\ \ \ \textcolor{keywordtype}{void}\ *push\_userp;}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \textcolor{comment}{/*\ Hostname\ cache\ */}}
+\DoxyCodeLine{00108\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__hash}{Curl\_hash}}\ hostcache;}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#ifdef\ USE\_LIBPSL}}
+\DoxyCodeLine{00111\ \ \ \textcolor{comment}{/*\ PSL\ cache.\ */}}
+\DoxyCodeLine{00112\ \ \ \textcolor{keyword}{struct\ }PslCache\ psl;}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \textcolor{comment}{/*\ timetree\ points\ to\ the\ splay-\/tree\ of\ time\ nodes\ to\ figure\ out\ expire}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ \ \ times\ of\ all\ currently\ set\ timers\ */}}
+\DoxyCodeLine{00117\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__tree}{Curl\_tree}}\ *timetree;}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \textcolor{comment}{/*\ 'sockhash'\ is\ the\ lookup\ hash\ for\ socket\ descriptor\ =>\ easy\ handles\ (note}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ \ \ \ \ the\ pluralis\ form,\ there\ can\ be\ more\ than\ one\ easy\ handle\ waiting\ on\ the}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ \ \ \ \ same\ actual\ socket)\ */}}
+\DoxyCodeLine{00122\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__hash}{Curl\_hash}}\ sockhash;}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \textcolor{comment}{/*\ Shared\ connection\ cache\ (bundles)*/}}
+\DoxyCodeLine{00125\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconncache}{conncache}}\ conn\_cache;}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \textcolor{keywordtype}{long}\ maxconnects;\ \textcolor{comment}{/*\ if\ >0,\ a\ fixed\ limit\ of\ the\ maximum\ number\ of\ entries}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ we're\ allowed\ to\ grow\ the\ connection\ cache\ to\ */}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \textcolor{keywordtype}{long}\ max\_host\_connections;\ \textcolor{comment}{/*\ if\ >0,\ a\ fixed\ limit\ of\ the\ maximum\ number}}
+\DoxyCodeLine{00131\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ of\ connections\ per\ host\ */}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \textcolor{keywordtype}{long}\ max\_total\_connections;\ \textcolor{comment}{/*\ if\ >0,\ a\ fixed\ limit\ of\ the\ maximum\ number}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ of\ connections\ in\ total\ */}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \textcolor{comment}{/*\ timer\ callback\ and\ user\ data\ pointer\ for\ the\ *socket()\ API\ */}}
+\DoxyCodeLine{00137\ \ \ curl\_multi\_timer\_callback\ timer\_cb;}
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordtype}{void}\ *timer\_userp;}
+\DoxyCodeLine{00139\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcurltime}{curltime}}\ timer\_lastcall;\ \textcolor{comment}{/*\ the\ fixed\ time\ for\ the\ timeout\ for\ the}}
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ previous\ callback\ */}}
+\DoxyCodeLine{00141\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ max\_concurrent\_streams;}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#ifdef\ USE\_WINSOCK}}
+\DoxyCodeLine{00144\ \ \ WSAEVENT\ wsa\_event;\ \textcolor{comment}{/*\ winsock\ event\ used\ for\ waits\ */}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\#ifdef\ ENABLE\_WAKEUP}}
+\DoxyCodeLine{00147\ \ \ curl\_socket\_t\ wakeup\_pair[2];\ \textcolor{comment}{/*\ socketpair()\ used\ for\ wakeup}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ is\ used\ for\ read,\ 1\ is\ used\ for\ write\ */}}
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00151\ \ \ \textcolor{comment}{/*\ multiplexing\ wanted\ */}}
+\DoxyCodeLine{00152\ \ \ \textcolor{keywordtype}{bool}\ multiplexing;}
+\DoxyCodeLine{00153\ \ \ \textcolor{keywordtype}{bool}\ recheckstate;\ \textcolor{comment}{/*\ see\ Curl\_multi\_connchanged\ */}}
+\DoxyCodeLine{00154\ \ \ \textcolor{keywordtype}{bool}\ in\_callback;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ true\ while\ executing\ a\ callback\ */}}
+\DoxyCodeLine{00155\ \ \ \textcolor{keywordtype}{bool}\ ipv6\_works;}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#ifdef\ USE\_OPENSSL}}
+\DoxyCodeLine{00157\ \ \ \textcolor{keywordtype}{bool}\ ssl\_seeded;}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00159\ \};}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_MULTIHANDLE\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

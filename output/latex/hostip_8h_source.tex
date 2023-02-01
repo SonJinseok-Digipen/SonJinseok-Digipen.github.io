@@ -1,0 +1,248 @@
+\hypertarget{hostip_8h_source}{}\doxysection{hostip.\+h}
+\label{hostip_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/hostip.h@{AseSprite/aseprite/third\_party/curl/lib/hostip.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_HOSTIP\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_HOSTIP\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1998\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}curl\_setup.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}hash.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}curl\_addrinfo.h"{}}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ "{}timeval.h"{}}\ \textcolor{comment}{/*\ for\ timediff\_t\ */}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ "{}asyn.h"{}}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#ifdef\ HAVE\_SETJMP\_H}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ <setjmp.h>}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#ifdef\ NETWARE}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#undef\ in\_addr\_t}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ in\_addr\_t\ unsigned\ long}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{comment}{/*\ Allocate\ enough\ memory\ to\ hold\ the\ full\ name\ information\ structs\ and}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ everything.\ OSF1\ is\ known\ to\ require\ at\ least\ 8872\ bytes.\ The\ buffer}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ required\ for\ storing\ all\ possible\ aliases\ and\ IP\ numbers\ is\ according\ to}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ Stevens'\ Unix\ Network\ Programming\ 2nd\ edition,\ p.\ 304:\ 8192\ bytes!}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ CURL\_HOSTENT\_SIZE\ 9000}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ CURL\_TIMEOUT\_RESOLVE\ 300\ }\textcolor{comment}{/*\ when\ using\ asynch\ methods,\ we\ allow\ this}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ many\ seconds\ for\ a\ name\ resolve\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#define\ CURL\_ASYNC\_SUCCESS\ CURLE\_OK}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{struct\ }addrinfo;}
+\DoxyCodeLine{00053\ \textcolor{keyword}{struct\ }hostent;}
+\DoxyCodeLine{00054\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__easy}{Curl\_easy}};}
+\DoxyCodeLine{00055\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconnectdata}{connectdata}};}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ *\ Curl\_global\_host\_cache\_init()\ initializes\ and\ sets\ up\ a\ global\ DNS\ cache.}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ Global\ DNS\ cache\ is\ general\ badness.\ Do\ not\ use.\ This\ will\ be\ removed\ in}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ *\ a\ future\ version.\ Use\ the\ share\ interface\ instead!}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ *\ Returns\ a\ struct\ Curl\_hash\ pointer\ on\ success,\ NULL\ on\ failure.}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00064\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__hash}{Curl\_hash}}\ *Curl\_global\_host\_cache\_init(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__dns__entry}{Curl\_dns\_entry}}\ \{}
+\DoxyCodeLine{00067\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__addrinfo}{Curl\_addrinfo}}\ *addr;}
+\DoxyCodeLine{00068\ \ \ \textcolor{comment}{/*\ timestamp\ ==\ 0\ -\/-\/\ permanent\ CURLOPT\_RESOLVE\ entry\ (doesn't\ time\ out)\ */}}
+\DoxyCodeLine{00069\ \ \ time\_t\ timestamp;}
+\DoxyCodeLine{00070\ \ \ \textcolor{comment}{/*\ use-\/counter,\ use\ Curl\_resolv\_unlock\ to\ release\ reference\ */}}
+\DoxyCodeLine{00071\ \ \ \textcolor{keywordtype}{long}\ inuse;}
+\DoxyCodeLine{00072\ \};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{keywordtype}{bool}\ Curl\_host\_is\_ipnum(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structhostname}{hostname}});}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ *\ Curl\_resolv()\ returns\ an\ entry\ with\ the\ info\ for\ the\ specified\ host}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ *\ and\ port.}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ *\ The\ returned\ data\ *MUST*\ be\ "{}unlocked"{}\ with\ Curl\_resolv\_unlock()\ after}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ *\ use,\ or\ we'll\ leak\ memory!}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00083\ \textcolor{comment}{/*\ return\ codes\ */}}
+\DoxyCodeLine{00084\ \textcolor{keyword}{enum}\ resolve\_t\ \{}
+\DoxyCodeLine{00085\ \ \ CURLRESOLV\_TIMEDOUT\ =\ -\/2,}
+\DoxyCodeLine{00086\ \ \ CURLRESOLV\_ERROR\ \ \ \ =\ -\/1,}
+\DoxyCodeLine{00087\ \ \ CURLRESOLV\_RESOLVED\ =\ \ 0,}
+\DoxyCodeLine{00088\ \ \ CURLRESOLV\_PENDING\ \ =\ \ 1}
+\DoxyCodeLine{00089\ \};}
+\DoxyCodeLine{00090\ \textcolor{keyword}{enum}\ resolve\_t\ Curl\_resolv(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structhostname}{hostname}},}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ port,}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ allowDOH,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__dns__entry}{Curl\_dns\_entry}}\ **dnsentry);}
+\DoxyCodeLine{00095\ \textcolor{keyword}{enum}\ resolve\_t\ Curl\_resolv\_timeout(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structhostname}{hostname}},\ \textcolor{keywordtype}{int}\ port,}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__dns__entry}{Curl\_dns\_entry}}\ **dnsentry,}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ timediff\_t\ timeoutms);}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#ifdef\ ENABLE\_IPV6}}
+\DoxyCodeLine{00101\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ *\ Curl\_ipv6works()\ returns\ TRUE\ if\ IPv6\ seems\ to\ work.}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00104\ \textcolor{keywordtype}{bool}\ Curl\_ipv6works(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#define\ Curl\_ipv6works(x)\ FALSE}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ *\ Curl\_ipvalid()\ checks\ what\ CURL\_IPRESOLVE\_*\ requirements\ that\ might've}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ *\ been\ set\ and\ returns\ TRUE\ if\ they\ are\ OK.}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00113\ \textcolor{keywordtype}{bool}\ Curl\_ipvalid(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structconnectdata}{connectdata}}\ *conn);}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ *\ Curl\_getaddrinfo()\ is\ the\ generic\ low-\/level\ name\ resolve\ API\ within\ this}}
+\DoxyCodeLine{00118\ \textcolor{comment}{\ *\ source\ file.\ There\ are\ several\ versions\ of\ this\ function\ -\/\ for\ different}}
+\DoxyCodeLine{00119\ \textcolor{comment}{\ *\ name\ resolve\ layers\ (selected\ at\ build-\/time).\ They\ all\ take\ this\ same\ set}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ *\ of\ arguments}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00122\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__addrinfo}{Curl\_addrinfo}}\ *Curl\_getaddrinfo(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structhostname}{hostname}},}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ port,}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ *waitp);}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{comment}{/*\ unlock\ a\ previously\ resolved\ dns\ entry\ */}}
+\DoxyCodeLine{00129\ \textcolor{keywordtype}{void}\ Curl\_resolv\_unlock(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__dns__entry}{Curl\_dns\_entry}}\ *dns);}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{comment}{/*\ init\ a\ new\ dns\ cache\ and\ return\ success\ */}}
+\DoxyCodeLine{00133\ \textcolor{keywordtype}{int}\ Curl\_mk\_dnscache(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__hash}{Curl\_hash}}\ *hash);}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{comment}{/*\ prune\ old\ entries\ from\ the\ DNS\ cache\ */}}
+\DoxyCodeLine{00136\ \textcolor{keywordtype}{void}\ Curl\_hostcache\_prune(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{comment}{/*\ Return\ \#\ of\ addresses\ in\ a\ Curl\_addrinfo\ struct\ */}}
+\DoxyCodeLine{00139\ \textcolor{keywordtype}{int}\ Curl\_num\_addresses(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__addrinfo}{Curl\_addrinfo}}\ *addr);}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{comment}{/*\ IPv4\ threadsafe\ resolve\ function\ used\ for\ synch\ and\ asynch\ builds\ */}}
+\DoxyCodeLine{00142\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__addrinfo}{Curl\_addrinfo}}\ *Curl\_ipv4\_resolve\_r(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structhostname}{hostname}},\ \textcolor{keywordtype}{int}\ port);}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ CURLcode\ Curl\_once\_resolved(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{bool}\ *protocol\_connect);}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ *\ Curl\_addrinfo\_callback()\ is\ used\ when\ we\ build\ with\ any\ asynch\ specialty.}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ *\ Handles\ end\ of\ async\ request\ processing.\ Inserts\ ai\ into\ hostcache\ when}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ *\ status\ is\ CURL\_ASYNC\_SUCCESS.\ Twiddles\ fields\ in\ conn\ to\ indicate\ async}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ *\ request\ completed\ whether\ successful\ or\ failed.}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00152\ CURLcode\ Curl\_addrinfo\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ status,}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__addrinfo}{Curl\_addrinfo}}\ *ai);}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ *\ Curl\_printable\_address()\ returns\ a\ printable\ version\ of\ the\ 1st\ address}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ *\ given\ in\ the\ 'ip'\ argument.\ The\ result\ will\ be\ stored\ in\ the\ buf\ that\ is}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ *\ bufsize\ bytes\ big.}}
+\DoxyCodeLine{00160\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00161\ \textcolor{keywordtype}{void}\ Curl\_printable\_address(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__addrinfo}{Curl\_addrinfo}}\ *ip,}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structbuf}{buf}},\ \textcolor{keywordtype}{size\_t}\ bufsize);}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ *\ Curl\_fetch\_addr()\ fetches\ a\ 'Curl\_dns\_entry'\ already\ in\ the\ DNS\ cache.}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ *\ Returns\ the\ Curl\_dns\_entry\ entry\ pointer\ or\ NULL\ if\ not\ in\ the\ cache.}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ *\ The\ returned\ data\ *MUST*\ be\ "{}unlocked"{}\ with\ Curl\_resolv\_unlock()\ after}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ *\ use,\ or\ we'll\ leak\ memory!}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00172\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__dns__entry}{Curl\_dns\_entry}}\ *}
+\DoxyCodeLine{00173\ Curl\_fetch\_addr(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structhostname}{hostname}},}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ port);}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00178\ \textcolor{comment}{\ *\ Curl\_cache\_addr()\ stores\ a\ 'Curl\_addrinfo'\ struct\ in\ the\ DNS\ cache.}}
+\DoxyCodeLine{00179\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00180\ \textcolor{comment}{\ *\ Returns\ the\ Curl\_dns\_entry\ entry\ pointer\ or\ NULL\ if\ the\ storage\ failed.}}
+\DoxyCodeLine{00181\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00182\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__dns__entry}{Curl\_dns\_entry}}\ *}
+\DoxyCodeLine{00183\ Curl\_cache\_addr(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__addrinfo}{Curl\_addrinfo}}\ *addr,}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structhostname}{hostname}},\ \textcolor{keywordtype}{int}\ port);}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\#ifndef\ INADDR\_NONE}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#define\ CURL\_INADDR\_NONE\ (in\_addr\_t)\ \string~0}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#define\ CURL\_INADDR\_NONE\ INADDR\_NONE}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#ifdef\ HAVE\_SIGSETJMP}}
+\DoxyCodeLine{00193\ \textcolor{comment}{/*\ Forward-\/declaration\ of\ variable\ defined\ in\ hostip.c.\ Beware\ this}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ *\ is\ a\ global\ and\ unique\ instance.\ This\ is\ used\ to\ store\ the\ return}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ *\ address\ that\ we\ can\ jump\ back\ to\ from\ inside\ a\ signal\ handler.}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ *\ This\ is\ not\ thread-\/safe\ stuff.}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00198\ \textcolor{keyword}{extern}\ sigjmp\_buf\ curl\_jmpenv;}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ *\ Function\ provided\ by\ the\ resolver\ backend\ to\ set\ DNS\ servers\ to\ use.}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00204\ CURLcode\ Curl\_set\_dns\_servers(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{char}\ *servers);}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00207\ \textcolor{comment}{\ *\ Function\ provided\ by\ the\ resolver\ backend\ to\ set}}
+\DoxyCodeLine{00208\ \textcolor{comment}{\ *\ outgoing\ interface\ to\ use\ for\ DNS\ requests}}
+\DoxyCodeLine{00209\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00210\ CURLcode\ Curl\_set\_dns\_interface(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *interf);}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00214\ \textcolor{comment}{\ *\ Function\ provided\ by\ the\ resolver\ backend\ to\ set}}
+\DoxyCodeLine{00215\ \textcolor{comment}{\ *\ local\ IPv4\ address\ to\ use\ as\ source\ address\ for\ DNS\ requests}}
+\DoxyCodeLine{00216\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00217\ CURLcode\ Curl\_set\_dns\_local\_ip4(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *local\_ip4);}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00221\ \textcolor{comment}{\ *\ Function\ provided\ by\ the\ resolver\ backend\ to\ set}}
+\DoxyCodeLine{00222\ \textcolor{comment}{\ *\ local\ IPv6\ address\ to\ use\ as\ source\ address\ for\ DNS\ requests}}
+\DoxyCodeLine{00223\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00224\ CURLcode\ Curl\_set\_dns\_local\_ip6(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *local\_ip6);}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00228\ \textcolor{comment}{\ *\ Clean\ off\ entries\ from\ the\ cache}}
+\DoxyCodeLine{00229\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00230\ \textcolor{keywordtype}{void}\ Curl\_hostcache\_clean(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__hash}{Curl\_hash}}\ *hash);}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00233\ \textcolor{comment}{\ *\ Populate\ the\ cache\ with\ specified\ entries\ from\ CURLOPT\_RESOLVE.}}
+\DoxyCodeLine{00234\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00235\ CURLcode\ Curl\_loadhostpairs(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00236\ CURLcode\ Curl\_resolv\_check(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__dns__entry}{Curl\_dns\_entry}}\ **dns);}
+\DoxyCodeLine{00238\ \textcolor{keywordtype}{int}\ Curl\_resolv\_getsock(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ curl\_socket\_t\ *socks);}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ CURLcode\ Curl\_resolver\_error(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_HOSTIP\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

@@ -1,0 +1,199 @@
+\hypertarget{base_2ref_8h_source}{}\doxysection{ref.\+h}
+\label{base_2ref_8h_source}\index{AseSprite/aseprite/laf/base/ref.h@{AseSprite/aseprite/laf/base/ref.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ Base\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2020\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ BASE\_REF\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ BASE\_REF\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}base/debug.h"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}base/ints.h"{}}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{namespace\ }base\ \{}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00019\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbase_1_1_ref_count_t}{RefCountT}}\ \{}
+\DoxyCodeLine{00020\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00021\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count_t}{RefCountT}}()\ :\ m\_ref(1)\ \{\ \}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count_t}{\string~RefCountT}}()\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \textcolor{comment}{//\ m\_ref\ can\ be\ 1\ in\ case\ that\ RefCountT()\ was\ created\ in\ the}}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \textcolor{comment}{//\ stack,\ and\ 0\ when\ it's\ deleted\ from\ unref().}}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ ASSERT(m\_ref\ ==\ 0\ ||\ m\_ref\ ==\ 1);}
+\DoxyCodeLine{00027\ \ \ \ \ \}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count_t}{RefCountT}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref_count_t}{RefCountT}}\&)\ :\ m\_ref(1)\ \{\ \}}
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count_t}{RefCountT}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref_count_t}{RefCountT}}\&)\ \{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keywordtype}{void}\ ref()\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ ASSERT(m\_ref\ >\ 0);}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ m\_ref.fetch\_add(1,\ std::memory\_order\_relaxed);}
+\DoxyCodeLine{00035\ \ \ \ \ \}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordtype}{void}\ unref()\ \{}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ ASSERT(m\_ref\ >\ 0);}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ref.fetch\_sub(1,\ std::memory\_order\_acq\_rel)\ ==\ 1)}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{keyword}{delete}\ (T*)\textcolor{keyword}{this};}
+\DoxyCodeLine{00041\ \ \ \ \ \}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#ifdef\ \_DEBUG\ \ \ }\textcolor{comment}{//\ For\ debugging\ purposes\ only\ (TRACE,\ TRACEARGS,\ etc.)}}
+\DoxyCodeLine{00044\ \ \ \ \ uint32\_t\ ref\_count()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ref;\ \}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00048\ \ \ \ \ std::atomic<uint32\_t>\ m\_ref;}
+\DoxyCodeLine{00049\ \ \ \};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classbase_1_1_ref_count_t}{RefCountT}}<RefCount>\ \{}
+\DoxyCodeLine{00052\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00053\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}()\ \{\ \}}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref_count}{\string~RefCount}}()\ \{\ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//\ Copy\ and\ move\ disabled\ for\ classes\ with\ virtual\ destruction}}
+\DoxyCodeLine{00057\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00058\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}(\mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00059\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00060\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\&\ operator=(\mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00061\ \ \ \};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \textcolor{comment}{//\ Smart\ pointer\ for\ RefCountT\ objects}}
+\DoxyCodeLine{00064\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00065\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbase_1_1_ref}{Ref}}\ \{}
+\DoxyCodeLine{00066\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00067\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}()\ noexcept\ :\ m\_ptr(\textcolor{keyword}{nullptr})\ \{\ \}}
+\DoxyCodeLine{00068\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}(std::nullptr\_t)\ noexcept\ :\ m\_ptr(\textcolor{keyword}{nullptr})\ \{\ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}(T*\ ptr)\ noexcept\ :\ m\_ptr(ptr)\ \{\ \}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}(U*\ ptr)\ noexcept\ :\ m\_ptr(\textcolor{keyword}{static\_cast<}T*\textcolor{keyword}{>}(ptr))\ \{\ \}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}(\mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\&\ ref)\ noexcept\ :\ m\_ptr(ref.release())\ \{\ \}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00076\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}(\mbox{\hyperlink{classbase_1_1_ref}{Ref<U>}}\&\&\ ref)\ noexcept\ :\ m\_ptr(\textcolor{keyword}{static\_cast<}T*\textcolor{keyword}{>}(ref.release()))\ \{\ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ ref)\ :\ m\_ptr(ref.m\_ptr)\ \{}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ m\_ptr-\/>ref();}
+\DoxyCodeLine{00080\ \ \ \ \ \}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00082\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<U>}}\&\ ref)\ :\ m\_ptr(\textcolor{keyword}{static\_cast<}T*\textcolor{keyword}{>}(ref.m\_ptr))\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ m\_ptr-\/>ref();}
+\DoxyCodeLine{00084\ \ \ \ \ \}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{\string~Ref}}()\ \{\ \textcolor{keywordflow}{if}\ (m\_ptr)\ m\_ptr-\/>unref();\ \}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{void}\ reset(T*\ ptr\ =\ \textcolor{keyword}{nullptr})\ \{}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ m\_ptr-\/>unref();}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ m\_ptr\ =\ ptr;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ m\_ptr-\/>ref();}
+\DoxyCodeLine{00092\ \ \ \ \ \}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ T*\ release()\ \{}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ T*\ ptr\ =\ m\_ptr;}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ m\_ptr\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ptr;}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ T*\ get()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr;\ \}}
+\DoxyCodeLine{00101\ \ \ \ \ T*\ operator-\/>()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr;\ \}}
+\DoxyCodeLine{00102\ \ \ \ \ T\&\ operator*()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *m\_ptr;\ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ Do\ not\ define\ operator=(T*)\ because\ stealing\ references\ from}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{comment}{//\ raw\ pointers\ is\ like\ an\ implicit\ copy\ ctor\ from\ a\ raw\ pointer.}}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{comment}{//\ Use\ AddRef()\ for\ these\ cases,\ e.g.:}}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{comment}{//\ void\ function(T*\ refCountedObj)\ \{}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{comment}{//\ \ \ Ref<T>\ p;}}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{comment}{//\ \ \ p\ =\ AddRef(refCountedObj);}}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{comment}{//\ \ \ ...}}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{comment}{//\ \}}}
+\DoxyCodeLine{00113\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ operator=(T*\ ptr)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ operator=(std::nullptr\_t)\ \{}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ reset();}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00118\ \ \ \ \ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ operator=(\mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\&\ ref)\ \{}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ m\_ptr-\/>unref();}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ m\_ptr\ =\ ref.release();}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00124\ \ \ \ \ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ ref)\ \{}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ \{}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr\ ==\ ref.m\_ptr)}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ m\_ptr-\/>unref();}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ m\_ptr\ =\ ref.m\_ptr;}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ m\_ptr-\/>ref();}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00135\ \ \ \ \ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{comment}{//\ Comparison\ between\ other\ Ref,\ raw\ pointers\ and\ nullpointers}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ r)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ ==\ r.m\_ptr;\ \}}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ r)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ !=\ r.m\_ptr;\ \}}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ T*\ p)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ ==\ p;\ \}}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ T*\ p)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ !=\ p;\ \}}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(std::nullptr\_t)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ ==\ \textcolor{keyword}{nullptr};\ \}}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(std::nullptr\_t)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ptr\ !=\ \textcolor{keyword}{nullptr};\ \}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keyword}{explicit}\ \textcolor{keyword}{operator}\ bool()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_ptr\ !=\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00147\ \ \ \ \ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordtype}{void}\ swap(\mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ r)\ \textcolor{keyword}{noexcept}\ \{}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ std::swap(m\_ptr,\ r.m\_ptr);}
+\DoxyCodeLine{00151\ \ \ \ \ \}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00154\ \ \ \ \ T*\ m\_ptr;}
+\DoxyCodeLine{00155\ \ \ \};}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00158\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator==(T*\ ptr,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<T>}}\&\ r)\ \{}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keywordflow}{return}\ r.get()\ ==\ ptr;}
+\DoxyCodeLine{00160\ \ \ \}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00163\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator!=(T*\ ptr,\ \textcolor{keyword}{const}\ Ref<T>\&\ r)\ \{}
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keywordflow}{return}\ r.get()\ !=\ ptr;}
+\DoxyCodeLine{00165\ \ \ \}}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00168\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator==(std::nullptr\_t,\ \textcolor{keyword}{const}\ Ref<T>\&\ r)\ \{}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordflow}{return}\ r.get()\ ==\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00170\ \ \ \}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00173\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ operator!=(std::nullptr\_t,\ \textcolor{keyword}{const}\ Ref<T>\&\ r)\ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \textcolor{keywordflow}{return}\ r.get()\ !=\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00175\ \ \ \}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T,}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ...Args>}
+\DoxyCodeLine{00179\ \ \ Ref<T>\ make\_ref(Args\&\&...args)\ \{}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordflow}{return}\ Ref<T>(\textcolor{keyword}{new}\ T(std::forward<Args>(args)...));}
+\DoxyCodeLine{00181\ \ \ \}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ \textcolor{comment}{//\ AddRef()\ is\ like\ Ref()\ ctor\ but\ adding\ a\ new\ ref\ (useful\ to}}
+\DoxyCodeLine{00184\ \ \ \textcolor{comment}{//\ create\ a\ new\ ref\ from\ a\ raw\ pointer).}}
+\DoxyCodeLine{00185\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00186\ \ \ \textcolor{keyword}{inline}\ Ref<T>\ AddRef(T*\ r)\ \{}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordflow}{if}\ (r)\ r-\/>ref();}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{keywordflow}{return}\ Ref<T>(r);}
+\DoxyCodeLine{00189\ \ \ \}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \}\ \textcolor{comment}{//\ namespace\ base}}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

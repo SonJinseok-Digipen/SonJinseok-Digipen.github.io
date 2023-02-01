@@ -1,0 +1,294 @@
+\hypertarget{image__impl_8h_source}{}\doxysection{image\+\_\+impl.\+h}
+\label{image__impl_8h_source}\index{AseSprite/aseprite/src/doc/image\_impl.h@{AseSprite/aseprite/src/doc/image\_impl.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ Document\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2021\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2016\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ DOC\_IMAGE\_IMPL\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ DOC\_IMAGE\_IMPL\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <cstdlib>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <cstring>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}doc/blend\_funcs.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}doc/image.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/image\_bits.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}doc/image\_iterator.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}doc/palette.h"{}}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>\ \textcolor{keyword}{class\ }LockImageBits;}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Traits>}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_image_impl}{ImageImpl}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}\ \{}
+\DoxyCodeLine{00028\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{typename}\ Traits::address\_t\ address\_t;}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{typename}\ Traits::const\_address\_t\ const\_address\_t;}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ ImageBufferPtr\ m\_buffer;}
+\DoxyCodeLine{00033\ \ \ \ \ address\_t\ m\_bits;}
+\DoxyCodeLine{00034\ \ \ \ \ address\_t*\ m\_rows;}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{inline}\ address\_t\ getBitsAddress()\ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_bits;}
+\DoxyCodeLine{00038\ \ \ \ \ \}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{inline}\ const\_address\_t\ getBitsAddress()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_bits;}
+\DoxyCodeLine{00042\ \ \ \ \ \}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{inline}\ address\_t\ getLineAddress(\textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ height());}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_rows[y];}
+\DoxyCodeLine{00047\ \ \ \ \ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{inline}\ const\_address\_t\ getLineAddress(\textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ height());}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_rows[y];}
+\DoxyCodeLine{00052\ \ \ \ \ \}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{inline}\ address\_t\ address(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (address\_t)(getLineAddress(y)\ +\ x\ /\ (Traits::pixels\_per\_byte\ ==\ 0\ ?\ 1\ :\ Traits::pixels\_per\_byte));}
+\DoxyCodeLine{00057\ \ \ \ \ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_impl}{ImageImpl}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_spec}{ImageSpec}}\&\ spec,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ ImageBufferPtr\&\ \mbox{\hyperlink{classbuffer}{buffer}})}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}(spec)}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ ,\ m\_buffer(\mbox{\hyperlink{classbuffer}{buffer}})}
+\DoxyCodeLine{00063\ \ \ \ \ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ ASSERT(Traits::color\_mode\ ==\ spec.colorMode());}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \ \ std::size\_t\ for\_rows\ =\ \textcolor{keyword}{sizeof}(address\_t)\ *\ spec.height();}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ std::size\_t\ rowstride\_bytes\ =\ Traits::getRowStrideBytes(spec.width());}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ std::size\_t\ required\_size\ =\ for\_rows\ +\ rowstride\_bytes*spec.height();}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_buffer)}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ m\_buffer\ =\ std::make\_shared<ImageBuffer>(required\_size);}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ m\_buffer-\/>resizeIfNecessary(required\_size);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \ \ std::fill(m\_buffer-\/>buffer(),}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_buffer-\/>buffer()+required\_size,\ 0);}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ m\_rows\ =\ (address\_t*)m\_buffer-\/>buffer();}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ m\_bits\ =\ (address\_t)(m\_buffer-\/>buffer()\ +\ for\_rows);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ address\_t\ addr\ =\ m\_bits;}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ y=0;\ y<spec.height();\ ++y)\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ m\_rows[y]\ =\ addr;}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ addr\ =\ (address\_t)(((uint8\_t*)addr)\ +\ rowstride\_bytes);}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00086\ \ \ \ \ \}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ uint8\_t*\ getPixelAddress(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ width());}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ height());}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (uint8\_t*)address(x,\ y);}
+\DoxyCodeLine{00093\ \ \ \ \ \}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ getPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ width());}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ height());}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *address(x,\ y);}
+\DoxyCodeLine{00100\ \ \ \ \ \}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordtype}{void}\ putPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ width());}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ height());}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \ \ *address(x,\ y)\ =\ color;}
+\DoxyCodeLine{00107\ \ \ \ \ \}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{void}\ clear(\mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ w\ =\ width();}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ h\ =\ height();}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \textcolor{comment}{//\ Fill\ the\ first\ line}}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ address\_t\ first\ =\ address(0,\ 0);}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ std::fill(first,\ first+w,\ color);}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \textcolor{comment}{//\ Copy\ the\ first\ line\ into\ all\ other\ lines}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ y=1;\ y<h;\ ++y)}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ std::copy(first,\ first+w,\ address(0,\ y));}
+\DoxyCodeLine{00120\ \ \ \ \ \}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordtype}{void}\ copy(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ \_src,\ \mbox{\hyperlink{classgfx_1_1_clip_t}{gfx::Clip}}\ area)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_impl}{ImageImpl<Traits>}}*\ src\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_impl}{ImageImpl<Traits>}}*)\_src;}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ address\_t\ src\_address;}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ address\_t\ dst\_address;}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!area.clip(width(),\ height(),\ src-\/>width(),\ src-\/>height()))}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ end\_y=area.dst.y+area.size.h;}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ area.dst.y<end\_y;}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ ++area.dst.y,\ ++area.src.y)\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ src\_address\ =\ src-\/>address(area.src.x,\ area.src.y);}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ dst\_address\ =\ address(area.dst.x,\ area.dst.y);}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ std::copy(src\_address,}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_address\ +\ area.size.w,}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_address);}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00140\ \ \ \ \ \}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{void}\ drawHLine(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y,\ \textcolor{keywordtype}{int}\ x2,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_lock_image_bits}{LockImageBits<Traits>}}\ bits(\textcolor{keyword}{this},\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}(x1,\ y,\ x2\ -\/\ x1\ +\ 1,\ 1));}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classdoc_1_1_image_iterator}{LockImageBits<Traits>::iterator}}\ it(bits.begin());}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \textcolor{keyword}{typename}\ \mbox{\hyperlink{classdoc_1_1_image_iterator}{LockImageBits<Traits>::iterator}}\ end(bits.end());}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ it\ !=\ end;\ ++it)}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ *it\ =\ color;}
+\DoxyCodeLine{00149\ \ \ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keywordtype}{void}\ fillRect(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y1,\ \textcolor{keywordtype}{int}\ x2,\ \textcolor{keywordtype}{int}\ y2,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \textcolor{comment}{//\ Fill\ the\ first\ line}}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image_impl}{ImageImpl<Traits>::drawHLine}}(x1,\ y1,\ x2,\ color);}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \textcolor{comment}{//\ Copy\ all\ other\ lines}}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ address\_t\ first\ =\ address(x1,\ y1);}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ w\ =\ x2\ -\/\ x1\ +\ 1;}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ y=y1;\ y<=y2;\ ++y)}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ std::copy(first,\ first+w,\ address(x1,\ y));}
+\DoxyCodeLine{00160\ \ \ \ \ \}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{keywordtype}{void}\ blendRect(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y1,\ \textcolor{keywordtype}{int}\ x2,\ \textcolor{keywordtype}{int}\ y2,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color,\ \textcolor{keywordtype}{int}\ opacity)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ fillRect(x1,\ y1,\ x2,\ y2,\ color);}
+\DoxyCodeLine{00164\ \ \ \ \ \}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordtype}{bool}\ clip\_rects(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ src,\ \textcolor{keywordtype}{int}\&\ dst\_x,\ \textcolor{keywordtype}{int}\&\ dst\_y,\ \textcolor{keywordtype}{int}\&\ src\_x,\ \textcolor{keywordtype}{int}\&\ src\_y,\ \textcolor{keywordtype}{int}\&\ w,\ \textcolor{keywordtype}{int}\&\ h)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \textcolor{comment}{//\ Clip\ with\ destionation\ image}}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (dst\_x\ <\ 0)\ \{}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ w\ +=\ dst\_x;}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ src\_x\ -\/=\ dst\_x;}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ dst\_x\ =\ 0;}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (dst\_y\ <\ 0)\ \{}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ h\ +=\ dst\_y;}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ src\_y\ -\/=\ dst\_y;}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ dst\_y\ =\ 0;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (dst\_x+w\ >\ width())\ \{}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ w\ =\ width()\ -\/\ dst\_x;}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (dst\_y+h\ >\ height())\ \{}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ h\ =\ height()\ -\/\ dst\_y;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{comment}{//\ Clip\ with\ source\ image}}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (src\_x\ <\ 0)\ \{}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ w\ +=\ src\_x;}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ dst\_x\ -\/=\ src\_x;}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ src\_x\ =\ 0;}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (src\_y\ <\ 0)\ \{}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ h\ +=\ src\_y;}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ dst\_y\ -\/=\ src\_y;}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ src\_y\ =\ 0;}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (src\_x+w\ >\ src-\/>width())\ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ w\ =\ src-\/>width()\ -\/\ src\_x;}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (src\_y+h\ >\ src-\/>height())\ \{}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ h\ =\ src-\/>height()\ -\/\ src\_y;}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \textcolor{comment}{//\ Empty\ cases}}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (w\ <\ 1\ ||\ h\ <\ 1)}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((src\_x+w\ <=\ 0)\ ||\ (src\_x\ >=\ src-\/>width())\ ||}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ (src\_y+h\ <=\ 0)\ ||\ (src\_y\ >=\ src-\/>height()))}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((dst\_x+w\ <=\ 0)\ ||\ (dst\_x\ >=\ width())\ ||}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ (dst\_y+h\ <=\ 0)\ ||\ (dst\_y\ >=\ height()))}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \textcolor{comment}{//\ Check\ this\ function\ is\ working\ correctly}}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ ASSERT(src-\/>bounds().contains(\mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}(src\_x,\ src\_y,\ w,\ h)));}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ ASSERT(bounds().contains(\mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}(dst\_x,\ dst\_y,\ w,\ h)));}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00220\ \ \ \ \ \}}
+\DoxyCodeLine{00221\ \ \ \};}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00224\ \ \ \textcolor{comment}{//\ Specializations}}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00227\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classdoc_1_1_image_impl}{ImageImpl<IndexedTraits>::clear}}(\mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\ \{}
+\DoxyCodeLine{00228\ \ \ \ \ std::fill(getBitsAddress(),}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ getBitsAddress()\ +\ width()*height(),}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ color);}
+\DoxyCodeLine{00231\ \ \ \}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00234\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ ImageImpl<BitmapTraits>::clear(\mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\ \{}
+\DoxyCodeLine{00235\ \ \ \ \ std::fill(getBitsAddress(),}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ getBitsAddress()\ +\ BitmapTraits::getRowStrideBytes(width())\ *\ height(),}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (color\ ?\ 0xff:\ 0x00));}
+\DoxyCodeLine{00238\ \ \ \}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00241\ \ \ \textcolor{keyword}{inline}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ ImageImpl<BitmapTraits>::getPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00242\ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ width());}
+\DoxyCodeLine{00243\ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ height());}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \ \ std::div\_t\ d\ =\ std::div(x,\ 8);}
+\DoxyCodeLine{00246\ \ \ \ \ \textcolor{keywordflow}{return}\ ((*(getLineAddress(y)\ +\ d.quot))\ \&\ (1<<d.rem))\ ?\ 1:\ 0;}
+\DoxyCodeLine{00247\ \ \ \}}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00250\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ ImageImpl<BitmapTraits>::putPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\ \{}
+\DoxyCodeLine{00251\ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ width());}
+\DoxyCodeLine{00252\ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ height());}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \ \ std::div\_t\ d\ =\ std::div(x,\ 8);}
+\DoxyCodeLine{00255\ \ \ \ \ \textcolor{keywordflow}{if}\ (color)}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ (*(getLineAddress(y)\ +\ d.quot))\ |=\ (1\ <<\ d.rem);}
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ (*(getLineAddress(y)\ +\ d.quot))\ \&=\ \string~(1\ <<\ d.rem);}
+\DoxyCodeLine{00259\ \ \ \}}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00262\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ ImageImpl<BitmapTraits>::fillRect(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y1,\ \textcolor{keywordtype}{int}\ x2,\ \textcolor{keywordtype}{int}\ y2,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color)\ \{}
+\DoxyCodeLine{00263\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ y=y1;\ y<=y2;\ ++y)}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ ImageImpl<BitmapTraits>::drawHLine(x1,\ y,\ x2,\ color);}
+\DoxyCodeLine{00265\ \ \ \}}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00268\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ ImageImpl<RgbTraits>::blendRect(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y1,\ \textcolor{keywordtype}{int}\ x2,\ \textcolor{keywordtype}{int}\ y2,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color,\ \textcolor{keywordtype}{int}\ opacity)\ \{}
+\DoxyCodeLine{00269\ \ \ \ \ address\_t\ addr;}
+\DoxyCodeLine{00270\ \ \ \ \ \textcolor{keywordtype}{int}\ x,\ y;}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \ \ \textcolor{keywordflow}{for}\ (y=y1;\ y<=y2;\ ++y)\ \{}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ addr\ =\ (address\_t)getPixelAddress(x1,\ y);}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (x=x1;\ x<=x2;\ ++x)\ \{}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ *addr\ =\ rgba\_blender\_normal(*addr,\ color,\ opacity);}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ ++addr;}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00278\ \ \ \ \ \}}
+\DoxyCodeLine{00279\ \ \ \}}
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ \ \ \textcolor{keywordtype}{void}\ copy\_bitmaps(Image*\ dst,\ \textcolor{keyword}{const}\ Image*\ src,\ \mbox{\hyperlink{classgfx_1_1_clip_t}{gfx::Clip}}\ area);}
+\DoxyCodeLine{00282\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00283\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ ImageImpl<BitmapTraits>::copy(\textcolor{keyword}{const}\ Image*\ src,\ \mbox{\hyperlink{classgfx_1_1_clip_t}{gfx::Clip}}\ area)\ \{}
+\DoxyCodeLine{00284\ \ \ \ \ copy\_bitmaps(\textcolor{keyword}{this},\ src,\ area);}
+\DoxyCodeLine{00285\ \ \ \}}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \}\ \textcolor{comment}{//\ namespace\ doc}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

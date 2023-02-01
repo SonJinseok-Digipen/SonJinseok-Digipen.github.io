@@ -1,0 +1,336 @@
+The curl test suite\textquotesingle{}s file format is very simple and extensible, closely resembling XML. All data for a single test case resides in a single ASCII file. Labels mark the beginning and the end of all sections, and each label must be written in its own line. Comments are either XML-\/style (enclosed with {\ttfamily \texorpdfstring{$<$}{<}!-\/-\/} and {\ttfamily -\/-\/\texorpdfstring{$>$}{>}}) or shell script style (beginning with {\ttfamily \#}) and must appear on their own lines and not alongside actual test data. Most test data files are syntactically valid XML, although a few files are not (lack of support for character entities and the preservation of CR/\+LF characters at the end of lines are the biggest differences).
+
+Each test case source exists as a file matching the format {\ttfamily tests/data/test\+NUM}, where NUM is the unique test number, and must begin with a \textquotesingle{}testcase\textquotesingle{} tag, which encompasses the remainder of the file.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1285}{}\doxysection{Preprocessing}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1285}
+When a test is to be executed, the source file is first preprocessed and variables are substituted by the their respective contents and the output version of the test file is stored as {\ttfamily log/test\+NUM}. That version is what will be read and used by the test servers.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1286}{}\doxysubsection{Base64 Encoding}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1286}
+In the preprocess stage, a special instruction can be used to have runtests.\+pl base64 encode a certain section and insert in the generated output file. This is in particular good for test cases where the test tool is expected to pass in base64 encoded content that might use dynamic information that is unique for this particular test invocation, like the server port number.
+
+To insert a base64 encoded string into the output, use this syntax\+: \begin{DoxyVerb}%b64[ data to encode ]b64%
+\end{DoxyVerb}
+ The data to encode can then use any of the existing variables mentioned below, or even percent-\/encoded individual bytes. As an example, insert the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} server\textquotesingle{}s port number (in ASCII) followed by a space and the hexadecimal byte 9a\+: \begin{DoxyVerb}%b64[%HTTPPORT %9a]b64%
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1287}{}\doxysubsection{Hexadecimal decoding}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1287}
+In the preprocess stage, a special instruction can be used to have runtests.\+pl generate a sequence of binary bytes.
+
+To insert a sequence of bytes from a hex encoded string, use this syntax\+: \begin{DoxyVerb}%hex[ %XX-encoded data to decode ]hex%
+\end{DoxyVerb}
+ For example, to insert the binary octets 0, 1 and 255 into the test file\+: \begin{DoxyVerb}%hex[ %00%01%FF ]hex%
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1288}{}\doxysubsection{Repeat content}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1288}
+In the preprocess stage, a special instruction can be used to have runtests.\+pl generate a repetetive sequence of bytes.
+
+To insert a sequence of repeat bytes, use this syntax to make the {\ttfamily \texorpdfstring{$<$}{<}string\texorpdfstring{$>$}{>}} get repeated {\ttfamily \texorpdfstring{$<$}{<}number\texorpdfstring{$>$}{>}} of times. The number has to be 1 or large and the string may contain {\ttfamily HH} hexadecimal codes\+: \begin{DoxyVerb}%repeat[<number> x <string>]%
+\end{DoxyVerb}
+ For example, to insert the word hello a 100 times\+: \begin{DoxyVerb}%repeat[100 x hello]%
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1289}{}\doxysubsection{Conditional lines}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1289}
+Lines in the test file can be made to appear conditionally on a specific feature (see the \char`\"{}features\char`\"{} section below) being set or not set. If the specific feature is present, the following lines will be output, otherwise it outputs nothing, until a following else or endif clause. Like this\+: \begin{DoxyVerb}%if brotli
+Accept-Encoding
+%endif
+\end{DoxyVerb}
+ It can also check for the inversed condition, so if the feature us {\itshape not} set by the use of an exclamation mark\+: \begin{DoxyVerb}%if !brotli
+Accept-Encoding: not-brotli
+%endif
+\end{DoxyVerb}
+ You can also make an \char`\"{}else\char`\"{} clause to get output for the opposite condition, like\+: \begin{DoxyVerb}%if brotli
+Accept-Encoding: brotli
+%else
+Accept-Encoding: nothing
+%endif
+\end{DoxyVerb}
+ {\bfseries{Note}} that there can be no nested conditions. You can only do one conditional at a time and you can only check for a single feature in it.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1290}{}\doxysection{Variables}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1290}
+When the test is preprocessed, a range of \char`\"{}variables\char`\"{} in the test file will be replaced by their content at that time.
+
+Available substitute variables include\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily CLIENT6\+IP} -\/ IPv6 address of the client running curl
+\item {\ttfamily CLIENTIP} -\/ IPv4 address of the client running curl
+\item {\ttfamily CURL} -\/ Path to the curl executable
+\item {\ttfamily FILE\+\_\+\+PWD} -\/ Current directory, on windows prefixed with a slash
+\item {\ttfamily FTP6\+PORT} -\/ IPv6 port number of the \mbox{\hyperlink{struct_f_t_p}{FTP}} server
+\item {\ttfamily FTPPORT} -\/ Port number of the \mbox{\hyperlink{struct_f_t_p}{FTP}} server
+\item {\ttfamily FTPSPORT} -\/ Port number of the FTPS server
+\item {\ttfamily FTPTIME2} -\/ Timeout in seconds that should be just sufficient to receive a response from the test \mbox{\hyperlink{struct_f_t_p}{FTP}} server
+\item {\ttfamily FTPTIME3} -\/ Even longer than FTPTIME2
+\item {\ttfamily GOPHER6\+PORT} -\/ IPv6 port number of the Gopher server
+\item {\ttfamily GOPHERPORT} -\/ Port number of the Gopher server
+\item {\ttfamily GOPHERSPORT} -\/ Port number of the Gophers server
+\item {\ttfamily HOST6\+IP} -\/ IPv6 address of the host running this test
+\item {\ttfamily HOSTIP} -\/ IPv4 address of the host running this test
+\item {\ttfamily HTTP6\+PORT} -\/ IPv6 port number of the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} server
+\item {\ttfamily HTTPPORT} -\/ Port number of the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} server
+\item {\ttfamily HTTP2\+PORT} -\/ Port number of the HTTP/2 server
+\item {\ttfamily HTTPSPORT} -\/ Port number of the HTTPS server
+\item {\ttfamily HTTPSPROXYPORT} -\/ Port number of the HTTPS-\/proxy
+\item {\ttfamily HTTPTLS6\+PORT} -\/ IPv6 port number of the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} TLS server
+\item {\ttfamily HTTPTLSPORT} -\/ Port number of the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} TLS server
+\item {\ttfamily HTTPUNIXPATH} -\/ Path to the Unix socket of the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} server
+\item {\ttfamily IMAP6\+PORT} -\/ IPv6 port number of the \mbox{\hyperlink{struct_i_m_a_p}{IMAP}} server
+\item {\ttfamily IMAPPORT} -\/ Port number of the \mbox{\hyperlink{struct_i_m_a_p}{IMAP}} server
+\item {\ttfamily MQTTPORT} -\/ Port number of the \mbox{\hyperlink{struct_m_q_t_t}{MQTT}} server
+\item {\ttfamily TELNETPORT} -\/ Port number of the telnet server
+\item {\ttfamily NOLISTENPORT} -\/ Port number where no service is listening
+\item {\ttfamily POP36\+PORT} -\/ IPv6 port number of the \mbox{\hyperlink{struct_p_o_p3}{POP3}} server
+\item {\ttfamily POP3\+PORT} -\/ Port number of the \mbox{\hyperlink{struct_p_o_p3}{POP3}} server
+\item {\ttfamily POSIX\+\_\+\+PWD} -\/ Current directory somewhat mingw friendly
+\item {\ttfamily PROXYPORT} -\/ Port number of the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} proxy
+\item {\ttfamily PWD} -\/ Current directory
+\item {\ttfamily RTSP6\+PORT} -\/ IPv6 port number of the \mbox{\hyperlink{struct_r_t_s_p}{RTSP}} server
+\item {\ttfamily RTSPPORT} -\/ Port number of the \mbox{\hyperlink{struct_r_t_s_p}{RTSP}} server
+\item {\ttfamily SMBPORT} -\/ Port number of the SMB server
+\item {\ttfamily SMBSPORT} -\/ Port number of the SMBS server
+\item {\ttfamily SMTP6\+PORT} -\/ IPv6 port number of the \mbox{\hyperlink{struct_s_m_t_p}{SMTP}} server
+\item {\ttfamily SMTPPORT} -\/ Port number of the \mbox{\hyperlink{struct_s_m_t_p}{SMTP}} server
+\item {\ttfamily SOCKSPORT} -\/ Port number of the SOCKS4/5 server
+\item {\ttfamily SRCDIR} -\/ Full path to the source dir
+\item {\ttfamily SSHPORT} -\/ Port number of the SCP/\+SFTP server
+\item {\ttfamily SSHSRVMD5} -\/ MD5 of SSH server\textquotesingle{}s public key
+\item {\ttfamily SSH\+\_\+\+PWD} -\/ Current directory friendly for the SSH server
+\item {\ttfamily TESTNUMBER} -\/ Number of the test case
+\item {\ttfamily TFTP6\+PORT} -\/ IPv6 port number of the TFTP server
+\item {\ttfamily TFTPPORT} -\/ Port number of the TFTP server
+\item {\ttfamily USER} -\/ Login ID of the user running the test
+\item {\ttfamily VERSION} -\/ the full version number of the tested curl
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1291}{}\doxysection{$<$tt$>$$<$testcase$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1291}
+Each test is always specified entirely within the testcase tag. Each test case is split up in four main sections\+: {\ttfamily info}, {\ttfamily reply}, {\ttfamily client} and {\ttfamily verify}.
+
+
+\begin{DoxyItemize}
+\item {\bfseries{info}} provides information about the test case
+\item {\bfseries{reply}} is used for the server to know what to send as a reply for the requests curl sends
+\item {\bfseries{client}} defines how the client should behave
+\item {\bfseries{verify}} defines how to verify that the data stored after a command has been run ended up correctly
+\end{DoxyItemize}
+
+Each main section has a number of available subsections that can be specified, that will be checked/used if specified.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1292}{}\doxysubsection{$<$tt$>$$<$info$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1292}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1293}{}\doxysubsubsection{$<$tt$>$$<$keywords$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1293}
+\mbox{\hyperlink{class_a}{A}} newline-\/separated list of keywords describing what this test case uses and tests. Try to use already used keywords. These keywords will be used for statistical/informational purposes and for choosing or skipping classes of tests. \char`\"{}\+Keywords\char`\"{} must begin with an alphabetic character, \char`\"{}-\/\char`\"{}, \char`\"{}\mbox{[}\char`\"{} or \char`\"{}\{\char`\"{} and may actually consist of multiple words separated by spaces which are treated together as a single identifier.
+
+When using curl built with Hyper, the keywords must include \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} or HTTPS for \textquotesingle{}hyper mode\textquotesingle{} to kick in and make line ending checks work for tests. \hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1294}{}\doxysubsection{$<$tt$>$$<$reply$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1294}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1295}{}\doxysubsubsection{$<$tt$>$$<$data \mbox{[}nocheck=\char`\"{}yes\char`\"{}\mbox{]} \mbox{[}sendzero=\char`\"{}yes\char`\"{}\mbox{]} \mbox{[}base64=\char`\"{}yes\char`\"{}\mbox{]} \mbox{[}hex=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1295}
+data to be sent to the client on its request and later verified that it arrived safely. Set {\ttfamily nocheck=\char`\"{}yes\char`\"{}} to prevent the test script from verifying the arrival of this data.
+
+If the data contains {\ttfamily swsclose} anywhere within the start and end tag, and this is a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} test, then the connection will be closed by the server after this response is sent. If not, the connection will be kept persistent.
+
+If the data contains {\ttfamily swsbounce} anywhere within the start and end tag, the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} server will detect if this is a second request using the same test and part number and will then increase the part number with one. This is useful for auth tests and similar.
+
+{\ttfamily sendzero=yes} means that the (\mbox{\hyperlink{struct_f_t_p}{FTP}}) server will \char`\"{}send\char`\"{} the data even if the size is zero bytes. Used to verify curl\textquotesingle{}s behavior on zero bytes transfers.
+
+{\ttfamily base64=yes} means that the data provided in the test-\/file is a chunk of data encoded with base64. It is the only way a test case can contain binary data. (This attribute can in fact be used on any section, but it doesn\textquotesingle{}t make much sense for other sections than \char`\"{}data\char`\"{}).
+
+{\ttfamily hex=yes} means that the data is a sequence of hex pairs. It will get decoded and used as \char`\"{}raw\char`\"{} data.
+
+For \mbox{\hyperlink{struct_f_t_p}{FTP}} file listings, the {\ttfamily \texorpdfstring{$<$}{<}data\texorpdfstring{$>$}{>}} section will be used {\itshape only} if you make sure that there has been a CWD done first to a directory named {\ttfamily test-\/\mbox{[}num\mbox{]}} where \mbox{[}num\mbox{]} is the test case number. Otherwise the ftp server can\textquotesingle{}t know from which test file to load the list content.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1296}{}\doxysubsubsection{$<$tt$>$$<$data\+NUM$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1296}
+Send back this contents instead of the $<$data$>$ one. The num is set by\+:
+
+
+\begin{DoxyItemize}
+\item The test number in the request line is \texorpdfstring{$>$}{>}10000 and this is the remainder of \mbox{[}test case number\mbox{]}\%10000.
+\item The request was \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} and included digest details, which adds 1000 to NUM
+\item If a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} request is NTLM type-\/1, it adds 1001 to num
+\item If a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} request is NTLM type-\/3, it adds 1002 to num
+\item If a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} request is Basic and num is already \texorpdfstring{$>$}{>}=1000, it adds 1 to num
+\item If a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} request is Negotiate, num gets incremented by one for each request with Negotiate authorization header on the same test case.
+\end{DoxyItemize}
+
+Dynamically changing num in this way allows the test harness to be used to test authentication negotiation where several different requests must be sent to complete a transfer. The response to each request is found in its own data section. Validating the entire negotiation sequence can be done by specifying a datacheck section.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1297}{}\doxysubsubsection{$<$tt$>$$<$connect$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1297}
+The connect section is used instead of the \textquotesingle{}data\textquotesingle{} for all CONNECT requests. The remainder of the rules for the data section then apply but with a connect prefix.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1298}{}\doxysubsubsection{$<$tt$>$$<$datacheck \mbox{[}mode=\char`\"{}text\char`\"{}\mbox{]} \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1298}
+if the data is sent but this is what should be checked afterwards. If {\ttfamily nonewline=yes} is set, runtests will cut off the trailing newline from the data before comparing with the one actually received by the client.
+
+Use the {\ttfamily mode=\char`\"{}text\char`\"{}} attribute if the output is in text mode on platforms that have a text/binary difference.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1299}{}\doxysubsubsection{$<$tt$>$$<$datacheck\+NUM \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]} \mbox{[}mode=\char`\"{}text\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1299}
+The contents of numbered datacheck sections are appended to the non-\/numbered one.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1300}{}\doxysubsubsection{$<$tt$>$$<$size$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1300}
+number to return on a ftp SIZE command (set to -\/1 to make this command fail)\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1301}{}\doxysubsubsection{$<$tt$>$$<$mdtm$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1301}
+what to send back if the client sends a (\mbox{\hyperlink{struct_f_t_p}{FTP}}) MDTM command, set to -\/1 to have it return that the file doesn\textquotesingle{}t exist\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1302}{}\doxysubsubsection{$<$tt$>$$<$postcmd$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1302}
+special purpose server-\/command to control its behavior {\itshape after} the reply is sent For HTTP/\+HTTPS, these are supported\+:
+
+{\ttfamily wait \mbox{[}secs\mbox{]}} -\/ Pause for the given time\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1303}{}\doxysubsubsection{$<$tt$>$$<$servercmd$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1303}
+Special-\/commands for the server.
+
+The first line of this file will always be set to {\ttfamily Testnum \mbox{[}number\mbox{]}} by the test script, to allow servers to read that to know what test the client is about to issue.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1304}{}\doxyparagraph{For FTP/\+SMTP/\+POP/\+IMAP}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1304}
+
+\begin{DoxyItemize}
+\item {\ttfamily REPLY \mbox{[}command\mbox{]} \mbox{[}return value\mbox{]} \mbox{[}response string\mbox{]}} -\/ Changes how the server responds to the \mbox{[}command\mbox{]}. \mbox{[}response string\mbox{]} is evaluated as a perl string, so it can contain embedded \textbackslash{}r~\newline
+, for example. There\textquotesingle{}s a special \mbox{[}command\mbox{]} named \char`\"{}welcome\char`\"{} (without quotes) which is the string sent immediately on connect as a welcome.
+\item {\ttfamily REPLYLF} (like above but sends the response terminated with LF-\/only and not CRLF)
+\item {\ttfamily COUNT \mbox{[}command\mbox{]} \mbox{[}num\mbox{]}} -\/ Do the {\ttfamily REPLY} change for {\ttfamily \mbox{[}command\mbox{]}} only {\ttfamily \mbox{[}num\mbox{]}} times and then go back to the built-\/in approach
+\item {\ttfamily DELAY \mbox{[}command\mbox{]} \mbox{[}secs\mbox{]}} -\/ Delay responding to this command for the given time
+\item {\ttfamily RETRWEIRDO} -\/ Enable the \char`\"{}weirdo\char`\"{} RETR case when multiple response lines appear at once when a file is transferred
+\item {\ttfamily RETRNOSIZE} -\/ Make sure the RETR response doesn\textquotesingle{}t contain the size of the file
+\item {\ttfamily NOSAVE} -\/ Don\textquotesingle{}t actually save what is received
+\item {\ttfamily SLOWDOWN} -\/ Send \mbox{\hyperlink{struct_f_t_p}{FTP}} responses with 0.\+01 sec delay between each byte
+\item {\ttfamily PASVBADIP} -\/ makes PASV send back an illegal IP in its 227 response
+\item {\ttfamily CAPA \mbox{[}capabilities\mbox{]}} -\/ Enables support for and specifies a list of space separated capabilities to return to the client for the \mbox{\hyperlink{struct_i_m_a_p}{IMAP}} {\ttfamily CAPABILITY}, \mbox{\hyperlink{struct_p_o_p3}{POP3}} {\ttfamily CAPA} and \mbox{\hyperlink{struct_s_m_t_p}{SMTP}} {\ttfamily EHLO} commands
+\item {\ttfamily AUTH \mbox{[}mechanisms\mbox{]}} -\/ Enables support for \mbox{\hyperlink{struct_s_a_s_l}{SASL}} authentication and specifies a list of space separated mechanisms for \mbox{\hyperlink{struct_i_m_a_p}{IMAP}}, \mbox{\hyperlink{struct_p_o_p3}{POP3}} and \mbox{\hyperlink{struct_s_m_t_p}{SMTP}}
+\item {\ttfamily STOR \mbox{[}msg\mbox{]}} respond with this instead of default after {\ttfamily STOR}
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1305}{}\doxyparagraph{For HTTP/\+HTTPS}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1305}
+
+\begin{DoxyItemize}
+\item {\ttfamily auth\+\_\+required} if this is set and a POST/\+PUT is made without auth, the server will NOT wait for the full request body to get sent
+\item {\ttfamily idle} -\/ do nothing after receiving the request, just \char`\"{}sit idle\char`\"{}
+\item {\ttfamily stream} -\/ continuously send data to the client, never-\/ending
+\item {\ttfamily writedelay\+: \mbox{[}secs\mbox{]}} delay this amount between reply packets
+\item {\ttfamily skip\+: \mbox{[}num\mbox{]}} -\/ instructs the server to ignore reading this many bytes from a PUT or POST request
+\item {\ttfamily rtp\+: part \mbox{[}num\mbox{]} channel \mbox{[}num\mbox{]} size \mbox{[}num\mbox{]}} -\/ stream a fake RTP packet for the given part on a chosen channel with the given payload size
+\item {\ttfamily connection-\/monitor} -\/ When used, this will log {\ttfamily \mbox{[}DISCONNECT\mbox{]}} to the {\ttfamily server.\+input} log when the connection is disconnected.
+\item {\ttfamily upgrade} -\/ when an \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} upgrade header is found, the server will upgrade to http2
+\item {\ttfamily swsclose} -\/ instruct server to close connection after response
+\item {\ttfamily no-\/expect} -\/ don\textquotesingle{}t read the request body if Expect\+: is present
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1306}{}\doxyparagraph{For TFTP}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1306}
+{\ttfamily writedelay\+: \mbox{[}secs\mbox{]}} delay this amount between reply packets (each packet being 512 bytes payload)\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1307}{}\doxysubsection{$<$tt$>$$<$client$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1307}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1308}{}\doxysubsubsection{$<$tt$>$$<$server$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1308}
+What server(s) this test case requires/uses. Available servers\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily file}
+\item {\ttfamily ftp-\/ipv6}
+\item {\ttfamily ftp}
+\item {\ttfamily ftps}
+\item {\ttfamily gopher}
+\item {\ttfamily gophers}
+\item {\ttfamily http-\/ipv6}
+\item {\ttfamily http-\/proxy}
+\item {\ttfamily http-\/unix}
+\item {\ttfamily http/2}
+\item {\ttfamily http}
+\item {\ttfamily https}
+\item {\ttfamily httptls+srp-\/ipv6}
+\item {\ttfamily httptls+srp}
+\item {\ttfamily imap}
+\item {\ttfamily mqtt}
+\item {\ttfamily none}
+\item {\ttfamily pop3}
+\item {\ttfamily rtsp-\/ipv6}
+\item {\ttfamily rtsp}
+\item {\ttfamily scp}
+\item {\ttfamily sftp}
+\item {\ttfamily smtp}
+\item {\ttfamily socks4}
+\item {\ttfamily socks5}
+\end{DoxyItemize}
+
+Give only one per line. This subsection is mandatory.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1309}{}\doxysubsubsection{$<$tt$>$$<$features$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1309}
+\mbox{\hyperlink{class_a}{A}} list of features that MUST be present in the client/library for this test to be able to run. If a required feature is not present then the test will be SKIPPED.
+
+Alternatively a feature can be prefixed with an exclamation mark to indicate a feature is NOT required. If the feature is present then the test will be SKIPPED.
+
+Features testable here are\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily alt-\/svc}
+\item {\ttfamily c-\/ares}
+\item {\ttfamily cookies}
+\item {\ttfamily crypto}
+\item {\ttfamily debug}
+\item {\ttfamily DoH}
+\item {\ttfamily getrlimit}
+\item {\ttfamily Gnu\+TLS}
+\item {\ttfamily GSS-\/\+API}
+\item {\ttfamily HSTS}
+\item {\ttfamily HTTP-\/auth}
+\item {\ttfamily http/2}
+\item {\ttfamily hyper}
+\item {\ttfamily idn}
+\item {\ttfamily ipv6}
+\item {\ttfamily Kerberos}
+\item {\ttfamily large\+\_\+file}
+\item {\ttfamily ld\+\_\+preload}
+\item {\ttfamily libz}
+\item {\ttfamily manual}
+\item {\ttfamily Mime}
+\item {\ttfamily netrc}
+\item {\ttfamily NSS}
+\item {\ttfamily NTLM}
+\item {\ttfamily Open\+SSL}
+\item {\ttfamily parsedate}
+\item {\ttfamily proxy}
+\item {\ttfamily PSL}
+\item {\ttfamily Schannel}
+\item {\ttfamily sectransp}
+\item {\ttfamily shuffle-\/dns}
+\item {\ttfamily socks}
+\item {\ttfamily SPNEGO}
+\item {\ttfamily SSL}
+\item {\ttfamily SSLpinning}
+\item {\ttfamily SSPI}
+\item {\ttfamily threaded-\/resolver}
+\item {\ttfamily TLS-\/\+SRP}
+\item {\ttfamily Track\+Memory}
+\item {\ttfamily typecheck}
+\item {\ttfamily Unicode}
+\item {\ttfamily unittest}
+\item {\ttfamily unix-\/sockets}
+\item {\ttfamily verbose-\/strings}
+\item {\ttfamily wakeup}
+\item {\ttfamily win32}
+\end{DoxyItemize}
+
+as well as each protocol that curl supports. \mbox{\hyperlink{class_a}{A}} protocol only needs to be specified if it is different from the server (useful when the server is {\ttfamily none}).\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1310}{}\doxysubsubsection{$<$tt$>$$<$killserver$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1310}
+Using the same syntax as in {\ttfamily \texorpdfstring{$<$}{<}server\texorpdfstring{$>$}{>}} but when mentioned here these servers are explicitly KILLED when this test case is completed. Only use this if there is no other alternatives. Using this of course requires subsequent tests to restart servers.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1311}{}\doxysubsubsection{$<$tt$>$$<$precheck$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1311}
+\mbox{\hyperlink{class_a}{A}} command line that if set gets run by the test script before the test. If an output is displayed by the command or if the return code is non-\/zero, the test will be skipped and the (single-\/line) output will be displayed as reason for not running the test.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1312}{}\doxysubsubsection{$<$tt$>$$<$postcheck$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1312}
+\mbox{\hyperlink{class_a}{A}} command line that if set gets run by the test script after the test. If the command exists with a non-\/zero status code, the test will be considered to have failed.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1313}{}\doxysubsubsection{$<$tt$>$$<$tool$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1313}
+Name of tool to invoke instead of \char`\"{}curl\char`\"{}. This tool must be built and exist either in the libtest/ directory (if the tool name starts with \textquotesingle{}lib\textquotesingle{}) or in the unit/ directory (if the tool name starts with \textquotesingle{}unit\textquotesingle{}).\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1314}{}\doxysubsubsection{$<$tt$>$$<$name$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1314}
+Brief test case description, shown when the test runs.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1315}{}\doxysubsubsection{$<$tt$>$$<$setenv$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1315}
+variable1=contents1 variable2=contents2
+
+Set the given environment variables to the specified value before the actual command is run. They are cleared again after the command has been run.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1316}{}\doxysubsubsection{$<$tt$>$$<$command \mbox{[}option=\char`\"{}no-\/output/no-\/include/force-\/output/binary-\/trace\char`\"{}\mbox{]} \mbox{[}timeout=\char`\"{}secs\char`\"{}\mbox{]}\mbox{[}delay=\char`\"{}secs\char`\"{}\mbox{]}\mbox{[}type=\char`\"{}perl/shell\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1316}
+Command line to run.
+
+Note that the URL that gets passed to the server actually controls what data that is returned. The last slash in the URL must be followed by a number. That number (N) will be used by the test-\/server to load test case N and return the data that is defined within the {\ttfamily \texorpdfstring{$<$}{<}reply\texorpdfstring{$>$}{>}\texorpdfstring{$<$}{<}data\texorpdfstring{$>$}{>}\texorpdfstring{$<$}{<}/data\texorpdfstring{$>$}{>}\texorpdfstring{$<$}{<}/reply\texorpdfstring{$>$}{>}} section.
+
+If there\textquotesingle{}s no test number found above, the \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} test server will use the number following the last dot in the given hostname (made so that a CONNECT can still pass on test number) so that \char`\"{}foo.\+bar.\+123\char`\"{} gets treated as test case
+\begin{DoxyEnumerate}
+\item Alternatively, if an IPv6 address is provided to CONNECT, the last hexadecimal group in the address will be used as the test number! For example the address \char`\"{}\mbox{[}1234\+::ff\mbox{]}\char`\"{} would be treated as test case 255.
+\end{DoxyEnumerate}
+
+Set {\ttfamily type=\char`\"{}perl\char`\"{}} to write the test case as a perl script. It implies that there\textquotesingle{}s no memory debugging and valgrind gets shut off for this test.
+
+Set {\ttfamily type=\char`\"{}shell\char`\"{}} to write the test case as a shell script. It implies that there\textquotesingle{}s no memory debugging and valgrind gets shut off for this test.
+
+Set {\ttfamily option=\char`\"{}no-\/output\char`\"{}} to prevent the test script to slap on the {\ttfamily -\/-\/output} argument that directs the output to a file. The {\ttfamily -\/-\/output} is also not added if the verify/stdout section is used.
+
+Set {\ttfamily option=\char`\"{}force-\/output\char`\"{}} to make use of {\ttfamily -\/-\/output} even when the test is otherwise written to verify stdout.
+
+Set {\ttfamily option=\char`\"{}no-\/include\char`\"{}} to prevent the test script to slap on the {\ttfamily -\/-\/include} argument.
+
+Set {\ttfamily option=\char`\"{}binary-\/trace\char`\"{}} to use {\ttfamily -\/-\/trace} instead of {\ttfamily -\/-\/trace-\/ascii} for tracing. Suitable for binary-\/oriented protocols such as \mbox{\hyperlink{struct_m_q_t_t}{MQTT}}.
+
+Set {\ttfamily timeout=\char`\"{}secs\char`\"{}} to override default server logs advisor read lock timeout. This timeout is used by the test harness, once that the command has completed execution, to wait for the test server to write out server side log files and remove the lock that advised not to read them. The \char`\"{}secs\char`\"{} parameter is the not negative integer number of seconds for the timeout. This {\ttfamily timeout} attribute is documented for completeness sake, but is deep test harness stuff and only needed for very singular and specific test cases. Avoid using it.
+
+Set {\ttfamily delay=\char`\"{}secs\char`\"{}} to introduce a time delay once that the command has completed execution and before the {\ttfamily \texorpdfstring{$<$}{<}postcheck\texorpdfstring{$>$}{>}} section runs. The \char`\"{}secs\char`\"{} parameter is the not negative integer number of seconds for the delay. This \textquotesingle{}delay\textquotesingle{} attribute is intended for very specific test cases, and normally not needed.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1317}{}\doxysubsubsection{$<$tt$>$$<$file name=\char`\"{}log/filename\char`\"{} \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1317}
+This creates the named file with this content before the test case is run, which is useful if the test case needs a file to act on.
+
+If \textquotesingle{}nonewline=\char`\"{}yes\char`\"{}\`{} is used, the created file will have the final newline stripped off.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1318}{}\doxysubsubsection{$<$tt$>$$<$stdin \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1318}
+Pass this given data on stdin to the tool.
+
+If \textquotesingle{}nonewline\textquotesingle{} is set, we will cut off the trailing newline of this given data before comparing with the one actually received by the client\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1319}{}\doxysubsection{$<$tt$>$$<$verify$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1319}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1320}{}\doxysubsubsection{$<$tt$>$$<$errorcode$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1320}
+numerical error code curl is supposed to return. Specify a list of accepted error codes by separating multiple numbers with comma. See test 237 for an example.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1321}{}\doxysubsubsection{$<$tt$>$$<$strip$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1321}
+One regex per line that is removed from the protocol dumps before the comparison is made. This is very useful to remove dependencies on dynamically changing protocol data such as port numbers or user-\/agent strings.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1322}{}\doxysubsubsection{$<$tt$>$$<$strippart$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1322}
+One perl op per line that operates on the protocol dump. This is pretty advanced. Example\+: {\ttfamily s/$^\wedge$\+EPRT .$\ast$/\+EPRT stripped/}.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1323}{}\doxysubsubsection{$<$tt$>$$<$protocol \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1323}
+the protocol dump curl should transmit, if \textquotesingle{}nonewline\textquotesingle{} is set, we will cut off the trailing newline of this given data before comparing with the one actually sent by the client The {\ttfamily \texorpdfstring{$<$}{<}strip\texorpdfstring{$>$}{>}} and {\ttfamily \texorpdfstring{$<$}{<}strippart\texorpdfstring{$>$}{>}} rules are applied before comparisons are made.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1324}{}\doxysubsubsection{$<$tt$>$$<$proxy \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1324}
+The protocol dump curl should transmit to a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} proxy (when the http-\/proxy server is used), if \textquotesingle{}nonewline\textquotesingle{} is set, we will cut off the trailing newline of this given data before comparing with the one actually sent by the client The {\ttfamily \texorpdfstring{$<$}{<}strip\texorpdfstring{$>$}{>}} and {\ttfamily \texorpdfstring{$<$}{<}strippart\texorpdfstring{$>$}{>}} rules are applied before comparisons are made.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1325}{}\doxysubsubsection{$<$tt$>$$<$stderr \mbox{[}mode=\char`\"{}text\char`\"{}\mbox{]} \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1325}
+This verifies that this data was passed to stderr.
+
+Use the mode=\char`\"{}text\char`\"{} attribute if the output is in text mode on platforms that have a text/binary difference.
+
+If \textquotesingle{}nonewline\textquotesingle{} is set, we will cut off the trailing newline of this given data before comparing with the one actually received by the client\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1326}{}\doxysubsubsection{$<$tt$>$$<$stdout \mbox{[}mode=\char`\"{}text\char`\"{}\mbox{]} \mbox{[}nonewline=\char`\"{}yes\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1326}
+This verifies that this data was passed to stdout.
+
+Use the mode=\char`\"{}text\char`\"{} attribute if the output is in text mode on platforms that have a text/binary difference.
+
+If \textquotesingle{}nonewline\textquotesingle{} is set, we will cut off the trailing newline of this given data before comparing with the one actually received by the client\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1327}{}\doxysubsubsection{$<$tt$>$$<$file name=\char`\"{}log/filename\char`\"{} \mbox{[}mode=\char`\"{}text\char`\"{}\mbox{]}$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1327}
+The file\textquotesingle{}s contents must be identical to this after the test is complete. Use the mode=\char`\"{}text\char`\"{} attribute if the output is in text mode on platforms that have a text/binary difference.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1328}{}\doxysubsubsection{$<$tt$>$$<$file1$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1328}
+1 to 4 can be appended to \textquotesingle{}file\textquotesingle{} to compare more files.\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1329}{}\doxysubsubsection{$<$tt$>$$<$file2$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1329}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1330}{}\doxysubsubsection{$<$tt$>$$<$file3$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1330}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1331}{}\doxysubsubsection{$<$tt$>$$<$file4$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1331}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1332}{}\doxysubsubsection{$<$tt$>$$<$stripfile$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1332}
+One perl op per line that operates on the output file or stdout before being compared with what is stored in the test file. This is pretty advanced. Example\+: \char`\"{}s/$^\wedge$\+EPRT .$\ast$/\+EPRT stripped/\char`\"{}\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1333}{}\doxysubsubsection{$<$tt$>$$<$stripfile1$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1333}
+1 to 4 can be appended to \textquotesingle{}stripfile\textquotesingle{} to strip the corresponding $<$file\+N$>$ content\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1334}{}\doxysubsubsection{$<$tt$>$$<$stripfile2$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1334}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1335}{}\doxysubsubsection{$<$tt$>$$<$stripfile3$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1335}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1336}{}\doxysubsubsection{$<$tt$>$$<$stripfile4$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1336}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1337}{}\doxysubsubsection{$<$tt$>$$<$upload$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1337}
+the contents of the upload data curl should have sent\hypertarget{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1338}{}\doxysubsubsection{$<$tt$>$$<$valgrind$>$$<$/tt$>$}\label{md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t_autotoc_md1338}
+disable -\/ disables the valgrind log check for this test 

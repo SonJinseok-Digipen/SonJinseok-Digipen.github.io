@@ -1,0 +1,282 @@
+\hypertarget{_i_x_web_socket_transport_8h_source}{}\doxysection{IXWeb\+Socket\+Transport.\+h}
+\label{_i_x_web_socket_transport_8h_source}\index{AseSprite/aseprite/third\_party/IXWebSocket/ixwebsocket/IXWebSocketTransport.h@{AseSprite/aseprite/third\_party/IXWebSocket/ixwebsocket/IXWebSocketTransport.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ \ IXWebSocketTransport.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ \ Author:\ Benjamin\ Sergeant}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ Copyright\ (c)\ 2017-\/2018\ Machine\ Zone,\ Inc.\ All\ rights\ reserved.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Adapted\ from\ https://github.com/dhbaird/easywsclient}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}IXCancellationRequest.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}IXProgressCallback.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}IXSocketTLSOptions.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}IXWebSocketCloseConstants.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}IXWebSocketHandshake.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}IXWebSocketHttpHeaders.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}IXWebSocketPerMessageDeflate.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}IXWebSocketPerMessageDeflateOptions.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}IXWebSocketSendInfo.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}IXWebSocketSendData.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <list>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespaceix}{ix}}}
+\DoxyCodeLine{00032\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keyword}{class\ }Socket;}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{enum\ class}\ SendMessageKind}
+\DoxyCodeLine{00036\ \ \ \ \ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ Text,}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ Binary,}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ Ping}
+\DoxyCodeLine{00040\ \ \ \ \ \};}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classix_1_1_web_socket_transport}{WebSocketTransport}}}
+\DoxyCodeLine{00043\ \ \ \ \ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ ReadyState}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ CLOSING,}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ CLOSED,}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ CONNECTING,}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ OPEN}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ MessageKind}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ MSG\_TEXT,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ MSG\_BINARY,}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ PING,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ PONG,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ FRAGMENT}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum\ class}\ PollResult}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ Succeeded,}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ AbnormalClose,}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ CannotFlushSendBuffer}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ }OnMessageCallback\ =}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ std::function<void(\textcolor{keyword}{const}\ std::string\&,\ \textcolor{keywordtype}{size\_t},\ \textcolor{keywordtype}{bool},\ MessageKind)>;}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \textcolor{keyword}{using\ }OnCloseCallback\ =\ std::function<void(uint16\_t,\ \textcolor{keyword}{const}\ std::string\&,\ \textcolor{keywordtype}{size\_t},\ \textcolor{keywordtype}{bool})>;}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classix_1_1_web_socket_transport}{WebSocketTransport}}();}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classix_1_1_web_socket_transport}{\string~WebSocketTransport}}();}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ configure(\textcolor{keyword}{const}\ \mbox{\hyperlink{classix_1_1_web_socket_per_message_deflate_options}{WebSocketPerMessageDeflateOptions}}\&\ perMessageDeflateOptions,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structix_1_1_socket_t_l_s_options}{SocketTLSOptions}}\&\ socketTLSOptions,}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ enablePong,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ pingIntervalSecs);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Client}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_web_socket_init_result}{WebSocketInitResult}}\ connectToUrl(\textcolor{keyword}{const}\ std::string\&\ url,}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ WebSocketHttpHeaders\&\ headers,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ timeoutSecs);}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Server}}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_web_socket_init_result}{WebSocketInitResult}}\ connectToSocket(std::unique\_ptr<Socket>\ socket,}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ timeoutSecs,}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ enablePerMessageDeflate);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ PollResult\ poll();}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_web_socket_send_info}{WebSocketSendInfo}}\ sendBinary(\textcolor{keyword}{const}\ \mbox{\hyperlink{classix_1_1_i_x_web_socket_send_data}{IXWebSocketSendData}}\&\ message,}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ OnProgressCallback\&\ onProgressCallback);}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_web_socket_send_info}{WebSocketSendInfo}}\ sendText(\textcolor{keyword}{const}\ \mbox{\hyperlink{classix_1_1_i_x_web_socket_send_data}{IXWebSocketSendData}}\&\ message,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ OnProgressCallback\&\ onProgressCallback);}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_web_socket_send_info}{WebSocketSendInfo}}\ sendPing(\textcolor{keyword}{const}\ \mbox{\hyperlink{classix_1_1_i_x_web_socket_send_data}{IXWebSocketSendData}}\&\ message);}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ close(uint16\_t\ \mbox{\hyperlink{structcode}{code}}\ =\ WebSocketCloseConstants::kNormalClosureCode,}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ reason\ =\ WebSocketCloseConstants::kNormalClosureMessage,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ closeWireSize\ =\ 0,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ remote\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ closeSocket();}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ ReadyState\ getReadyState()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ setReadyState(ReadyState\ readyState);}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ setOnCloseCallback(\textcolor{keyword}{const}\ OnCloseCallback\&\ onCloseCallback);}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ dispatch(PollResult\ pollResult,\ \textcolor{keyword}{const}\ OnMessageCallback\&\ onMessageCallback);}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ bufferedAmount()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ internal}}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_web_socket_send_info}{WebSocketSendInfo}}\ sendHeartBeat();}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ std::string\ \_url;}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }wsheader\_type}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ header\_size;}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ fin;}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ rsv1;}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ rsv2;}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ rsv3;}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ mask;}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{enum}\ opcode\_type}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CONTINUATION\ =\ 0x0,}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TEXT\_FRAME\ =\ 0x1,}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ BINARY\_FRAME\ =\ 0x2,}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CLOSE\ =\ 8,}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PING\ =\ 9,}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PONG\ =\ 0xa,}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \}\ opcode;}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ N0;}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ N;}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ masking\_key[4];}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Tells\ whether\ we\ should\ mask\ the\ data\ we\ send.}}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ client\ should\ mask\ but\ server\ should\ not}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_useMask;}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Tells\ whether\ we\ should\ flush\ the\ send\ buffer\ before}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ saying\ that\ a\ send\ is\ complete.\ This\ is\ the\ mode\ for\ server\ code.}}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_blockingSend;}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Buffer\ for\ reading\ from\ our\ socket.\ That\ buffer\ is\ never\ resized.}}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ std::vector<uint8\_t>\ \_readbuf;}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Contains\ all\ messages\ that\ were\ fetched\ in\ the\ last\ socket\ read.}}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ This\ could\ be\ a\ mix\ of\ control\ messages\ (Close,\ Ping,\ etc...)\ and}}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ data\ messages.\ That\ buffer\ is\ resized}}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ std::vector<uint8\_t>\ \_rxbuf;}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Contains\ all\ messages\ that\ are\ waiting\ to\ be\ sent}}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ std::vector<uint8\_t>\ \_txbuf;}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \textcolor{keyword}{mutable}\ std::mutex\ \_txbufMutex;}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Hold\ fragments\ for\ multi-\/fragments\ messages\ in\ a\ list.\ We\ support\ receiving\ very\ large}}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ messages\ (tested\ messages\ up\ to\ 700M)\ and\ we\ cannot\ put\ them\ in\ a\ single}}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ buffer\ that\ is\ resized,\ as\ this\ operation\ can\ be\ slow\ when\ a\ buffer\ has\ its}}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ size\ increased\ 2\ fold,\ while\ appending\ to\ a\ list\ has\ a\ fixed\ cost.}}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ std::list<std::string>\ \_chunks;}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Record\ the\ message\ kind\ (will\ be\ TEXT\ or\ BINARY)\ for\ a\ fragmented}}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ message,\ present\ in\ the\ first\ chunk,\ since\ the\ final\ chunk\ will\ be\ a}}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ CONTINUATION\ opcode\ and\ doesn't\ tell\ the\ full\ message\ kind}}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ MessageKind\ \_fragmentedMessageKind;}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Ditto\ for\ whether\ a\ message\ is\ compressed}}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \_receivedMessageCompressed;}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Fragments\ are\ 32K\ long}}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{size\_t}\ kChunkSize\ =\ 1\ <<\ 15;}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Underlying\ TCP\ socket}}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ std::unique\_ptr<Socket>\ \_socket;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ std::mutex\ \_socketMutex;}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Hold\ the\ state\ of\ the\ connection\ (OPEN,\ CLOSED,\ etc...)}}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ std::atomic<ReadyState>\ \_readyState;}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ OnCloseCallback\ \_onCloseCallback;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ std::string\ \_closeReason;}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{keyword}{mutable}\ std::mutex\ \_closeReasonMutex;}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ std::atomic<uint16\_t>\ \_closeCode;}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ std::atomic<size\_t>\ \_closeWireSize;}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_closeRemote;}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Data\ used\ for\ Per\ Message\ Deflate\ compression\ (with\ zlib)}}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ WebSocketPerMessageDeflatePtr\ \_perMessageDeflate;}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classix_1_1_web_socket_per_message_deflate_options}{WebSocketPerMessageDeflateOptions}}\ \_perMessageDeflateOptions;}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_enablePerMessageDeflate;}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ std::string\ \_decompressedMessage;}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ std::string\ \_compressedMessage;}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Used\ to\ control\ TLS\ connection\ behavior}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_socket_t_l_s_options}{SocketTLSOptions}}\ \_socketTLSOptions;}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Used\ to\ cancel\ dns\ lookup\ +\ socket\ connect\ +\ http\ upgrade}}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_requestInitCancellation;}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \textcolor{keyword}{mutable}\ std::mutex\ \_closingTimePointMutex;}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ std::chrono::time\_point<std::chrono::steady\_clock>\ \_closingTimePoint;}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ kClosingMaximumWaitingDelayInMs;}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ enable\ auto\ response\ to\ ping}}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_enablePong;}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ kDefaultEnablePong;}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Optional\ ping\ and\ pong\ timeout}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \_pingIntervalSecs;}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ std::atomic<bool>\ \_pongReceived;}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ kDefaultPingIntervalSecs;}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ std::string\ kPingMessage;}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ std::atomic<uint64\_t>\ \_pingCount;}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ We\ record\ when\ ping\ are\ being\ sent\ so\ that\ we\ can\ know\ when\ to\ send\ the\ next\ one}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \textcolor{keyword}{mutable}\ std::mutex\ \_lastSendPingTimePointMutex;}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ std::chrono::time\_point<std::chrono::steady\_clock>\ \_lastSendPingTimePoint;}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ this\ function\ returns\ true,\ it\ is\ time\ to\ send\ a\ new\ ping}}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ pingIntervalExceeded();}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ initTimePointsAfterConnect();}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ after\ calling\ close(),\ if\ no\ CLOSE\ frame\ answer\ is\ received\ back\ from\ the\ remote,\ we}}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ should\ close\ the\ connexion}}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ closingDelayExceeded();}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ sendCloseFrame(uint16\_t\ \mbox{\hyperlink{structcode}{code}},\ \textcolor{keyword}{const}\ std::string\&\ reason);}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ closeSocketAndSwitchToClosedState(uint16\_t\ \mbox{\hyperlink{structcode}{code}},}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ reason,}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ closeWireSize,}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ remote);}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ wakeUpFromPoll(uint64\_t\ wakeUpCode);}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ flushSendBuffer();}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ sendOnSocket();}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ receiveFromSocket();}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structix_1_1_web_socket_send_info}{WebSocketSendInfo}}\ sendData(wsheader\_type::opcode\_type\ type,}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classix_1_1_i_x_web_socket_send_data}{IXWebSocketSendData}}\&\ message,}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ compress,}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ OnProgressCallback\&\ onProgressCallback\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Iterator>}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ sendFragment(}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ wsheader\_type::opcode\_type\ type,\ \textcolor{keywordtype}{bool}\ fin,\ Iterator\ begin,\ Iterator\ end,\ \textcolor{keywordtype}{bool}\ compress);}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ emitMessage(MessageKind\ messageKind,}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ message,}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ compressedMessage,}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ OnMessageCallback\&\ onMessageCallback);}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ isSendBufferEmpty()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Iterator>}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ appendToSendBuffer(\textcolor{keyword}{const}\ std::vector<uint8\_t>\&\ header,}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Iterator\ begin,}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Iterator\ end,}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint64\_t\ message\_size,}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ masking\_key[4]);}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ getRandomUnsigned();}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ unmaskReceiveBuffer(\textcolor{keyword}{const}\ wsheader\_type\&\ ws);}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ std::string\ getMergedChunks()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ setCloseReason(\textcolor{keyword}{const}\ std::string\&\ reason);}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ getCloseReason()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00275\ \ \ \ \ \};}
+\DoxyCodeLine{00276\ \}\ \textcolor{comment}{//\ namespace\ ix}}
+
+\end{DoxyCode}

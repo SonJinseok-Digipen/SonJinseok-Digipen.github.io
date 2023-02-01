@@ -1,0 +1,369 @@
+\hypertarget{demux_8h_source}{}\doxysection{demux.\+h}
+\label{demux_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/webp/demux.h@{AseSprite/aseprite/third\_party/libwebp/src/webp/demux.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Demux\ API.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ Enables\ extraction\ of\ image\ and\ extended\ format\ data\ from\ WebP\ files.}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ Code\ Example:\ Demuxing\ WebP\ data\ to\ extract\ all\ the\ frames,\ ICC\ profile}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ and\ EXIF/XMP\ metadata.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ \ WebPDemuxer*\ demux\ =\ WebPDemux(\&webp\_data);}}
+\DoxyCodeLine{00017\ \textcolor{comment}{}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ \ uint32\_t\ width\ =\ WebPDemuxGetI(demux,\ WEBP\_FF\_CANVAS\_WIDTH);}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ \ uint32\_t\ height\ =\ WebPDemuxGetI(demux,\ WEBP\_FF\_CANVAS\_HEIGHT);}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ \ //\ ...\ (Get\ information\ about\ the\ features\ present\ in\ the\ WebP\ file).}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ \ uint32\_t\ flags\ =\ WebPDemuxGetI(demux,\ WEBP\_FF\_FORMAT\_FLAGS);}}
+\DoxyCodeLine{00022\ \textcolor{comment}{}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ \ //\ ...\ (Iterate\ over\ all\ frames).}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ \ WebPIterator\ iter;}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ \ if\ (WebPDemuxGetFrame(demux,\ 1,\ \&iter))\ \{}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ \ \ do\ \{}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ \ \ \ \ //\ ...\ (Consume\ 'iter';\ e.g.\ Decode\ 'iter.fragment'\ with\ WebPDecode(),}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ \ \ \ \ \ //\ ...\ and\ get\ other\ frame\ properties\ like\ width,\ height,\ offsets\ etc.}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ \ \ \ \ \ //\ ...\ see\ 'struct\ WebPIterator'\ below\ for\ more\ info).}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ \ \ \}\ while\ (WebPDemuxNextFrame(\&iter));}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ \ WebPDemuxReleaseIterator(\&iter);}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \}}}
+\DoxyCodeLine{00033\ \textcolor{comment}{}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ //\ ...\ (Extract\ metadata).}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ WebPChunkIterator\ chunk\_iter;}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ if\ (flags\ \&\ ICCP\_FLAG)\ WebPDemuxGetChunk(demux,\ "{}ICCP"{},\ 1,\ \&chunk\_iter);}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ //\ ...\ (Consume\ the\ ICC\ profile\ in\ 'chunk\_iter.chunk').}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ WebPDemuxReleaseChunkIterator(\&chunk\_iter);}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ if\ (flags\ \&\ EXIF\_FLAG)\ WebPDemuxGetChunk(demux,\ "{}EXIF"{},\ 1,\ \&chunk\_iter);}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ //\ ...\ (Consume\ the\ EXIF\ metadata\ in\ 'chunk\_iter.chunk').}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ WebPDemuxReleaseChunkIterator(\&chunk\_iter);}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ if\ (flags\ \&\ XMP\_FLAG)\ WebPDemuxGetChunk(demux,\ "{}XMP\ "{},\ 1,\ \&chunk\_iter);}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ //\ ...\ (Consume\ the\ XMP\ metadata\ in\ 'chunk\_iter.chunk').}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ WebPDemuxReleaseChunkIterator(\&chunk\_iter);}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ WebPDemuxDelete(demux);}}
+\DoxyCodeLine{00046\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#ifndef\ WEBP\_WEBP\_DEMUX\_H\_}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ WEBP\_WEBP\_DEMUX\_H\_}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#include\ "{}./decode.h"{}}\ \ \ \ \ \textcolor{comment}{//\ for\ WEBP\_CSP\_MODE}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#include\ "{}./mux\_types.h"{}}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00055\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ WEBP\_DEMUX\_ABI\_VERSION\ 0x0107\ \ \ \ }\textcolor{comment}{//\ MAJOR(8b)\ +\ MINOR(8b)}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{comment}{//\ Note:\ forward\ declaring\ enumerations\ is\ not\ allowed\ in\ (strict)\ C\ and\ C++,}}
+\DoxyCodeLine{00061\ \textcolor{comment}{//\ the\ types\ are\ left\ here\ for\ reference.}}
+\DoxyCodeLine{00062\ \textcolor{comment}{//\ typedef\ enum\ WebPDemuxState\ WebPDemuxState;}}
+\DoxyCodeLine{00063\ \textcolor{comment}{//\ typedef\ enum\ WebPFormatFeature\ WebPFormatFeature;}}
+\DoxyCodeLine{00064\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}};}
+\DoxyCodeLine{00065\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_iterator}{WebPIterator}}\ \mbox{\hyperlink{struct_web_p_iterator}{WebPIterator}};}
+\DoxyCodeLine{00066\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_chunk_iterator}{WebPChunkIterator}}\ \mbox{\hyperlink{struct_web_p_chunk_iterator}{WebPChunkIterator}};}
+\DoxyCodeLine{00067\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_info}{WebPAnimInfo}}\ \mbox{\hyperlink{struct_web_p_anim_info}{WebPAnimInfo}};}
+\DoxyCodeLine{00068\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_decoder_options}{WebPAnimDecoderOptions}}\ \mbox{\hyperlink{struct_web_p_anim_decoder_options}{WebPAnimDecoderOptions}};}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{comment}{//\ Returns\ the\ version\ number\ of\ the\ demux\ library,\ packed\ in\ hexadecimal\ using}}
+\DoxyCodeLine{00073\ \textcolor{comment}{//\ 8bits\ for\ each\ of\ major/minor/revision.\ E.g:\ v2.5.7\ is\ 0x020507.}}
+\DoxyCodeLine{00074\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPGetDemuxVersion(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00077\ \textcolor{comment}{//\ Life\ of\ a\ Demux\ object}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPDemuxState\ \{}
+\DoxyCodeLine{00080\ \ \ WEBP\_DEMUX\_PARSE\_ERROR\ \ \ \ =\ -\/1,\ \ \textcolor{comment}{//\ An\ error\ occurred\ while\ parsing.}}
+\DoxyCodeLine{00081\ \ \ WEBP\_DEMUX\_PARSING\_HEADER\ =\ \ 0,\ \ \textcolor{comment}{//\ Not\ enough\ data\ to\ parse\ full\ header.}}
+\DoxyCodeLine{00082\ \ \ WEBP\_DEMUX\_PARSED\_HEADER\ \ =\ \ 1,\ \ \textcolor{comment}{//\ Header\ parsing\ complete,}}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ data\ may\ be\ available.}}
+\DoxyCodeLine{00084\ \ \ WEBP\_DEMUX\_DONE\ \ \ \ \ \ \ \ \ \ \ =\ \ 2\ \ \ \textcolor{comment}{//\ Entire\ file\ has\ been\ parsed.}}
+\DoxyCodeLine{00085\ \}\ WebPDemuxState;}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00088\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ WebPDemuxInternal(}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*,\ \textcolor{keywordtype}{int},\ WebPDemuxState*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{//\ Parses\ the\ full\ WebP\ file\ given\ by\ 'data'.\ For\ single\ images\ the\ WebP\ file}}
+\DoxyCodeLine{00092\ \textcolor{comment}{//\ header\ alone\ or\ the\ file\ header\ and\ the\ chunk\ header\ may\ be\ absent.}}
+\DoxyCodeLine{00093\ \textcolor{comment}{//\ Returns\ a\ WebPDemuxer\ object\ on\ successful\ parse,\ NULL\ otherwise.}}
+\DoxyCodeLine{00094\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ WebPDemux(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ \mbox{\hyperlink{structdata}{data}})\ \{}
+\DoxyCodeLine{00095\ \ \ \textcolor{keywordflow}{return}\ WebPDemuxInternal(\mbox{\hyperlink{structdata}{data}},\ 0,\ NULL,\ WEBP\_DEMUX\_ABI\_VERSION);}
+\DoxyCodeLine{00096\ \}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{comment}{//\ Parses\ the\ possibly\ incomplete\ WebP\ file\ given\ by\ 'data'.}}
+\DoxyCodeLine{00099\ \textcolor{comment}{//\ If\ 'state'\ is\ non-\/NULL\ it\ will\ be\ set\ to\ indicate\ the\ status\ of\ the\ demuxer.}}
+\DoxyCodeLine{00100\ \textcolor{comment}{//\ Returns\ NULL\ in\ case\ of\ error\ or\ if\ there\ isn't\ enough\ data\ to\ start\ parsing;}}
+\DoxyCodeLine{00101\ \textcolor{comment}{//\ and\ a\ WebPDemuxer\ object\ on\ successful\ parse.}}
+\DoxyCodeLine{00102\ \textcolor{comment}{//\ Note\ that\ WebPDemuxer\ keeps\ internal\ pointers\ to\ 'data'\ memory\ segment.}}
+\DoxyCodeLine{00103\ \textcolor{comment}{//\ If\ this\ data\ is\ volatile,\ the\ demuxer\ object\ should\ be\ deleted\ (by\ calling}}
+\DoxyCodeLine{00104\ \textcolor{comment}{//\ WebPDemuxDelete())\ and\ WebPDemuxPartial()\ called\ again\ on\ the\ new\ data.}}
+\DoxyCodeLine{00105\ \textcolor{comment}{//\ This\ is\ usually\ an\ inexpensive\ operation.}}
+\DoxyCodeLine{00106\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ WebPDemuxPartial(}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ \mbox{\hyperlink{structdata}{data}},\ WebPDemuxState*\ \mbox{\hyperlink{structstate}{state}})\ \{}
+\DoxyCodeLine{00108\ \ \ \textcolor{keywordflow}{return}\ WebPDemuxInternal(\mbox{\hyperlink{structdata}{data}},\ 1,\ \mbox{\hyperlink{structstate}{state}},\ WEBP\_DEMUX\_ABI\_VERSION);}
+\DoxyCodeLine{00109\ \}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{comment}{//\ Frees\ memory\ associated\ with\ 'dmux'.}}
+\DoxyCodeLine{00112\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPDemuxDelete(\mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ dmux);}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00115\ \textcolor{comment}{//\ Data/information\ extraction.}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPFormatFeature\ \{}
+\DoxyCodeLine{00118\ \ \ WEBP\_FF\_FORMAT\_FLAGS,\ \ \ \ \ \ \textcolor{comment}{//\ bit-\/wise\ combination\ of\ WebPFeatureFlags}}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ corresponding\ to\ the\ 'VP8X'\ chunk\ (if\ present).}}
+\DoxyCodeLine{00120\ \ \ WEBP\_FF\_CANVAS\_WIDTH,}
+\DoxyCodeLine{00121\ \ \ WEBP\_FF\_CANVAS\_HEIGHT,}
+\DoxyCodeLine{00122\ \ \ WEBP\_FF\_LOOP\_COUNT,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ only\ relevant\ for\ animated\ file}}
+\DoxyCodeLine{00123\ \ \ WEBP\_FF\_BACKGROUND\_COLOR,\ \ \textcolor{comment}{//\ idem.}}
+\DoxyCodeLine{00124\ \ \ WEBP\_FF\_FRAME\_COUNT\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Number\ of\ frames\ present\ in\ the\ demux\ object.}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ In\ case\ of\ a\ partial\ demux,\ this\ is\ the\ number}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ of\ frames\ seen\ so\ far,\ with\ the\ last\ frame}}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ possibly\ being\ partial.}}
+\DoxyCodeLine{00128\ \}\ WebPFormatFeature;}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{comment}{//\ Get\ the\ 'feature'\ value\ from\ the\ 'dmux'.}}
+\DoxyCodeLine{00131\ \textcolor{comment}{//\ NOTE:\ values\ are\ only\ valid\ if\ WebPDemux()\ was\ used\ or\ WebPDemuxPartial()}}
+\DoxyCodeLine{00132\ \textcolor{comment}{//\ returned\ a\ state\ >\ WEBP\_DEMUX\_PARSING\_HEADER.}}
+\DoxyCodeLine{00133\ \textcolor{comment}{//\ If\ 'feature'\ is\ WEBP\_FF\_FORMAT\_FLAGS,\ the\ returned\ value\ is\ a\ bit-\/wise}}
+\DoxyCodeLine{00134\ \textcolor{comment}{//\ combination\ of\ WebPFeatureFlags\ values.}}
+\DoxyCodeLine{00135\ \textcolor{comment}{//\ If\ 'feature'\ is\ WEBP\_FF\_LOOP\_COUNT,\ WEBP\_FF\_BACKGROUND\_COLOR,\ the\ returned}}
+\DoxyCodeLine{00136\ \textcolor{comment}{//\ value\ is\ only\ meaningful\ if\ the\ bitstream\ is\ animated.}}
+\DoxyCodeLine{00137\ WEBP\_EXTERN\ uint32\_t\ WebPDemuxGetI(}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ dmux,\ WebPFormatFeature\ feature);}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00141\ \textcolor{comment}{//\ Frame\ iteration.}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_iterator}{WebPIterator}}\ \{}
+\DoxyCodeLine{00144\ \ \ \textcolor{keywordtype}{int}\ frame\_num;}
+\DoxyCodeLine{00145\ \ \ \textcolor{keywordtype}{int}\ num\_frames;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ equivalent\ to\ WEBP\_FF\_FRAME\_COUNT.}}
+\DoxyCodeLine{00146\ \ \ \textcolor{keywordtype}{int}\ x\_offset,\ y\_offset;\ \ \textcolor{comment}{//\ offset\ relative\ to\ the\ canvas.}}
+\DoxyCodeLine{00147\ \ \ \textcolor{keywordtype}{int}\ width,\ height;\ \ \ \ \ \ \ \textcolor{comment}{//\ dimensions\ of\ this\ frame.}}
+\DoxyCodeLine{00148\ \ \ \textcolor{keywordtype}{int}\ duration;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ display\ duration\ in\ milliseconds.}}
+\DoxyCodeLine{00149\ \ \ WebPMuxAnimDispose\ dispose\_method;\ \ \textcolor{comment}{//\ dispose\ method\ for\ the\ frame.}}
+\DoxyCodeLine{00150\ \ \ \textcolor{keywordtype}{int}\ complete;\ \ \ \textcolor{comment}{//\ true\ if\ 'fragment'\ contains\ a\ full\ frame.\ partial\ images}}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ may\ still\ be\ decoded\ with\ the\ WebP\ incremental\ decoder.}}
+\DoxyCodeLine{00152\ \ \ \mbox{\hyperlink{struct_web_p_data}{WebPData}}\ fragment;\ \ \textcolor{comment}{//\ The\ frame\ given\ by\ 'frame\_num'.\ Note\ for\ historical}}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ reasons\ this\ is\ called\ a\ fragment.}}
+\DoxyCodeLine{00154\ \ \ \textcolor{keywordtype}{int}\ has\_alpha;\ \ \ \ \ \ \textcolor{comment}{//\ True\ if\ the\ frame\ contains\ transparency.}}
+\DoxyCodeLine{00155\ \ \ WebPMuxAnimBlend\ blend\_method;\ \ \textcolor{comment}{//\ Blend\ operation\ for\ the\ frame.}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ uint32\_t\ pad[2];\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use.}}
+\DoxyCodeLine{00158\ \ \ \textcolor{keywordtype}{void}*\ private\_;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ for\ internal\ use\ only.}}
+\DoxyCodeLine{00159\ \};}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{comment}{//\ Retrieves\ frame\ 'frame\_number'\ from\ 'dmux'.}}
+\DoxyCodeLine{00162\ \textcolor{comment}{//\ 'iter-\/>fragment'\ points\ to\ the\ frame\ on\ return\ from\ this\ function.}}
+\DoxyCodeLine{00163\ \textcolor{comment}{//\ Setting\ 'frame\_number'\ equal\ to\ 0\ will\ return\ the\ last\ frame\ of\ the\ image.}}
+\DoxyCodeLine{00164\ \textcolor{comment}{//\ Returns\ false\ if\ 'dmux'\ is\ NULL\ or\ frame\ 'frame\_number'\ is\ not\ present.}}
+\DoxyCodeLine{00165\ \textcolor{comment}{//\ Call\ WebPDemuxReleaseIterator()\ when\ use\ of\ the\ iterator\ is\ complete.}}
+\DoxyCodeLine{00166\ \textcolor{comment}{//\ NOTE:\ 'dmux'\ must\ persist\ for\ the\ lifetime\ of\ 'iter'.}}
+\DoxyCodeLine{00167\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPDemuxGetFrame(}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ dmux,\ \textcolor{keywordtype}{int}\ frame\_number,\ \mbox{\hyperlink{struct_web_p_iterator}{WebPIterator}}*\ iter);}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{comment}{//\ Sets\ 'iter-\/>fragment'\ to\ point\ to\ the\ next\ ('iter-\/>frame\_num'\ +\ 1)\ or}}
+\DoxyCodeLine{00171\ \textcolor{comment}{//\ previous\ ('iter-\/>frame\_num'\ -\/\ 1)\ frame.\ These\ functions\ do\ not\ loop.}}
+\DoxyCodeLine{00172\ \textcolor{comment}{//\ Returns\ true\ on\ success,\ false\ otherwise.}}
+\DoxyCodeLine{00173\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPDemuxNextFrame(\mbox{\hyperlink{struct_web_p_iterator}{WebPIterator}}*\ iter);}
+\DoxyCodeLine{00174\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPDemuxPrevFrame(\mbox{\hyperlink{struct_web_p_iterator}{WebPIterator}}*\ iter);}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{comment}{//\ Releases\ any\ memory\ associated\ with\ 'iter'.}}
+\DoxyCodeLine{00177\ \textcolor{comment}{//\ Must\ be\ called\ before\ any\ subsequent\ calls\ to\ WebPDemuxGetChunk()\ on\ the\ same}}
+\DoxyCodeLine{00178\ \textcolor{comment}{//\ iter.\ Also,\ must\ be\ called\ before\ destroying\ the\ associated\ WebPDemuxer\ with}}
+\DoxyCodeLine{00179\ \textcolor{comment}{//\ WebPDemuxDelete().}}
+\DoxyCodeLine{00180\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPDemuxReleaseIterator(\mbox{\hyperlink{struct_web_p_iterator}{WebPIterator}}*\ iter);}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00183\ \textcolor{comment}{//\ Chunk\ iteration.}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_chunk_iterator}{WebPChunkIterator}}\ \{}
+\DoxyCodeLine{00186\ \ \ \textcolor{comment}{//\ The\ current\ and\ total\ number\ of\ chunks\ with\ the\ fourcc\ given\ to}}
+\DoxyCodeLine{00187\ \ \ \textcolor{comment}{//\ WebPDemuxGetChunk().}}
+\DoxyCodeLine{00188\ \ \ \textcolor{keywordtype}{int}\ chunk\_num;}
+\DoxyCodeLine{00189\ \ \ \textcolor{keywordtype}{int}\ num\_chunks;}
+\DoxyCodeLine{00190\ \ \ \mbox{\hyperlink{struct_web_p_data}{WebPData}}\ chunk;\ \ \ \ \textcolor{comment}{//\ The\ payload\ of\ the\ chunk.}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ uint32\_t\ pad[6];\ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00193\ \ \ \textcolor{keywordtype}{void}*\ private\_;}
+\DoxyCodeLine{00194\ \};}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{comment}{//\ Retrieves\ the\ 'chunk\_number'\ instance\ of\ the\ chunk\ with\ id\ 'fourcc'\ from}}
+\DoxyCodeLine{00197\ \textcolor{comment}{//\ 'dmux'.}}
+\DoxyCodeLine{00198\ \textcolor{comment}{//\ 'fourcc'\ is\ a\ character\ array\ containing\ the\ fourcc\ of\ the\ chunk\ to\ return,}}
+\DoxyCodeLine{00199\ \textcolor{comment}{//\ e.g.,\ "{}ICCP"{},\ "{}XMP\ "{},\ "{}EXIF"{},\ etc.}}
+\DoxyCodeLine{00200\ \textcolor{comment}{//\ Setting\ 'chunk\_number'\ equal\ to\ 0\ will\ return\ the\ last\ chunk\ in\ a\ set.}}
+\DoxyCodeLine{00201\ \textcolor{comment}{//\ Returns\ true\ if\ the\ chunk\ is\ found,\ false\ otherwise.\ Image\ related\ chunk}}
+\DoxyCodeLine{00202\ \textcolor{comment}{//\ payloads\ are\ accessed\ through\ WebPDemuxGetFrame()\ and\ related\ functions.}}
+\DoxyCodeLine{00203\ \textcolor{comment}{//\ Call\ WebPDemuxReleaseChunkIterator()\ when\ use\ of\ the\ iterator\ is\ complete.}}
+\DoxyCodeLine{00204\ \textcolor{comment}{//\ NOTE:\ 'dmux'\ must\ persist\ for\ the\ lifetime\ of\ the\ iterator.}}
+\DoxyCodeLine{00205\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPDemuxGetChunk(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ dmux,}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ fourcc[4],\ \textcolor{keywordtype}{int}\ chunk\_number,}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_web_p_chunk_iterator}{WebPChunkIterator}}*\ iter);}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \textcolor{comment}{//\ Sets\ 'iter-\/>chunk'\ to\ point\ to\ the\ next\ ('iter-\/>chunk\_num'\ +\ 1)\ or\ previous}}
+\DoxyCodeLine{00210\ \textcolor{comment}{//\ ('iter-\/>chunk\_num'\ -\/\ 1)\ chunk.\ These\ functions\ do\ not\ loop.}}
+\DoxyCodeLine{00211\ \textcolor{comment}{//\ Returns\ true\ on\ success,\ false\ otherwise.}}
+\DoxyCodeLine{00212\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPDemuxNextChunk(\mbox{\hyperlink{struct_web_p_chunk_iterator}{WebPChunkIterator}}*\ iter);}
+\DoxyCodeLine{00213\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPDemuxPrevChunk(\mbox{\hyperlink{struct_web_p_chunk_iterator}{WebPChunkIterator}}*\ iter);}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \textcolor{comment}{//\ Releases\ any\ memory\ associated\ with\ 'iter'.}}
+\DoxyCodeLine{00216\ \textcolor{comment}{//\ Must\ be\ called\ before\ destroying\ the\ associated\ WebPDemuxer\ with}}
+\DoxyCodeLine{00217\ \textcolor{comment}{//\ WebPDemuxDelete().}}
+\DoxyCodeLine{00218\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPDemuxReleaseChunkIterator(\mbox{\hyperlink{struct_web_p_chunk_iterator}{WebPChunkIterator}}*\ iter);}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00221\ \textcolor{comment}{//\ WebPAnimDecoder\ API}}
+\DoxyCodeLine{00222\ \textcolor{comment}{//}}
+\DoxyCodeLine{00223\ \textcolor{comment}{//\ This\ API\ allows\ decoding\ (possibly)\ animated\ WebP\ images.}}
+\DoxyCodeLine{00224\ \textcolor{comment}{//}}
+\DoxyCodeLine{00225\ \textcolor{comment}{//\ Code\ Example:}}
+\DoxyCodeLine{00226\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00227\ \textcolor{comment}{\ \ WebPAnimDecoderOptions\ dec\_options;}}
+\DoxyCodeLine{00228\ \textcolor{comment}{\ \ WebPAnimDecoderOptionsInit(\&dec\_options);}}
+\DoxyCodeLine{00229\ \textcolor{comment}{\ \ //\ Tune\ 'dec\_options'\ as\ needed.}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ \ WebPAnimDecoder*\ dec\ =\ WebPAnimDecoderNew(webp\_data,\ \&dec\_options);}}
+\DoxyCodeLine{00231\ \textcolor{comment}{\ \ WebPAnimInfo\ anim\_info;}}
+\DoxyCodeLine{00232\ \textcolor{comment}{\ \ WebPAnimDecoderGetInfo(dec,\ \&anim\_info);}}
+\DoxyCodeLine{00233\ \textcolor{comment}{\ \ for\ (uint32\_t\ i\ =\ 0;\ i\ <\ anim\_info.loop\_count;\ ++i)\ \{}}
+\DoxyCodeLine{00234\ \textcolor{comment}{\ \ \ \ while\ (WebPAnimDecoderHasMoreFrames(dec))\ \{}}
+\DoxyCodeLine{00235\ \textcolor{comment}{\ \ \ \ \ \ uint8\_t*\ buf;}}
+\DoxyCodeLine{00236\ \textcolor{comment}{\ \ \ \ \ \ int\ timestamp;}}
+\DoxyCodeLine{00237\ \textcolor{comment}{\ \ \ \ \ \ WebPAnimDecoderGetNext(dec,\ \&buf,\ \&timestamp);}}
+\DoxyCodeLine{00238\ \textcolor{comment}{\ \ \ \ \ \ //\ ...\ (Render\ 'buf'\ based\ on\ 'timestamp').}}
+\DoxyCodeLine{00239\ \textcolor{comment}{\ \ \ \ \ \ //\ ...\ (Do\ NOT\ free\ 'buf',\ as\ it\ is\ owned\ by\ 'dec').}}
+\DoxyCodeLine{00240\ \textcolor{comment}{\ \ \ \ \}}}
+\DoxyCodeLine{00241\ \textcolor{comment}{\ \ \ \ WebPAnimDecoderReset(dec);}}
+\DoxyCodeLine{00242\ \textcolor{comment}{\ \ \}}}
+\DoxyCodeLine{00243\ \textcolor{comment}{\ \ const\ WebPDemuxer*\ demuxer\ =\ WebPAnimDecoderGetDemuxer(dec);}}
+\DoxyCodeLine{00244\ \textcolor{comment}{\ \ //\ ...\ (Do\ something\ using\ 'demuxer';\ e.g.\ get\ EXIF/XMP/ICC\ data).}}
+\DoxyCodeLine{00245\ \textcolor{comment}{\ \ WebPAnimDecoderDelete(dec);}}
+\DoxyCodeLine{00246\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}\ \mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}};\ \ \textcolor{comment}{//\ Main\ opaque\ object.}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \textcolor{comment}{//\ Global\ options.}}
+\DoxyCodeLine{00251\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_decoder_options}{WebPAnimDecoderOptions}}\ \{}
+\DoxyCodeLine{00252\ \ \ \textcolor{comment}{//\ Output\ colorspace.\ Only\ the\ following\ modes\ are\ supported:}}
+\DoxyCodeLine{00253\ \ \ \textcolor{comment}{//\ MODE\_RGBA,\ MODE\_BGRA,\ MODE\_rgbA\ and\ MODE\_bgrA.}}
+\DoxyCodeLine{00254\ \ \ WEBP\_CSP\_MODE\ color\_mode;}
+\DoxyCodeLine{00255\ \ \ \textcolor{keywordtype}{int}\ use\_threads;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ true,\ use\ multi-\/threaded\ decoding.}}
+\DoxyCodeLine{00256\ \ \ uint32\_t\ padding[7];\ \ \ \ \ \ \ \textcolor{comment}{//\ Padding\ for\ later\ use.}}
+\DoxyCodeLine{00257\ \};}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point.}}
+\DoxyCodeLine{00260\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPAnimDecoderOptionsInitInternal(}
+\DoxyCodeLine{00261\ \ \ \ \ \mbox{\hyperlink{struct_web_p_anim_decoder_options}{WebPAnimDecoderOptions}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \textcolor{comment}{//\ Should\ always\ be\ called,\ to\ initialize\ a\ fresh\ WebPAnimDecoderOptions}}
+\DoxyCodeLine{00264\ \textcolor{comment}{//\ structure\ before\ modification.\ Returns\ false\ in\ case\ of\ version\ mismatch.}}
+\DoxyCodeLine{00265\ \textcolor{comment}{//\ WebPAnimDecoderOptionsInit()\ must\ have\ succeeded\ before\ using\ the}}
+\DoxyCodeLine{00266\ \textcolor{comment}{//\ 'dec\_options'\ object.}}
+\DoxyCodeLine{00267\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPAnimDecoderOptionsInit(}
+\DoxyCodeLine{00268\ \ \ \ \ \mbox{\hyperlink{struct_web_p_anim_decoder_options}{WebPAnimDecoderOptions}}*\ dec\_options)\ \{}
+\DoxyCodeLine{00269\ \ \ \textcolor{keywordflow}{return}\ WebPAnimDecoderOptionsInitInternal(dec\_options,}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WEBP\_DEMUX\_ABI\_VERSION);}
+\DoxyCodeLine{00271\ \}}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point.}}
+\DoxyCodeLine{00274\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ WebPAnimDecoderNewInternal(}
+\DoxyCodeLine{00275\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_anim_decoder_options}{WebPAnimDecoderOptions}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \textcolor{comment}{//\ Creates\ and\ initializes\ a\ WebPAnimDecoder\ object.}}
+\DoxyCodeLine{00278\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00279\ \textcolor{comment}{//\ \ \ webp\_data\ -\/\ (in)\ WebP\ bitstream.\ This\ should\ remain\ unchanged\ during\ the}}
+\DoxyCodeLine{00280\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lifetime\ of\ the\ output\ WebPAnimDecoder\ object.}}
+\DoxyCodeLine{00281\ \textcolor{comment}{//\ \ \ dec\_options\ -\/\ (in)\ decoding\ options.\ Can\ be\ passed\ NULL\ to\ choose}}
+\DoxyCodeLine{00282\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reasonable\ defaults\ (in\ particular,\ color\ mode\ MODE\_RGBA}}
+\DoxyCodeLine{00283\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ will\ be\ picked).}}
+\DoxyCodeLine{00284\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00285\ \textcolor{comment}{//\ \ \ A\ pointer\ to\ the\ newly\ created\ WebPAnimDecoder\ object,\ or\ NULL\ in\ case\ of}}
+\DoxyCodeLine{00286\ \textcolor{comment}{//\ \ \ parsing\ error,\ invalid\ option\ or\ memory\ error.}}
+\DoxyCodeLine{00287\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ WebPAnimDecoderNew(}
+\DoxyCodeLine{00288\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ webp\_data,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_anim_decoder_options}{WebPAnimDecoderOptions}}*\ dec\_options)\ \{}
+\DoxyCodeLine{00289\ \ \ \textcolor{keywordflow}{return}\ WebPAnimDecoderNewInternal(webp\_data,\ dec\_options,}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WEBP\_DEMUX\_ABI\_VERSION);}
+\DoxyCodeLine{00291\ \}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \textcolor{comment}{//\ Global\ information\ about\ the\ animation..}}
+\DoxyCodeLine{00294\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_info}{WebPAnimInfo}}\ \{}
+\DoxyCodeLine{00295\ \ \ uint32\_t\ canvas\_width;}
+\DoxyCodeLine{00296\ \ \ uint32\_t\ canvas\_height;}
+\DoxyCodeLine{00297\ \ \ uint32\_t\ loop\_count;}
+\DoxyCodeLine{00298\ \ \ uint32\_t\ bgcolor;}
+\DoxyCodeLine{00299\ \ \ uint32\_t\ frame\_count;}
+\DoxyCodeLine{00300\ \ \ uint32\_t\ pad[4];\ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00301\ \};}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \textcolor{comment}{//\ Get\ global\ information\ about\ the\ animation.}}
+\DoxyCodeLine{00304\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00305\ \textcolor{comment}{//\ \ \ dec\ -\/\ (in)\ decoder\ instance\ to\ get\ information\ from.}}
+\DoxyCodeLine{00306\ \textcolor{comment}{//\ \ \ info\ -\/\ (out)\ global\ information\ fetched\ from\ the\ animation.}}
+\DoxyCodeLine{00307\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00308\ \textcolor{comment}{//\ \ \ True\ on\ success.}}
+\DoxyCodeLine{00309\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPAnimDecoderGetInfo(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ dec,}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_web_p_anim_info}{WebPAnimInfo}}*\ info);}
+\DoxyCodeLine{00311\ }
+\DoxyCodeLine{00312\ \textcolor{comment}{//\ Fetch\ the\ next\ frame\ from\ 'dec'\ based\ on\ options\ supplied\ to}}
+\DoxyCodeLine{00313\ \textcolor{comment}{//\ WebPAnimDecoderNew().\ This\ will\ be\ a\ fully\ reconstructed\ canvas\ of\ size}}
+\DoxyCodeLine{00314\ \textcolor{comment}{//\ 'canvas\_width\ *\ 4\ *\ canvas\_height',\ and\ not\ just\ the\ frame\ sub-\/rectangle.\ The}}
+\DoxyCodeLine{00315\ \textcolor{comment}{//\ returned\ buffer\ 'buf'\ is\ valid\ only\ until\ the\ next\ call\ to}}
+\DoxyCodeLine{00316\ \textcolor{comment}{//\ WebPAnimDecoderGetNext(),\ WebPAnimDecoderReset()\ or\ WebPAnimDecoderDelete().}}
+\DoxyCodeLine{00317\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00318\ \textcolor{comment}{//\ \ \ dec\ -\/\ (in/out)\ decoder\ instance\ from\ which\ the\ next\ frame\ is\ to\ be\ fetched.}}
+\DoxyCodeLine{00319\ \textcolor{comment}{//\ \ \ buf\ -\/\ (out)\ decoded\ frame.}}
+\DoxyCodeLine{00320\ \textcolor{comment}{//\ \ \ timestamp\ -\/\ (out)\ timestamp\ of\ the\ frame\ in\ milliseconds.}}
+\DoxyCodeLine{00321\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00322\ \textcolor{comment}{//\ \ \ False\ if\ any\ of\ the\ arguments\ are\ NULL,\ or\ if\ there\ is\ a\ parsing\ or}}
+\DoxyCodeLine{00323\ \textcolor{comment}{//\ \ \ decoding\ error,\ or\ if\ there\ are\ no\ more\ frames.\ Otherwise,\ returns\ true.}}
+\DoxyCodeLine{00324\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPAnimDecoderGetNext(\mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ dec,}
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t**\ \mbox{\hyperlink{structbuf}{buf}},\ \textcolor{keywordtype}{int}*\ timestamp);}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \textcolor{comment}{//\ Check\ if\ there\ are\ more\ frames\ left\ to\ decode.}}
+\DoxyCodeLine{00328\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00329\ \textcolor{comment}{//\ \ \ dec\ -\/\ (in)\ decoder\ instance\ to\ be\ checked.}}
+\DoxyCodeLine{00330\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00331\ \textcolor{comment}{//\ \ \ True\ if\ 'dec'\ is\ not\ NULL\ and\ some\ frames\ are\ yet\ to\ be\ decoded.}}
+\DoxyCodeLine{00332\ \textcolor{comment}{//\ \ \ Otherwise,\ returns\ false.}}
+\DoxyCodeLine{00333\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPAnimDecoderHasMoreFrames(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ dec);}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \textcolor{comment}{//\ Resets\ the\ WebPAnimDecoder\ object,\ so\ that\ next\ call\ to}}
+\DoxyCodeLine{00336\ \textcolor{comment}{//\ WebPAnimDecoderGetNext()\ will\ restart\ decoding\ from\ 1st\ frame.\ This\ would\ be}}
+\DoxyCodeLine{00337\ \textcolor{comment}{//\ helpful\ when\ all\ frames\ need\ to\ be\ decoded\ multiple\ times\ (e.g.}}
+\DoxyCodeLine{00338\ \textcolor{comment}{//\ info.loop\_count\ times)\ without\ destroying\ and\ recreating\ the\ 'dec'\ object.}}
+\DoxyCodeLine{00339\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00340\ \textcolor{comment}{//\ \ \ dec\ -\/\ (in/out)\ decoder\ instance\ to\ be\ reset}}
+\DoxyCodeLine{00341\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPAnimDecoderReset(\mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ dec);}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \textcolor{comment}{//\ Grab\ the\ internal\ demuxer\ object.}}
+\DoxyCodeLine{00344\ \textcolor{comment}{//\ Getting\ the\ demuxer\ object\ can\ be\ useful\ if\ one\ wants\ to\ use\ operations\ only}}
+\DoxyCodeLine{00345\ \textcolor{comment}{//\ available\ through\ demuxer;\ e.g.\ to\ get\ XMP/EXIF/ICC\ metadata.\ The\ returned}}
+\DoxyCodeLine{00346\ \textcolor{comment}{//\ demuxer\ object\ is\ owned\ by\ 'dec'\ and\ is\ valid\ only\ until\ the\ next\ call\ to}}
+\DoxyCodeLine{00347\ \textcolor{comment}{//\ WebPAnimDecoderDelete().}}
+\DoxyCodeLine{00348\ \textcolor{comment}{//}}
+\DoxyCodeLine{00349\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00350\ \textcolor{comment}{//\ \ \ dec\ -\/\ (in)\ decoder\ instance\ from\ which\ the\ demuxer\ object\ is\ to\ be\ fetched.}}
+\DoxyCodeLine{00351\ WEBP\_EXTERN\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_demuxer}{WebPDemuxer}}*\ WebPAnimDecoderGetDemuxer(}
+\DoxyCodeLine{00352\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ dec);}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \textcolor{comment}{//\ Deletes\ the\ WebPAnimDecoder\ object.}}
+\DoxyCodeLine{00355\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00356\ \textcolor{comment}{//\ \ \ dec\ -\/\ (in/out)\ decoder\ instance\ to\ be\ deleted}}
+\DoxyCodeLine{00357\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPAnimDecoderDelete(\mbox{\hyperlink{struct_web_p_anim_decoder}{WebPAnimDecoder}}*\ dec);}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00360\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00361\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_WEBP\_DEMUX\_H\_}}
+
+\end{DoxyCode}

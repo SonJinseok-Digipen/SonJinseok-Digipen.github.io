@@ -1,0 +1,96 @@
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md979}{}\doxysection{Resources}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md979}
+\href{https://daniel.haxx.se/http3-explained/}{\texttt{ HTTP/3 Explained}} -\/ the online free book describing the protocols involved.
+
+\href{https://github.com/curl/curl/wiki/QUIC-implementation}{\texttt{ QUIC implementation}} -\/ the wiki page describing the plan for how to support QUIC and HTTP/3 in curl and libcurl.
+
+\href{https://quicwg.org/}{\texttt{ quicwg.\+org}} -\/ home of the official protocol drafts\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md980}{}\doxysection{QUIC libraries}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md980}
+QUIC libraries we\textquotesingle{}re experimenting with\+:
+
+\href{https://github.com/ngtcp2/ngtcp2}{\texttt{ ngtcp2}}
+
+\href{https://github.com/cloudflare/quiche}{\texttt{ quiche}}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md981}{}\doxysection{Experimental!}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md981}
+HTTP/3 and QUIC support in curl is considered {\bfseries{EXPERIMENTAL}} until further notice. It needs to be enabled at build-\/time.
+
+Further development and tweaking of the HTTP/3 support in curl will happen in in the master branch using pull-\/requests, just like ordinary changes.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md982}{}\doxysection{ngtcp2 version}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md982}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md983}{}\doxysubsection{Build with Open\+SSL}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md983}
+Build (patched) Open\+SSL \begin{DoxyVerb} % git clone --depth 1 -b OpenSSL_1_1_1k+quic https://github.com/quictls/openssl
+ % cd openssl
+ % ./config enable-tls1_3 --prefix=<somewhere1>
+ % make
+ % make install_sw
+\end{DoxyVerb}
+ Build nghttp3 \begin{DoxyVerb} % cd ..
+ % git clone https://github.com/ngtcp2/nghttp3
+ % cd nghttp3
+ % autoreconf -i
+ % ./configure --prefix=<somewhere2> --enable-lib-only
+ % make
+ % make install
+\end{DoxyVerb}
+ Build ngtcp2 \begin{DoxyVerb} % cd ..
+ % git clone https://github.com/ngtcp2/ngtcp2
+ % cd ngtcp2
+ % autoreconf -i
+ % ./configure PKG_CONFIG_PATH=<somewhere1>/lib/pkgconfig:<somewhere2>/lib/pkgconfig LDFLAGS="-Wl,-rpath,<somewhere1>/lib" --prefix=<somewhere3> --enable-lib-only
+ % make
+ % make install
+\end{DoxyVerb}
+ Build curl \begin{DoxyVerb} % cd ..
+ % git clone https://github.com/curl/curl
+ % cd curl
+ % ./buildconf
+ % LDFLAGS="-Wl,-rpath,<somewhere1>/lib" ./configure --with-openssl=<somewhere1> --with-nghttp3=<somewhere2> --with-ngtcp2=<somewhere3>
+ % make
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md984}{}\doxysubsection{Build with Gnu\+TLS}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md984}
+Build Gnu\+TLS \begin{DoxyVerb} % git clone --depth 1 https://gitlab.com/gnutls/gnutls.git
+ % cd gnutls
+ % ./bootstrap
+ % ./configure --disable-doc --prefix=<somewhere1>
+ % make
+ % make install
+\end{DoxyVerb}
+ Build nghttp3 \begin{DoxyVerb} % cd ..
+ % git clone https://github.com/ngtcp2/nghttp3
+ % cd nghttp3
+ % autoreconf -i
+ % ./configure --prefix=<somewhere2> --enable-lib-only
+ % make
+ % make install
+\end{DoxyVerb}
+ Build ngtcp2 \begin{DoxyVerb} % cd ..
+ % git clone https://github.com/ngtcp2/ngtcp2
+ % cd ngtcp2
+ % autoreconf -i
+ % ./configure PKG_CONFIG_PATH=<somewhere1>/lib/pkgconfig:<somewhere2>/lib/pkgconfig LDFLAGS="-Wl,-rpath,<somewhere1>/lib" --prefix=<somewhere3> --enable-lib-only --with-gnutls
+ % make
+ % make install
+\end{DoxyVerb}
+ Build curl \begin{DoxyVerb} % cd ..
+ % git clone https://github.com/curl/curl
+ % cd curl
+ % ./buildconf
+ % ./configure --without-openssl --with-gnutls=<somewhere1> --with-nghttp3=<somewhere2> --with-ngtcp2=<somewhere3>
+ % make
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md985}{}\doxysection{quiche version}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md985}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md986}{}\doxysubsection{build}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md986}
+Build quiche and Boring\+SSL\+: \begin{DoxyVerb} % git clone --recursive https://github.com/cloudflare/quiche
+ % cd quiche
+ % cargo build --release --features ffi,pkg-config-meta,qlog
+ % mkdir deps/boringssl/src/lib
+ % ln -vnf $(find target/release -name libcrypto.a -o -name libssl.a) deps/boringssl/src/lib/
+\end{DoxyVerb}
+ Build curl\+: \begin{DoxyVerb} % cd ..
+ % git clone https://github.com/curl/curl
+ % cd curl
+ % ./buildconf
+ % ./configure LDFLAGS="-Wl,-rpath,$PWD/../quiche/target/release" --with-openssl=$PWD/../quiche/deps/boringssl/src --with-quiche=$PWD/../quiche/target/release
+ % make
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md987}{}\doxysubsection{Run}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p3_autotoc_md987}
+Use HTTP/3 directly\+: \begin{DoxyVerb}curl --http3 https://nghttp2.org:4433/
+\end{DoxyVerb}
+ Upgrade via Alt-\/\+Svc\+: \begin{DoxyVerb}curl --alt-svc altsvc.cache https://quic.aiortc.org/
+\end{DoxyVerb}
+ See this \href{https://bagder.github.io/HTTP3-test/}{\texttt{ list of public HTTP/3 servers}} 

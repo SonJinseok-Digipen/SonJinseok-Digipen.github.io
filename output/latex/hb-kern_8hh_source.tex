@@ -1,0 +1,151 @@
+\hypertarget{hb-kern_8hh_source}{}\doxysection{hb-\/kern.hh}
+\label{hb-kern_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/kern.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/kern.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2017\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_KERN\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_KERN\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb-\/open-\/type.hh"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}hb-\/aat-\/layout-\/common.hh"{}}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/layout-\/gpos-\/table.hh"{}}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{namespace\ }OT\ \{}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Driver>}
+\DoxyCodeLine{00039\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1hb__kern__machine__t}{hb\_kern\_machine\_t}}}
+\DoxyCodeLine{00040\ \{}
+\DoxyCodeLine{00041\ \ \ \mbox{\hyperlink{struct_o_t_1_1hb__kern__machine__t}{hb\_kern\_machine\_t}}\ (\textcolor{keyword}{const}\ Driver\ \&driver\_,}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ crossStream\_\ =\ \textcolor{keyword}{false})\ :}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ driver\ (driver\_),}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ crossStream\ (crossStream\_)\ \{\}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ HB\_NO\_SANITIZE\_SIGNED\_INTEGER\_OVERFLOW}
+\DoxyCodeLine{00047\ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ \ \ *font,}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ hb\_mask\_t\ \ \ \ kern\_mask,}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ scale\ =\ \textcolor{keyword}{true})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00051\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keywordflow}{if}\ (!\mbox{\hyperlink{classbuffer}{buffer}}-\/>message\ (font,\ \textcolor{stringliteral}{"{}start\ kern"{}}))}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}}-\/>unsafe\_to\_concat\ ();}
+\DoxyCodeLine{00056\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1hb__ot__apply__context__t}{OT::hb\_ot\_apply\_context\_t}}\ c\ (1,\ font,\ \mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00057\ \ \ \ \ c.set\_lookup\_mask\ (kern\_mask);}
+\DoxyCodeLine{00058\ \ \ \ \ c.set\_lookup\_props\ (OT::LookupFlag::IgnoreMarks);}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{auto}\ \&skippy\_iter\ =\ c.iter\_input;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{bool}\ horizontal\ =\ HB\_DIRECTION\_IS\_HORIZONTAL\ (\mbox{\hyperlink{classbuffer}{buffer}}-\/>props.direction);}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count\ =\ \mbox{\hyperlink{classbuffer}{buffer}}-\/>len;}
+\DoxyCodeLine{00063\ \ \ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ *info\ =\ \mbox{\hyperlink{classbuffer}{buffer}}-\/>info;}
+\DoxyCodeLine{00064\ \ \ \ \ \mbox{\hyperlink{structhb__glyph__position__t}{hb\_glyph\_position\_t}}\ *pos\ =\ \mbox{\hyperlink{classbuffer}{buffer}}-\/>pos;}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ idx\ =\ 0;\ idx\ <\ count;)}
+\DoxyCodeLine{00066\ \ \ \ \ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!(info[idx].mask\ \&\ kern\_mask))}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00069\ \ \ \ \ idx++;}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ skippy\_iter.reset\ (idx,\ 1);}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ unsafe\_to;}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!skippy\_iter.next\ (\&unsafe\_to))}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00077\ \ \ \ \ idx++;}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ idx;}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ j\ =\ skippy\_iter.idx;}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \ \ hb\_position\_t\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ =\ driver.get\_kerning\ (info[i].codepoint,}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ info[j].codepoint);}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (!\mbox{\hyperlink{struct_o_t_1_1kern}{kern}}))}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordflow}{goto}\ skip;}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (horizontal)}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordflow}{if}\ (scale)}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ =\ font-\/>em\_scale\_x\ (\mbox{\hyperlink{struct_o_t_1_1kern}{kern}});}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keywordflow}{if}\ (crossStream)}
+\DoxyCodeLine{00096\ \ \ \ \ \{}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ pos[j].y\_offset\ =\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}};}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}}-\/>scratch\_flags\ |=\ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_GPOS\_ATTACHMENT;}
+\DoxyCodeLine{00099\ \ \ \ \ \}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00101\ \ \ \ \ \{}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ hb\_position\_t\ kern1\ =\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ >>\ 1;}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ hb\_position\_t\ kern2\ =\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ -\/\ kern1;}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ pos[i].x\_advance\ +=\ kern1;}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ pos[j].x\_advance\ +=\ kern2;}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ pos[j].x\_offset\ +=\ kern2;}
+\DoxyCodeLine{00107\ \ \ \ \ \}}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordflow}{if}\ (scale)}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ =\ font-\/>em\_scale\_y\ (\mbox{\hyperlink{struct_o_t_1_1kern}{kern}});}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordflow}{if}\ (crossStream)}
+\DoxyCodeLine{00114\ \ \ \ \ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ pos[j].x\_offset\ =\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}};}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}}-\/>scratch\_flags\ |=\ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_GPOS\_ATTACHMENT;}
+\DoxyCodeLine{00117\ \ \ \ \ \}}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00119\ \ \ \ \ \{}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ hb\_position\_t\ kern1\ =\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ >>\ 1;}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ hb\_position\_t\ kern2\ =\ \mbox{\hyperlink{struct_o_t_1_1kern}{kern}}\ -\/\ kern1;}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ pos[i].y\_advance\ +=\ kern1;}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ pos[j].y\_advance\ +=\ kern2;}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ pos[j].y\_offset\ +=\ kern2;}
+\DoxyCodeLine{00125\ \ \ \ \ \}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}}-\/>unsafe\_to\_break\ (i,\ j\ +\ 1);}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ skip:}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ idx\ =\ skippy\_iter.idx;}
+\DoxyCodeLine{00132\ \ \ \ \ \}}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \ \ (void)\ \mbox{\hyperlink{classbuffer}{buffer}}-\/>message\ (font,\ \textcolor{stringliteral}{"{}end\ kern"{}});}
+\DoxyCodeLine{00135\ \ \ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \textcolor{keyword}{const}\ Driver\ \&driver;}
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordtype}{bool}\ crossStream;}
+\DoxyCodeLine{00139\ \};}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \}\ \textcolor{comment}{/*\ namespace\ OT\ */}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_KERN\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

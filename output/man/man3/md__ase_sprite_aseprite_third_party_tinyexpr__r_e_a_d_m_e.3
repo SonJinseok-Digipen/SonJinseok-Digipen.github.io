@@ -1,0 +1,282 @@
+.TH "md__ase_sprite_aseprite_third_party_tinyexpr__r_e_a_d_m_e" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_tinyexpr__r_e_a_d_m_e \- README 
+.PP
+\fC\fP
+.PP
+.SH "TinyExpr"
+.PP
+TinyExpr is a very small recursive descent parser and evaluation engine for math expressions\&. It's handy when you want to add the ability to evaluation math expressions at runtime without adding a bunch of cruft to you project\&.
+.PP
+In addition to the standard math operators and precedence, TinyExpr also supports the standard C math functions and runtime binding of variables\&.
+.SS "Features"
+.IP "\(bu" 2
+\fBANSI C with no dependencies\fP\&.
+.IP "\(bu" 2
+Single source file and header file\&.
+.IP "\(bu" 2
+Simple and fast\&.
+.IP "\(bu" 2
+Implements standard operators precedence\&.
+.IP "\(bu" 2
+Exposes standard C math functions (sin, sqrt, ln, etc\&.)\&.
+.IP "\(bu" 2
+Can add custom functions and variables easily\&.
+.IP "\(bu" 2
+Can bind variables at eval-time\&.
+.IP "\(bu" 2
+Released under the zlib license - free for nearly any use\&.
+.IP "\(bu" 2
+Easy to use and integrate with your code
+.IP "\(bu" 2
+Thread-safe, provided that your \fImalloc\fP is\&.
+.PP
+.SS "Building"
+TinyExpr is self-contained in two files: \fCtinyexpr\&.c\fP and \fC\fBtinyexpr\&.h\fP\fP\&. To use TinyExpr, simply add those two files to your project\&.
+.SS "Short Example"
+Here is a minimal example to evaluate an expression at runtime\&.
+.PP
+.PP
+.nf
+#include "tinyexpr\&.h"
+printf("%f\\n", te_interp("5*5", 0)); /* Prints 25\&. */
+.fi
+.PP
+.SS "Usage"
+TinyExpr defines only four functions:
+.PP
+.PP
+.nf
+double te_interp(const char *expression, int *error);
+te_expr *te_compile(const char *expression, const te_variable *variables, int var_count, int *error);
+double te_eval(const te_expr *expr);
+void te_free(te_expr *expr);
+.fi
+.PP
+.SS "te_interp"
+.PP
+.nf
+double te_interp(const char *expression, int *error);
+.fi
+.PP
+.PP
+\fCte_interp()\fP takes an expression and immediately returns the result of it\&. If there is a parse error, \fCte_interp()\fP returns NaN\&.
+.PP
+If the \fCerror\fP pointer argument is not 0, then \fCte_interp()\fP will set \fC*error\fP to the position of the parse error on failure, and set \fC*error\fP to 0 on success\&.
+.PP
+\fBexample usage:\fP
+.PP
+.PP
+.nf
+int error;
+
+double a = te_interp("(5+5)", 0); /* Returns 10\&. */
+double b = te_interp("(5+5)", &error); /* Returns 10, error is set to 0\&. */
+double c = te_interp("(5+5", &error); /* Returns NaN, error is set to 4\&. */
+.fi
+.PP
+.SS "te_compile, te_eval, te_free"
+.PP
+.nf
+te_expr *te_compile(const char *expression, const te_variable *lookup, int lookup_len, int *error);
+double te_eval(const te_expr *n);
+void te_free(te_expr *n);
+.fi
+.PP
+.PP
+Give \fCte_compile()\fP an expression with unbound variables and a list of variable names and pointers\&. \fCte_compile()\fP will return a \fCte_expr*\fP which can be evaluated later using \fCte_eval()\fP\&. On failure, \fCte_compile()\fP will return 0 and optionally set the passed in \fC*error\fP to the location of the parse error\&.
+.PP
+You may also compile expressions without variables by passing \fCte_compile()\fP's second and thrid arguments as 0\&.
+.PP
+Give \fCte_eval()\fP a \fCte_expr*\fP from \fCte_compile()\fP\&. \fCte_eval()\fP will evaluate the expression using the current variable values\&.
+.PP
+After you're finished, make sure to call \fCte_free()\fP\&.
+.PP
+\fBexample usage:\fP
+.PP
+.PP
+.nf
+double x, y;
+/* Store variable names and pointers\&. */
+te_variable vars[] = {{"x", &x}, {"y", &y}};
+
+int err;
+/* Compile the expression with variables\&. */
+te_expr *expr = te_compile("sqrt(x^2+y^2)", vars, 2, &err);
+
+if (expr) {
+    x = 3; y = 4;
+    const double h1 = te_eval(expr); /* Returns 5\&. */
+
+    x = 5; y = 12;
+    const double h2 = te_eval(expr); /* Returns 13\&. */
+
+    te_free(expr);
+} else {
+    printf("Parse error at %d\\n", err);
+}
+.fi
+.PP
+.SS "Longer Example"
+Here is a complete example that will evaluate an expression passed in from the command line\&. It also does error checking and binds the variables \fCx\fP and \fCy\fP to \fI3\fP and \fI4\fP, respectively\&.
+.PP
+.PP
+.nf
+#include "tinyexpr\&.h"
+#include <stdio\&.h>
+
+int main(int argc, char *argv[])
+{
+    if (argc < 2) {
+        printf("Usage: example2 \\"expression\\"\\n");
+        return 0;
+    }
+
+    const char *expression = argv[1];
+    printf("Evaluating:\\n\\t%s\\n", expression);
+
+    /* This shows an example where the variables
+     * x and y are bound at eval\-time\&. */
+    double x, y;
+    te_variable vars[] = {{"x", &x}, {"y", &y}};
+
+    /* This will compile the expression and check for errors\&. */
+    int err;
+    te_expr *n = te_compile(expression, vars, 2, &err);
+
+    if (n) {
+        /* The variables can be changed here, and eval can be called as many
+         * times as you like\&. This is fairly efficient because the parsing has
+         * already been done\&. */
+        x = 3; y = 4;
+        const double r = te_eval(n); printf("Result:\\n\\t%f\\n", r);
+        te_free(n);
+    } else {
+        /* Show the user where the error is at\&. */
+        printf("\\t%*s^\\nError near here", err\-1, "");
+    }
+
+    return 0;
+}
+.fi
+.PP
+.PP
+This produces the output: 
+.PP
+.nf
+$ example2 'sqrt(x^2+y2)'
+    Evaluating:
+            sqrt(x^2+y2)
+                      ^
+    Error near here
+
+
+$ example2 'sqrt(x^2+y^2)'
+    Evaluating:
+            sqrt(x^2+y^2)
+    Result:
+            5\&.000000
+
+.fi
+.PP
+.SS "Binding to Custom Functions"
+TinyExpr can also call to custom functions implemented in C\&. Here is a short example:
+.PP
+.PP
+.nf
+double my_sum(double a, double b) {
+    /* Example C function that adds two numbers together\&. */
+    return a + b;
+}
+
+te_variable vars[] = {
+    {"mysum", my_sum, TE_FUNCTION2} /* TE_FUNCTION2 used because my_sum takes two arguments\&. */
+};
+
+te_expr *n = te_compile("mysum(5, 6)", vars, 1, 0);
+.fi
+.PP
+.SS "How it works"
+\fCte_compile()\fP uses a simple recursive descent parser to compile your expression into a syntax tree\&. For example, the expression \fC'sin x + 1/4'\fP parses as:
+.PP
+.PP
+\fCte_compile()\fP also automatically prunes constant branches\&. In this example, the compiled expression returned by \fCte_compile()\fP would become:
+.PP
+.PP
+\fCte_eval()\fP will automatically load in any variables by their pointer, and then evaluate and return the result of the expression\&.
+.PP
+\fCte_free()\fP should always be called when you're done with the compiled expression\&.
+.SS "Speed"
+TinyExpr is pretty fast compared to C when the expression is short, when the expression does hard calculations (e\&.g\&. exponentiation), and when some of the work can be simplified by \fCte_compile()\fP\&. TinyExpr is slow compared to C when the expression is long and involves only basic arithmetic\&.
+.PP
+Here is some example performance numbers taken from the included \fBbenchmark\&.c\fP program:
+.PP
+Expression   te_eval time   native C time   slowdown    sqrt(a^1\&.5+a^2\&.5)   15,641 ms   14,478 ms   8% slower    a+5   765 ms   563 ms   36% slower    a+(5*2)   765 ms   563 ms   36% slower    (a+5)*2   1422 ms   563 ms   153% slower    (1/(a+1)+2/(a+2)+3/(a+3))   5,516 ms   1,266 ms   336% slower   
+.SS "Grammar"
+TinyExpr parses the following grammar: 
+.PP
+.nf
+<list>      =    <expr> {',' <expr>}
+<expr>      =    <term> {('+' | '-') <term>}
+<term>      =    <factor> {('*' | '/' | '%') <factor>}
+<factor>    =    <power> {'^' <power>}
+<power>     =    {('-' | '+')} <base>
+<base>      =    <constant>
+               | <variable>
+               | <function-0> {'(' ')'}
+               | <function-1> <power>
+               | <function-X> '(' <expr> {',' <expr>} ')'
+               | '(' <list> ')'
+
+.fi
+.PP
+ In addition, whitespace between tokens is ignored\&.
+.PP
+Valid variable names consist of a lower case letter followed by any combination of: lower case letters \fIa\fP through \fIz\fP, the digits \fI0\fP through \fI9\fP, and underscore\&. Constants can be integers, decimal numbers, or in scientific notation (e\&.g\&. \fI1e3\fP for \fI1000\fP)\&. \fBA\fP leading zero is not required (e\&.g\&. *\&.5* for \fI0\&.5\fP)
+.SS "Functions supported"
+TinyExpr supports addition (+), subtraction/negation (-), multiplication (*), division (/), exponentiation (^) and modulus (%) with the normal operator precedence (the one exception being that exponentiation is evaluated left-to-right, but this can be changed - see below)\&.
+.PP
+The following C math functions are also supported:
+.PP
+.IP "\(bu" 2
+abs (calls to \fIfabs\fP), acos, asin, atan, atan2, ceil, cos, cosh, exp, floor, ln (calls to \fIlog\fP), log (calls to \fIlog10\fP by default, see below), log10, pow, sin, sinh, sqrt, tan, tanh
+.PP
+.PP
+The following functions are also built-in and provided by TinyExpr:
+.PP
+.IP "\(bu" 2
+fac (factorials e\&.g\&. \fCfac 5\fP == 120)
+.IP "\(bu" 2
+ncr (combinations e\&.g\&. \fCncr(6,2)\fP == 15)
+.IP "\(bu" 2
+npr (permutations e\&.g\&. \fCnpr(6,2)\fP == 30)
+.PP
+.PP
+Also, the following constants are available:
+.PP
+.IP "\(bu" 2
+\fCpi\fP, \fCe\fP
+.PP
+.SS "Compile-time options"
+By default, TinyExpr does exponentiation from left to right\&. For example:
+.PP
+\fCa^b^c == (a^b)^c\fP and \fC-a^b == (-a)^b\fP
+.PP
+This is by design\&. It's the way that spreadsheets do it (e\&.g\&. Excel, Google Sheets)\&.
+.PP
+If you would rather have exponentiation work from right to left, you need to define \fCTE_POW_FROM_RIGHT\fP when compiling \fCtinyexpr\&.c\fP\&. There is a commented-out define near the top of that file\&. With this option enabled, the behaviour is:
+.PP
+\fCa^b^c == a^(b^c)\fP and \fC-a^b == -(a^b)\fP
+.PP
+That will match how many scripting languages do it (e\&.g\&. Python, Ruby)\&.
+.PP
+Also, if you'd like \fClog\fP to default to the natural log instead of \fClog10\fP, then you can define \fCTE_NAT_LOG\fP\&.
+.SS "Hints"
+.IP "\(bu" 2
+All functions/types start with the letters \fIte\fP\&.
+.IP "\(bu" 2
+To allow constant optimization, surround constant expressions in parentheses\&. For example 'x+(1+5)' will evaluate the '(1+5)' expression at compile time and compile the entire expression as 'x+6', saving a runtime calculation\&. The parentheses are important, because TinyExpr will not change the order of evaluation\&. If you instead compiled 'x+1+5' TinyExpr will insist that '1' is added to 'x' first, and '5' is added the result second\&. 
+.PP
+

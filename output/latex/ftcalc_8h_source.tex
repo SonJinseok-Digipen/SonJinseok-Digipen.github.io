@@ -1,0 +1,553 @@
+\hypertarget{ftcalc_8h_source}{}\doxysection{ftcalc.\+h}
+\label{ftcalc_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/ftcalc.h@{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/ftcalc.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftcalc.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Arithmetic\ computations\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ FTCALC\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ FTCALC\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <freetype/freetype.h>}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}compiler-\/macros.h"{}}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ *\ FT\_MulDiv()\ and\ FT\_MulFix()\ are\ declared\ in\ freetype.h.}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#ifndef\ \ FT\_CONFIG\_OPTION\_NO\_ASSEMBLER}}
+\DoxyCodeLine{00037\ \ \ \textcolor{comment}{/*\ Provide\ assembler\ fragments\ for\ performance-\/critical\ functions.\ */}}
+\DoxyCodeLine{00038\ \ \ \textcolor{comment}{/*\ These\ must\ be\ defined\ `static\ \_\_inline\_\_'\ with\ GCC.\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#if\ defined(\ \_\_CC\_ARM\ )\ ||\ defined(\ \_\_ARMCC\_\_\ )\ \ }\textcolor{comment}{/*\ RVCT\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ FT\_MULFIX\_ASSEMBLER\ \ FT\_MulFix\_arm}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \textcolor{comment}{/*\ documentation\ is\ in\ freetype.h\ */}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \textcolor{keyword}{static}\ \_\_inline\ FT\_Int32}
+\DoxyCodeLine{00047\ \ \ FT\_MulFix\_arm(\ FT\_Int32\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int32\ \ b\ )}
+\DoxyCodeLine{00049\ \ \ \{}
+\DoxyCodeLine{00050\ \ \ \ \ FT\_Int32\ \ t,\ t2;}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \_\_asm}
+\DoxyCodeLine{00054\ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ smull\ t2,\ t,\ \ b,\ \ \mbox{\hyperlink{structa}{a}}\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ (lo=t2,hi=t)\ =\ a*b\ */}}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ mov\ \ \ \mbox{\hyperlink{structa}{a}},\ \ t,\ \ asr\ \#31\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ a\ \ \ =\ (hi\ >>\ 31)\ */}}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ add\ \ \ \mbox{\hyperlink{structa}{a}},\ \ \mbox{\hyperlink{structa}{a}},\ \ \#0x8000\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ a\ \ +=\ 0x8000\ */}}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ adds\ \ t2,\ t2,\ \mbox{\hyperlink{structa}{a}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ t2\ +=\ a\ */}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ adc\ \ \ t,\ \ t,\ \ \#0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ t\ \ +=\ carry\ */}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ mov\ \ \ \mbox{\hyperlink{structa}{a}},\ \ t2,\ lsr\ \#16\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ a\ \ \ =\ t2\ >>\ 16\ */}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ orr\ \ \ \mbox{\hyperlink{structa}{a}},\ \ \mbox{\hyperlink{structa}{a}},\ \ t,\ \ lsl\ \#16\ \ \ \ \ \textcolor{comment}{/*\ a\ \ |=\ t\ <<\ 16\ */}}
+\DoxyCodeLine{00062\ \ \ \ \ \}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00064\ \ \ \}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_CC\_ARM\ ||\ \_\_ARMCC\_\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#ifdef\ \_\_GNUC\_\_}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#if\ defined(\ \_\_arm\_\_\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \ \ (\ !defined(\ \_\_thumb\_\_\ )\ ||\ defined(\ \_\_thumb2\_\_\ )\ )\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\ \ \ \ !(\ defined(\ \_\_CC\_ARM\ )\ ||\ defined(\ \_\_ARMCC\_\_\ )\ )}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#define\ FT\_MULFIX\_ASSEMBLER\ \ FT\_MulFix\_arm}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \textcolor{comment}{/*\ documentation\ is\ in\ freetype.h\ */}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \textcolor{keyword}{static}\ \_\_inline\_\_\ FT\_Int32}
+\DoxyCodeLine{00080\ \ \ FT\_MulFix\_arm(\ FT\_Int32\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int32\ \ b\ )}
+\DoxyCodeLine{00082\ \ \ \{}
+\DoxyCodeLine{00083\ \ \ \ \ FT\_Int32\ \ t,\ t2;}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \_\_asm\_\_\ \_\_volatile\_\_\ (}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}smull\ \ \%1,\ \%2,\ \%4,\ \%3\(\backslash\)n\(\backslash\)t"{}}\ \ \ \ \ \ \ \textcolor{comment}{/*\ (lo=\%1,hi=\%2)\ =\ a*b\ */}}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\ \ \ \ \%0,\ \%2,\ asr\ \#31\(\backslash\)n\(\backslash\)t"{}}\ \ \ \ \ \ \textcolor{comment}{/*\ \%0\ \ =\ (hi\ >>\ 31)\ */}}
+\DoxyCodeLine{00089\ \#\textcolor{keywordflow}{if}\ defined(\ \_\_clang\_\_\ )\ \&\&\ defined(\ \_\_thumb2\_\_\ )}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}add.w\ \ \%0,\ \%0,\ \#0x8000\(\backslash\)n\(\backslash\)t"{}}\ \ \ \ \ \ \textcolor{comment}{/*\ \%0\ +=\ 0x8000\ */}}
+\DoxyCodeLine{00091\ \#\textcolor{keywordflow}{else}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}add\ \ \ \ \%0,\ \%0,\ \#0x8000\(\backslash\)n\(\backslash\)t"{}}\ \ \ \ \ \ \textcolor{comment}{/*\ \%0\ +=\ 0x8000\ */}}
+\DoxyCodeLine{00093\ \#endif}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}adds\ \ \ \%1,\ \%1,\ \%0\(\backslash\)n\(\backslash\)t"{}}\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \%1\ +=\ \%0\ */}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}adc\ \ \ \ \%2,\ \%2,\ \#0\(\backslash\)n\(\backslash\)t"{}}\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \%2\ +=\ carry\ */}}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\ \ \ \ \%0,\ \%1,\ lsr\ \#16\(\backslash\)n\(\backslash\)t"{}}\ \ \ \ \ \ \textcolor{comment}{/*\ \%0\ \ =\ \%1\ >>\ 16\ */}}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}orr\ \ \ \ \%0,\ \%0,\ \%2,\ lsl\ \#16\(\backslash\)n\(\backslash\)t"{}}\ \ \textcolor{comment}{/*\ \%0\ |=\ \%2\ <<\ 16\ */}}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=r"{}}(\mbox{\hyperlink{structa}{a}}),\ \textcolor{stringliteral}{"{}=\&r"{}}(t2),\ \textcolor{stringliteral}{"{}=\&r"{}}(t)}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}r"{}}(\mbox{\hyperlink{structa}{a}}),\ \textcolor{stringliteral}{"{}r"{}}(b)}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}cc"{}}\ );}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00102\ \ \ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_arm\_\_\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ (\ \_\_thumb2\_\_\ ||\ !\_\_thumb\_\_\ )\ \&\&\ */}}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ !(\ \_\_CC\_ARM\ ||\ \_\_ARMCC\_\_\ )\ \ \ \ \ \ */}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#if\ defined(\ \_\_i386\_\_\ )}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#define\ FT\_MULFIX\_ASSEMBLER\ \ FT\_MulFix\_i386}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \textcolor{comment}{/*\ documentation\ is\ in\ freetype.h\ */}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \textcolor{keyword}{static}\ \_\_inline\_\_\ FT\_Int32}
+\DoxyCodeLine{00116\ \ \ FT\_MulFix\_i386(\ FT\_Int32\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int32\ \ b\ )}
+\DoxyCodeLine{00118\ \ \ \{}
+\DoxyCodeLine{00119\ \ \ \ \ FT\_Int32\ \ result;}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ \_\_asm\_\_\ \_\_volatile\_\_\ (}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imul\ \ \%\%edx\(\backslash\)n"{}}}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}movl\ \ \%\%edx,\ \%\%ecx\(\backslash\)n"{}}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sarl\ \ \$31,\ \%\%ecx\(\backslash\)n"{}}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addl\ \ \$0x8000,\ \%\%ecx\(\backslash\)n"{}}}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addl\ \ \%\%ecx,\ \%\%eax\(\backslash\)n"{}}}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}adcl\ \ \$0,\ \%\%edx\(\backslash\)n"{}}}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shrl\ \ \$16,\ \%\%eax\(\backslash\)n"{}}}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}shll\ \ \$16,\ \%\%edx\(\backslash\)n"{}}}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}addl\ \ \%\%edx,\ \%\%eax\(\backslash\)n"{}}}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=a"{}}(result),\ \textcolor{stringliteral}{"{}=d"{}}(b)}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}a"{}}(\mbox{\hyperlink{structa}{a}}),\ \textcolor{stringliteral}{"{}d"{}}(b)}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}\%ecx"{}},\ \textcolor{stringliteral}{"{}cc"{}}\ );}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{00136\ \ \ \}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ i386\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_GNUC\_\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#ifdef\ \_MSC\_VER\ }\textcolor{comment}{/*\ Visual\ C++\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#ifdef\ \_M\_IX86}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#define\ FT\_MULFIX\_ASSEMBLER\ \ FT\_MulFix\_i386}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \textcolor{comment}{/*\ documentation\ is\ in\ freetype.h\ */}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{keyword}{static}\ \_\_inline\ FT\_Int32}
+\DoxyCodeLine{00152\ \ \ FT\_MulFix\_i386(\ FT\_Int32\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int32\ \ b\ )}
+\DoxyCodeLine{00154\ \ \ \{}
+\DoxyCodeLine{00155\ \ \ \ \ FT\_Int32\ \ result;}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \_\_asm}
+\DoxyCodeLine{00158\ \ \ \ \ \{}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ mov\ eax,\ \mbox{\hyperlink{structa}{a}}}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ mov\ edx,\ b}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ imul\ edx}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ mov\ ecx,\ edx}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ sar\ ecx,\ 31}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ add\ ecx,\ 8000h}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ add\ eax,\ ecx}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ adc\ edx,\ 0}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ shr\ eax,\ 16}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ shl\ edx,\ 16}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ add\ eax,\ edx}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ mov\ result,\ eax}
+\DoxyCodeLine{00171\ \ \ \ \ \}}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{00173\ \ \ \}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_M\_IX86\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_MSC\_VER\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\#if\ defined(\ \_\_GNUC\_\_\ )\ \&\&\ defined(\ \_\_x86\_64\_\_\ )}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\#define\ FT\_MULFIX\_ASSEMBLER\ \ FT\_MulFix\_x86\_64}}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \ \ \textcolor{keyword}{static}\ \_\_inline\_\_\ FT\_Int32}
+\DoxyCodeLine{00185\ \ \ FT\_MulFix\_x86\_64(\ FT\_Int32\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int32\ \ b\ )}
+\DoxyCodeLine{00187\ \ \ \{}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{comment}{/*\ Temporarily\ disable\ the\ warning\ that\ C90\ doesn't\ support\ */}}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{comment}{/*\ `long\ long'.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#if\ \_\_GNUC\_\_\ >\ 4\ ||\ (\ \_\_GNUC\_\_\ ==\ 4\ \&\&\ \_\_GNUC\_MINOR\_\_\ >=\ 6\ )}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ push}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ ignored\ "{}-\/Wlong-\/long"{}}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\#if\ 1}}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{comment}{/*\ Technically\ not\ an\ assembly\ fragment,\ but\ GCC\ does\ a\ really\ good\ */}}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{comment}{/*\ job\ at\ inlining\ it\ and\ generating\ good\ machine\ code\ for\ it.\ \ \ \ \ \ */}}
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \ ret,\ tmp;}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \ \ ret\ \ =\ (\textcolor{keywordtype}{long}\ long)\mbox{\hyperlink{structa}{a}}\ *\ b;}
+\DoxyCodeLine{00202\ \ \ \ \ tmp\ \ =\ ret\ >>\ 63;}
+\DoxyCodeLine{00203\ \ \ \ \ ret\ +=\ 0x8000\ +\ tmp;}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordflow}{return}\ (FT\_Int32)(\ ret\ >>\ 16\ );}
+\DoxyCodeLine{00206\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{comment}{/*\ For\ some\ reason,\ GCC\ 4.6\ on\ Ubuntu\ 12.04\ generates\ invalid\ machine\ \ */}}
+\DoxyCodeLine{00209\ \ \ \ \ \textcolor{comment}{/*\ code\ from\ the\ lines\ below.\ \ The\ main\ issue\ is\ that\ `wide\_a'\ is\ not\ \ */}}
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{comment}{/*\ properly\ initialized\ by\ sign-\/extending\ `a'.\ \ Instead,\ the\ generated\ */}}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{comment}{/*\ machine\ code\ assumes\ that\ the\ register\ that\ contains\ `a'\ on\ input\ \ \ */}}
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{comment}{/*\ can\ be\ used\ directly\ as\ a\ 64-\/bit\ value,\ which\ is\ wrong\ most\ of\ the\ \ */}}
+\DoxyCodeLine{00213\ \ \ \ \ \textcolor{comment}{/*\ time.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \ wide\_a\ =\ (\textcolor{keywordtype}{long}\ long)\mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \ wide\_b\ =\ (\textcolor{keywordtype}{long}\ long)b;}
+\DoxyCodeLine{00216\ \ \ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ \ result;}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \_\_asm\_\_\ \_\_volatile\_\_\ (}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}imul\ \%2,\ \%1\(\backslash\)n"{}}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}mov\ \%1,\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sar\ \$63,\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}lea\ 0x8000(\%1,\ \%0),\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}sar\ \$16,\ \%0\(\backslash\)n"{}}}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=\&r"{}}(result),\ \textcolor{stringliteral}{"{}=\&r"{}}(wide\_a)}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}r"{}}(wide\_b)}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}cc"{}}\ );}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{keywordflow}{return}\ (FT\_Int32)result;}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\#if\ \_\_GNUC\_\_\ >\ 4\ ||\ (\ \_\_GNUC\_\_\ ==\ 4\ \&\&\ \_\_GNUC\_MINOR\_\_\ >=\ 6\ )}}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ pop}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00235\ \ \ \}}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_GNUC\_\_\ \&\&\ \_\_x86\_64\_\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !FT\_CONFIG\_OPTION\_NO\_ASSEMBLER\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#ifdef\ FT\_CONFIG\_OPTION\_INLINE\_MULFIX}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#ifdef\ FT\_MULFIX\_ASSEMBLER}}
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\#define\ FT\_MulFix(\ a,\ b\ )\ \ FT\_MULFIX\_ASSEMBLER(\ (FT\_Int32)(a),\ (FT\_Int32)(b)\ )}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00250\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00251\ \textcolor{comment}{\ \ \ *\ @function:}}
+\DoxyCodeLine{00252\ \textcolor{comment}{\ \ \ *\ \ \ FT\_MulDiv\_No\_Round}}
+\DoxyCodeLine{00253\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ \ \ *\ \ \ A\ very\ simple\ function\ used\ to\ perform\ the\ computation\ '(a*b)/c'}}
+\DoxyCodeLine{00256\ \textcolor{comment}{\ \ \ *\ \ \ (without\ rounding)\ with\ maximum\ accuracy\ (it\ uses\ a\ 64-\/bit}}
+\DoxyCodeLine{00257\ \textcolor{comment}{\ \ \ *\ \ \ intermediate\ integer\ whenever\ necessary).}}
+\DoxyCodeLine{00258\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00259\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ isn't\ necessarily\ as\ fast\ as\ some\ processor-\/specific}}
+\DoxyCodeLine{00260\ \textcolor{comment}{\ \ \ *\ \ \ operations,\ but\ is\ at\ least\ completely\ portable.}}
+\DoxyCodeLine{00261\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00262\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00263\ \textcolor{comment}{\ \ \ *\ \ \ a\ ::}}
+\DoxyCodeLine{00264\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ first\ multiplier.}}
+\DoxyCodeLine{00265\ \textcolor{comment}{\ \ \ *\ \ \ b\ ::}}
+\DoxyCodeLine{00266\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ second\ multiplier.}}
+\DoxyCodeLine{00267\ \textcolor{comment}{\ \ \ *\ \ \ c\ ::}}
+\DoxyCodeLine{00268\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ divisor.}}
+\DoxyCodeLine{00269\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00270\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00271\ \textcolor{comment}{\ \ \ *\ \ \ The\ result\ of\ '(a*b)/c'.\ \ This\ function\ never\ traps\ when\ trying\ to}}
+\DoxyCodeLine{00272\ \textcolor{comment}{\ \ \ *\ \ \ divide\ by\ zero;\ it\ simply\ returns\ 'MaxInt'\ or\ 'MinInt'\ depending\ on}}
+\DoxyCodeLine{00273\ \textcolor{comment}{\ \ \ *\ \ \ the\ signs\ of\ 'a'\ and\ 'b'.}}
+\DoxyCodeLine{00274\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00275\ \ \ FT\_BASE(\ FT\_Long\ )}
+\DoxyCodeLine{00276\ \ \ FT\_MulDiv\_No\_Round(\ FT\_Long\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ b,}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ c\ );}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00282\ \textcolor{comment}{\ \ \ *\ A\ variant\ of\ FT\_Matrix\_Multiply\ which\ scales\ its\ result\ afterwards.\ \ The}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ \ \ *\ idea\ is\ that\ both\ `a'\ and\ `b'\ are\ scaled\ by\ factors\ of\ 10\ so\ that\ the}}
+\DoxyCodeLine{00284\ \textcolor{comment}{\ \ \ *\ values\ are\ as\ precise\ as\ possible\ to\ get\ a\ correct\ result\ during\ the}}
+\DoxyCodeLine{00285\ \textcolor{comment}{\ \ \ *\ 64bit\ multiplication.\ \ Let\ `sa'\ and\ `sb'\ be\ the\ scaling\ factors\ of\ `a'}}
+\DoxyCodeLine{00286\ \textcolor{comment}{\ \ \ *\ and\ `b',\ respectively,\ then\ the\ scaling\ factor\ of\ the\ result\ is\ `sa*sb'.}}
+\DoxyCodeLine{00287\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00288\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00289\ \ \ FT\_Matrix\_Multiply\_Scaled(\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___matrix__}{FT\_Matrix}}*\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___matrix__}{FT\_Matrix}}\ \ \ \ \ \ \ \ *b,}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ scaling\ );}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00295\ \textcolor{comment}{\ \ \ *\ Check\ a\ matrix.\ \ If\ the\ transformation\ would\ lead\ to\ extreme\ shear\ or}}
+\DoxyCodeLine{00296\ \textcolor{comment}{\ \ \ *\ extreme\ scaling,\ for\ example,\ return\ 0.\ \ If\ everything\ is\ OK,\ return\ 1.}}
+\DoxyCodeLine{00297\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00298\ \textcolor{comment}{\ \ \ *\ Based\ on\ geometric\ considerations\ we\ use\ the\ following\ inequality\ to}}
+\DoxyCodeLine{00299\ \textcolor{comment}{\ \ \ *\ identify\ a\ degenerate\ matrix.}}
+\DoxyCodeLine{00300\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00301\ \textcolor{comment}{\ \ \ *\ \ \ 50\ *\ abs(xx*yy\ -\/\ xy*yx)\ <\ xx\string^2\ +\ xy\string^2\ +\ yx\string^2\ +\ yy\string^2}}
+\DoxyCodeLine{00302\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00303\ \textcolor{comment}{\ \ \ *\ Value\ 50\ is\ heuristic.}}
+\DoxyCodeLine{00304\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00305\ \ \ FT\_BASE(\ FT\_Bool\ )}
+\DoxyCodeLine{00306\ \ \ FT\_Matrix\_Check(\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___matrix__}{FT\_Matrix}}*\ \ matrix\ );}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00310\ \textcolor{comment}{\ \ \ *\ A\ variant\ of\ FT\_Vector\_Transform.\ \ See\ comments\ for}}
+\DoxyCodeLine{00311\ \textcolor{comment}{\ \ \ *\ FT\_Matrix\_Multiply\_Scaled.}}
+\DoxyCodeLine{00312\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00313\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00314\ \ \ FT\_Vector\_Transform\_Scaled(\ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}*\ \ \ \ \ \ \ \ vector,}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___matrix__}{FT\_Matrix}}*\ \ matrix,}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ scaling\ );}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ \ \ *\ This\ function\ normalizes\ a\ vector\ and\ returns\ its\ original\ length.\ \ The}}
+\DoxyCodeLine{00321\ \textcolor{comment}{\ \ \ *\ normalized\ vector\ is\ a\ 16.16\ fixed-\/point\ unit\ vector\ with\ length\ close}}
+\DoxyCodeLine{00322\ \textcolor{comment}{\ \ \ *\ to\ 0x10000.\ \ The\ accuracy\ of\ the\ returned\ length\ is\ limited\ to\ 16\ bits}}
+\DoxyCodeLine{00323\ \textcolor{comment}{\ \ \ *\ also.\ \ The\ function\ utilizes\ quick\ inverse\ square\ root\ approximation}}
+\DoxyCodeLine{00324\ \textcolor{comment}{\ \ \ *\ without\ divisions\ and\ square\ roots\ relying\ on\ Newton's\ iterations}}
+\DoxyCodeLine{00325\ \textcolor{comment}{\ \ \ *\ instead.}}
+\DoxyCodeLine{00326\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00327\ \ \ FT\_BASE(\ FT\_UInt32\ )}
+\DoxyCodeLine{00328\ \ \ FT\_Vector\_NormLen(\ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}*\ \ vector\ );}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ }
+\DoxyCodeLine{00331\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ \ \ *\ Return\ -\/1,\ 0,\ or\ +1,\ depending\ on\ the\ orientation\ of\ a\ given\ corner.\ \ We}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ \ \ *\ use\ the\ Cartesian\ coordinate\ system,\ with\ positive\ vertical\ values\ going}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ \ *\ upwards.\ \ The\ function\ returns\ +1\ if\ the\ corner\ turns\ to\ the\ left,\ -\/1\ to}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ \ \ *\ the\ right,\ and\ 0\ for\ undecidable\ cases.}}
+\DoxyCodeLine{00336\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00337\ \ \ FT\_BASE(\ FT\_Int\ )}
+\DoxyCodeLine{00338\ \ \ ft\_corner\_orientation(\ FT\_Pos\ \ in\_x,}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ in\_y,}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ out\_x,}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ out\_y\ );}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ }
+\DoxyCodeLine{00344\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00345\ \textcolor{comment}{\ \ \ *\ Return\ TRUE\ if\ a\ corner\ is\ flat\ or\ nearly\ flat.\ \ This\ is\ equivalent\ to}}
+\DoxyCodeLine{00346\ \textcolor{comment}{\ \ \ *\ saying\ that\ the\ corner\ point\ is\ close\ to\ its\ neighbors,\ or\ inside\ an}}
+\DoxyCodeLine{00347\ \textcolor{comment}{\ \ \ *\ ellipse\ defined\ by\ the\ neighbor\ focal\ points\ to\ be\ more\ precise.}}
+\DoxyCodeLine{00348\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00349\ \ \ FT\_BASE(\ FT\_Int\ )}
+\DoxyCodeLine{00350\ \ \ ft\_corner\_is\_flat(\ FT\_Pos\ \ in\_x,}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ in\_y,}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ out\_x,}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ out\_y\ );}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00357\ \textcolor{comment}{\ \ \ *\ Return\ the\ most\ significant\ bit\ index.}}
+\DoxyCodeLine{00358\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \textcolor{preprocessor}{\#ifndef\ \ FT\_CONFIG\_OPTION\_NO\_ASSEMBLER}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \textcolor{preprocessor}{\#if\ defined(\ \_\_clang\_\_\ )\ ||\ (\ defined(\ \_\_GNUC\_\_\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \ \(\backslash\)}}
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\ \ \ \ (\ \_\_GNUC\_\_\ >\ 3\ ||\ (\ \_\_GNUC\_\_\ ==\ 3\ \&\&\ \_\_GNUC\_MINOR\_\_\ >=\ 4\ )\ )\ )}}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \textcolor{preprocessor}{\#if\ FT\_SIZEOF\_INT\ ==\ 4}}
+\DoxyCodeLine{00366\ }
+\DoxyCodeLine{00367\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ (\ 31\ -\/\ \_\_builtin\_clz(\ x\ )\ )}}
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ \textcolor{preprocessor}{\#elif\ FT\_SIZEOF\_LONG\ ==\ 4}}
+\DoxyCodeLine{00370\ }
+\DoxyCodeLine{00371\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ (\ 31\ -\/\ \_\_builtin\_clzl(\ x\ )\ )}}
+\DoxyCodeLine{00372\ }
+\DoxyCodeLine{00373\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\#elif\ defined(\ \_MSC\_VER\ )\ \&\&\ \_MSC\_VER\ >=\ 1400}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \textcolor{preprocessor}{\#if\ defined(\ \_WIN32\_WCE\ )}}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \textcolor{preprocessor}{\#include\ <cmnintrin.h>}}
+\DoxyCodeLine{00380\ \textcolor{preprocessor}{\#pragma\ intrinsic(\ \_CountLeadingZeros\ )}}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ (\ 31\ -\/\ \_CountLeadingZeros(\ x\ )\ )}}
+\DoxyCodeLine{00383\ }
+\DoxyCodeLine{00384\ \textcolor{preprocessor}{\#elif\ defined(\ \_M\_ARM64\ )\ ||\ defined(\ \_M\_ARM\ )}}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \textcolor{preprocessor}{\#include\ <intrin.h>}}
+\DoxyCodeLine{00387\ \textcolor{preprocessor}{\#pragma\ intrinsic(\ \_CountLeadingZeros\ )}}
+\DoxyCodeLine{00388\ }
+\DoxyCodeLine{00389\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ (\ 31\ -\/\ \_CountLeadingZeros(\ x\ )\ )}}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \textcolor{preprocessor}{\#elif\ defined(\ \_M\_IX86\ )\ ||\ defined(\ \_M\_AMD64\ )\ ||\ defined(\ \_M\_IA64\ )}}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \textcolor{preprocessor}{\#include\ <intrin.h>}}
+\DoxyCodeLine{00394\ \textcolor{preprocessor}{\#pragma\ intrinsic(\ \_BitScanReverse\ )}}
+\DoxyCodeLine{00395\ }
+\DoxyCodeLine{00396\ \ \ \textcolor{keyword}{static}\ \_\_inline\ FT\_Int32}
+\DoxyCodeLine{00397\ \ \ FT\_MSB\_i386(\ FT\_UInt32\ \ x\ )}
+\DoxyCodeLine{00398\ \ \ \{}
+\DoxyCodeLine{00399\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \ where;}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \ \ \ \ \_BitScanReverse(\ \&where,\ x\ );}
+\DoxyCodeLine{00403\ }
+\DoxyCodeLine{00404\ \ \ \ \ \textcolor{keywordflow}{return}\ (FT\_Int32)where;}
+\DoxyCodeLine{00405\ \ \ \}}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ FT\_MSB\_i386(\ x\ )}}
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \textcolor{preprocessor}{\#elif\ defined(\ \_\_WATCOMC\_\_\ )\ \&\&\ defined(\ \_\_386\_\_\ )}}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ \ \ \textcolor{keyword}{extern}\ \_\_inline\ FT\_Int32}
+\DoxyCodeLine{00414\ \ \ FT\_MSB\_i386(\ FT\_UInt32\ \ x\ );}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ \textcolor{preprocessor}{\#pragma\ aux\ FT\_MSB\_i386\ =\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00417\ \textcolor{preprocessor}{\ \ "{}bsr\ eax,\ eax"{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00418\ \ \ parm\ [eax]\ nomemory\ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00419\ \ \ value\ [eax]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00420\ \ \ modify\ exact\ [eax]\ nomemory;}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ FT\_MSB\_i386(\ x\ )}}
+\DoxyCodeLine{00423\ }
+\DoxyCodeLine{00424\ \textcolor{preprocessor}{\#elif\ defined(\ \_\_DECC\ )\ ||\ defined(\ \_\_DECCXX\ )}}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \textcolor{preprocessor}{\#include\ <builtins.h>}}
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ (FT\_Int)(\ 63\ -\/\ \_leadz(\ x\ )\ )}}
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \textcolor{preprocessor}{\#elif\ defined(\ \_CRAYC\ )}}
+\DoxyCodeLine{00431\ }
+\DoxyCodeLine{00432\ \textcolor{preprocessor}{\#include\ <intrinsics.h>}}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \textcolor{preprocessor}{\#define\ FT\_MSB(\ x\ )\ \ (FT\_Int)(\ 31\ -\/\ \_leadz32(\ x\ )\ )}}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FT\_MSB\ macro\ definitions\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00437\ }
+\DoxyCodeLine{00438\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !FT\_CONFIG\_OPTION\_NO\_ASSEMBLER\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00439\ }
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00441\ \textcolor{preprocessor}{\#ifndef\ FT\_MSB}}
+\DoxyCodeLine{00442\ }
+\DoxyCodeLine{00443\ \ \ FT\_BASE(\ FT\_Int\ )}
+\DoxyCodeLine{00444\ \ \ FT\_MSB(\ FT\_UInt32\ \ z\ );}
+\DoxyCodeLine{00445\ }
+\DoxyCodeLine{00446\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00447\ }
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00450\ \textcolor{comment}{\ \ \ *\ Return\ sqrt(x*x+y*y),\ which\ is\ the\ same\ as\ `FT\_Vector\_Length'\ but\ uses}}
+\DoxyCodeLine{00451\ \textcolor{comment}{\ \ \ *\ two\ fixed-\/point\ arguments\ instead.}}
+\DoxyCodeLine{00452\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00453\ \ \ FT\_BASE(\ FT\_Fixed\ )}
+\DoxyCodeLine{00454\ \ \ FT\_Hypot(\ FT\_Fixed\ \ x,}
+\DoxyCodeLine{00455\ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed\ \ y\ );}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ }
+\DoxyCodeLine{00458\ \textcolor{preprocessor}{\#if\ 0}}
+\DoxyCodeLine{00459\ }
+\DoxyCodeLine{00460\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00461\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00462\ \textcolor{comment}{\ \ \ *\ @function:}}
+\DoxyCodeLine{00463\ \textcolor{comment}{\ \ \ *\ \ \ FT\_SqrtFixed}}
+\DoxyCodeLine{00464\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00465\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00466\ \textcolor{comment}{\ \ \ *\ \ \ Computes\ the\ square\ root\ of\ a\ 16.16\ fixed-\/point\ value.}}
+\DoxyCodeLine{00467\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00468\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00469\ \textcolor{comment}{\ \ \ *\ \ \ x\ ::}}
+\DoxyCodeLine{00470\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ value\ to\ compute\ the\ root\ for.}}
+\DoxyCodeLine{00471\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00472\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00473\ \textcolor{comment}{\ \ \ *\ \ \ The\ result\ of\ 'sqrt(x)'.}}
+\DoxyCodeLine{00474\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00475\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00476\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ is\ not\ very\ fast.}}
+\DoxyCodeLine{00477\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00478\ \ \ FT\_BASE(\ FT\_Int32\ )}
+\DoxyCodeLine{00479\ \ \ FT\_SqrtFixed(\ FT\_Int32\ \ x\ );}
+\DoxyCodeLine{00480\ }
+\DoxyCodeLine{00481\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ 0\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00482\ }
+\DoxyCodeLine{00483\ }
+\DoxyCodeLine{00484\ \textcolor{preprocessor}{\#define\ INT\_TO\_F26DOT6(\ x\ )\ \ \ \ (\ (FT\_Long)(x)\ *\ 64\ \ )\ \ \ \ }\textcolor{comment}{/*\ <<\ 6\ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00485\ \textcolor{preprocessor}{\#define\ INT\_TO\_F2DOT14(\ x\ )\ \ \ \ (\ (FT\_Long)(x)\ *\ 16384\ )\ \ }\textcolor{comment}{/*\ <<\ 14\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00486\ \textcolor{preprocessor}{\#define\ INT\_TO\_FIXED(\ x\ )\ \ \ \ \ \ (\ (FT\_Long)(x)\ *\ 65536\ )\ \ }\textcolor{comment}{/*\ <<\ 16\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00487\ \textcolor{preprocessor}{\#define\ F2DOT14\_TO\_FIXED(\ x\ )\ \ (\ (FT\_Long)(x)\ *\ 4\ )\ \ \ \ \ \ }\textcolor{comment}{/*\ <<\ 2\ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00488\ \textcolor{preprocessor}{\#define\ FIXED\_TO\_INT(\ x\ )\ \ \ \ \ \ (\ FT\_RoundFix(\ x\ )\ >>\ 16\ )}}
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ \textcolor{preprocessor}{\#define\ ROUND\_F26DOT6(\ x\ )\ \ \ \ \ (\ (\ (x)\ +\ 32\ -\/\ (\ x\ <\ 0\ )\ )\ \&\ -\/64\ )}}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00493\ \textcolor{comment}{\ \ \ *\ The\ following\ macros\ have\ two\ purposes.}}
+\DoxyCodeLine{00494\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00495\ \textcolor{comment}{\ \ \ *\ -\/\ Tag\ places\ where\ overflow\ is\ expected\ and\ harmless.}}
+\DoxyCodeLine{00496\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00497\ \textcolor{comment}{\ \ \ *\ -\/\ Avoid\ run-\/time\ sanitizer\ errors.}}
+\DoxyCodeLine{00498\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00499\ \textcolor{comment}{\ \ \ *\ Use\ with\ care!}}
+\DoxyCodeLine{00500\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00501\ \textcolor{preprocessor}{\#define\ ADD\_INT(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00502\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int)(\ (FT\_UInt)(a)\ +\ (FT\_UInt)(b)\ )}}
+\DoxyCodeLine{00503\ \textcolor{preprocessor}{\#define\ SUB\_INT(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00504\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int)(\ (FT\_UInt)(a)\ -\/\ (FT\_UInt)(b)\ )}}
+\DoxyCodeLine{00505\ \textcolor{preprocessor}{\#define\ MUL\_INT(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00506\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int)(\ (FT\_UInt)(a)\ *\ (FT\_UInt)(b)\ )}}
+\DoxyCodeLine{00507\ \textcolor{preprocessor}{\#define\ NEG\_INT(\ a\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00508\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int)(\ (FT\_UInt)0\ -\/\ (FT\_UInt)(a)\ )}}
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \textcolor{preprocessor}{\#define\ ADD\_LONG(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00511\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Long)(\ (FT\_ULong)(a)\ +\ (FT\_ULong)(b)\ )}}
+\DoxyCodeLine{00512\ \textcolor{preprocessor}{\#define\ SUB\_LONG(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00513\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Long)(\ (FT\_ULong)(a)\ -\/\ (FT\_ULong)(b)\ )}}
+\DoxyCodeLine{00514\ \textcolor{preprocessor}{\#define\ MUL\_LONG(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00515\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Long)(\ (FT\_ULong)(a)\ *\ (FT\_ULong)(b)\ )}}
+\DoxyCodeLine{00516\ \textcolor{preprocessor}{\#define\ NEG\_LONG(\ a\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00517\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Long)(\ (FT\_ULong)0\ -\/\ (FT\_ULong)(a)\ )}}
+\DoxyCodeLine{00518\ }
+\DoxyCodeLine{00519\ \textcolor{preprocessor}{\#define\ ADD\_INT32(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00520\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int32)(\ (FT\_UInt32)(a)\ +\ (FT\_UInt32)(b)\ )}}
+\DoxyCodeLine{00521\ \textcolor{preprocessor}{\#define\ SUB\_INT32(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00522\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int32)(\ (FT\_UInt32)(a)\ -\/\ (FT\_UInt32)(b)\ )}}
+\DoxyCodeLine{00523\ \textcolor{preprocessor}{\#define\ MUL\_INT32(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00524\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int32)(\ (FT\_UInt32)(a)\ *\ (FT\_UInt32)(b)\ )}}
+\DoxyCodeLine{00525\ \textcolor{preprocessor}{\#define\ NEG\_INT32(\ a\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00526\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int32)(\ (FT\_UInt32)0\ -\/\ (FT\_UInt32)(a)\ )}}
+\DoxyCodeLine{00527\ }
+\DoxyCodeLine{00528\ \textcolor{preprocessor}{\#ifdef\ FT\_INT64}}
+\DoxyCodeLine{00529\ }
+\DoxyCodeLine{00530\ \textcolor{preprocessor}{\#define\ ADD\_INT64(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00531\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int64)(\ (FT\_UInt64)(a)\ +\ (FT\_UInt64)(b)\ )}}
+\DoxyCodeLine{00532\ \textcolor{preprocessor}{\#define\ SUB\_INT64(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00533\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int64)(\ (FT\_UInt64)(a)\ -\/\ (FT\_UInt64)(b)\ )}}
+\DoxyCodeLine{00534\ \textcolor{preprocessor}{\#define\ MUL\_INT64(\ a,\ b\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00535\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int64)(\ (FT\_UInt64)(a)\ *\ (FT\_UInt64)(b)\ )}}
+\DoxyCodeLine{00536\ \textcolor{preprocessor}{\#define\ NEG\_INT64(\ a\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00537\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Int64)(\ (FT\_UInt64)0\ -\/\ (FT\_UInt64)(a)\ )}}
+\DoxyCodeLine{00538\ }
+\DoxyCodeLine{00539\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FT\_INT64\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00540\ }
+\DoxyCodeLine{00541\ }
+\DoxyCodeLine{00542\ FT\_END\_HEADER}
+\DoxyCodeLine{00543\ }
+\DoxyCodeLine{00544\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTCALC\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00545\ }
+\DoxyCodeLine{00546\ }
+\DoxyCodeLine{00547\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

@@ -1,0 +1,294 @@
+\hypertarget{src_2psaux_2pshints_8h_source}{}\doxysection{pshints.\+h}
+\label{src_2psaux_2pshints_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/psaux/pshints.h@{AseSprite/aseprite/third\_party/freetype2/src/psaux/pshints.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ pshints.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Adobe's\ code\ for\ handling\ CFF\ hints\ (body).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ 2007-\/2013\ Adobe\ Systems\ Incorporated.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ This\ software,\ and\ all\ works\ of\ authorship,\ whether\ in\ source\ or}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ object\ code\ form\ as\ indicated\ by\ the\ copyright\ notice(s)\ included}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ herein\ (collectively,\ the\ "{}Work"{})\ is\ made\ available,\ and\ may\ only\ be}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ used,\ modified,\ and\ distributed\ under\ the\ FreeType\ Project\ License,}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ LICENSE.TXT.\ \ Additionally,\ subject\ to\ the\ terms\ and\ conditions\ of\ the}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ FreeType\ Project\ License,\ each\ contributor\ to\ the\ Work\ hereby\ grants}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ to\ any\ individual\ or\ legal\ entity\ exercising\ permissions\ granted\ by}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ the\ FreeType\ Project\ License\ and\ this\ section\ (hereafter,\ "{}You"{}\ or}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ "{}Your"{})\ a\ perpetual,\ worldwide,\ non-\/exclusive,\ no-\/charge,}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ royalty-\/free,\ irrevocable\ (except\ as\ stated\ in\ this\ section)\ patent}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ license\ to\ make,\ have\ made,\ use,\ offer\ to\ sell,\ sell,\ import,\ and}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ otherwise\ transfer\ the\ Work,\ where\ such\ license\ applies\ only\ to\ those}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ patent\ claims\ licensable\ by\ such\ contributor\ that\ are\ necessarily}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ infringed\ by\ their\ contribution(s)\ alone\ or\ by\ combination\ of\ their}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ contribution(s)\ with\ the\ Work\ to\ which\ such\ contribution(s)\ was}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ submitted.\ \ If\ You\ institute\ patent\ litigation\ against\ any\ entity}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ (including\ a\ cross-\/claim\ or\ counterclaim\ in\ a\ lawsuit)\ alleging\ that}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ the\ Work\ or\ a\ contribution\ incorporated\ within\ the\ Work\ constitutes}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ direct\ or\ contributory\ patent\ infringement,\ then\ any\ patent\ licenses}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *\ granted\ to\ You\ under\ this\ License\ for\ that\ Work\ shall\ terminate\ as\ of}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ the\ date\ such\ litigation\ is\ filed.}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ By\ using,\ modifying,\ or\ distributing\ the\ Work\ you\ indicate\ that\ you}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ have\ read\ and\ understood\ the\ terms\ and\ conditions\ of\ the}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ FreeType\ Project\ License\ as\ well\ as\ those\ provided\ in\ this\ section,}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ and\ you\ accept\ them\ fully.}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#ifndef\ PSHINT\_H\_}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ PSHINT\_H\_}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00046\ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ CF2\_MAX\_HINTS\ =\ 96\ \ \ \ \textcolor{comment}{/*\ maximum\ \#\ of\ hints\ */}}
+\DoxyCodeLine{00048\ \ \ \};}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ *\ A\ HintMask\ object\ stores\ a\ bit\ mask\ that\ specifies\ which\ hints\ in\ the}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ *\ charstring\ are\ active\ at\ a\ given\ time.\ \ Hints\ in\ CFF\ must\ be\ declared}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ *\ at\ the\ start,\ before\ any\ drawing\ operators,\ with\ horizontal\ hints}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ *\ preceding\ vertical\ hints.\ \ The\ HintMask\ is\ ordered\ the\ same\ way,\ with}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ *\ horizontal\ hints\ immediately\ followed\ by\ vertical\ hints.\ \ Clients\ are}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ *\ responsible\ for\ knowing\ how\ many\ of\ each\ type\ are\ present.}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ *\ The\ maximum\ total\ number\ of\ hints\ is\ 96,\ as\ specified\ by\ the\ CFF}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ *\ specification.}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *\ A\ HintMask\ is\ built\ 0\ or\ more\ times\ while\ interpreting\ a\ charstring,\ by}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *\ the\ HintMask\ operator.\ \ There\ is\ only\ one\ HintMask,\ but\ it\ is\ built\ or}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *\ rebuilt\ each\ time\ there\ is\ a\ hint\ substitution\ (HintMask\ operator)\ in}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *\ the\ charstring.\ \ A\ default\ HintMask\ with\ all\ bits\ set\ is\ built\ if\ there}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *\ has\ been\ no\ HintMask\ operator\ prior\ to\ the\ first\ drawing\ operator.}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f2___hint_mask_rec__}{CF2\_HintMaskRec\_}}}
+\DoxyCodeLine{00071\ \ \ \{}
+\DoxyCodeLine{00072\ \ \ \ \ FT\_Error*\ \ error;}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ FT\_Bool\ \ isValid;}
+\DoxyCodeLine{00075\ \ \ \ \ FT\_Bool\ \ isNew;}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \ bitCount;}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \ byteCount;}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ FT\_Byte\ \ mask[(\ CF2\_MAX\_HINTS\ +\ 7\ )\ /\ 8];}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \}\ \mbox{\hyperlink{struct_c_f2___hint_mask_rec__}{CF2\_HintMaskRec}},\ *\mbox{\hyperlink{struct_c_f2___hint_mask_rec__}{CF2\_HintMask}};}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f2___stem_hint_rec__}{CF2\_StemHintRec\_}}}
+\DoxyCodeLine{00086\ \ \ \{}
+\DoxyCodeLine{00087\ \ \ \ \ FT\_Bool\ \ used;\ \ \ \ \ \textcolor{comment}{/*\ DS\ positions\ are\ valid\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ CF2\_Fixed\ \ min;\ \ \ \ \textcolor{comment}{/*\ original\ character\ space\ value\ */}}
+\DoxyCodeLine{00090\ \ \ \ \ CF2\_Fixed\ \ max;}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ CF2\_Fixed\ \ minDS;\ \ \textcolor{comment}{/*\ DS\ position\ after\ first\ use\ \ \ \ */}}
+\DoxyCodeLine{00093\ \ \ \ \ CF2\_Fixed\ \ maxDS;}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \}\ \mbox{\hyperlink{struct_c_f2___stem_hint_rec__}{CF2\_StemHintRec}},\ *\mbox{\hyperlink{struct_c_f2___stem_hint_rec__}{CF2\_StemHint}};}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *\ A\ HintMap\ object\ stores\ a\ piecewise\ linear\ function\ for\ mapping}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ *\ y-\/coordinates\ from\ character\ space\ to\ device\ space,\ providing}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ \ \ *\ appropriate\ pixel\ alignment\ to\ stem\ edges.}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ *\ The\ map\ is\ implemented\ as\ an\ array\ of\ `CF2\_Hint'\ elements,\ each}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ *\ representing\ an\ edge.\ \ When\ edges\ are\ paired,\ as\ from\ stem\ hints,\ the}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ *\ bottom\ edge\ must\ immediately\ precede\ the\ top\ edge\ in\ the\ array.}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ *\ Element\ character\ space\ AND\ device\ space\ positions\ must\ both\ increase}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ \ \ *\ monotonically\ in\ the\ array.\ \ `CF2\_Hint'\ elements\ are\ also\ used\ as}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ \ \ *\ parameters\ to\ `cf2\_blues\_capture'.}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *\ The\ `cf2\_hintmap\_build'\ method\ must\ be\ called\ before\ any\ drawing}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ operation\ (beginning\ with\ a\ Move\ operator)\ and\ at\ each\ hint}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ *\ substitution\ (HintMask\ operator).}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ *\ The\ `cf2\_hintmap\_map'\ method\ is\ called\ to\ transform\ y-\/coordinates\ at}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ \ \ *\ each\ drawing\ operation\ (move,\ line,\ curve).}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \textcolor{comment}{/*\ TODO:\ make\ this\ a\ CF2\_ArrStack\ and\ add\ a\ deep\ copy\ method\ */}}
+\DoxyCodeLine{00120\ \ \ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00121\ \ \ \{}
+\DoxyCodeLine{00122\ \ \ \ \ CF2\_MAX\_HINT\_EDGES\ =\ CF2\_MAX\_HINTS\ *\ 2}
+\DoxyCodeLine{00123\ \ \ \};}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMapRec\_}}}
+\DoxyCodeLine{00127\ \ \ \{}
+\DoxyCodeLine{00128\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___font_rec__}{CF2\_Font}}\ \ font;}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{comment}{/*\ initial\ map\ based\ on\ blue\ zones\ */}}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMapRec\_}}*\ \ initialHintMap;}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{comment}{/*\ working\ storage\ for\ 2nd\ pass\ adjustHints\ */}}
+\DoxyCodeLine{00134\ \ \ \ \ CF2\_ArrStack\ \ hintMoves;}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ FT\_Bool\ \ isValid;}
+\DoxyCodeLine{00137\ \ \ \ \ FT\_Bool\ \ hinted;}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ CF2\_Fixed\ \ scale;}
+\DoxyCodeLine{00140\ \ \ \ \ CF2\_UInt\ \ \ count;}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{comment}{/*\ start\ search\ from\ this\ index\ */}}
+\DoxyCodeLine{00143\ \ \ \ \ CF2\_UInt\ \ lastIndex;}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_rec__}{CF2\_HintRec}}\ \ edge[CF2\_MAX\_HINT\_EDGES];\ \textcolor{comment}{/*\ 192\ */}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \}\ \mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMapRec}},\ *\mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMap}};}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ FT\_LOCAL(\ FT\_Bool\ )}
+\DoxyCodeLine{00151\ \ \ cf2\_hint\_isValid(\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f2___hint_rec__}{CF2\_Hint}}\ \ hint\ );}
+\DoxyCodeLine{00152\ \ \ FT\_LOCAL(\ FT\_Bool\ )}
+\DoxyCodeLine{00153\ \ \ cf2\_hint\_isTop(\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f2___hint_rec__}{CF2\_Hint}}\ \ hint\ );}
+\DoxyCodeLine{00154\ \ \ FT\_LOCAL(\ FT\_Bool\ )}
+\DoxyCodeLine{00155\ \ \ cf2\_hint\_isBottom(\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f2___hint_rec__}{CF2\_Hint}}\ \ hint\ );}
+\DoxyCodeLine{00156\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00157\ \ \ cf2\_hint\_lock(\ \mbox{\hyperlink{struct_c_f2___hint_rec__}{CF2\_Hint}}\ \ hint\ );}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00161\ \ \ cf2\_hintmap\_init(\ \mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMap}}\ \ \ hintmap,}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f2___font_rec__}{CF2\_Font}}\ \ \ \ \ \ font,}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMap}}\ \ \ initialMap,}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_ArrStack\ \ hintMoves,}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ scale\ );}
+\DoxyCodeLine{00166\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00167\ \ \ cf2\_hintmap\_build(\ \mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMap}}\ \ \ hintmap,}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_ArrStack\ \ hStemHintArray,}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_ArrStack\ \ vStemHintArray,}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_mask_rec__}{CF2\_HintMask}}\ \ hintMask,}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ hintOrigin,}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ initialMap\ );}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ *\ GlyphPath\ is\ a\ wrapper\ for\ drawing\ operations\ that\ scales\ the}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ \ \ *\ coordinates\ according\ to\ the\ render\ matrix\ and\ HintMap.\ \ It\ also\ tracks}}
+\DoxyCodeLine{00178\ \textcolor{comment}{\ \ \ *\ open\ paths\ to\ control\ ClosePath\ and\ to\ insert\ MoveTo\ for\ broken\ fonts.}}
+\DoxyCodeLine{00179\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00180\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00181\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPathRec\_}}}
+\DoxyCodeLine{00182\ \ \ \{}
+\DoxyCodeLine{00183\ \ \ \ \ \textcolor{comment}{/*\ TODO:\ gather\ some\ of\ these\ into\ a\ hinting\ context\ */}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___font_rec__}{CF2\_Font}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ font;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ font\ instance\ \ \ \ */}}
+\DoxyCodeLine{00186\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___outline_callbacks_rec__}{CF2\_OutlineCallbacks}}\ \ callbacks;\ \ \ \ \ \ \textcolor{comment}{/*\ outline\ consumer\ */}}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMapRec}}\ \ hintMap;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ hint\ map\ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00190\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMapRec}}\ \ firstHintMap;\ \ \ \textcolor{comment}{/*\ saved\ copy\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00191\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_map_rec__}{CF2\_HintMapRec}}\ \ initialHintMap;\ \textcolor{comment}{/*\ based\ on\ all\ captured\ hints\ */}}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \ \ CF2\_ArrStackRec\ \ hintMoves;\ \ \textcolor{comment}{/*\ list\ of\ hint\ moves\ for\ 2nd\ pass\ */}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ CF2\_Fixed\ \ scaleX;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ matrix\ a\ */}}
+\DoxyCodeLine{00196\ \ \ \ \ CF2\_Fixed\ \ scaleC;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ matrix\ c\ */}}
+\DoxyCodeLine{00197\ \ \ \ \ CF2\_Fixed\ \ scaleY;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ matrix\ d\ */}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ fractionalTranslation;\ \ \textcolor{comment}{/*\ including\ deviceXScale\ */}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\#if\ 0}}
+\DoxyCodeLine{00201\ \ \ \ \ CF2\_Fixed\ \ hShift;\ \ \ \ \textcolor{comment}{/*\ character\ space\ horizontal\ shift\ */}}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ (for\ fauxing)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ FT\_Bool\ \ pathIsOpen;\ \ \ \ \ \textcolor{comment}{/*\ true\ after\ MoveTo\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00206\ \ \ \ \ FT\_Bool\ \ pathIsClosing;\ \ \textcolor{comment}{/*\ true\ when\ synthesizing\ closepath\ line\ */}}
+\DoxyCodeLine{00207\ \ \ \ \ FT\_Bool\ \ darken;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ true\ if\ stem\ darkening\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00208\ \ \ \ \ FT\_Bool\ \ moveIsPending;\ \ \textcolor{comment}{/*\ true\ between\ MoveTo\ and\ offset\ MoveTo\ */}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{comment}{/*\ references\ used\ to\ call\ `cf2\_hintmap\_build',\ if\ necessary\ */}}
+\DoxyCodeLine{00211\ \ \ \ \ CF2\_ArrStack\ \ \ \ \ \ \ \ \ hStemHintArray;}
+\DoxyCodeLine{00212\ \ \ \ \ CF2\_ArrStack\ \ \ \ \ \ \ \ \ vStemHintArray;}
+\DoxyCodeLine{00213\ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_mask_rec__}{CF2\_HintMask}}\ \ \ \ \ \ \ \ \ hintMask;\ \ \ \ \ \textcolor{comment}{/*\ ptr\ to\ the\ current\ mask\ */}}
+\DoxyCodeLine{00214\ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ \ \ \ \ \ \ hintOriginY;\ \ \textcolor{comment}{/*\ copy\ of\ current\ origin\ \ */}}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f2___blues_rec__}{CF2\_BluesRec}}*\ \ blues;}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ CF2\_Fixed\ \ xOffset;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ character\ space\ offsets\ */}}
+\DoxyCodeLine{00218\ \ \ \ \ CF2\_Fixed\ \ yOffset;}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{comment}{/*\ character\ space\ miter\ limit\ threshold\ */}}
+\DoxyCodeLine{00221\ \ \ \ \ CF2\_Fixed\ \ miterLimit;}
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{comment}{/*\ vertical/horizontal\ snap\ distance\ in\ character\ space\ */}}
+\DoxyCodeLine{00223\ \ \ \ \ CF2\_Fixed\ \ snapThreshold;}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ offsetStart0;\ \ \textcolor{comment}{/*\ first\ and\ second\ points\ of\ first\ */}}
+\DoxyCodeLine{00226\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ offsetStart1;\ \ \textcolor{comment}{/*\ element\ with\ offset\ applied\ \ \ \ \ \ */}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \ \ \textcolor{comment}{/*\ current\ point,\ character\ space,\ before\ offset\ */}}
+\DoxyCodeLine{00229\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ currentCS;}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{comment}{/*\ current\ point,\ device\ space\ */}}
+\DoxyCodeLine{00231\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ currentDS;}
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{comment}{/*\ start\ point\ of\ subpath,\ character\ space\ */}}
+\DoxyCodeLine{00233\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ start;}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \ \ \ \ \textcolor{comment}{/*\ the\ following\ members\ constitute\ the\ `queue'\ of\ one\ element\ */}}
+\DoxyCodeLine{00236\ \ \ \ \ FT\_Bool\ \ elemIsQueued;}
+\DoxyCodeLine{00237\ \ \ \ \ CF2\_Int\ \ prevElemOp;}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ prevElemP0;}
+\DoxyCodeLine{00240\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ prevElemP1;}
+\DoxyCodeLine{00241\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ prevElemP2;}
+\DoxyCodeLine{00242\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ prevElemP3;}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \}\ \mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPathRec}},\ *\mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPath}};}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00248\ \ \ cf2\_glyphpath\_init(\ \mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPath}}\ \ \ \ \ \ \ \ \ glyphpath,}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f2___font_rec__}{CF2\_Font}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ font,}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f2___outline_callbacks_rec__}{CF2\_OutlineCallbacks}}\ \ callbacks,}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ \ \ \ \ \ \ \ scaleY,}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ CF2\_Fixed\ hShift,\ */}}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_ArrStack\ \ \ \ \ \ \ \ \ \ hStemHintArray,}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_ArrStack\ \ \ \ \ \ \ \ \ \ vStemHintArray,}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f2___hint_mask_rec__}{CF2\_HintMask}}\ \ \ \ \ \ \ \ \ \ hintMask,}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ \ \ \ \ \ \ \ hintOrigin,}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f2___blues_rec__}{CF2\_Blues}}\ \ \ \ \ \ \ blues,}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}*\ \ \ \ \ \ fractionalTranslation\ );}
+\DoxyCodeLine{00259\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00260\ \ \ cf2\_glyphpath\_finalize(\ \mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPath}}\ \ glyphpath\ );}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00263\ \ \ cf2\_glyphpath\_moveTo(\ \mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPath}}\ \ glyphpath,}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ x,}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ y\ );}
+\DoxyCodeLine{00266\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00267\ \ \ cf2\_glyphpath\_lineTo(\ \mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPath}}\ \ glyphpath,}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ x,}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ y\ );}
+\DoxyCodeLine{00270\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00271\ \ \ cf2\_glyphpath\_curveTo(\ \mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPath}}\ \ glyphpath,}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ x1,}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ y1,}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ x2,}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ y2,}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ x3,}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CF2\_Fixed\ \ \ \ \ \ y3\ );}
+\DoxyCodeLine{00278\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00279\ \ \ cf2\_glyphpath\_closeOpenPath(\ \mbox{\hyperlink{struct_c_f2___glyph_path_rec__}{CF2\_GlyphPath}}\ \ glyphpath\ );}
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ FT\_END\_HEADER}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PSHINT\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

@@ -1,0 +1,1444 @@
+\hypertarget{psaux_8h_source}{}\doxysection{psaux.\+h}
+\label{psaux_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/psaux.h@{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/psaux.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ psaux.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Auxiliary\ functions\ and\ data\ structures\ related\ to\ PostScript\ fonts}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ (specification).}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#ifndef\ PSAUX\_H\_}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#define\ PSAUX\_H\_}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <freetype/internal/ftobjs.h>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <freetype/internal/t1types.h>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <freetype/internal/fthash.h>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ <freetype/internal/tttypes.h>}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ <freetype/internal/services/svpscmap.h>}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <freetype/internal/cfftypes.h>}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ <freetype/internal/cffotypes.h>}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ *\ PostScript\ modules\ driver\ class.}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___driver_rec__}{PS\_DriverRec\_}}}
+\DoxyCodeLine{00042\ \ \ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \mbox{\hyperlink{struct_f_t___driver_rec__}{FT\_DriverRec}}\ \ root;}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ FT\_UInt\ \ \ hinting\_engine;}
+\DoxyCodeLine{00046\ \ \ \ \ FT\_Bool\ \ \ no\_stem\_darkening;}
+\DoxyCodeLine{00047\ \ \ \ \ FT\_Int\ \ \ \ darken\_params[8];}
+\DoxyCodeLine{00048\ \ \ \ \ FT\_Int32\ \ random\_seed;}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \}\ PS\_DriverRec,\ *PS\_Driver;}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T1\_TABLE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s___table_rec__}{PS\_TableRec\_}}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_p_s___table_rec__}{PS\_Table}};}
+\DoxyCodeLine{00063\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s___table___funcs_rec__}{PS\_Table\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_p_s___table___funcs_rec__}{PS\_Table\_Funcs}};}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ *\ \ \ PS\_Table\_FuncsRec}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ *\ \ \ A\ set\ of\ function\ pointers\ to\ manage\ PS\_Table\ objects.}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00075\ \textcolor{comment}{\ \ \ *\ \ \ table\_init\ ::}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Used\ to\ initialize\ a\ table.}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ *\ \ \ table\_done\ ::}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Finalizes\ resp.\ destroy\ a\ given\ table.}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ \ \ *\ \ \ table\_add\ ::}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Adds\ a\ new\ object\ to\ a\ table.}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ *\ \ \ table\_release\ ::}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Releases\ table\ data,\ then\ finalizes\ it.}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00087\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___table___funcs_rec__}{PS\_Table\_FuncsRec\_}}}
+\DoxyCodeLine{00088\ \ \ \{}
+\DoxyCodeLine{00089\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00090\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_p_s___table_rec__}{PS\_Table}}\ \ \ table,}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ count,}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \mbox{\hyperlink{structmemory}{memory}}\ );}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ void}
+\DoxyCodeLine{00095\ \ \ \ \ (*done)(\ \mbox{\hyperlink{struct_p_s___table_rec__}{PS\_Table}}\ \ table\ );}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00098\ \ \ \ \ (*add)(\ \mbox{\hyperlink{struct_p_s___table_rec__}{PS\_Table}}\ \ \ \ \ table,}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ idx,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*\ \ object,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ length\ );}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ void}
+\DoxyCodeLine{00104\ \ \ \ \ (*release)(\ \mbox{\hyperlink{struct_p_s___table_rec__}{PS\_Table}}\ \ table\ );}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \}\ \mbox{\hyperlink{struct_p_s___table___funcs_rec__}{PS\_Table\_FuncsRec}};}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ *\ \ \ PS\_TableRec}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ \ \ *\ \ \ A\ PS\_Table\ is\ a\ simple\ object\ used\ to\ store\ an\ array\ of\ objects\ in\ a}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ *\ \ \ single\ memory\ block.}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00118\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00119\ \textcolor{comment}{\ \ \ *\ \ \ block\ ::}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ address\ in\ memory\ of\ the\ growheap's\ block.\ \ This\ can\ change}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ \ \ *\ \ \ \ \ between\ two\ object\ adds,\ due\ to\ reallocation.}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ \ \ *\ \ \ cursor\ ::}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ top\ of\ the\ grow\ heap\ within\ its\ block.}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00126\ \textcolor{comment}{\ \ \ *\ \ \ capacity\ ::}}
+\DoxyCodeLine{00127\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ size\ of\ the\ heap\ block.\ \ Increments\ by\ 1kByte\ chunks.}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00129\ \textcolor{comment}{\ \ \ *\ \ \ init\ ::}}
+\DoxyCodeLine{00130\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Set\ to\ 0xDEADBEEF\ if\ 'elements'\ and\ 'lengths'\ have\ been\ allocated.}}
+\DoxyCodeLine{00131\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00132\ \textcolor{comment}{\ \ \ *\ \ \ max\_elems\ ::}}
+\DoxyCodeLine{00133\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ maximum\ number\ of\ elements\ in\ table.}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00135\ \textcolor{comment}{\ \ \ *\ \ \ num\_elems\ ::}}
+\DoxyCodeLine{00136\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ number\ of\ elements\ in\ table.}}
+\DoxyCodeLine{00137\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00138\ \textcolor{comment}{\ \ \ *\ \ \ elements\ ::}}
+\DoxyCodeLine{00139\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ table\ of\ element\ addresses\ within\ the\ block.}}
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ *\ \ \ lengths\ ::}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ table\ of\ element\ sizes\ within\ the\ block.}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *\ \ \ memory\ ::}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ object\ used\ for\ memory\ operations\ (alloc/realloc).}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ *\ \ \ funcs\ ::}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ table\ of\ method\ pointers\ for\ this\ object.}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00150\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___table_rec__}{PS\_TableRec\_}}}
+\DoxyCodeLine{00151\ \ \ \{}
+\DoxyCodeLine{00152\ \ \ \ \ FT\_Byte*\ \ \ \ \ \ \ \ \ \ \ block;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ memory\ block\ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00153\ \ \ \ \ FT\_Offset\ \ \ \ \ \ \ \ \ \ cursor;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ cursor\ in\ memory\ block\ */}}
+\DoxyCodeLine{00154\ \ \ \ \ FT\_Offset\ \ \ \ \ \ \ \ \ \ capacity;\ \ \ \ \ \ \ \textcolor{comment}{/*\ current\ size\ of\ memory\ block\ \ \ */}}
+\DoxyCodeLine{00155\ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ init;}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ max\_elems;}
+\DoxyCodeLine{00158\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ num\_elems;}
+\DoxyCodeLine{00159\ \ \ \ \ FT\_Byte**\ \ \ \ \ \ \ \ \ \ elements;\ \ \ \ \ \ \ \textcolor{comment}{/*\ addresses\ of\ table\ elements\ */}}
+\DoxyCodeLine{00160\ \ \ \ \ FT\_UInt*\ \ \ \ \ \ \ \ \ \ \ lengths;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ lengths\ of\ table\ elements\ \ \ */}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00163\ \ \ \ \ \mbox{\hyperlink{struct_p_s___table___funcs_rec__}{PS\_Table\_FuncsRec}}\ \ funcs;}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \}\ \mbox{\hyperlink{struct_p_s___table_rec__}{PS\_TableRec}};}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T1\ FIELDS\ \&\ TOKENS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00172\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00173\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_ParserRec\_}}*\ \ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}};}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___token_rec__}{T1\_TokenRec\_}}*\ \ \ \mbox{\hyperlink{struct_t1___token_rec__}{T1\_Token}};}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___field_rec__}{T1\_FieldRec\_}}*\ \ \ \mbox{\hyperlink{struct_t1___field_rec__}{T1\_Field}};}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ \textcolor{comment}{/*\ simple\ enumeration\ type\ used\ to\ identify\ token\ types\ */}}
+\DoxyCodeLine{00184\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ T1\_TokenType\_}
+\DoxyCodeLine{00185\ \ \ \{}
+\DoxyCodeLine{00186\ \ \ \ \ T1\_TOKEN\_TYPE\_NONE\ =\ 0,}
+\DoxyCodeLine{00187\ \ \ \ \ T1\_TOKEN\_TYPE\_ANY,}
+\DoxyCodeLine{00188\ \ \ \ \ T1\_TOKEN\_TYPE\_STRING,}
+\DoxyCodeLine{00189\ \ \ \ \ T1\_TOKEN\_TYPE\_ARRAY,}
+\DoxyCodeLine{00190\ \ \ \ \ T1\_TOKEN\_TYPE\_KEY,\ \textcolor{comment}{/*\ aka\ `name'\ */}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{comment}{/*\ do\ not\ remove\ */}}
+\DoxyCodeLine{00193\ \ \ \ \ T1\_TOKEN\_TYPE\_MAX}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \}\ T1\_TokenType;}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \textcolor{comment}{/*\ a\ simple\ structure\ used\ to\ identify\ tokens\ */}}
+\DoxyCodeLine{00199\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___token_rec__}{T1\_TokenRec\_}}}
+\DoxyCodeLine{00200\ \ \ \{}
+\DoxyCodeLine{00201\ \ \ \ \ FT\_Byte*\ \ \ \ \ \ start;\ \ \ \textcolor{comment}{/*\ first\ character\ of\ token\ in\ input\ stream\ */}}
+\DoxyCodeLine{00202\ \ \ \ \ FT\_Byte*\ \ \ \ \ \ limit;\ \ \ \textcolor{comment}{/*\ first\ character\ after\ the\ token\ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00203\ \ \ \ \ T1\_TokenType\ \ type;\ \ \ \ \textcolor{comment}{/*\ type\ of\ token\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \}\ \mbox{\hyperlink{struct_t1___token_rec__}{T1\_TokenRec}};}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ \textcolor{comment}{/*\ enumeration\ type\ used\ to\ identify\ object\ fields\ */}}
+\DoxyCodeLine{00209\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ T1\_FieldType\_}
+\DoxyCodeLine{00210\ \ \ \{}
+\DoxyCodeLine{00211\ \ \ \ \ T1\_FIELD\_TYPE\_NONE\ =\ 0,}
+\DoxyCodeLine{00212\ \ \ \ \ T1\_FIELD\_TYPE\_BOOL,}
+\DoxyCodeLine{00213\ \ \ \ \ T1\_FIELD\_TYPE\_INTEGER,}
+\DoxyCodeLine{00214\ \ \ \ \ T1\_FIELD\_TYPE\_FIXED,}
+\DoxyCodeLine{00215\ \ \ \ \ T1\_FIELD\_TYPE\_FIXED\_1000,}
+\DoxyCodeLine{00216\ \ \ \ \ T1\_FIELD\_TYPE\_STRING,}
+\DoxyCodeLine{00217\ \ \ \ \ T1\_FIELD\_TYPE\_KEY,}
+\DoxyCodeLine{00218\ \ \ \ \ T1\_FIELD\_TYPE\_BBOX,}
+\DoxyCodeLine{00219\ \ \ \ \ T1\_FIELD\_TYPE\_MM\_BBOX,}
+\DoxyCodeLine{00220\ \ \ \ \ T1\_FIELD\_TYPE\_INTEGER\_ARRAY,}
+\DoxyCodeLine{00221\ \ \ \ \ T1\_FIELD\_TYPE\_FIXED\_ARRAY,}
+\DoxyCodeLine{00222\ \ \ \ \ T1\_FIELD\_TYPE\_CALLBACK,}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{comment}{/*\ do\ not\ remove\ */}}
+\DoxyCodeLine{00225\ \ \ \ \ T1\_FIELD\_TYPE\_MAX}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \ \ \}\ T1\_FieldType;}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ T1\_FieldLocation\_}
+\DoxyCodeLine{00231\ \ \ \{}
+\DoxyCodeLine{00232\ \ \ \ \ T1\_FIELD\_LOCATION\_CID\_INFO,}
+\DoxyCodeLine{00233\ \ \ \ \ T1\_FIELD\_LOCATION\_FONT\_DICT,}
+\DoxyCodeLine{00234\ \ \ \ \ T1\_FIELD\_LOCATION\_FONT\_EXTRA,}
+\DoxyCodeLine{00235\ \ \ \ \ T1\_FIELD\_LOCATION\_FONT\_INFO,}
+\DoxyCodeLine{00236\ \ \ \ \ T1\_FIELD\_LOCATION\_PRIVATE,}
+\DoxyCodeLine{00237\ \ \ \ \ T1\_FIELD\_LOCATION\_BBOX,}
+\DoxyCodeLine{00238\ \ \ \ \ T1\_FIELD\_LOCATION\_LOADER,}
+\DoxyCodeLine{00239\ \ \ \ \ T1\_FIELD\_LOCATION\_FACE,}
+\DoxyCodeLine{00240\ \ \ \ \ T1\_FIELD\_LOCATION\_BLEND,}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \ \ \textcolor{comment}{/*\ do\ not\ remove\ */}}
+\DoxyCodeLine{00243\ \ \ \ \ T1\_FIELD\_LOCATION\_MAX}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \}\ T1\_FieldLocation;}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00249\ \ \ (*T1\_Field\_ParseFunc)(\ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ face,}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ parser\ );}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \textcolor{comment}{/*\ structure\ type\ used\ to\ model\ object\ fields\ */}}
+\DoxyCodeLine{00254\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___field_rec__}{T1\_FieldRec\_}}}
+\DoxyCodeLine{00255\ \ \ \{}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \ \ \ \ \ \ \ \ ident;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ field\ identifier\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00257\ \ \ \ \ T1\_FieldLocation\ \ \ \ location;}
+\DoxyCodeLine{00258\ \ \ \ \ T1\_FieldType\ \ \ \ \ \ \ \ type;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ type\ of\ field\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00259\ \ \ \ \ T1\_Field\_ParseFunc\ \ reader;}
+\DoxyCodeLine{00260\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ offset;\ \ \ \ \ \ \ \textcolor{comment}{/*\ offset\ of\ field\ in\ object\ \ \ \ \ \ */}}
+\DoxyCodeLine{00261\ \ \ \ \ FT\_Byte\ \ \ \ \ \ \ \ \ \ \ \ \ size;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ size\ of\ field\ in\ bytes\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00262\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ array\_max;\ \ \ \ \textcolor{comment}{/*\ maximum\ number\ of\ elements\ for\ */}}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ array\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00264\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ count\_offset;\ \textcolor{comment}{/*\ offset\ of\ element\ count\ for\ \ \ \ */}}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ arrays;\ must\ not\ be\ zero\ if\ in\ */}}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ use\ -\/-\/\ in\ other\ words,\ a\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ `num\_FOO'\ element\ must\ not\ \ \ \ \ */}}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ start\ the\ used\ structure\ if\ we\ */}}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ parse\ a\ `FOO'\ array\ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00270\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ dict;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ where\ we\ expect\ it\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00271\ \ \ \}\ \mbox{\hyperlink{struct_t1___field_rec__}{T1\_FieldRec}};}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_DICT\_FONTDICT\ (\ 1\ <<\ 0\ )\ }\textcolor{comment}{/*\ also\ FontInfo\ and\ FDArray\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_DICT\_PRIVATE\ \ (\ 1\ <<\ 1\ )}}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \textcolor{preprocessor}{\#define\ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ \_type,\ \_fname,\ \_dict\ )\ \(\backslash\)}}
+\DoxyCodeLine{00279\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00280\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_ident,\ T1CODE,\ \_type,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00281\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00282\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_OFFSET(\ \_fname\ ),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_SIZE(\ \_fname\ ),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00284\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ 0,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00285\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_dict\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00286\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \},}}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \textcolor{preprocessor}{\#define\ T1\_NEW\_CALLBACK\_FIELD(\ \_ident,\ \_reader,\ \_dict\ )\ \(\backslash\)}}
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00290\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_ident,\ T1CODE,\ T1\_FIELD\_TYPE\_CALLBACK,\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00291\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ (T1\_Field\_ParseFunc)\_reader,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ 0,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00293\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ 0,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_dict\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \},}}
+\DoxyCodeLine{00296\ }
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\#define\ T1\_NEW\_TABLE\_FIELD(\ \_ident,\ \_type,\ \_fname,\ \_max,\ \_dict\ )\ \(\backslash\)}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00299\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_ident,\ T1CODE,\ \_type,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00300\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00301\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_OFFSET(\ \_fname\ ),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00302\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_SIZE\_DELTA(\ \_fname\ ),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00303\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_max,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00304\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_OFFSET(\ num\_\ \#\#\ \_fname\ ),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00305\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_dict\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00306\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \},}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \textcolor{preprocessor}{\#define\ T1\_NEW\_TABLE\_FIELD2(\ \_ident,\ \_type,\ \_fname,\ \_max,\ \_dict\ )\ \(\backslash\)}}
+\DoxyCodeLine{00309\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00310\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_ident,\ T1CODE,\ \_type,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00311\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00312\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_OFFSET(\ \_fname\ ),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00313\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_SIZE\_DELTA(\ \_fname\ ),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_max,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \_dict\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00316\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \},}}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_BOOL(\ \_ident,\ \_fname,\ \_dict\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_BOOL,\ \_fname,\ \_dict\ )}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_NUM(\ \_ident,\ \_fname,\ \_dict\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_INTEGER,\ \_fname,\ \_dict\ )}}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_FIXED(\ \_ident,\ \_fname,\ \_dict\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_FIXED,\ \_fname,\ \_dict\ )}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_FIXED\_1000(\ \_ident,\ \_fname,\ \_dict\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_FIXED\_1000,\ \_fname,\ \(\backslash\)}}
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_dict\ )}}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_STRING(\ \_ident,\ \_fname,\ \_dict\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_STRING,\ \_fname,\ \_dict\ )}}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_KEY(\ \_ident,\ \_fname,\ \_dict\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00336\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_KEY,\ \_fname,\ \_dict\ )}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_BBOX(\ \_ident,\ \_fname,\ \_dict\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_SIMPLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_BBOX,\ \_fname,\ \_dict\ )}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_NUM\_TABLE(\ \_ident,\ \_fname,\ \_fmax,\ \_dict\ )\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00343\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_TABLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_INTEGER\_ARRAY,\ \(\backslash\)}}
+\DoxyCodeLine{00344\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_fname,\ \_fmax,\ \_dict\ )}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_FIXED\_TABLE(\ \_ident,\ \_fname,\ \_fmax,\ \_dict\ )\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00347\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_TABLE\_FIELD(\ \_ident,\ T1\_FIELD\_TYPE\_FIXED\_ARRAY,\ \(\backslash\)}}
+\DoxyCodeLine{00348\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_fname,\ \_fmax,\ \_dict\ )}}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_NUM\_TABLE2(\ \_ident,\ \_fname,\ \_fmax,\ \_dict\ )\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_TABLE\_FIELD2(\ \_ident,\ T1\_FIELD\_TYPE\_INTEGER\_ARRAY,\ \(\backslash\)}}
+\DoxyCodeLine{00352\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_fname,\ \_fmax,\ \_dict\ )}}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_FIXED\_TABLE2(\ \_ident,\ \_fname,\ \_fmax,\ \_dict\ )\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00355\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_TABLE\_FIELD2(\ \_ident,\ T1\_FIELD\_TYPE\_FIXED\_ARRAY,\ \(\backslash\)}}
+\DoxyCodeLine{00356\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_fname,\ \_fmax,\ \_dict\ )}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \textcolor{preprocessor}{\#define\ T1\_FIELD\_CALLBACK(\ \_ident,\ \_name,\ \_dict\ )\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00359\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ T1\_NEW\_CALLBACK\_FIELD(\ \_ident,\ \_name,\ \_dict\ )}}
+\DoxyCodeLine{00360\ }
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00364\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00365\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T1\ PARSER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00366\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00367\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00368\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s___parser___funcs_rec__}{PS\_Parser\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_p_s___parser___funcs_rec__}{PS\_Parser\_Funcs}};}
+\DoxyCodeLine{00371\ }
+\DoxyCodeLine{00372\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___parser___funcs_rec__}{PS\_Parser\_FuncsRec\_}}}
+\DoxyCodeLine{00373\ \ \ \{}
+\DoxyCodeLine{00374\ \ \ \ \ void}
+\DoxyCodeLine{00375\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser,}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ base,}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ limit,}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \mbox{\hyperlink{structmemory}{memory}}\ );}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \ \ \ \ void}
+\DoxyCodeLine{00381\ \ \ \ \ (*done)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{00382\ }
+\DoxyCodeLine{00383\ \ \ \ \ void}
+\DoxyCodeLine{00384\ \ \ \ \ (*skip\_spaces)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{00385\ \ \ \ \ void}
+\DoxyCodeLine{00386\ \ \ \ \ (*skip\_PS\_token)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \ \ \ \ FT\_Long}
+\DoxyCodeLine{00389\ \ \ \ \ (*to\_int)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{00390\ \ \ \ \ FT\_Fixed}
+\DoxyCodeLine{00391\ \ \ \ \ (*to\_fixed)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser,}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ power\_ten\ );}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00395\ \ \ \ \ (*to\_bytes)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser,}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \mbox{\hyperlink{classbytes}{bytes}},}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Offset\ \ max\_bytes,}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong*\ \ pnum\_bytes,}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ delimiters\ );}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \ \ \ \ FT\_Int}
+\DoxyCodeLine{00402\ \ \ \ \ (*to\_coord\_array)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser,}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ max\_coords,}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Short*\ \ coords\ );}
+\DoxyCodeLine{00405\ \ \ \ \ FT\_Int}
+\DoxyCodeLine{00406\ \ \ \ \ (*to\_fixed\_array)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser,}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ max\_values,}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed*\ \ values,}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ power\_ten\ );}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \ \ \ \ void}
+\DoxyCodeLine{00412\ \ \ \ \ (*to\_token)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser,}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t1___token_rec__}{T1\_Token}}\ \ \ \mbox{\hyperlink{structtoken}{token}}\ );}
+\DoxyCodeLine{00414\ \ \ \ \ void}
+\DoxyCodeLine{00415\ \ \ \ \ (*to\_token\_array)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ parser,}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t1___token_rec__}{T1\_Token}}\ \ \ tokens,}
+\DoxyCodeLine{00417\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ max\_tokens,}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int*\ \ \ \ pnum\_tokens\ );}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00421\ \ \ \ \ (*load\_field)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ \ \ \ \ \ parser,}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t1___field_rec__}{T1\_Field}}\ \ field,}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}**\ \ \ \ \ \ \ \ \ \ objects,}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ max\_objects,}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong*\ \ \ \ \ \ \ pflags\ );}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00428\ \ \ \ \ (*load\_field\_table)(\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_Parser}}\ \ \ \ \ \ \ parser,}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t1___field_rec__}{T1\_Field}}\ \ field,}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}**\ \ \ \ \ \ \ \ \ \ objects,}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ max\_objects,}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong*\ \ \ \ \ \ \ pflags\ );}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \ \ \}\ \mbox{\hyperlink{struct_p_s___parser___funcs_rec__}{PS\_Parser\_FuncsRec}};}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00438\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00439\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00440\ \textcolor{comment}{\ \ \ *\ \ \ PS\_ParserRec}}
+\DoxyCodeLine{00441\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00442\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00443\ \textcolor{comment}{\ \ \ *\ \ \ A\ PS\_Parser\ is\ an\ object\ used\ to\ parse\ a\ Type\ 1\ font\ very\ quickly.}}
+\DoxyCodeLine{00444\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00445\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00446\ \textcolor{comment}{\ \ \ *\ \ \ cursor\ ::}}
+\DoxyCodeLine{00447\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ position\ in\ the\ text.}}
+\DoxyCodeLine{00448\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00449\ \textcolor{comment}{\ \ \ *\ \ \ base\ ::}}
+\DoxyCodeLine{00450\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Start\ of\ the\ processed\ text.}}
+\DoxyCodeLine{00451\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00452\ \textcolor{comment}{\ \ \ *\ \ \ limit\ ::}}
+\DoxyCodeLine{00453\ \textcolor{comment}{\ \ \ *\ \ \ \ \ End\ of\ the\ processed\ text.}}
+\DoxyCodeLine{00454\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00455\ \textcolor{comment}{\ \ \ *\ \ \ error\ ::}}
+\DoxyCodeLine{00456\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ last\ error\ returned.}}
+\DoxyCodeLine{00457\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00458\ \textcolor{comment}{\ \ \ *\ \ \ memory\ ::}}
+\DoxyCodeLine{00459\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ object\ used\ for\ memory\ operations\ (alloc/realloc).}}
+\DoxyCodeLine{00460\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00461\ \textcolor{comment}{\ \ \ *\ \ \ funcs\ ::}}
+\DoxyCodeLine{00462\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ table\ of\ functions\ for\ the\ parser.}}
+\DoxyCodeLine{00463\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00464\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_ParserRec\_}}}
+\DoxyCodeLine{00465\ \ \ \{}
+\DoxyCodeLine{00466\ \ \ \ \ FT\_Byte*\ \ \ cursor;}
+\DoxyCodeLine{00467\ \ \ \ \ FT\_Byte*\ \ \ base;}
+\DoxyCodeLine{00468\ \ \ \ \ FT\_Byte*\ \ \ limit;}
+\DoxyCodeLine{00469\ \ \ \ \ FT\_Error\ \ \ error;}
+\DoxyCodeLine{00470\ \ \ \ \ FT\_Memory\ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00471\ }
+\DoxyCodeLine{00472\ \ \ \ \ \mbox{\hyperlink{struct_p_s___parser___funcs_rec__}{PS\_Parser\_FuncsRec}}\ \ funcs;}
+\DoxyCodeLine{00473\ }
+\DoxyCodeLine{00474\ \ \ \}\ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_ParserRec}};}
+\DoxyCodeLine{00475\ }
+\DoxyCodeLine{00476\ }
+\DoxyCodeLine{00477\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00478\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00479\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00480\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PS\ BUILDER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00481\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00482\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00483\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ }
+\DoxyCodeLine{00486\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s___builder__}{PS\_Builder\_}}\ \ \mbox{\hyperlink{struct_p_s___builder__}{PS\_Builder}};}
+\DoxyCodeLine{00487\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s___builder___funcs_rec__}{PS\_Builder\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_p_s___builder___funcs_rec__}{PS\_Builder\_Funcs}};}
+\DoxyCodeLine{00488\ }
+\DoxyCodeLine{00489\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___builder___funcs_rec__}{PS\_Builder\_FuncsRec\_}}}
+\DoxyCodeLine{00490\ \ \ \{}
+\DoxyCodeLine{00491\ \ \ \ \ void}
+\DoxyCodeLine{00492\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_p_s___builder__}{PS\_Builder}}*\ \ ps\_builder,}
+\DoxyCodeLine{00493\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ builder,}
+\DoxyCodeLine{00494\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ is\_t1\ );}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \ \ \ \ void}
+\DoxyCodeLine{00497\ \ \ \ \ (*done)(\ \mbox{\hyperlink{struct_p_s___builder__}{PS\_Builder}}*\ \ builder\ );}
+\DoxyCodeLine{00498\ }
+\DoxyCodeLine{00499\ \ \ \}\ \mbox{\hyperlink{struct_p_s___builder___funcs_rec__}{PS\_Builder\_FuncsRec}};}
+\DoxyCodeLine{00500\ }
+\DoxyCodeLine{00501\ }
+\DoxyCodeLine{00502\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00503\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00504\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00505\ \textcolor{comment}{\ \ \ *\ \ \ PS\_Builder}}
+\DoxyCodeLine{00506\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00507\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00508\ \textcolor{comment}{\ \ \ *\ \ \ \ A\ structure\ used\ during\ glyph\ loading\ to\ store\ its\ outline.}}
+\DoxyCodeLine{00509\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00510\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00511\ \textcolor{comment}{\ \ \ *\ \ \ memory\ ::}}
+\DoxyCodeLine{00512\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ memory\ object.}}
+\DoxyCodeLine{00513\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00514\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00515\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ face\ object.}}
+\DoxyCodeLine{00516\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00517\ \textcolor{comment}{\ \ \ *\ \ \ glyph\ ::}}
+\DoxyCodeLine{00518\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ slot.}}
+\DoxyCodeLine{00519\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00520\ \textcolor{comment}{\ \ \ *\ \ \ loader\ ::}}
+\DoxyCodeLine{00521\ \textcolor{comment}{\ \ \ *\ \ \ \ \ XXX}}
+\DoxyCodeLine{00522\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00523\ \textcolor{comment}{\ \ \ *\ \ \ base\ ::}}
+\DoxyCodeLine{00524\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ base\ glyph\ outline.}}
+\DoxyCodeLine{00525\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00526\ \textcolor{comment}{\ \ \ *\ \ \ current\ ::}}
+\DoxyCodeLine{00527\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ outline.}}
+\DoxyCodeLine{00528\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00529\ \textcolor{comment}{\ \ \ *\ \ \ pos\_x\ ::}}
+\DoxyCodeLine{00530\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ translation\ (if\ composite\ glyph).}}
+\DoxyCodeLine{00531\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00532\ \textcolor{comment}{\ \ \ *\ \ \ pos\_y\ ::}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ vertical\ translation\ (if\ composite\ glyph).}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00535\ \textcolor{comment}{\ \ \ *\ \ \ left\_bearing\ ::}}
+\DoxyCodeLine{00536\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ left\ side\ bearing\ point.}}
+\DoxyCodeLine{00537\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00538\ \textcolor{comment}{\ \ \ *\ \ \ advance\ ::}}
+\DoxyCodeLine{00539\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ advance\ vector.}}
+\DoxyCodeLine{00540\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00541\ \textcolor{comment}{\ \ \ *\ \ \ bbox\ ::}}
+\DoxyCodeLine{00542\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Unused.}}
+\DoxyCodeLine{00543\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00544\ \textcolor{comment}{\ \ \ *\ \ \ path\_begun\ ::}}
+\DoxyCodeLine{00545\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ flag\ which\ indicates\ that\ a\ new\ path\ has\ begun.}}
+\DoxyCodeLine{00546\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00547\ \textcolor{comment}{\ \ \ *\ \ \ load\_points\ ::}}
+\DoxyCodeLine{00548\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ this\ flag\ is\ not\ set,\ no\ points\ are\ loaded.}}
+\DoxyCodeLine{00549\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00550\ \textcolor{comment}{\ \ \ *\ \ \ no\_recurse\ ::}}
+\DoxyCodeLine{00551\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Set\ but\ not\ used.}}
+\DoxyCodeLine{00552\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00553\ \textcolor{comment}{\ \ \ *\ \ \ metrics\_only\ ::}}
+\DoxyCodeLine{00554\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ boolean\ indicating\ that\ we\ only\ want\ to\ compute\ the\ metrics\ of\ a}}
+\DoxyCodeLine{00555\ \textcolor{comment}{\ \ \ *\ \ \ \ \ given\ glyph,\ not\ load\ all\ of\ its\ points.}}
+\DoxyCodeLine{00556\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00557\ \textcolor{comment}{\ \ \ *\ \ \ is\_t1\ ::}}
+\DoxyCodeLine{00558\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Set\ if\ current\ font\ type\ is\ Type\ 1.}}
+\DoxyCodeLine{00559\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00560\ \textcolor{comment}{\ \ \ *\ \ \ funcs\ ::}}
+\DoxyCodeLine{00561\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ array\ of\ function\ pointers\ for\ the\ builder.}}
+\DoxyCodeLine{00562\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00563\ \ \ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___builder__}{PS\_Builder\_}}}
+\DoxyCodeLine{00564\ \ \ \{}
+\DoxyCodeLine{00565\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00566\ \ \ \ \ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ \ \ \ \ face;}
+\DoxyCodeLine{00567\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___glyph_slot_rec__}{CFF\_GlyphSlot}}\ \ \ glyph;}
+\DoxyCodeLine{00568\ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_loader_rec__}{FT\_GlyphLoader}}\ \ loader;}
+\DoxyCodeLine{00569\ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ base;}
+\DoxyCodeLine{00570\ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ current;}
+\DoxyCodeLine{00571\ }
+\DoxyCodeLine{00572\ \ \ \ \ FT\_Pos*\ \ pos\_x;}
+\DoxyCodeLine{00573\ \ \ \ \ FT\_Pos*\ \ pos\_y;}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}*\ \ left\_bearing;}
+\DoxyCodeLine{00576\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}*\ \ advance;}
+\DoxyCodeLine{00577\ }
+\DoxyCodeLine{00578\ \ \ \ \ \mbox{\hyperlink{struct_f_t___b_box__}{FT\_BBox}}*\ \ bbox;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bounding\ box\ */}}
+\DoxyCodeLine{00579\ \ \ \ \ FT\_Bool\ \ \ path\_begun;}
+\DoxyCodeLine{00580\ \ \ \ \ FT\_Bool\ \ \ load\_points;}
+\DoxyCodeLine{00581\ \ \ \ \ FT\_Bool\ \ \ no\_recurse;}
+\DoxyCodeLine{00582\ }
+\DoxyCodeLine{00583\ \ \ \ \ FT\_Bool\ \ metrics\_only;}
+\DoxyCodeLine{00584\ \ \ \ \ FT\_Bool\ \ is\_t1;}
+\DoxyCodeLine{00585\ }
+\DoxyCodeLine{00586\ \ \ \ \ \mbox{\hyperlink{struct_p_s___builder___funcs_rec__}{PS\_Builder\_FuncsRec}}\ \ funcs;}
+\DoxyCodeLine{00587\ }
+\DoxyCodeLine{00588\ \ \ \};}
+\DoxyCodeLine{00589\ }
+\DoxyCodeLine{00590\ }
+\DoxyCodeLine{00591\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00592\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00593\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00594\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PS\ DECODER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00595\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00596\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00597\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00598\ }
+\DoxyCodeLine{00599\ \textcolor{preprocessor}{\#define\ PS\_MAX\_OPERANDS\ \ \ \ \ \ \ \ 48}}
+\DoxyCodeLine{00600\ \textcolor{preprocessor}{\#define\ PS\_MAX\_SUBRS\_CALLS\ \ \ \ \ 16\ \ \ }\textcolor{comment}{/*\ maximum\ subroutine\ nesting;\ \ \ \ \ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00601\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ only\ 10\ are\ allowed\ but\ there\ exist\ */}}
+\DoxyCodeLine{00602\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ fonts\ like\ `HiraKakuProN-\/W3.ttf'\ \ \ \ */}}
+\DoxyCodeLine{00603\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ (Hiragino\ Kaku\ Gothic\ ProN\ W3;\ \ \ \ \ \ */}}
+\DoxyCodeLine{00604\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 8.2d6e1;\ 2014-\/12-\/19)\ that\ exceed\ \ \ \ */}}
+\DoxyCodeLine{00605\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ this\ limit\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00606\ }
+\DoxyCodeLine{00607\ \ \ \textcolor{comment}{/*\ execution\ context\ charstring\ zone\ */}}
+\DoxyCodeLine{00608\ }
+\DoxyCodeLine{00609\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___decoder___zone__}{PS\_Decoder\_Zone\_}}}
+\DoxyCodeLine{00610\ \ \ \{}
+\DoxyCodeLine{00611\ \ \ \ \ FT\_Byte*\ \ base;}
+\DoxyCodeLine{00612\ \ \ \ \ FT\_Byte*\ \ limit;}
+\DoxyCodeLine{00613\ \ \ \ \ FT\_Byte*\ \ cursor;}
+\DoxyCodeLine{00614\ }
+\DoxyCodeLine{00615\ \ \ \}\ \mbox{\hyperlink{struct_p_s___decoder___zone__}{PS\_Decoder\_Zone}};}
+\DoxyCodeLine{00616\ }
+\DoxyCodeLine{00617\ }
+\DoxyCodeLine{00618\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00619\ \ \ (*CFF\_Decoder\_Get\_Glyph\_Callback)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ face,}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ glyph\_index,}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte**\ \ pointer,}
+\DoxyCodeLine{00622\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong*\ \ length\ );}
+\DoxyCodeLine{00623\ }
+\DoxyCodeLine{00624\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00625\ \ \ (*CFF\_Decoder\_Free\_Glyph\_Callback)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ face,}
+\DoxyCodeLine{00626\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte**\ \ pointer,}
+\DoxyCodeLine{00627\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ length\ );}
+\DoxyCodeLine{00628\ }
+\DoxyCodeLine{00629\ }
+\DoxyCodeLine{00630\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___decoder__}{PS\_Decoder\_}}}
+\DoxyCodeLine{00631\ \ \ \{}
+\DoxyCodeLine{00632\ \ \ \ \ \mbox{\hyperlink{struct_p_s___builder__}{PS\_Builder}}\ \ builder;}
+\DoxyCodeLine{00633\ }
+\DoxyCodeLine{00634\ \ \ \ \ FT\_Fixed\ \ \ stack[PS\_MAX\_OPERANDS\ +\ 1];}
+\DoxyCodeLine{00635\ \ \ \ \ FT\_Fixed*\ \ top;}
+\DoxyCodeLine{00636\ }
+\DoxyCodeLine{00637\ \ \ \ \ \mbox{\hyperlink{struct_p_s___decoder___zone__}{PS\_Decoder\_Zone}}\ \ \ zones[PS\_MAX\_SUBRS\_CALLS\ +\ 1];}
+\DoxyCodeLine{00638\ \ \ \ \ \mbox{\hyperlink{struct_p_s___decoder___zone__}{PS\_Decoder\_Zone}}*\ \ zone;}
+\DoxyCodeLine{00639\ }
+\DoxyCodeLine{00640\ \ \ \ \ FT\_Int\ \ \ \ \ flex\_state;}
+\DoxyCodeLine{00641\ \ \ \ \ FT\_Int\ \ \ \ \ num\_flex\_vectors;}
+\DoxyCodeLine{00642\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ flex\_vectors[7];}
+\DoxyCodeLine{00643\ }
+\DoxyCodeLine{00644\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___font_rec__}{CFF\_Font}}\ \ \ \ \ cff;}
+\DoxyCodeLine{00645\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___sub_font_rec__}{CFF\_SubFont}}\ \ current\_subfont;\ \textcolor{comment}{/*\ for\ current\ glyph\_index\ */}}
+\DoxyCodeLine{00646\ \ \ \ \ \mbox{\hyperlink{struct_f_t___generic__}{FT\_Generic}}*\ \ cf2\_instance;}
+\DoxyCodeLine{00647\ }
+\DoxyCodeLine{00648\ \ \ \ \ FT\_Pos*\ \ glyph\_width;}
+\DoxyCodeLine{00649\ \ \ \ \ FT\_Bool\ \ width\_only;}
+\DoxyCodeLine{00650\ \ \ \ \ FT\_Int\ \ \ num\_hints;}
+\DoxyCodeLine{00651\ }
+\DoxyCodeLine{00652\ \ \ \ \ FT\_UInt\ \ num\_locals;}
+\DoxyCodeLine{00653\ \ \ \ \ FT\_UInt\ \ num\_globals;}
+\DoxyCodeLine{00654\ }
+\DoxyCodeLine{00655\ \ \ \ \ FT\_Int\ \ locals\_bias;}
+\DoxyCodeLine{00656\ \ \ \ \ FT\_Int\ \ globals\_bias;}
+\DoxyCodeLine{00657\ }
+\DoxyCodeLine{00658\ \ \ \ \ FT\_Byte**\ \ locals;}
+\DoxyCodeLine{00659\ \ \ \ \ FT\_Byte**\ \ globals;}
+\DoxyCodeLine{00660\ }
+\DoxyCodeLine{00661\ \ \ \ \ FT\_Byte**\ \ glyph\_names;\ \ \ \textcolor{comment}{/*\ for\ pure\ CFF\ fonts\ only\ \ */}}
+\DoxyCodeLine{00662\ \ \ \ \ FT\_UInt\ \ \ \ num\_glyphs;\ \ \ \ \textcolor{comment}{/*\ number\ of\ glyphs\ in\ font\ */}}
+\DoxyCodeLine{00663\ }
+\DoxyCodeLine{00664\ \ \ \ \ FT\_Render\_Mode\ \ hint\_mode;}
+\DoxyCodeLine{00665\ }
+\DoxyCodeLine{00666\ \ \ \ \ FT\_Bool\ \ seac;}
+\DoxyCodeLine{00667\ }
+\DoxyCodeLine{00668\ \ \ \ \ CFF\_Decoder\_Get\_Glyph\_Callback\ \ \ get\_glyph\_callback;}
+\DoxyCodeLine{00669\ \ \ \ \ CFF\_Decoder\_Free\_Glyph\_Callback\ \ free\_glyph\_callback;}
+\DoxyCodeLine{00670\ }
+\DoxyCodeLine{00671\ \ \ \ \ \textcolor{comment}{/*\ Type\ 1\ stuff\ */}}
+\DoxyCodeLine{00672\ \ \ \ \ FT\_Service\_PsCMaps\ \ psnames;\ \ \ \ \ \ \textcolor{comment}{/*\ for\ seac\ */}}
+\DoxyCodeLine{00673\ }
+\DoxyCodeLine{00674\ \ \ \ \ FT\_Int\ \ \ \ lenIV;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ internal\ for\ sub\ routine\ calls\ \ \ */}}
+\DoxyCodeLine{00675\ \ \ \ \ FT\_UInt*\ \ locals\_len;\ \ \ \ \textcolor{comment}{/*\ array\ of\ subrs\ length\ (optional)\ */}}
+\DoxyCodeLine{00676\ \ \ \ \ \mbox{\hyperlink{struct_f_t___hash_rec__}{FT\_Hash}}\ \ \ locals\_hash;\ \ \ \textcolor{comment}{/*\ used\ if\ `num\_subrs'\ was\ massaged\ */}}
+\DoxyCodeLine{00677\ }
+\DoxyCodeLine{00678\ \ \ \ \ \mbox{\hyperlink{struct_f_t___matrix__}{FT\_Matrix}}\ \ font\_matrix;}
+\DoxyCodeLine{00679\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ font\_offset;}
+\DoxyCodeLine{00680\ }
+\DoxyCodeLine{00681\ \ \ \ \ \mbox{\hyperlink{struct_p_s___blend_rec__}{PS\_Blend}}\ \ blend;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ for\ multiple\ master\ support\ */}}
+\DoxyCodeLine{00682\ }
+\DoxyCodeLine{00683\ \ \ \ \ FT\_Long*\ \ buildchar;}
+\DoxyCodeLine{00684\ \ \ \ \ FT\_UInt\ \ \ len\_buildchar;}
+\DoxyCodeLine{00685\ }
+\DoxyCodeLine{00686\ \ \ \}\ \mbox{\hyperlink{struct_p_s___decoder__}{PS\_Decoder}};}
+\DoxyCodeLine{00687\ }
+\DoxyCodeLine{00688\ }
+\DoxyCodeLine{00689\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00690\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00691\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00692\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T1\ BUILDER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00693\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00694\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00695\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00696\ }
+\DoxyCodeLine{00697\ }
+\DoxyCodeLine{00698\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___builder_rec__}{T1\_BuilderRec\_}}*\ \ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}};}
+\DoxyCodeLine{00699\ }
+\DoxyCodeLine{00700\ }
+\DoxyCodeLine{00701\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00702\ \ \ (*T1\_Builder\_Check\_Points\_Func)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ builder,}
+\DoxyCodeLine{00703\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ count\ );}
+\DoxyCodeLine{00704\ }
+\DoxyCodeLine{00705\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00706\ \ \ (*T1\_Builder\_Add\_Point\_Func)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ builder,}
+\DoxyCodeLine{00707\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ x,}
+\DoxyCodeLine{00708\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ y,}
+\DoxyCodeLine{00709\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte\ \ \ \ \ flag\ );}
+\DoxyCodeLine{00710\ }
+\DoxyCodeLine{00711\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00712\ \ \ (*T1\_Builder\_Add\_Point1\_Func)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ builder,}
+\DoxyCodeLine{00713\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ x,}
+\DoxyCodeLine{00714\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ y\ );}
+\DoxyCodeLine{00715\ }
+\DoxyCodeLine{00716\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00717\ \ \ (*T1\_Builder\_Add\_Contour\_Func)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ builder\ );}
+\DoxyCodeLine{00718\ }
+\DoxyCodeLine{00719\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00720\ \ \ (*T1\_Builder\_Start\_Point\_Func)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ builder,}
+\DoxyCodeLine{00721\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ x,}
+\DoxyCodeLine{00722\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ y\ );}
+\DoxyCodeLine{00723\ }
+\DoxyCodeLine{00724\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00725\ \ \ (*T1\_Builder\_Close\_Contour\_Func)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ builder\ );}
+\DoxyCodeLine{00726\ }
+\DoxyCodeLine{00727\ }
+\DoxyCodeLine{00728\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___builder___funcs_rec__}{T1\_Builder\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_t1___builder___funcs_rec__}{T1\_Builder\_Funcs}};}
+\DoxyCodeLine{00729\ }
+\DoxyCodeLine{00730\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___builder___funcs_rec__}{T1\_Builder\_FuncsRec\_}}}
+\DoxyCodeLine{00731\ \ \ \{}
+\DoxyCodeLine{00732\ \ \ \ \ void}
+\DoxyCodeLine{00733\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ \ \ builder,}
+\DoxyCodeLine{00734\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00735\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___size_rec__}{FT\_Size}}\ \ \ \ \ \ \ size,}
+\DoxyCodeLine{00736\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_slot_rec__}{FT\_GlyphSlot}}\ \ slot,}
+\DoxyCodeLine{00737\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ hinting\ );}
+\DoxyCodeLine{00738\ }
+\DoxyCodeLine{00739\ \ \ \ \ void}
+\DoxyCodeLine{00740\ \ \ \ \ (*done)(\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_Builder}}\ \ \ builder\ );}
+\DoxyCodeLine{00741\ }
+\DoxyCodeLine{00742\ \ \ \ \ T1\_Builder\_Check\_Points\_Func\ \ \ check\_points;}
+\DoxyCodeLine{00743\ \ \ \ \ T1\_Builder\_Add\_Point\_Func\ \ \ \ \ \ add\_point;}
+\DoxyCodeLine{00744\ \ \ \ \ T1\_Builder\_Add\_Point1\_Func\ \ \ \ \ add\_point1;}
+\DoxyCodeLine{00745\ \ \ \ \ T1\_Builder\_Add\_Contour\_Func\ \ \ \ add\_contour;}
+\DoxyCodeLine{00746\ \ \ \ \ T1\_Builder\_Start\_Point\_Func\ \ \ \ start\_point;}
+\DoxyCodeLine{00747\ \ \ \ \ T1\_Builder\_Close\_Contour\_Func\ \ close\_contour;}
+\DoxyCodeLine{00748\ }
+\DoxyCodeLine{00749\ \ \ \}\ \mbox{\hyperlink{struct_t1___builder___funcs_rec__}{T1\_Builder\_FuncsRec}};}
+\DoxyCodeLine{00750\ }
+\DoxyCodeLine{00751\ }
+\DoxyCodeLine{00752\ \ \ \textcolor{comment}{/*\ an\ enumeration\ type\ to\ handle\ charstring\ parsing\ states\ */}}
+\DoxyCodeLine{00753\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ T1\_ParseState\_}
+\DoxyCodeLine{00754\ \ \ \{}
+\DoxyCodeLine{00755\ \ \ \ \ T1\_Parse\_Start,}
+\DoxyCodeLine{00756\ \ \ \ \ T1\_Parse\_Have\_Width,}
+\DoxyCodeLine{00757\ \ \ \ \ T1\_Parse\_Have\_Moveto,}
+\DoxyCodeLine{00758\ \ \ \ \ T1\_Parse\_Have\_Path}
+\DoxyCodeLine{00759\ }
+\DoxyCodeLine{00760\ \ \ \}\ T1\_ParseState;}
+\DoxyCodeLine{00761\ }
+\DoxyCodeLine{00762\ }
+\DoxyCodeLine{00763\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00764\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00765\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00766\ \textcolor{comment}{\ \ \ *\ \ \ T1\_BuilderRec}}
+\DoxyCodeLine{00767\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00768\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00769\ \textcolor{comment}{\ \ \ *\ \ \ \ A\ structure\ used\ during\ glyph\ loading\ to\ store\ its\ outline.}}
+\DoxyCodeLine{00770\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00771\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00772\ \textcolor{comment}{\ \ \ *\ \ \ memory\ ::}}
+\DoxyCodeLine{00773\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ memory\ object.}}
+\DoxyCodeLine{00774\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00775\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00776\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ face\ object.}}
+\DoxyCodeLine{00777\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00778\ \textcolor{comment}{\ \ \ *\ \ \ glyph\ ::}}
+\DoxyCodeLine{00779\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ slot.}}
+\DoxyCodeLine{00780\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00781\ \textcolor{comment}{\ \ \ *\ \ \ loader\ ::}}
+\DoxyCodeLine{00782\ \textcolor{comment}{\ \ \ *\ \ \ \ \ XXX}}
+\DoxyCodeLine{00783\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00784\ \textcolor{comment}{\ \ \ *\ \ \ base\ ::}}
+\DoxyCodeLine{00785\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ base\ glyph\ outline.}}
+\DoxyCodeLine{00786\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00787\ \textcolor{comment}{\ \ \ *\ \ \ current\ ::}}
+\DoxyCodeLine{00788\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ outline.}}
+\DoxyCodeLine{00789\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00790\ \textcolor{comment}{\ \ \ *\ \ \ max\_points\ ::}}
+\DoxyCodeLine{00791\ \textcolor{comment}{\ \ \ *\ \ \ \ \ maximum\ points\ in\ builder\ outline}}
+\DoxyCodeLine{00792\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00793\ \textcolor{comment}{\ \ \ *\ \ \ max\_contours\ ::}}
+\DoxyCodeLine{00794\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Maximum\ number\ of\ contours\ in\ builder\ outline.}}
+\DoxyCodeLine{00795\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00796\ \textcolor{comment}{\ \ \ *\ \ \ pos\_x\ ::}}
+\DoxyCodeLine{00797\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ translation\ (if\ composite\ glyph).}}
+\DoxyCodeLine{00798\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00799\ \textcolor{comment}{\ \ \ *\ \ \ pos\_y\ ::}}
+\DoxyCodeLine{00800\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ vertical\ translation\ (if\ composite\ glyph).}}
+\DoxyCodeLine{00801\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00802\ \textcolor{comment}{\ \ \ *\ \ \ left\_bearing\ ::}}
+\DoxyCodeLine{00803\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ left\ side\ bearing\ point.}}
+\DoxyCodeLine{00804\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00805\ \textcolor{comment}{\ \ \ *\ \ \ advance\ ::}}
+\DoxyCodeLine{00806\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ advance\ vector.}}
+\DoxyCodeLine{00807\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00808\ \textcolor{comment}{\ \ \ *\ \ \ bbox\ ::}}
+\DoxyCodeLine{00809\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Unused.}}
+\DoxyCodeLine{00810\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00811\ \textcolor{comment}{\ \ \ *\ \ \ parse\_state\ ::}}
+\DoxyCodeLine{00812\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ enumeration\ which\ controls\ the\ charstring\ parsing\ state.}}
+\DoxyCodeLine{00813\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00814\ \textcolor{comment}{\ \ \ *\ \ \ load\_points\ ::}}
+\DoxyCodeLine{00815\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ this\ flag\ is\ not\ set,\ no\ points\ are\ loaded.}}
+\DoxyCodeLine{00816\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00817\ \textcolor{comment}{\ \ \ *\ \ \ no\_recurse\ ::}}
+\DoxyCodeLine{00818\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Set\ but\ not\ used.}}
+\DoxyCodeLine{00819\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00820\ \textcolor{comment}{\ \ \ *\ \ \ metrics\_only\ ::}}
+\DoxyCodeLine{00821\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ boolean\ indicating\ that\ we\ only\ want\ to\ compute\ the\ metrics\ of\ a}}
+\DoxyCodeLine{00822\ \textcolor{comment}{\ \ \ *\ \ \ \ \ given\ glyph,\ not\ load\ all\ of\ its\ points.}}
+\DoxyCodeLine{00823\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00824\ \textcolor{comment}{\ \ \ *\ \ \ funcs\ ::}}
+\DoxyCodeLine{00825\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ array\ of\ function\ pointers\ for\ the\ builder.}}
+\DoxyCodeLine{00826\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00827\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___builder_rec__}{T1\_BuilderRec\_}}}
+\DoxyCodeLine{00828\ \ \ \{}
+\DoxyCodeLine{00829\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00830\ \ \ \ \ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ \ \ \ \ face;}
+\DoxyCodeLine{00831\ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_slot_rec__}{FT\_GlyphSlot}}\ \ \ \ glyph;}
+\DoxyCodeLine{00832\ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_loader_rec__}{FT\_GlyphLoader}}\ \ loader;}
+\DoxyCodeLine{00833\ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ base;}
+\DoxyCodeLine{00834\ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ current;}
+\DoxyCodeLine{00835\ }
+\DoxyCodeLine{00836\ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ \ \ pos\_x;}
+\DoxyCodeLine{00837\ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ \ \ pos\_y;}
+\DoxyCodeLine{00838\ }
+\DoxyCodeLine{00839\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ \ \ \ \ \ left\_bearing;}
+\DoxyCodeLine{00840\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ \ \ \ \ \ advance;}
+\DoxyCodeLine{00841\ }
+\DoxyCodeLine{00842\ \ \ \ \ \mbox{\hyperlink{struct_f_t___b_box__}{FT\_BBox}}\ \ \ \ \ \ \ \ \ bbox;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bounding\ box\ */}}
+\DoxyCodeLine{00843\ \ \ \ \ T1\_ParseState\ \ \ parse\_state;}
+\DoxyCodeLine{00844\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ load\_points;}
+\DoxyCodeLine{00845\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ no\_recurse;}
+\DoxyCodeLine{00846\ }
+\DoxyCodeLine{00847\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ metrics\_only;}
+\DoxyCodeLine{00848\ }
+\DoxyCodeLine{00849\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ hints\_funcs;\ \ \ \ \textcolor{comment}{/*\ hinter-\/specific\ */}}
+\DoxyCodeLine{00850\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ hints\_globals;\ \ \textcolor{comment}{/*\ hinter-\/specific\ */}}
+\DoxyCodeLine{00851\ }
+\DoxyCodeLine{00852\ \ \ \ \ \mbox{\hyperlink{struct_t1___builder___funcs_rec__}{T1\_Builder\_FuncsRec}}\ \ funcs;}
+\DoxyCodeLine{00853\ }
+\DoxyCodeLine{00854\ \ \ \}\ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_BuilderRec}};}
+\DoxyCodeLine{00855\ }
+\DoxyCodeLine{00856\ }
+\DoxyCodeLine{00857\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00858\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00859\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00860\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ T1\ DECODER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00861\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00862\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00863\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00864\ }
+\DoxyCodeLine{00865\ \textcolor{preprocessor}{\#if\ 0}}
+\DoxyCodeLine{00866\ }
+\DoxyCodeLine{00867\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00868\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00869\ \textcolor{comment}{\ \ \ *\ T1\_MAX\_SUBRS\_CALLS\ details\ the\ maximum\ number\ of\ nested\ sub-\/routine}}
+\DoxyCodeLine{00870\ \textcolor{comment}{\ \ \ *\ calls\ during\ glyph\ loading.}}
+\DoxyCodeLine{00871\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00872\ \textcolor{preprocessor}{\#define\ T1\_MAX\_SUBRS\_CALLS\ \ 8}}
+\DoxyCodeLine{00873\ }
+\DoxyCodeLine{00874\ }
+\DoxyCodeLine{00875\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00876\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00877\ \textcolor{comment}{\ \ \ *\ T1\_MAX\_CHARSTRING\_OPERANDS\ is\ the\ charstring\ stack's\ capacity.\ \ A}}
+\DoxyCodeLine{00878\ \textcolor{comment}{\ \ \ *\ minimum\ of\ 16\ is\ required.}}
+\DoxyCodeLine{00879\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00880\ \textcolor{preprocessor}{\#define\ T1\_MAX\_CHARSTRINGS\_OPERANDS\ \ 32}}
+\DoxyCodeLine{00881\ }
+\DoxyCodeLine{00882\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ 0\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00883\ }
+\DoxyCodeLine{00884\ }
+\DoxyCodeLine{00885\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___decoder___zone_rec__}{T1\_Decoder\_ZoneRec\_}}}
+\DoxyCodeLine{00886\ \ \ \{}
+\DoxyCodeLine{00887\ \ \ \ \ FT\_Byte*\ \ cursor;}
+\DoxyCodeLine{00888\ \ \ \ \ FT\_Byte*\ \ base;}
+\DoxyCodeLine{00889\ \ \ \ \ FT\_Byte*\ \ limit;}
+\DoxyCodeLine{00890\ }
+\DoxyCodeLine{00891\ \ \ \}\ \mbox{\hyperlink{struct_t1___decoder___zone_rec__}{T1\_Decoder\_ZoneRec}},\ *\mbox{\hyperlink{struct_t1___decoder___zone_rec__}{T1\_Decoder\_Zone}};}
+\DoxyCodeLine{00892\ }
+\DoxyCodeLine{00893\ }
+\DoxyCodeLine{00894\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_DecoderRec\_}}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_Decoder}};}
+\DoxyCodeLine{00895\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___decoder___funcs_rec__}{T1\_Decoder\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_t1___decoder___funcs_rec__}{T1\_Decoder\_Funcs}};}
+\DoxyCodeLine{00896\ }
+\DoxyCodeLine{00897\ }
+\DoxyCodeLine{00898\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00899\ \ \ (*T1\_Decoder\_Callback)(\ \mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_Decoder}}\ \ decoder,}
+\DoxyCodeLine{00900\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ glyph\_index\ );}
+\DoxyCodeLine{00901\ }
+\DoxyCodeLine{00902\ }
+\DoxyCodeLine{00903\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___decoder___funcs_rec__}{T1\_Decoder\_FuncsRec\_}}}
+\DoxyCodeLine{00904\ \ \ \{}
+\DoxyCodeLine{00905\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00906\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_Decoder}}\ \ \ \ \ \ \ \ \ \ \ decoder,}
+\DoxyCodeLine{00907\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00908\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___size_rec__}{FT\_Size}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ size,}
+\DoxyCodeLine{00909\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_slot_rec__}{FT\_GlyphSlot}}\ \ \ \ \ \ \ \ \ slot,}
+\DoxyCodeLine{00910\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte**\ \ \ \ \ \ \ \ \ \ \ \ glyph\_names,}
+\DoxyCodeLine{00911\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_p_s___blend_rec__}{PS\_Blend}}\ \ \ \ \ \ \ \ \ \ \ \ \ blend,}
+\DoxyCodeLine{00912\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ \ \ hinting,}
+\DoxyCodeLine{00913\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Render\_Mode\ \ \ \ \ \ \ hint\_mode,}
+\DoxyCodeLine{00914\ \ \ \ \ \ \ \ \ \ \ \ \ \ T1\_Decoder\_Callback\ \ callback\ );}
+\DoxyCodeLine{00915\ }
+\DoxyCodeLine{00916\ \ \ \ \ void}
+\DoxyCodeLine{00917\ \ \ \ \ (*done)(\ \mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_Decoder}}\ \ decoder\ );}
+\DoxyCodeLine{00918\ }
+\DoxyCodeLine{00919\ \textcolor{preprocessor}{\#ifdef\ T1\_CONFIG\_OPTION\_OLD\_ENGINE}}
+\DoxyCodeLine{00920\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00921\ \ \ \ \ (*parse\_charstrings\_old)(\ \mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_Decoder}}\ \ decoder,}
+\DoxyCodeLine{00922\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ base,}
+\DoxyCodeLine{00923\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ len\ );}
+\DoxyCodeLine{00924\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00925\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00926\ \ \ \ \ (*parse\_metrics)(\ \mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_Decoder}}\ \ decoder,}
+\DoxyCodeLine{00927\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ base,}
+\DoxyCodeLine{00928\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ len\ );}
+\DoxyCodeLine{00929\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00930\ }
+\DoxyCodeLine{00931\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{00932\ \ \ \ \ (*parse\_charstrings)(\ \mbox{\hyperlink{struct_p_s___decoder__}{PS\_Decoder}}*\ \ decoder,}
+\DoxyCodeLine{00933\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ \ charstring\_base,}
+\DoxyCodeLine{00934\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ charstring\_len\ );}
+\DoxyCodeLine{00935\ }
+\DoxyCodeLine{00936\ }
+\DoxyCodeLine{00937\ \ \ \}\ \mbox{\hyperlink{struct_t1___decoder___funcs_rec__}{T1\_Decoder\_FuncsRec}};}
+\DoxyCodeLine{00938\ }
+\DoxyCodeLine{00939\ }
+\DoxyCodeLine{00940\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_DecoderRec\_}}}
+\DoxyCodeLine{00941\ \ \ \{}
+\DoxyCodeLine{00942\ \ \ \ \ \mbox{\hyperlink{struct_t1___builder_rec__}{T1\_BuilderRec}}\ \ \ \ \ \ \ \ builder;}
+\DoxyCodeLine{00943\ }
+\DoxyCodeLine{00944\ \ \ \ \ FT\_Long\ \ \ \ \ \ \ \ \ \ \ \ \ \ stack[T1\_MAX\_CHARSTRINGS\_OPERANDS];}
+\DoxyCodeLine{00945\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ \ \ top;}
+\DoxyCodeLine{00946\ }
+\DoxyCodeLine{00947\ \ \ \ \ \mbox{\hyperlink{struct_t1___decoder___zone_rec__}{T1\_Decoder\_ZoneRec}}\ \ \ zones[T1\_MAX\_SUBRS\_CALLS\ +\ 1];}
+\DoxyCodeLine{00948\ \ \ \ \ \mbox{\hyperlink{struct_t1___decoder___zone_rec__}{T1\_Decoder\_Zone}}\ \ \ \ \ \ zone;}
+\DoxyCodeLine{00949\ }
+\DoxyCodeLine{00950\ \ \ \ \ FT\_Service\_PsCMaps\ \ \ psnames;\ \ \ \ \ \ \textcolor{comment}{/*\ for\ seac\ */}}
+\DoxyCodeLine{00951\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_glyphs;}
+\DoxyCodeLine{00952\ \ \ \ \ FT\_Byte**\ \ \ \ \ \ \ \ \ \ \ \ glyph\_names;}
+\DoxyCodeLine{00953\ }
+\DoxyCodeLine{00954\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ lenIV;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ internal\ for\ sub\ routine\ calls\ */}}
+\DoxyCodeLine{00955\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_subrs;}
+\DoxyCodeLine{00956\ \ \ \ \ FT\_Byte**\ \ \ \ \ \ \ \ \ \ \ \ subrs;}
+\DoxyCodeLine{00957\ \ \ \ \ FT\_UInt*\ \ \ \ \ \ \ \ \ \ \ \ \ subrs\_len;\ \ \ \ \textcolor{comment}{/*\ array\ of\ subrs\ length\ (optional)\ */}}
+\DoxyCodeLine{00958\ \ \ \ \ \mbox{\hyperlink{struct_f_t___hash_rec__}{FT\_Hash}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ subrs\_hash;\ \ \ \textcolor{comment}{/*\ used\ if\ `num\_subrs'\ was\ massaged\ */}}
+\DoxyCodeLine{00959\ }
+\DoxyCodeLine{00960\ \ \ \ \ \mbox{\hyperlink{struct_f_t___matrix__}{FT\_Matrix}}\ \ \ \ \ \ \ \ \ \ \ \ font\_matrix;}
+\DoxyCodeLine{00961\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ \ \ \ \ \ \ \ \ \ \ font\_offset;}
+\DoxyCodeLine{00962\ }
+\DoxyCodeLine{00963\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ flex\_state;}
+\DoxyCodeLine{00964\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_flex\_vectors;}
+\DoxyCodeLine{00965\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ \ \ \ \ \ \ \ \ \ \ flex\_vectors[7];}
+\DoxyCodeLine{00966\ }
+\DoxyCodeLine{00967\ \ \ \ \ \mbox{\hyperlink{struct_p_s___blend_rec__}{PS\_Blend}}\ \ \ \ \ \ \ \ \ \ \ \ \ blend;\ \ \ \ \ \ \ \textcolor{comment}{/*\ for\ multiple\ master\ support\ */}}
+\DoxyCodeLine{00968\ }
+\DoxyCodeLine{00969\ \ \ \ \ FT\_Render\_Mode\ \ \ \ \ \ \ hint\_mode;}
+\DoxyCodeLine{00970\ }
+\DoxyCodeLine{00971\ \ \ \ \ T1\_Decoder\_Callback\ \ parse\_callback;}
+\DoxyCodeLine{00972\ \ \ \ \ \mbox{\hyperlink{struct_t1___decoder___funcs_rec__}{T1\_Decoder\_FuncsRec}}\ \ funcs;}
+\DoxyCodeLine{00973\ }
+\DoxyCodeLine{00974\ \ \ \ \ FT\_Long*\ \ \ \ \ \ \ \ \ \ \ \ \ buildchar;}
+\DoxyCodeLine{00975\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ len\_buildchar;}
+\DoxyCodeLine{00976\ }
+\DoxyCodeLine{00977\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ \ \ seac;}
+\DoxyCodeLine{00978\ }
+\DoxyCodeLine{00979\ \ \ \ \ \mbox{\hyperlink{struct_f_t___generic__}{FT\_Generic}}\ \ \ \ \ \ \ \ \ \ \ cf2\_instance;}
+\DoxyCodeLine{00980\ }
+\DoxyCodeLine{00981\ \ \ \}\ \mbox{\hyperlink{struct_t1___decoder_rec__}{T1\_DecoderRec}};}
+\DoxyCodeLine{00982\ }
+\DoxyCodeLine{00983\ }
+\DoxyCodeLine{00984\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00985\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00986\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00987\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CFF\ BUILDER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00988\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00989\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00990\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00991\ }
+\DoxyCodeLine{00992\ }
+\DoxyCodeLine{00993\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder\_}}\ \ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}};}
+\DoxyCodeLine{00994\ }
+\DoxyCodeLine{00995\ }
+\DoxyCodeLine{00996\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00997\ \ \ (*CFF\_Builder\_Check\_Points\_Func)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ builder,}
+\DoxyCodeLine{00998\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ count\ );}
+\DoxyCodeLine{00999\ }
+\DoxyCodeLine{01000\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{01001\ \ \ (*CFF\_Builder\_Add\_Point\_Func)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ builder,}
+\DoxyCodeLine{01002\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{01003\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ y,}
+\DoxyCodeLine{01004\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte\ \ \ \ \ \ \ flag\ );}
+\DoxyCodeLine{01005\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{01006\ \ \ (*CFF\_Builder\_Add\_Point1\_Func)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ builder,}
+\DoxyCodeLine{01007\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{01008\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ y\ );}
+\DoxyCodeLine{01009\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{01010\ \ \ (*CFF\_Builder\_Start\_Point\_Func)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ builder,}
+\DoxyCodeLine{01011\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{01012\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pos\ \ \ \ \ \ \ \ y\ );}
+\DoxyCodeLine{01013\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{01014\ \ \ (*CFF\_Builder\_Close\_Contour\_Func)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ builder\ );}
+\DoxyCodeLine{01015\ }
+\DoxyCodeLine{01016\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{01017\ \ \ (*CFF\_Builder\_Add\_Contour\_Func)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ builder\ );}
+\DoxyCodeLine{01018\ }
+\DoxyCodeLine{01019\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f___builder___funcs_rec__}{CFF\_Builder\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_c_f_f___builder___funcs_rec__}{CFF\_Builder\_Funcs}};}
+\DoxyCodeLine{01020\ }
+\DoxyCodeLine{01021\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f_f___builder___funcs_rec__}{CFF\_Builder\_FuncsRec\_}}}
+\DoxyCodeLine{01022\ \ \ \{}
+\DoxyCodeLine{01023\ \ \ \ \ void}
+\DoxyCodeLine{01024\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ \ builder,}
+\DoxyCodeLine{01025\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{01026\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___size_rec__}{CFF\_Size}}\ \ \ \ \ \ \ size,}
+\DoxyCodeLine{01027\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___glyph_slot_rec__}{CFF\_GlyphSlot}}\ \ glyph,}
+\DoxyCodeLine{01028\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ hinting\ );}
+\DoxyCodeLine{01029\ }
+\DoxyCodeLine{01030\ \ \ \ \ void}
+\DoxyCodeLine{01031\ \ \ \ \ (*done)(\ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}*\ \ builder\ );}
+\DoxyCodeLine{01032\ }
+\DoxyCodeLine{01033\ \ \ \ \ CFF\_Builder\_Check\_Points\_Func\ \ \ check\_points;}
+\DoxyCodeLine{01034\ \ \ \ \ CFF\_Builder\_Add\_Point\_Func\ \ \ \ \ \ add\_point;}
+\DoxyCodeLine{01035\ \ \ \ \ CFF\_Builder\_Add\_Point1\_Func\ \ \ \ \ add\_point1;}
+\DoxyCodeLine{01036\ \ \ \ \ CFF\_Builder\_Add\_Contour\_Func\ \ \ \ add\_contour;}
+\DoxyCodeLine{01037\ \ \ \ \ CFF\_Builder\_Start\_Point\_Func\ \ \ \ start\_point;}
+\DoxyCodeLine{01038\ \ \ \ \ CFF\_Builder\_Close\_Contour\_Func\ \ close\_contour;}
+\DoxyCodeLine{01039\ }
+\DoxyCodeLine{01040\ \ \ \}\ \mbox{\hyperlink{struct_c_f_f___builder___funcs_rec__}{CFF\_Builder\_FuncsRec}};}
+\DoxyCodeLine{01041\ }
+\DoxyCodeLine{01042\ }
+\DoxyCodeLine{01043\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{01044\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01045\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{01046\ \textcolor{comment}{\ \ \ *\ \ \ CFF\_Builder}}
+\DoxyCodeLine{01047\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01048\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{01049\ \textcolor{comment}{\ \ \ *\ \ \ \ A\ structure\ used\ during\ glyph\ loading\ to\ store\ its\ outline.}}
+\DoxyCodeLine{01050\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01051\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{01052\ \textcolor{comment}{\ \ \ *\ \ \ memory\ ::}}
+\DoxyCodeLine{01053\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ memory\ object.}}
+\DoxyCodeLine{01054\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01055\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{01056\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ face\ object.}}
+\DoxyCodeLine{01057\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01058\ \textcolor{comment}{\ \ \ *\ \ \ glyph\ ::}}
+\DoxyCodeLine{01059\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ slot.}}
+\DoxyCodeLine{01060\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01061\ \textcolor{comment}{\ \ \ *\ \ \ loader\ ::}}
+\DoxyCodeLine{01062\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ loader.}}
+\DoxyCodeLine{01063\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01064\ \textcolor{comment}{\ \ \ *\ \ \ base\ ::}}
+\DoxyCodeLine{01065\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ base\ glyph\ outline.}}
+\DoxyCodeLine{01066\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01067\ \textcolor{comment}{\ \ \ *\ \ \ current\ ::}}
+\DoxyCodeLine{01068\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ outline.}}
+\DoxyCodeLine{01069\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01070\ \textcolor{comment}{\ \ \ *\ \ \ pos\_x\ ::}}
+\DoxyCodeLine{01071\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ translation\ (if\ composite\ glyph).}}
+\DoxyCodeLine{01072\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01073\ \textcolor{comment}{\ \ \ *\ \ \ pos\_y\ ::}}
+\DoxyCodeLine{01074\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ vertical\ translation\ (if\ composite\ glyph).}}
+\DoxyCodeLine{01075\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01076\ \textcolor{comment}{\ \ \ *\ \ \ left\_bearing\ ::}}
+\DoxyCodeLine{01077\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ left\ side\ bearing\ point.}}
+\DoxyCodeLine{01078\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01079\ \textcolor{comment}{\ \ \ *\ \ \ advance\ ::}}
+\DoxyCodeLine{01080\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ advance\ vector.}}
+\DoxyCodeLine{01081\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01082\ \textcolor{comment}{\ \ \ *\ \ \ bbox\ ::}}
+\DoxyCodeLine{01083\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Unused.}}
+\DoxyCodeLine{01084\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01085\ \textcolor{comment}{\ \ \ *\ \ \ path\_begun\ ::}}
+\DoxyCodeLine{01086\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ flag\ which\ indicates\ that\ a\ new\ path\ has\ begun.}}
+\DoxyCodeLine{01087\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01088\ \textcolor{comment}{\ \ \ *\ \ \ load\_points\ ::}}
+\DoxyCodeLine{01089\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ this\ flag\ is\ not\ set,\ no\ points\ are\ loaded.}}
+\DoxyCodeLine{01090\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01091\ \textcolor{comment}{\ \ \ *\ \ \ no\_recurse\ ::}}
+\DoxyCodeLine{01092\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Set\ but\ not\ used.}}
+\DoxyCodeLine{01093\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01094\ \textcolor{comment}{\ \ \ *\ \ \ metrics\_only\ ::}}
+\DoxyCodeLine{01095\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ boolean\ indicating\ that\ we\ only\ want\ to\ compute\ the\ metrics\ of\ a}}
+\DoxyCodeLine{01096\ \textcolor{comment}{\ \ \ *\ \ \ \ \ given\ glyph,\ not\ load\ all\ of\ its\ points.}}
+\DoxyCodeLine{01097\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01098\ \textcolor{comment}{\ \ \ *\ \ \ hints\_funcs\ ::}}
+\DoxyCodeLine{01099\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Auxiliary\ pointer\ for\ hinting.}}
+\DoxyCodeLine{01100\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01101\ \textcolor{comment}{\ \ \ *\ \ \ hints\_globals\ ::}}
+\DoxyCodeLine{01102\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Auxiliary\ pointer\ for\ hinting.}}
+\DoxyCodeLine{01103\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01104\ \textcolor{comment}{\ \ \ *\ \ \ funcs\ ::}}
+\DoxyCodeLine{01105\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ table\ of\ method\ pointers\ for\ this\ object.}}
+\DoxyCodeLine{01106\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{01107\ \ \ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder\_}}}
+\DoxyCodeLine{01108\ \ \ \{}
+\DoxyCodeLine{01109\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{01110\ \ \ \ \ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ face;}
+\DoxyCodeLine{01111\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___glyph_slot_rec__}{CFF\_GlyphSlot}}\ \ \ glyph;}
+\DoxyCodeLine{01112\ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_loader_rec__}{FT\_GlyphLoader}}\ \ loader;}
+\DoxyCodeLine{01113\ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ base;}
+\DoxyCodeLine{01114\ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ current;}
+\DoxyCodeLine{01115\ }
+\DoxyCodeLine{01116\ \ \ \ \ FT\_Pos\ \ pos\_x;}
+\DoxyCodeLine{01117\ \ \ \ \ FT\_Pos\ \ pos\_y;}
+\DoxyCodeLine{01118\ }
+\DoxyCodeLine{01119\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ left\_bearing;}
+\DoxyCodeLine{01120\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ advance;}
+\DoxyCodeLine{01121\ }
+\DoxyCodeLine{01122\ \ \ \ \ \mbox{\hyperlink{struct_f_t___b_box__}{FT\_BBox}}\ \ bbox;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bounding\ box\ */}}
+\DoxyCodeLine{01123\ }
+\DoxyCodeLine{01124\ \ \ \ \ FT\_Bool\ \ path\_begun;}
+\DoxyCodeLine{01125\ \ \ \ \ FT\_Bool\ \ load\_points;}
+\DoxyCodeLine{01126\ \ \ \ \ FT\_Bool\ \ no\_recurse;}
+\DoxyCodeLine{01127\ }
+\DoxyCodeLine{01128\ \ \ \ \ FT\_Bool\ \ metrics\_only;}
+\DoxyCodeLine{01129\ }
+\DoxyCodeLine{01130\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ hints\_funcs;\ \ \ \ \ \textcolor{comment}{/*\ hinter-\/specific\ */}}
+\DoxyCodeLine{01131\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ hints\_globals;\ \ \ \textcolor{comment}{/*\ hinter-\/specific\ */}}
+\DoxyCodeLine{01132\ }
+\DoxyCodeLine{01133\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___builder___funcs_rec__}{CFF\_Builder\_FuncsRec}}\ \ funcs;}
+\DoxyCodeLine{01134\ \ \ \};}
+\DoxyCodeLine{01135\ }
+\DoxyCodeLine{01136\ }
+\DoxyCodeLine{01137\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01138\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01139\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01140\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CFF\ DECODER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01141\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01142\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01143\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01144\ }
+\DoxyCodeLine{01145\ }
+\DoxyCodeLine{01146\ \textcolor{preprocessor}{\#define\ CFF\_MAX\_OPERANDS\ \ \ \ \ \ \ \ 48}}
+\DoxyCodeLine{01147\ \textcolor{preprocessor}{\#define\ CFF\_MAX\_SUBRS\_CALLS\ \ \ \ \ 16\ \ }\textcolor{comment}{/*\ maximum\ subroutine\ nesting;\ \ \ \ \ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ only\ 10\ are\ allowed\ but\ there\ exist\ */}}
+\DoxyCodeLine{01149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ fonts\ like\ `HiraKakuProN-\/W3.ttf'\ \ \ \ */}}
+\DoxyCodeLine{01150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ (Hiragino\ Kaku\ Gothic\ ProN\ W3;\ \ \ \ \ \ */}}
+\DoxyCodeLine{01151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 8.2d6e1;\ 2014-\/12-\/19)\ that\ exceed\ \ \ \ */}}
+\DoxyCodeLine{01152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ this\ limit\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{01153\ \textcolor{preprocessor}{\#define\ CFF\_MAX\_TRANS\_ELEMENTS\ \ 32}}
+\DoxyCodeLine{01154\ }
+\DoxyCodeLine{01155\ \ \ \textcolor{comment}{/*\ execution\ context\ charstring\ zone\ */}}
+\DoxyCodeLine{01156\ }
+\DoxyCodeLine{01157\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f_f___decoder___zone__}{CFF\_Decoder\_Zone\_}}}
+\DoxyCodeLine{01158\ \ \ \{}
+\DoxyCodeLine{01159\ \ \ \ \ FT\_Byte*\ \ base;}
+\DoxyCodeLine{01160\ \ \ \ \ FT\_Byte*\ \ limit;}
+\DoxyCodeLine{01161\ \ \ \ \ FT\_Byte*\ \ cursor;}
+\DoxyCodeLine{01162\ }
+\DoxyCodeLine{01163\ \ \ \}\ \mbox{\hyperlink{struct_c_f_f___decoder___zone__}{CFF\_Decoder\_Zone}};}
+\DoxyCodeLine{01164\ }
+\DoxyCodeLine{01165\ }
+\DoxyCodeLine{01166\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f_f___decoder__}{CFF\_Decoder\_}}}
+\DoxyCodeLine{01167\ \ \ \{}
+\DoxyCodeLine{01168\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___builder__}{CFF\_Builder}}\ \ builder;}
+\DoxyCodeLine{01169\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___font_rec__}{CFF\_Font}}\ \ \ \ \ cff;}
+\DoxyCodeLine{01170\ }
+\DoxyCodeLine{01171\ \ \ \ \ FT\_Fixed\ \ \ stack[CFF\_MAX\_OPERANDS\ +\ 1];}
+\DoxyCodeLine{01172\ \ \ \ \ FT\_Fixed*\ \ top;}
+\DoxyCodeLine{01173\ }
+\DoxyCodeLine{01174\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___decoder___zone__}{CFF\_Decoder\_Zone}}\ \ \ zones[CFF\_MAX\_SUBRS\_CALLS\ +\ 1];}
+\DoxyCodeLine{01175\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___decoder___zone__}{CFF\_Decoder\_Zone}}*\ \ zone;}
+\DoxyCodeLine{01176\ }
+\DoxyCodeLine{01177\ \ \ \ \ FT\_Int\ \ \ \ \ flex\_state;}
+\DoxyCodeLine{01178\ \ \ \ \ FT\_Int\ \ \ \ \ num\_flex\_vectors;}
+\DoxyCodeLine{01179\ \ \ \ \ \mbox{\hyperlink{struct_f_t___vector__}{FT\_Vector}}\ \ flex\_vectors[7];}
+\DoxyCodeLine{01180\ }
+\DoxyCodeLine{01181\ \ \ \ \ FT\_Pos\ \ glyph\_width;}
+\DoxyCodeLine{01182\ \ \ \ \ FT\_Pos\ \ nominal\_width;}
+\DoxyCodeLine{01183\ }
+\DoxyCodeLine{01184\ \ \ \ \ FT\_Bool\ \ \ read\_width;}
+\DoxyCodeLine{01185\ \ \ \ \ FT\_Bool\ \ \ width\_only;}
+\DoxyCodeLine{01186\ \ \ \ \ FT\_Int\ \ \ \ num\_hints;}
+\DoxyCodeLine{01187\ \ \ \ \ FT\_Fixed\ \ buildchar[CFF\_MAX\_TRANS\_ELEMENTS];}
+\DoxyCodeLine{01188\ }
+\DoxyCodeLine{01189\ \ \ \ \ FT\_UInt\ \ num\_locals;}
+\DoxyCodeLine{01190\ \ \ \ \ FT\_UInt\ \ num\_globals;}
+\DoxyCodeLine{01191\ }
+\DoxyCodeLine{01192\ \ \ \ \ FT\_Int\ \ locals\_bias;}
+\DoxyCodeLine{01193\ \ \ \ \ FT\_Int\ \ globals\_bias;}
+\DoxyCodeLine{01194\ }
+\DoxyCodeLine{01195\ \ \ \ \ FT\_Byte**\ \ locals;}
+\DoxyCodeLine{01196\ \ \ \ \ FT\_Byte**\ \ globals;}
+\DoxyCodeLine{01197\ }
+\DoxyCodeLine{01198\ \ \ \ \ FT\_Byte**\ \ glyph\_names;\ \ \ \textcolor{comment}{/*\ for\ pure\ CFF\ fonts\ only\ \ */}}
+\DoxyCodeLine{01199\ \ \ \ \ FT\_UInt\ \ \ \ num\_glyphs;\ \ \ \ \textcolor{comment}{/*\ number\ of\ glyphs\ in\ font\ */}}
+\DoxyCodeLine{01200\ }
+\DoxyCodeLine{01201\ \ \ \ \ FT\_Render\_Mode\ \ hint\_mode;}
+\DoxyCodeLine{01202\ }
+\DoxyCodeLine{01203\ \ \ \ \ FT\_Bool\ \ seac;}
+\DoxyCodeLine{01204\ }
+\DoxyCodeLine{01205\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___sub_font_rec__}{CFF\_SubFont}}\ \ current\_subfont;\ \textcolor{comment}{/*\ for\ current\ glyph\_index\ */}}
+\DoxyCodeLine{01206\ }
+\DoxyCodeLine{01207\ \ \ \ \ CFF\_Decoder\_Get\_Glyph\_Callback\ \ \ get\_glyph\_callback;}
+\DoxyCodeLine{01208\ \ \ \ \ CFF\_Decoder\_Free\_Glyph\_Callback\ \ free\_glyph\_callback;}
+\DoxyCodeLine{01209\ }
+\DoxyCodeLine{01210\ \ \ \}\ \mbox{\hyperlink{struct_c_f_f___decoder__}{CFF\_Decoder}};}
+\DoxyCodeLine{01211\ }
+\DoxyCodeLine{01212\ }
+\DoxyCodeLine{01213\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f___decoder___funcs_rec__}{CFF\_Decoder\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_c_f_f___decoder___funcs_rec__}{CFF\_Decoder\_Funcs}};}
+\DoxyCodeLine{01214\ }
+\DoxyCodeLine{01215\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f_f___decoder___funcs_rec__}{CFF\_Decoder\_FuncsRec\_}}}
+\DoxyCodeLine{01216\ \ \ \{}
+\DoxyCodeLine{01217\ \ \ \ \ void}
+\DoxyCodeLine{01218\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_c_f_f___decoder__}{CFF\_Decoder}}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ decoder,}
+\DoxyCodeLine{01219\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{01220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___size_rec__}{CFF\_Size}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size,}
+\DoxyCodeLine{01221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___glyph_slot_rec__}{CFF\_GlyphSlot}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ slot,}
+\DoxyCodeLine{01222\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hinting,}
+\DoxyCodeLine{01223\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Render\_Mode\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hint\_mode,}
+\DoxyCodeLine{01224\ \ \ \ \ \ \ \ \ \ \ \ \ \ CFF\_Decoder\_Get\_Glyph\_Callback\ \ \ get\_callback,}
+\DoxyCodeLine{01225\ \ \ \ \ \ \ \ \ \ \ \ \ \ CFF\_Decoder\_Free\_Glyph\_Callback\ \ free\_callback\ );}
+\DoxyCodeLine{01226\ }
+\DoxyCodeLine{01227\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{01228\ \ \ \ \ (*prepare)(\ \mbox{\hyperlink{struct_c_f_f___decoder__}{CFF\_Decoder}}*\ \ decoder,}
+\DoxyCodeLine{01229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___size_rec__}{CFF\_Size}}\ \ \ \ \ \ size,}
+\DoxyCodeLine{01230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ glyph\_index\ );}
+\DoxyCodeLine{01231\ }
+\DoxyCodeLine{01232\ \textcolor{preprocessor}{\#ifdef\ CFF\_CONFIG\_OPTION\_OLD\_ENGINE}}
+\DoxyCodeLine{01233\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{01234\ \ \ \ \ (*parse\_charstrings\_old)(\ \mbox{\hyperlink{struct_c_f_f___decoder__}{CFF\_Decoder}}*\ \ decoder,}
+\DoxyCodeLine{01235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ \ \ charstring\_base,}
+\DoxyCodeLine{01236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ charstring\_len,}
+\DoxyCodeLine{01237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ in\_dict\ );}
+\DoxyCodeLine{01238\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01239\ }
+\DoxyCodeLine{01240\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{01241\ \ \ \ \ (*parse\_charstrings)(\ \mbox{\hyperlink{struct_p_s___decoder__}{PS\_Decoder}}*\ \ decoder,}
+\DoxyCodeLine{01242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ \ charstring\_base,}
+\DoxyCodeLine{01243\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ charstring\_len\ );}
+\DoxyCodeLine{01244\ }
+\DoxyCodeLine{01245\ \ \ \}\ \mbox{\hyperlink{struct_c_f_f___decoder___funcs_rec__}{CFF\_Decoder\_FuncsRec}};}
+\DoxyCodeLine{01246\ }
+\DoxyCodeLine{01247\ }
+\DoxyCodeLine{01248\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01249\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01250\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01251\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ AFM\ PARSER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01252\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01253\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01254\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01255\ }
+\DoxyCodeLine{01256\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_a_f_m___parser_rec__}{AFM\_ParserRec\_}}*\ \ \mbox{\hyperlink{struct_a_f_m___parser_rec__}{AFM\_Parser}};}
+\DoxyCodeLine{01257\ }
+\DoxyCodeLine{01258\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_a_f_m___parser___funcs_rec__}{AFM\_Parser\_FuncsRec\_}}}
+\DoxyCodeLine{01259\ \ \ \{}
+\DoxyCodeLine{01260\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{01261\ \ \ \ \ (*init)(\ \mbox{\hyperlink{struct_a_f_m___parser_rec__}{AFM\_Parser}}\ \ parser,}
+\DoxyCodeLine{01262\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \ \mbox{\hyperlink{structmemory}{memory}},}
+\DoxyCodeLine{01263\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ base,}
+\DoxyCodeLine{01264\ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ limit\ );}
+\DoxyCodeLine{01265\ }
+\DoxyCodeLine{01266\ \ \ \ \ void}
+\DoxyCodeLine{01267\ \ \ \ \ (*done)(\ \mbox{\hyperlink{struct_a_f_m___parser_rec__}{AFM\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{01268\ }
+\DoxyCodeLine{01269\ \ \ \ \ FT\_Error}
+\DoxyCodeLine{01270\ \ \ \ \ (*parse)(\ \mbox{\hyperlink{struct_a_f_m___parser_rec__}{AFM\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{01271\ }
+\DoxyCodeLine{01272\ \ \ \}\ \mbox{\hyperlink{struct_a_f_m___parser___funcs_rec__}{AFM\_Parser\_FuncsRec}};}
+\DoxyCodeLine{01273\ }
+\DoxyCodeLine{01274\ }
+\DoxyCodeLine{01275\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_a_f_m___stream_rec__}{AFM\_StreamRec\_}}*\ \ \mbox{\hyperlink{struct_a_f_m___stream_rec__}{AFM\_Stream}};}
+\DoxyCodeLine{01276\ }
+\DoxyCodeLine{01277\ }
+\DoxyCodeLine{01278\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{01279\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01280\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{01281\ \textcolor{comment}{\ \ \ *\ \ \ AFM\_ParserRec}}
+\DoxyCodeLine{01282\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01283\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{01284\ \textcolor{comment}{\ \ \ *\ \ \ An\ AFM\_Parser\ is\ a\ parser\ for\ the\ AFM\ files.}}
+\DoxyCodeLine{01285\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01286\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{01287\ \textcolor{comment}{\ \ \ *\ \ \ memory\ ::}}
+\DoxyCodeLine{01288\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ object\ used\ for\ memory\ operations\ (alloc\ and\ realloc).}}
+\DoxyCodeLine{01289\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01290\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{01291\ \textcolor{comment}{\ \ \ *\ \ \ \ \ This\ is\ an\ opaque\ object.}}
+\DoxyCodeLine{01292\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01293\ \textcolor{comment}{\ \ \ *\ \ \ FontInfo\ ::}}
+\DoxyCodeLine{01294\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ result\ will\ be\ stored\ here.}}
+\DoxyCodeLine{01295\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{01296\ \textcolor{comment}{\ \ \ *\ \ \ get\_index\ ::}}
+\DoxyCodeLine{01297\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ user\ provided\ function\ to\ get\ a\ glyph\ index\ by\ its\ name.}}
+\DoxyCodeLine{01298\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{01299\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_a_f_m___parser_rec__}{AFM\_ParserRec\_}}}
+\DoxyCodeLine{01300\ \ \ \{}
+\DoxyCodeLine{01301\ \ \ \ \ FT\_Memory\ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{01302\ \ \ \ \ \mbox{\hyperlink{struct_a_f_m___stream_rec__}{AFM\_Stream}}\ \ \ \ stream;}
+\DoxyCodeLine{01303\ }
+\DoxyCodeLine{01304\ \ \ \ \ \mbox{\hyperlink{struct_a_f_m___font_info_rec__}{AFM\_FontInfo}}\ \ FontInfo;}
+\DoxyCodeLine{01305\ }
+\DoxyCodeLine{01306\ \ \ \ \ FT\_Int}
+\DoxyCodeLine{01307\ \ \ \ \ (*get\_index)(\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \ name,}
+\DoxyCodeLine{01308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Offset\ \ \ \ len,}
+\DoxyCodeLine{01309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ user\_data\ );}
+\DoxyCodeLine{01310\ }
+\DoxyCodeLine{01311\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ user\_data;}
+\DoxyCodeLine{01312\ }
+\DoxyCodeLine{01313\ \ \ \}\ \mbox{\hyperlink{struct_a_f_m___parser_rec__}{AFM\_ParserRec}};}
+\DoxyCodeLine{01314\ }
+\DoxyCodeLine{01315\ }
+\DoxyCodeLine{01316\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01317\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01318\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01319\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ TYPE1\ CHARMAPS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01320\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01321\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01322\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01323\ }
+\DoxyCodeLine{01324\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___c_map___classes_rec__}{T1\_CMap\_ClassesRec\_}}*\ \ \mbox{\hyperlink{struct_t1___c_map___classes_rec__}{T1\_CMap\_Classes}};}
+\DoxyCodeLine{01325\ }
+\DoxyCodeLine{01326\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___c_map___classes_rec__}{T1\_CMap\_ClassesRec\_}}}
+\DoxyCodeLine{01327\ \ \ \{}
+\DoxyCodeLine{01328\ \ \ \ \ \mbox{\hyperlink{struct_f_t___c_map___class_rec__}{FT\_CMap\_Class}}\ \ standard;}
+\DoxyCodeLine{01329\ \ \ \ \ \mbox{\hyperlink{struct_f_t___c_map___class_rec__}{FT\_CMap\_Class}}\ \ expert;}
+\DoxyCodeLine{01330\ \ \ \ \ \mbox{\hyperlink{struct_f_t___c_map___class_rec__}{FT\_CMap\_Class}}\ \ custom;}
+\DoxyCodeLine{01331\ \ \ \ \ \mbox{\hyperlink{struct_f_t___c_map___class_rec__}{FT\_CMap\_Class}}\ \ unicode;}
+\DoxyCodeLine{01332\ }
+\DoxyCodeLine{01333\ \ \ \}\ \mbox{\hyperlink{struct_t1___c_map___classes_rec__}{T1\_CMap\_ClassesRec}};}
+\DoxyCodeLine{01334\ }
+\DoxyCodeLine{01335\ }
+\DoxyCodeLine{01336\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01337\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01338\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01339\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PSAux\ Module\ Interface\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01340\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01341\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01342\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01343\ }
+\DoxyCodeLine{01344\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s_aux___service_rec__}{PSAux\_ServiceRec\_}}}
+\DoxyCodeLine{01345\ \ \ \{}
+\DoxyCodeLine{01346\ \ \ \ \ \textcolor{comment}{/*\ don't\ use\ `PS\_Table\_Funcs'\ and\ friends\ to\ avoid\ compiler\ warnings\ */}}
+\DoxyCodeLine{01347\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_p_s___table___funcs_rec__}{PS\_Table\_FuncsRec}}*\ \ \ \ ps\_table\_funcs;}
+\DoxyCodeLine{01348\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_p_s___parser___funcs_rec__}{PS\_Parser\_FuncsRec}}*\ \ \ ps\_parser\_funcs;}
+\DoxyCodeLine{01349\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t1___builder___funcs_rec__}{T1\_Builder\_FuncsRec}}*\ \ t1\_builder\_funcs;}
+\DoxyCodeLine{01350\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t1___decoder___funcs_rec__}{T1\_Decoder\_FuncsRec}}*\ \ t1\_decoder\_funcs;}
+\DoxyCodeLine{01351\ }
+\DoxyCodeLine{01352\ \ \ \ \ void}
+\DoxyCodeLine{01353\ \ \ \ \ (*t1\_decrypt)(\ FT\_Byte*\ \ \ \mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{01354\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Offset\ \ length,}
+\DoxyCodeLine{01355\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UShort\ \ seed\ );}
+\DoxyCodeLine{01356\ }
+\DoxyCodeLine{01357\ \ \ \ \ FT\_UInt32}
+\DoxyCodeLine{01358\ \ \ \ \ (*cff\_random)(\ FT\_UInt32\ \ r\ );}
+\DoxyCodeLine{01359\ }
+\DoxyCodeLine{01360\ \ \ \ \ void}
+\DoxyCodeLine{01361\ \ \ \ \ (*ps\_decoder\_init)(\ \mbox{\hyperlink{struct_p_s___decoder__}{PS\_Decoder}}*\ \ ps\_decoder,}
+\DoxyCodeLine{01362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ decoder,}
+\DoxyCodeLine{01363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ is\_t1\ );}
+\DoxyCodeLine{01364\ }
+\DoxyCodeLine{01365\ \ \ \ \ void}
+\DoxyCodeLine{01366\ \ \ \ \ (*t1\_make\_subfont)(\ \mbox{\hyperlink{struct_f_t___face_rec__}{FT\_Face}}\ \ \ \ \ \ face,}
+\DoxyCodeLine{01367\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_p_s___private_rec__}{PS\_Private}}\ \ \ priv,}
+\DoxyCodeLine{01368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f___sub_font_rec__}{CFF\_SubFont}}\ \ subfont\ );}
+\DoxyCodeLine{01369\ }
+\DoxyCodeLine{01370\ \ \ \ \ \mbox{\hyperlink{struct_t1___c_map___classes_rec__}{T1\_CMap\_Classes}}\ \ t1\_cmap\_classes;}
+\DoxyCodeLine{01371\ }
+\DoxyCodeLine{01372\ \ \ \ \ \textcolor{comment}{/*\ fields\ after\ this\ comment\ line\ were\ added\ after\ version\ 2.1.10\ */}}
+\DoxyCodeLine{01373\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_a_f_m___parser___funcs_rec__}{AFM\_Parser\_FuncsRec}}*\ \ afm\_parser\_funcs;}
+\DoxyCodeLine{01374\ }
+\DoxyCodeLine{01375\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f___decoder___funcs_rec__}{CFF\_Decoder\_FuncsRec}}*\ \ cff\_decoder\_funcs;}
+\DoxyCodeLine{01376\ }
+\DoxyCodeLine{01377\ \ \ \}\ \mbox{\hyperlink{struct_p_s_aux___service_rec__}{PSAux\_ServiceRec}},\ *\mbox{\hyperlink{struct_p_s_aux___service_rec__}{PSAux\_Service}};}
+\DoxyCodeLine{01378\ }
+\DoxyCodeLine{01379\ \ \ \textcolor{comment}{/*\ backward\ compatible\ type\ definition\ */}}
+\DoxyCodeLine{01380\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_p_s_aux___service_rec__}{PSAux\_ServiceRec}}\ \ \ \mbox{\hyperlink{struct_p_s_aux___service_rec__}{PSAux\_Interface}};}
+\DoxyCodeLine{01381\ }
+\DoxyCodeLine{01382\ }
+\DoxyCodeLine{01383\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01384\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01385\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01386\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Some\ convenience\ functions\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01387\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{01388\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01389\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{01390\ }
+\DoxyCodeLine{01391\ \textcolor{preprocessor}{\#define\ IS\_PS\_NEWLINE(\ ch\ )\ \(\backslash\)}}
+\DoxyCodeLine{01392\ \textcolor{preprocessor}{\ \ (\ (ch)\ ==\ '\(\backslash\)r'\ ||\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01393\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '\(\backslash\)n'\ )}}
+\DoxyCodeLine{01394\ }
+\DoxyCodeLine{01395\ \textcolor{preprocessor}{\#define\ IS\_PS\_SPACE(\ ch\ )\ \ \(\backslash\)}}
+\DoxyCodeLine{01396\ \textcolor{preprocessor}{\ \ (\ (ch)\ ==\ '\ '\ \ \ \ \ \ \ \ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{01397\ \textcolor{preprocessor}{\ \ \ \ IS\_PS\_NEWLINE(\ ch\ )\ ||\ \(\backslash\)}}
+\DoxyCodeLine{01398\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '\(\backslash\)t'\ \ \ \ \ \ \ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{01399\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '\(\backslash\)f'\ \ \ \ \ \ \ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{01400\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '\(\backslash\)0'\ )}}
+\DoxyCodeLine{01401\ }
+\DoxyCodeLine{01402\ \textcolor{preprocessor}{\#define\ IS\_PS\_SPECIAL(\ ch\ )\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01403\ \textcolor{preprocessor}{\ \ (\ (ch)\ ==\ '/'\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{01404\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '('\ ||\ (ch)\ ==\ ')'\ ||\ \(\backslash\)}}
+\DoxyCodeLine{01405\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '<'\ ||\ (ch)\ ==\ '>'\ ||\ \(\backslash\)}}
+\DoxyCodeLine{01406\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '['\ ||\ (ch)\ ==\ ']'\ ||\ \(\backslash\)}}
+\DoxyCodeLine{01407\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '\{'\ ||\ (ch)\ ==\ '\}'\ ||\ \(\backslash\)}}
+\DoxyCodeLine{01408\ \textcolor{preprocessor}{\ \ \ \ (ch)\ ==\ '\%'\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}}
+\DoxyCodeLine{01409\ }
+\DoxyCodeLine{01410\ \textcolor{preprocessor}{\#define\ IS\_PS\_DELIM(\ ch\ )\ \ \(\backslash\)}}
+\DoxyCodeLine{01411\ \textcolor{preprocessor}{\ \ (\ IS\_PS\_SPACE(\ ch\ )\ \ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{01412\ \textcolor{preprocessor}{\ \ \ \ IS\_PS\_SPECIAL(\ ch\ )\ )}}
+\DoxyCodeLine{01413\ }
+\DoxyCodeLine{01414\ \textcolor{preprocessor}{\#define\ IS\_PS\_DIGIT(\ ch\ )\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01415\ \textcolor{preprocessor}{\ \ (\ (ch)\ >=\ '0'\ \&\&\ (ch)\ <=\ '9'\ )}}
+\DoxyCodeLine{01416\ }
+\DoxyCodeLine{01417\ \textcolor{preprocessor}{\#define\ IS\_PS\_XDIGIT(\ ch\ )\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01418\ \textcolor{preprocessor}{\ \ (\ IS\_PS\_DIGIT(\ ch\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{01419\ \textcolor{preprocessor}{\ \ \ \ (\ (ch)\ >=\ 'A'\ \&\&\ (ch)\ <=\ 'F'\ )\ ||\ \(\backslash\)}}
+\DoxyCodeLine{01420\ \textcolor{preprocessor}{\ \ \ \ (\ (ch)\ >=\ 'a'\ \&\&\ (ch)\ <=\ 'f'\ )\ )}}
+\DoxyCodeLine{01421\ }
+\DoxyCodeLine{01422\ \textcolor{preprocessor}{\#define\ IS\_PS\_BASE85(\ ch\ )\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01423\ \textcolor{preprocessor}{\ \ (\ (ch)\ >=\ '!'\ \&\&\ (ch)\ <=\ 'u'\ )}}
+\DoxyCodeLine{01424\ }
+\DoxyCodeLine{01425\ \textcolor{preprocessor}{\#define\ IS\_PS\_TOKEN(\ cur,\ limit,\ token\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01426\ \textcolor{preprocessor}{\ \ (\ (char)(cur)[0]\ ==\ (token)[0]\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{01427\ \textcolor{preprocessor}{\ \ \ \ (\ (cur)\ +\ sizeof\ (\ (token)\ )\ ==\ (limit)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01428\ \textcolor{preprocessor}{\ \ \ \ \ \ (\ (cur)\ +\ sizeof(\ (token)\ )\ <\ (limit)\ \ \ \ \ \ \ \ \ \ \&\&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01429\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ IS\_PS\_DELIM(\ (cur)[sizeof\ (\ (token)\ )\ -\/\ 1]\ )\ )\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{01430\ \textcolor{preprocessor}{\ \ \ \ ft\_strncmp(\ (char*)(cur),\ (token),\ sizeof\ (\ (token)\ )\ -\/\ 1\ )\ ==\ 0\ )}}
+\DoxyCodeLine{01431\ }
+\DoxyCodeLine{01432\ }
+\DoxyCodeLine{01433\ FT\_END\_HEADER}
+\DoxyCodeLine{01434\ }
+\DoxyCodeLine{01435\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PSAUX\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01436\ }
+\DoxyCodeLine{01437\ }
+\DoxyCodeLine{01438\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

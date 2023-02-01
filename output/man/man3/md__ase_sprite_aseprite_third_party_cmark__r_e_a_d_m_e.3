@@ -1,0 +1,151 @@
+.TH "md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e \- cmark 
+.PP
+\fC\fP
+.PP
+\fCcmark\fP is the C reference implementation of \fCCommonMark\fP, a rationalized version of Markdown syntax with a \fCspec\fP\&. (For the JavaScript reference implementation, see \fCcommonmark\&.js\fP\&.)
+.PP
+It provides a shared library (\fClibcmark\fP) with functions for parsing CommonMark documents to an abstract syntax tree (AST), manipulating the AST, and rendering the document to HTML, groff man, LaTeX, CommonMark, or an XML representation of the AST\&. It also provides a command-line program (\fCcmark\fP) for parsing and rendering CommonMark documents\&.
+.PP
+Advantages of this library:
+.PP
+.IP "\(bu" 2
+\fBPortable\&.\fP The library and program are written in standard C99 and have no external dependencies\&. They have been tested with MSVC, gcc, tcc, and clang\&.
+.IP "\(bu" 2
+\fBFast\&.\fP cmark can render a Markdown version of \fIWar and Peace\fP in the blink of an eye (127 milliseconds on a ten year old laptop, vs\&. 100-400 milliseconds for an eye blink)\&. In our \fBbenchmarks\fP, cmark is 10,000 times faster than the original \fCMarkdown\&.pl\fP, and on par with the very fastest available Markdown processors\&.
+.IP "\(bu" 2
+\fBAccurate\&.\fP The library passes all CommonMark conformance tests\&.
+.IP "\(bu" 2
+\fBStandardized\&.\fP The library can be expected to parse CommonMark the same way as any other conforming parser\&. So, for example, you can use \fCcommonmark\&.js\fP on the client to preview content that will be rendered on the server using \fCcmark\fP\&.
+.IP "\(bu" 2
+\fBRobust\&.\fP The library has been extensively fuzz-tested using \fCamerican fuzzy lop\fP\&. The test suite includes pathological cases that bring many other Markdown parsers to a crawl (for example, thousands-deep nested bracketed text or block quotes)\&.
+.IP "\(bu" 2
+\fBFlexible\&.\fP CommonMark input is parsed to an AST which can be manipulated programmatically prior to rendering\&.
+.IP "\(bu" 2
+\fBMultiple renderers\&.\fP Output in HTML, groff man, LaTeX, CommonMark, and a custom XML format is supported\&. And it is easy to write new renderers to support other formats\&.
+.IP "\(bu" 2
+\fBFree\&.\fP BSD2-licensed\&.
+.PP
+.PP
+It is easy to use \fClibcmark\fP in python, lua, ruby, and other dynamic languages: see the \fCwrappers/\fP subdirectory for some simple examples\&.
+.PP
+There are also libraries that wrap \fClibcmark\fP for \fCGo\fP, \fCHaskell\fP, \fCRuby\fP, \fCLua\fP, \fCPerl\fP, \fCPython\fP, \fCR\fP and \fCScala\fP\&.
+.SH "Installing"
+.PP
+Building the C program (\fCcmark\fP) and shared library (\fClibcmark\fP) requires \fCcmake\fP\&. If you modify \fCscanners\&.re\fP, then you will also need \fCre2c\fP (>= 0\&.14\&.2), which is used to generate \fCscanners\&.c\fP from \fCscanners\&.re\fP\&. We have included a pre-generated \fCscanners\&.c\fP in the repository to reduce build dependencies\&.
+.PP
+If you have GNU make, you can simply \fCmake\fP, \fCmake test\fP, and \fCmake install\fP\&. This calls \fCcmake\fP to create a \fCMakefile\fP in the \fCbuild\fP directory, then uses that \fCMakefile\fP to create the executable and library\&. The binaries can be found in \fCbuild/src\fP\&. The default installation prefix is \fC/usr/local\fP\&. To change the installation prefix, pass the \fCINSTALL_PREFIX\fP variable if you run \fCmake\fP for the first time: \fCmake INSTALL_PREFIX=path\fP\&.
+.PP
+For a more portable method, you can use \fCcmake\fP manually\&. \fCcmake\fP knows how to create build environments for many build systems\&. For example, on FreeBSD: 
+.PP
+.nf
+mkdir build
+cd build
+cmake \&.\&.  # optionally: -DCMAKE_INSTALL_PREFIX=path
+make      # executable will be created as build/src/cmark
+make test
+make install
+
+.fi
+.PP
+ Or, to create Xcode project files on OSX: 
+.PP
+.nf
+mkdir build
+cd build
+cmake -G Xcode \&.\&.
+open cmark\&.xcodeproj
+
+.fi
+.PP
+ The GNU Makefile also provides a few other targets for developers\&. To run a benchmark: 
+.PP
+.nf
+make bench
+
+.fi
+.PP
+ For more detailed benchmarks: 
+.PP
+.nf
+make newbench
+
+.fi
+.PP
+ To run a test for memory leaks using \fCvalgrind\fP: 
+.PP
+.nf
+make leakcheck
+
+.fi
+.PP
+ To reformat source code using \fCclang-format\fP: 
+.PP
+.nf
+make format
+
+.fi
+.PP
+ To run a 'fuzz test' against ten long randomly generated inputs: 
+.PP
+.nf
+make fuzztest
+
+.fi
+.PP
+ To do a more systematic fuzz test with [american fuzzy lop]: 
+.PP
+.nf
+AFL_PATH=/path/to/afl_directory make afl
+
+.fi
+.PP
+ Fuzzing with \fClibFuzzer\fP is also supported but, because libFuzzer is still under active development, may not work with your system-installed version of clang\&. Assuming LLVM has been built in \fC$HOME/src/llvm/build\fP the fuzzer can be run with: 
+.PP
+.nf
+CC='$HOME/src/llvm/build/bin/clang' LIB_FUZZER_PATH='$HOME/src/llvm/lib/Fuzzer/libFuzzer\&.a' make libFuzzer
+
+.fi
+.PP
+ To make a release tarball and zip archive: 
+.PP
+.nf
+make archive
+
+.fi
+.PP
+ 
+.SH "Installing (Windows)"
+.PP
+To compile with MSVC and NMAKE: 
+.PP
+.nf
+nmake
+
+.fi
+.PP
+ You can cross-compile a Windows binary and dll on linux if you have the \fCmingw32\fP compiler: 
+.PP
+.nf
+make mingw
+
+.fi
+.PP
+ The binaries will be in \fCbuild-mingw/windows/bin\fP\&.
+.SH "Usage"
+.PP
+Instructions for the use of the command line program and library can be found in the man pages in the \fCman\fP subdirectory\&.
+.SH "Security"
+.PP
+By default, the library will scrub raw HTML and potentially dangerous links (\fCjavascript:\fP, \fCvbscript:\fP, \fCdata:\fP, \fCfile:\fP)\&.
+.PP
+To allow these, use the option \fCCMARK_OPT_UNSAFE\fP (or \fC--unsafe\fP) with the command line program\&. If doing so, we recommend you use a HTML sanitizer specific to your needs to protect against \fCXSS attacks\fP\&.
+.SH "Contributing"
+.PP
+There is a \fCforum for discussing CommonMark\fP; you should use it instead of github issues for questions and possibly open-ended discussions\&. Use the \fCgithub issue tracker\fP only for simple, clear, actionable issues\&.
+.SH "Authors"
+.PP
+John MacFarlane wrote the original library and program\&. The block parsing algorithm was worked out together with David Greenspan\&. Vicent Marti optimized the C implementation for performance, increasing its speed tenfold\&. Kārlis Gaņģis helped work out a better parsing algorithm for links and emphasis, eliminating several worst-case performance issues\&. Nick Wellnhofer contributed many improvements, including most of the C library's API and its test harness\&. 

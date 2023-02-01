@@ -1,0 +1,260 @@
+\hypertarget{doc__access_8h_source}{}\doxysection{doc\+\_\+access.\+h}
+\label{doc__access_8h_source}\index{AseSprite/aseprite/src/app/doc\_access.h@{AseSprite/aseprite/src/app/doc\_access.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2020\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_DOC\_ACCESS\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_DOC\_ACCESS\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/context.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/doc.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}base/exception.h"{}}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <exception>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \textcolor{comment}{//\ TODO\ remove\ exceptions\ and\ use\ "{}DocAccess::operator\ bool()"{}}}
+\DoxyCodeLine{00022\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_locked_doc_exception}{LockedDocException}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}\ \{}
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_locked_doc_exception}{LockedDocException}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ msg)\ \textcolor{keywordflow}{throw}()}
+\DoxyCodeLine{00025\ \ \ \ \ :\ \mbox{\hyperlink{classbase_1_1_exception}{base::Exception}}(msg)\ \{\ \}}
+\DoxyCodeLine{00026\ \ \ \};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_cannot_read_doc_exception}{CannotReadDocException}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_locked_doc_exception}{LockedDocException}}\ \{}
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00030\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_cannot_read_doc_exception}{CannotReadDocException}}()\ \textcolor{keywordflow}{throw}()}
+\DoxyCodeLine{00031\ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_locked_doc_exception}{LockedDocException}}(\textcolor{stringliteral}{"{}Cannot\ read\ the\ sprite.\(\backslash\)n"{}}}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}It\ is\ being\ modified\ by\ another\ command.\(\backslash\)n"{}}}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Try\ again."{}})\ \{\ \}}
+\DoxyCodeLine{00034\ \ \ \};}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_cannot_write_doc_exception}{CannotWriteDocException}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_locked_doc_exception}{LockedDocException}}\ \{}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00038\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_cannot_write_doc_exception}{CannotWriteDocException}}()\ \textcolor{keywordflow}{throw}()}
+\DoxyCodeLine{00039\ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_locked_doc_exception}{LockedDocException}}(\textcolor{stringliteral}{"{}Cannot\ modify\ the\ sprite.\(\backslash\)n"{}}}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}It\ is\ being\ used\ by\ another\ command.\(\backslash\)n"{}}}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}Try\ again."{}})\ \{\ \}}
+\DoxyCodeLine{00042\ \ \ \};}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \textcolor{comment}{//\ This\ class\ acts\ like\ a\ wrapper\ for\ the\ given\ document.\ \ It's}}
+\DoxyCodeLine{00045\ \ \ \textcolor{comment}{//\ specialized\ by\ DocReader/Writer\ to\ handle\ document\ read/write}}
+\DoxyCodeLine{00046\ \ \ \textcolor{comment}{//\ locks.}}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}\ \{}
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}()\ :\ m\_doc(NULL)\ \{\ \}}
+\DoxyCodeLine{00050\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}\&\ copy)\ :\ m\_doc(copy.m\_doc)\ \{\ \}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc)\ :\ m\_doc(doc)\ \{\ \}}
+\DoxyCodeLine{00052\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_access}{\string~DocAccess}}()\ \{\ \}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}\&\ copy)\ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ m\_doc\ =\ copy.m\_doc;}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00057\ \ \ \ \ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{operator}\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*()\ \{\ \textcolor{keywordflow}{return}\ m\_doc;\ \}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{operator}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*()\ \textcolor{keyword}{const}\ \{\ \textcolor{keywordflow}{return}\ m\_doc;\ \}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ operator-\/>()\ \{}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ ASSERT(m\_doc);}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_doc;}
+\DoxyCodeLine{00065\ \ \ \ \ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ operator-\/>()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ ASSERT(m\_doc);}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_doc;}
+\DoxyCodeLine{00070\ \ \ \ \ \}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00073\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_doc;}
+\DoxyCodeLine{00074\ \ \ \};}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \textcolor{comment}{//\ Class\ to\ view\ the\ document's\ state.\ Its\ constructor\ request\ a}}
+\DoxyCodeLine{00077\ \ \ \textcolor{comment}{//\ reader-\/lock\ of\ the\ document,\ or\ throws\ an\ exception\ in\ case\ that}}
+\DoxyCodeLine{00078\ \ \ \textcolor{comment}{//\ the\ lock\ cannot\ be\ obtained.}}
+\DoxyCodeLine{00079\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}\ \{}
+\DoxyCodeLine{00080\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00081\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}()\ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc,\ \textcolor{keywordtype}{int}\ timeout)}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}(doc)\ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc\ \&\&\ !m\_doc-\/>readLock(timeout))}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ \mbox{\hyperlink{classapp_1_1_cannot_read_doc_exception}{CannotReadDocException}}();}
+\DoxyCodeLine{00088\ \ \ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}\&\ copy,\ \textcolor{keywordtype}{int}\ timeout)}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}(copy)\ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc\ \&\&\ !m\_doc-\/>readLock(timeout))}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ \mbox{\hyperlink{classapp_1_1_cannot_read_doc_exception}{CannotReadDocException}}();}
+\DoxyCodeLine{00094\ \ \ \ \ \}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_reader}{\string~DocReader}}()\ \{}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ unlock();}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordtype}{void}\ unlock()\ \{}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc)\ \{}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ m\_doc-\/>unlock();}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ m\_doc\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00106\ \ \ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{comment}{//\ Disable\ operator=}}
+\DoxyCodeLine{00110\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}\&);}
+\DoxyCodeLine{00111\ \ \ \};}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \textcolor{comment}{//\ Class\ to\ modify\ the\ document's\ state.\ Its\ constructor\ request\ a}}
+\DoxyCodeLine{00114\ \ \ \textcolor{comment}{//\ writer-\/lock\ of\ the\ document,\ or\ throws\ an\ exception\ in\ case\ that}}
+\DoxyCodeLine{00115\ \ \ \textcolor{comment}{//\ the\ lock\ cannot\ be\ obtained.\ Also,\ it\ contains\ a\ special}}
+\DoxyCodeLine{00116\ \ \ \textcolor{comment}{//\ constructor\ that\ receives\ a\ DocReader,\ to\ elevate\ the}}
+\DoxyCodeLine{00117\ \ \ \textcolor{comment}{//\ reader-\/lock\ to\ writer-\/lock.}}
+\DoxyCodeLine{00118\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}\ \{}
+\DoxyCodeLine{00119\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00120\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}()}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ :\ m\_from\_reader(\textcolor{keyword}{false})}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ ,\ m\_locked(\textcolor{keyword}{false})\ \{}
+\DoxyCodeLine{00123\ \ \ \ \ \}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc,\ \textcolor{keywordtype}{int}\ timeout)}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}(doc)}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ ,\ m\_from\_reader(\textcolor{keyword}{false})}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ ,\ m\_locked(\textcolor{keyword}{false})\ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc)\ \{}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_doc-\/>writeLock(timeout))}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ \mbox{\hyperlink{classapp_1_1_cannot_write_doc_exception}{CannotWriteDocException}}();}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ m\_locked\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00135\ \ \ \ \ \}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{comment}{//\ Constructor\ that\ can\ be\ used\ to\ elevate\ the\ given\ reader-\/lock\ to}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{comment}{//\ writer\ permission.}}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}\&\ doc,\ \textcolor{keywordtype}{int}\ timeout)}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}(doc)}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ ,\ m\_from\_reader(\textcolor{keyword}{true})}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ ,\ m\_locked(\textcolor{keyword}{false})\ \{}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc)\ \{}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_doc-\/>upgradeToWrite(timeout))}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ \mbox{\hyperlink{classapp_1_1_cannot_write_doc_exception}{CannotWriteDocException}}();}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ m\_locked\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00149\ \ \ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_writer}{\string~DocWriter}}()\ \{}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ unlock();}
+\DoxyCodeLine{00153\ \ \ \ \ \}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordtype}{void}\ unlock()\ \{}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc\ \&\&\ m\_locked)\ \{}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_from\_reader)}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ m\_doc-\/>downgradeToRead();}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \ \ m\_doc-\/>unlock();}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ m\_doc\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ m\_locked\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00166\ \ \ \ \ \}}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_from\_reader;}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_locked;}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{comment}{//\ Non-\/copyable}}
+\DoxyCodeLine{00173\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}\&);}
+\DoxyCodeLine{00174\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}\&);}
+\DoxyCodeLine{00175\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_reader}{DocReader}}\&);}
+\DoxyCodeLine{00176\ \ \ \};}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \textcolor{comment}{//\ Used\ to\ destroy\ the\ active\ document\ in\ the\ context.}}
+\DoxyCodeLine{00179\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_doc_destroyer}{DocDestroyer}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}\ \{}
+\DoxyCodeLine{00180\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classapp_1_1_doc_destroyer}{DocDestroyer}}(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc,\ \textcolor{keywordtype}{int}\ timeout)}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_doc_writer}{DocWriter}}(doc,\ timeout)\ \{}
+\DoxyCodeLine{00183\ \ \ \ \ \}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordtype}{void}\ destroyDocument()\ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ ASSERT(m\_doc\ !=\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \textcolor{comment}{//\ Don't\ create\ a\ backup\ for\ destroyed\ documents\ (e.g.\ documents}}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \textcolor{comment}{//\ are\ destroyed\ when\ they\ are\ used\ internally\ by\ Aseprite\ or\ by}}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \textcolor{comment}{//\ a\ script\ and\ then\ closed\ with\ Sprite:close())}}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc-\/>needsBackup())}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ m\_doc-\/>setInhibitBackup(\textcolor{keyword}{true});}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \ \ \ \ \ \ m\_doc-\/>close();}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc\ =\ m\_doc;}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ unlock();}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \textcolor{keyword}{delete}\ doc;}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ m\_doc\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00200\ \ \ \ \ \}}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keywordtype}{void}\ closeDocument()\ \{}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ ASSERT(m\_doc\ !=\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx\ =\ (\mbox{\hyperlink{classapp_1_1_context}{Context}}*)m\_doc-\/>context();}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ m\_doc-\/>close();}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc\ =\ m\_doc;}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ unlock();}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \ \ ctx-\/>closeDocument(doc);}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ m\_doc\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00212\ \ \ \ \ \}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \ \ \};}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_weak_doc_reader}{WeakDocReader}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}\ \{}
+\DoxyCodeLine{00217\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00218\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_weak_doc_reader}{WeakDocReader}}()\ \{}
+\DoxyCodeLine{00219\ \ \ \ \ \}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classapp_1_1_weak_doc_reader}{WeakDocReader}}(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc)}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ :\ \mbox{\hyperlink{classapp_1_1_doc_access}{DocAccess}}(doc)}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ ,\ m\_weak\_lock(base::RWLock::WeakUnlocked)\ \{}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc)}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ m\_doc-\/>weakLock(\&m\_weak\_lock);}
+\DoxyCodeLine{00226\ \ \ \ \ \}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_weak_doc_reader}{\string~WeakDocReader}}()\ \{}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ weakUnlock();}
+\DoxyCodeLine{00230\ \ \ \ \ \}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keywordtype}{bool}\ isLocked()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_weak\_lock\ ==\ base::RWLock::WeakLocked);}
+\DoxyCodeLine{00234\ \ \ \ \ \}}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00237\ \ \ \ \ \textcolor{keywordtype}{void}\ weakUnlock()\ \{}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_doc\ \&\&\ m\_weak\_lock\ !=\ base::RWLock::WeakUnlocked)\ \{}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ m\_doc-\/>weakUnlock();}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ m\_doc\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00242\ \ \ \ \ \}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{comment}{//\ Disable\ operator=}}
+\DoxyCodeLine{00246\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_weak_doc_reader}{WeakDocReader}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_weak_doc_reader}{WeakDocReader}}\&);}
+\DoxyCodeLine{00247\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_weak_doc_reader}{WeakDocReader}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_weak_doc_reader}{WeakDocReader}}\&);}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \ \ \ \ std::atomic<base::RWLock::WeakLock>\ m\_weak\_lock;}
+\DoxyCodeLine{00250\ \ \ \};}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

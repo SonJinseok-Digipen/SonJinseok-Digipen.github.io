@@ -1,0 +1,113 @@
+.TH "md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build \- Build 
+.PP
+
+.SS "CMake"
+CMakefiles for the library and the examples are available\&. This library has few dependencies, so it is possible to just add the source files into your project\&. Otherwise the usual way will suffice\&.
+.PP
+.PP
+.nf
+mkdir build # make a build dir so that you can build out of tree\&.
+cd build
+cmake \-DUSE_TLS=1 \&.\&.
+make \-j
+make install # will install to /usr/local on Unix, on macOS it is a good idea to sudo chown \-R `whoami`:staff /usr/local
+.fi
+.PP
+.PP
+Headers and a static library will be installed to the target dir\&. There is a unittest which can be executed by typing \fCmake test\fP\&.
+.PP
+Options for building:
+.PP
+.IP "\(bu" 2
+\fC-DBUILD_SHARED_LIBS=ON\fP will build the unittest as a shared libary instead of a static library, which is the default
+.IP "\(bu" 2
+\fC-DUSE_ZLIB=1\fP will enable zlib support, required for http client + server + websocket per message deflate extension
+.IP "\(bu" 2
+\fC-DUSE_TLS=1\fP will enable TLS support
+.IP "\(bu" 2
+\fC-DUSE_OPEN_SSL=1\fP will use \fCopenssl\fP for the TLS support (default on Linux and Windows)\&. When using a custom version of openssl (say a prebuilt version, odd runtime problems can happens, as in #319, and special cmake trickery will be required (see this \fCcomment\fP)
+.IP "\(bu" 2
+\fC-DUSE_MBED_TLS=1\fP will use \fCmbedlts\fP for the TLS support
+.IP "\(bu" 2
+\fC-DUSE_WS=1\fP will build the ws interactive command line tool
+.IP "\(bu" 2
+\fC-DUSE_TEST=1\fP will build the unittest
+.PP
+.PP
+If you are on Windows, look at the \fCappveyor\fP file (not maintained much though) or rather the \fCgithub actions\fP which have instructions for building dependencies\&.
+.PP
+It is also possible to externally include the project, so that everything is fetched over the wire when you build like so:
+.PP
+.PP
+.nf
+ExternalProject_Add(
+    IXWebSocket
+    GIT_REPOSITORY https://github\&.com/machinezone/IXWebSocket\&.git
+    \&.\&.\&.
+)
+.fi
+.PP
+.SS "vcpkg"
+It is possible to get IXWebSocket through Microsoft \fCvcpkg\fP\&.
+.PP
+.PP
+.nf
+vcpkg install ixwebsocket
+.fi
+.PP
+ To use the installed package within a cmake project, use the following: 
+.PP
+.nf
+set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg\&.cmake" CACHE STRING "") # this is super important in order for cmake to include the vcpkg search/lib paths!
+
+# find library and its headers
+find_path(IXWEBSOCKET_INCLUDE_DIR ixwebsocket/IXWebSocket\&.h)
+find_library(IXWEBSOCKET_LIBRARY ixwebsocket)
+# include headers
+include_directories(${IXWEBSOCKET_INCLUDE_DIR})
+# \&.\&.\&.
+target_link_libraries(${PROJECT_NAME} \&.\&.\&. ${IXWEBSOCKET_LIBRARY}) # Cmake will automatically fail the generation if the lib was not found, i\&.e is set to NOTFOUNS
+
+.fi
+.PP
+.SS "Conan"
+\fC\fP.PP
+Conan is currently supported through a recipe in \fCConan Center\fP (\fCBintray entry\fP)\&.
+.PP
+Package reference
+.PP
+.IP "\(bu" 2
+Conan 1\&.21\&.0 and up: \fCixwebsocket/7\&.9\&.2\fP
+.IP "\(bu" 2
+Earlier versions: \fCixwebsocket/7\&.9\&.2@_/_\fP
+.PP
+.PP
+Note that the version listed here might not be the latest one\&. See Bintray or the recipe itself for the latest version\&. If you're migrating from the previous, custom Bintray remote, note that the package reference \fIhas\fP to be lower-case\&.
+.SS "Docker"
+There is a Dockerfile for running the unittest on Linux, and to run the \fCws\fP tool\&. It is also available on the docker registry\&.
+.PP
+.PP
+.nf
+docker run docker\&.pkg\&.github\&.com/machinezone/ixwebsocket/ws:latest \-\-help
+.fi
+.PP
+.PP
+To use docker-compose you must make a docker container first\&.
+.PP
+.PP
+.nf
+$ make docker
+\&.\&.\&.
+$ docker compose up &
+\&.\&.\&.
+$ docker exec \-it ixwebsocket_ws_1 bash
+app@ca2340eb9106:~$ ws \-\-help
+ws is a websocket tool
+\&.\&.\&.
+.fi
+.PP
+ 

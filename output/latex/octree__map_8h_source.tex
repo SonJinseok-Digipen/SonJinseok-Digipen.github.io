@@ -1,0 +1,169 @@
+\hypertarget{octree__map_8h_source}{}\doxysection{octree\+\_\+map.\+h}
+\label{octree__map_8h_source}\index{AseSprite/aseprite/src/doc/octree\_map.h@{AseSprite/aseprite/src/doc/octree\_map.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2020-\/2022\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ DOC\_OCTREEMAP\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ DOC\_OCTREEMAP\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}doc/color.h"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}doc/image\_impl.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}doc/palette.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}doc/rgbmap.h"{}}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <array>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{comment}{//\ When\ this\ DOC\_OCTREE\_IS\_OPAQUE\ 'color'\ is\ asociated\ with}}
+\DoxyCodeLine{00021\ \textcolor{comment}{//\ some\ variable\ which\ represents\ a\ mask\ color,\ it\ tells\ us\ that}}
+\DoxyCodeLine{00022\ \textcolor{comment}{//\ there\ isn't\ any\ transparent\ color\ in\ the\ sprite,\ i.e.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{//\ there\ is\ a\ background\ layer\ in\ the\ sprite.}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ DOC\_OCTREE\_IS\_OPAQUE\ 0x00FFFFFF}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{class\ }OctreeNode;}
+\DoxyCodeLine{00029\ \textcolor{keyword}{using\ }OctreeNodes\ =\ std::vector<OctreeNode*>;}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_octree_node}{OctreeNode}}\ \{}
+\DoxyCodeLine{00032\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{class\ }LeafColor\ \{}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00035\ \ \ \ \ LeafColor()\ :}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ m\_r(0),}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ m\_g(0),}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ m\_b(0),}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ m\_a(0),}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ m\_pixelCount(0)\ \{}
+\DoxyCodeLine{00041\ \ \ \ \ \}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ LeafColor(\textcolor{keywordtype}{int}\ r,\ \textcolor{keywordtype}{int}\ g,\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{size\_t}\ pixelCount)\ :}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ m\_r((\textcolor{keywordtype}{double})r),}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ m\_g((\textcolor{keywordtype}{double})g),}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ m\_b((\textcolor{keywordtype}{double})b),}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ m\_a((\textcolor{keywordtype}{double})\mbox{\hyperlink{structa}{a}}),}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ m\_pixelCount(pixelCount)\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{void}\ add(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c)\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ m\_r\ +=\ rgba\_getr(c);}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ m\_g\ +=\ rgba\_getg(c);}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ m\_b\ +=\ rgba\_getb(c);}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ m\_a\ +=\ rgba\_geta(c);}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ ++m\_pixelCount;}
+\DoxyCodeLine{00057\ \ \ \ \ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{void}\ add(LeafColor\ leafColor)\ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ m\_r\ +=\ leafColor.m\_r;}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ m\_g\ +=\ leafColor.m\_g;}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ m\_b\ +=\ leafColor.m\_b;}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ m\_a\ +=\ leafColor.m\_a;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ m\_pixelCount\ +=\ leafColor.m\_pixelCount;}
+\DoxyCodeLine{00065\ \ \ \ \ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ rgbaColor()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ auxR\ =\ (((int)m\_r)\ \%\ m\_pixelCount\ >\ m\_pixelCount\ /\ 2)\ ?\ 1:\ 0;}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ auxG\ =\ (((int)m\_g)\ \%\ m\_pixelCount\ >\ m\_pixelCount\ /\ 2)\ ?\ 1:\ 0;}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ auxB\ =\ (((int)m\_b)\ \%\ m\_pixelCount\ >\ m\_pixelCount\ /\ 2)\ ?\ 1:\ 0;}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ auxA\ =\ (((int)m\_a)\ \%\ m\_pixelCount\ >\ m\_pixelCount\ /\ 2)\ ?\ 1:\ 0;}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ rgba(\textcolor{keywordtype}{int}(m\_r\ /\ m\_pixelCount\ +\ auxR),}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}(m\_g\ /\ m\_pixelCount\ +\ auxG),}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}(m\_b\ /\ m\_pixelCount\ +\ auxB),}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}(m\_a\ /\ m\_pixelCount\ +\ auxA));}
+\DoxyCodeLine{00076\ \ \ \ \ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ pixelCount()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_pixelCount;\ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{double}\ m\_r;}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{double}\ m\_g;}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{double}\ m\_b;}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{double}\ m\_a;}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ m\_pixelCount;}
+\DoxyCodeLine{00086\ \ \ \};}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00089\ \ \ \mbox{\hyperlink{classdoc_1_1_octree_node}{OctreeNode}}*\ parent()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_parent;\ \}}
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordtype}{bool}\ hasChildren()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_children\ !=\ \textcolor{keyword}{nullptr};\ \}}
+\DoxyCodeLine{00091\ \ \ LeafColor\ leafColor()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_leafColor;\ \}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \textcolor{keywordtype}{void}\ addColor(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c,\ \textcolor{keywordtype}{int}\ level,\ \mbox{\hyperlink{classdoc_1_1_octree_node}{OctreeNode}}*\ parent,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ paletteIndex\ =\ 0,\ \textcolor{keywordtype}{int}\ levelDeep\ =\ 7);}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \textcolor{keywordtype}{int}\ mapColor(\textcolor{keywordtype}{int}\ \ r,\ \textcolor{keywordtype}{int}\ g,\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{int}\ mask\_index,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ palette,\ \textcolor{keywordtype}{int}\ level)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordtype}{void}\ collectLeafNodes(OctreeNodes\&\ leavesVector,\ \textcolor{keywordtype}{int}\&\ paletteIndex);}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \textcolor{comment}{//\ removeLeaves():\ remove\ leaves\ from\ a\ common\ parent}}
+\DoxyCodeLine{00101\ \ \ \textcolor{comment}{//\ auxParentVector:\ i/o\ addreess\ of\ an\ auxiliary\ parent\ leaf\ Vector\ from\ outside.}}
+\DoxyCodeLine{00102\ \ \ \textcolor{comment}{//\ rootLeavesVector:\ i/o\ address\ of\ the\ m\_root-\/>m\_leavesVector}}
+\DoxyCodeLine{00103\ \ \ \textcolor{keywordtype}{int}\ removeLeaves(OctreeNodes\&\ auxParentVector,}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ OctreeNodes\&\ rootLeavesVector);}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00107\ \ \ \textcolor{keywordtype}{bool}\ isLeaf()\ \{\ \textcolor{keywordflow}{return}\ m\_leafColor.pixelCount()\ >\ 0;\ \}}
+\DoxyCodeLine{00108\ \ \ \textcolor{keywordtype}{void}\ paletteIndex(\textcolor{keywordtype}{int}\ index)\ \{\ m\_paletteIndex\ =\ index;\ \}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ getHextet(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c,\ \textcolor{keywordtype}{int}\ level);}
+\DoxyCodeLine{00111\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ getHextet(\textcolor{keywordtype}{int}\ r,\ \textcolor{keywordtype}{int}\ g,\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{int}\ level);}
+\DoxyCodeLine{00112\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ hextetToBranchColor(\textcolor{keywordtype}{int}\ hextet,\ \textcolor{keywordtype}{int}\ level);}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ LeafColor\ m\_leafColor;}
+\DoxyCodeLine{00115\ \ \ \textcolor{keyword}{mutable}\ \textcolor{keywordtype}{int}\ m\_paletteIndex\ =\ -\/1;}
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{mutable}\ std::unique\_ptr<std::array<OctreeNode,\ 16>>\ m\_children;}
+\DoxyCodeLine{00117\ \ \ \mbox{\hyperlink{classdoc_1_1_octree_node}{OctreeNode}}*\ m\_parent\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00118\ \};}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classdoc_1_1_octree_map}{OctreeMap}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}\ \{}
+\DoxyCodeLine{00121\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00122\ \ \ \textcolor{keywordtype}{void}\ addColor(\mbox{\hyperlink{structcolor__t}{color\_t}}\ color,\ \textcolor{keywordtype}{int}\ levelDeep\ =\ 7)\ \{}
+\DoxyCodeLine{00123\ \ \ \ \ m\_root.addColor(color,\ 0,\ \&m\_root,\ 0,\ levelDeep);}
+\DoxyCodeLine{00124\ \ \ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \textcolor{comment}{//\ makePalette\ returns\ true\ if\ a\ 7\ level\ octreeDeep\ is\ OK,\ and\ false}}
+\DoxyCodeLine{00127\ \ \ \textcolor{comment}{//\ if\ we\ can\ add\ ONE\ level\ deep.}}
+\DoxyCodeLine{00128\ \ \ \textcolor{keywordtype}{bool}\ makePalette(\mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ palette,}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ colorCount,}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ levelDeep\ =\ 7);}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordtype}{void}\ feedWithImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ image,}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ withAlpha,}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ maskColor,}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ levelDeep\ =\ 7);}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \textcolor{comment}{//\ RgbMap\ impl}}
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordtype}{void}\ regenerateMap(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ palette,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ maskIndex)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00139\ \ \ \textcolor{keywordtype}{int}\ mapColor(\mbox{\hyperlink{structcolor__t}{color\_t}}\ rgba)\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00140\ \ \ \textcolor{keywordtype}{int}\ maskIndex()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_maskIndex;\ \}}
+\DoxyCodeLine{00141\ \ \ \textcolor{keywordtype}{int}\ mapColor(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ r,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ g,}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00143\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00144\ \ \ \ \ ASSERT(r\ >=\ 0\ \&\&\ r\ <\ 256);}
+\DoxyCodeLine{00145\ \ \ \ \ ASSERT(g\ >=\ 0\ \&\&\ g\ <\ 256);}
+\DoxyCodeLine{00146\ \ \ \ \ ASSERT(b\ >=\ 0\ \&\&\ b\ <\ 256);}
+\DoxyCodeLine{00147\ \ \ \ \ ASSERT(\mbox{\hyperlink{structa}{a}}\ >=\ 0\ \&\&\ \mbox{\hyperlink{structa}{a}}\ <\ 256);}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordflow}{return}\ mapColor(rgba(r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}}));}
+\DoxyCodeLine{00149\ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{keywordtype}{int}\ moodifications()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_modifications;\ \};}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00154\ \ \ \mbox{\hyperlink{classdoc_1_1_octree_node}{OctreeNode}}\ m\_root;}
+\DoxyCodeLine{00155\ \ \ OctreeNodes\ m\_leavesVector;}
+\DoxyCodeLine{00156\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00157\ \ \ \textcolor{keywordtype}{int}\ m\_modifications\ =\ 0;}
+\DoxyCodeLine{00158\ \ \ \textcolor{keywordtype}{int}\ m\_maskIndex\ =\ 0;}
+\DoxyCodeLine{00159\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_maskColor\ =\ 0;}
+\DoxyCodeLine{00160\ \};}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \}\ \textcolor{comment}{//\ namespace\ doc}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

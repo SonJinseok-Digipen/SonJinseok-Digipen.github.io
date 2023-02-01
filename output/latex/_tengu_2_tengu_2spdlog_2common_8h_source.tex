@@ -1,0 +1,418 @@
+\hypertarget{_tengu_2_tengu_2spdlog_2common_8h_source}{}\doxysection{common.\+h}
+\label{_tengu_2_tengu_2spdlog_2common_8h_source}\index{Tengu/Tengu/spdlog/common.h@{Tengu/Tengu/spdlog/common.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <spdlog/tweakme.h>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <spdlog/details/null\_mutex.h>}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <chrono>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <initializer\_list>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <exception>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <type\_traits>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_USE\_STD\_FORMAT}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#\ \ \ \ include\ <version>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#\ \ \ \ if\ \_\_cpp\_lib\_format\ >=\ 202207L}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ include\ <format>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#\ \ \ \ else}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ include\ <string\_view>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_COMPILED\_LIB}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#\ \ \ \ undef\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#\ \ \ \ if\ defined(SPDLOG\_SHARED\_LIB)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ if\ defined(\_WIN32)}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ \ \ \ \ ifdef\ spdlog\_EXPORTS}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ define\ SPDLOG\_API\ \_\_declspec(dllexport)}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ \ \ \ \ else\ }\textcolor{comment}{//\ !spdlog\_EXPORTS}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ define\ SPDLOG\_API\ \_\_declspec(dllimport)}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ \ \ \ \ endif}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ else\ }\textcolor{comment}{//\ !defined(\_WIN32)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ \ \ \ \ define\ SPDLOG\_API\ \_\_attribute\_\_((visibility("{}default"{}})))}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ endif}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#\ \ \ \ else\ }\textcolor{comment}{//\ !defined(SPDLOG\_SHARED\_LIB)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ define\ SPDLOG\_API}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_INLINE}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{//\ !defined(SPDLOG\_COMPILED\_LIB)}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_API}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_INLINE\ inline}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ \#ifdef\ SPDLOG\_COMPILED\_LIB}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#include\ <spdlog/fmt/fmt.h>}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#if\ !defined(SPDLOG\_USE\_STD\_FORMAT)\ \&\&\ FMT\_VERSION\ >=\ 80000\ }\textcolor{comment}{//\ backward\ compatibility\ with\ fmt\ versions\ older\ than\ 8}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FMT\_RUNTIME(format\_string)\ fmt::runtime(format\_string)}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FMT\_STRING(format\_string)\ FMT\_STRING(format\_string)}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#\ \ \ \ if\ defined(SPDLOG\_WCHAR\_FILENAMES)\ ||\ defined(SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ include\ <spdlog/fmt/xchar.h>}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FMT\_RUNTIME(format\_string)\ format\_string}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FMT\_STRING(format\_string)\ format\_string}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{comment}{//\ visual\ studio\ up\ to\ 2013\ does\ not\ support\ noexcept\ nor\ constexpr}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)\ \&\&\ (\_MSC\_VER\ <\ 1900)}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_NOEXCEPT\ \_NOEXCEPT}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_CONSTEXPR}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_CONSTEXPR\_FUNC\ inline}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_NOEXCEPT\ noexcept}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_CONSTEXPR\ constexpr}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#\ \ \ \ if\ \_\_cplusplus\ >=\ 201402L}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ define\ SPDLOG\_CONSTEXPR\_FUNC\ constexpr}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#\ \ \ \ else}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ define\ SPDLOG\_CONSTEXPR\_FUNC\ inline}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)\ ||\ defined(\_\_clang\_\_)}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_DEPRECATED\ \_\_attribute\_\_((deprecated))}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_DEPRECATED\ \_\_declspec(deprecated)}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_DEPRECATED}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ disable\ thread\ local\ on\ msvc\ 2013}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#ifndef\ SPDLOG\_NO\_TLS}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#\ \ \ \ if\ (defined(\_MSC\_VER)\ \&\&\ (\_MSC\_VER\ <\ 1900))\ ||\ defined(\_\_cplusplus\_winrt)}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ define\ SPDLOG\_NO\_TLS\ 1}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#ifndef\ SPDLOG\_FUNCTION}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FUNCTION\ static\_cast<const\ char\ *>(\_\_FUNCTION\_\_)}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_NO\_EXCEPTIONS}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_TRY}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_THROW(ex)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ printf("{}spdlog\ fatal\ error:\ \%s\(\backslash\)n"{}},\ ex.what());\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \ \ \ \ std::abort();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \}\ while\ (0)}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_CATCH\_STD}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_TRY\ try}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_THROW(ex)\ throw(ex)}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_CATCH\_STD\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ catch\ (const\ std::exception\ \&)\ \{\}}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{keyword}{class\ }\mbox{\hyperlink{structformatter}{formatter}};}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{keyword}{namespace\ }sinks\ \{}
+\DoxyCodeLine{00118\ \textcolor{keyword}{class\ }sink;}
+\DoxyCodeLine{00119\ \}}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#if\ defined(\_WIN32)\ \&\&\ defined(SPDLOG\_WCHAR\_FILENAMES)}}
+\DoxyCodeLine{00122\ \textcolor{keyword}{using\ }filename\_t\ =\ std::wstring;}
+\DoxyCodeLine{00123\ \textcolor{comment}{//\ allow\ macro\ expansion\ to\ occur\ in\ SPDLOG\_FILENAME\_T}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FILENAME\_T\_INNER(s)\ L\#\#s}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FILENAME\_T(s)\ SPDLOG\_FILENAME\_T\_INNER(s)}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00127\ \textcolor{keyword}{using\ }filename\_t\ =\ std::string;}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_FILENAME\_T(s)\ s}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{keyword}{using\ }log\_clock\ =\ std::chrono::system\_clock;}
+\DoxyCodeLine{00132\ \textcolor{keyword}{using\ }sink\_ptr\ =\ std::shared\_ptr<sinks::sink>;}
+\DoxyCodeLine{00133\ \textcolor{keyword}{using\ }sinks\_init\_list\ =\ std::initializer\_list<sink\_ptr>;}
+\DoxyCodeLine{00134\ \textcolor{keyword}{using\ }err\_handler\ =\ std::function<void(\textcolor{keyword}{const}\ std::string\ \&err\_msg)>;}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_USE\_STD\_FORMAT}}
+\DoxyCodeLine{00136\ \textcolor{keyword}{namespace\ }fmt\_lib\ =\ std;}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{keyword}{using\ }string\_view\_t\ =\ std::string\_view;}
+\DoxyCodeLine{00139\ \textcolor{keyword}{using\ }memory\_buf\_t\ =\ std::string;}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#\ \ \ \ if\ \_\_cpp\_lib\_format\ >=\ 202207L}}
+\DoxyCodeLine{00143\ \textcolor{keyword}{using\ }format\_string\_t\ =\ std::format\_string<Args...>;}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\#\ \ \ \ else}}
+\DoxyCodeLine{00145\ \textcolor{keyword}{using\ }format\_string\_t\ =\ std::string\_view;}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ T,\ \textcolor{keyword}{class}\ Char\ =\ \textcolor{keywordtype}{char}>}
+\DoxyCodeLine{00149\ \textcolor{keyword}{struct\ }is\_convertible\_to\_basic\_format\_string\ :\ std::integral\_constant<bool,\ std::is\_convertible<T,\ std::basic\_string\_view<Char>>::value>}
+\DoxyCodeLine{00150\ \{\};}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#\ \ \ \ if\ defined(SPDLOG\_WCHAR\_FILENAMES)\ ||\ defined(SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT)}}
+\DoxyCodeLine{00153\ \textcolor{keyword}{using\ }wstring\_view\_t\ =\ std::wstring\_view;}
+\DoxyCodeLine{00154\ \textcolor{keyword}{using\ }wmemory\_buf\_t\ =\ std::wstring;}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ if\ \_\_cpp\_lib\_format\ >=\ 202207L}}
+\DoxyCodeLine{00158\ \textcolor{keyword}{using\ }wformat\_string\_t\ =\ std::wformat\_string<Args...>;}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ else}}
+\DoxyCodeLine{00160\ \textcolor{keyword}{using\ }wformat\_string\_t\ =\ std::wstring\_view;}
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ endif}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_BUF\_TO\_STRING(x)\ x}}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{//\ use\ fmt\ lib\ instead\ of\ std::format}}
+\DoxyCodeLine{00165\ \textcolor{keyword}{namespace\ }fmt\_lib\ =\ fmt;}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \textcolor{keyword}{using\ }string\_view\_t\ =\ fmt::basic\_string\_view<char>;}
+\DoxyCodeLine{00168\ \textcolor{keyword}{using\ }memory\_buf\_t\ =\ fmt::basic\_memory\_buffer<char,\ 250>;}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00171\ \textcolor{keyword}{using\ }format\_string\_t\ =\ fmt::format\_string<Args...>;}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ T>}
+\DoxyCodeLine{00174\ \textcolor{keyword}{using\ }remove\_cvref\_t\ =\ \textcolor{keyword}{typename}\ std::remove\_cv<typename\ std::remove\_reference<T>::type>::type;}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{comment}{//\ clang\ doesn't\ like\ SFINAE\ disabled\ constructor\ in\ std::is\_convertible<>\ so\ have\ to\ repeat\ the\ condition\ from\ basic\_format\_string\ here,}}
+\DoxyCodeLine{00177\ \textcolor{comment}{//\ in\ addition,\ fmt::basic\_runtime<Char>\ is\ only\ convertible\ to\ basic\_format\_string<Char>\ but\ not\ basic\_string\_view<Char>}}
+\DoxyCodeLine{00178\ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ T,\ \textcolor{keyword}{class}\ Char\ =\ \textcolor{keywordtype}{char}>}
+\DoxyCodeLine{00179\ \textcolor{keyword}{struct\ }is\_convertible\_to\_basic\_format\_string}
+\DoxyCodeLine{00180\ \ \ \ \ :\ std::integral\_constant<bool,}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ std::is\_convertible<T,\ fmt::basic\_string\_view<Char>>::value\ ||\ std::is\_same<remove\_cvref\_t<T>,\ fmt::basic\_runtime<Char>>::value>}
+\DoxyCodeLine{00182\ \{\};}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#\ \ \ \ if\ defined(SPDLOG\_WCHAR\_FILENAMES)\ ||\ defined(SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT)}}
+\DoxyCodeLine{00185\ \textcolor{keyword}{using\ }wstring\_view\_t\ =\ fmt::basic\_string\_view<wchar\_t>;}
+\DoxyCodeLine{00186\ \textcolor{keyword}{using\ }wmemory\_buf\_t\ =\ fmt::basic\_memory\_buffer<wchar\_t,\ 250>;}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00189\ \textcolor{keyword}{using\ }wformat\_string\_t\ =\ fmt::wformat\_string<Args...>;}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_BUF\_TO\_STRING(x)\ fmt::to\_string(x)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\#\ \ \ \ ifndef\ \_WIN32}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ error\ SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT\ only\ supported\ on\ windows}}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\#\ \ \ \ endif\ }\textcolor{comment}{//\ \_WIN32}}
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\#endif\ \ \ \ \ }\textcolor{comment}{//\ SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT}}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ T>}
+\DoxyCodeLine{00201\ \textcolor{keyword}{struct\ }is\_convertible\_to\_any\_format\_string\ :\ std::integral\_constant<bool,\ is\_convertible\_to\_basic\_format\_string<T,\ char>::value\ ||}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ is\_convertible\_to\_basic\_format\_string<T,\ wchar\_t>::value>}
+\DoxyCodeLine{00203\ \{\};}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\#if\ defined(SPDLOG\_NO\_ATOMIC\_LEVELS)}}
+\DoxyCodeLine{00206\ \textcolor{keyword}{using\ }level\_t\ =\ details::null\_atomic\_int;}
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00208\ \textcolor{keyword}{using\ }level\_t\ =\ std::atomic<int>;}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_TRACE\ 0}}
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_DEBUG\ 1}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_INFO\ 2}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_WARN\ 3}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_ERROR\ 4}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_CRITICAL\ 5}}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_OFF\ 6}}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\#if\ !defined(SPDLOG\_ACTIVE\_LEVEL)}}
+\DoxyCodeLine{00220\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_ACTIVE\_LEVEL\ SPDLOG\_LEVEL\_INFO}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \textcolor{comment}{//\ Log\ level\ enum}}
+\DoxyCodeLine{00224\ \textcolor{keyword}{namespace\ }level\ \{}
+\DoxyCodeLine{00225\ \textcolor{keyword}{enum}\ level\_enum\ :\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00226\ \{}
+\DoxyCodeLine{00227\ \ \ \ \ trace\ =\ SPDLOG\_LEVEL\_TRACE,}
+\DoxyCodeLine{00228\ \ \ \ \ debug\ =\ SPDLOG\_LEVEL\_DEBUG,}
+\DoxyCodeLine{00229\ \ \ \ \ info\ =\ SPDLOG\_LEVEL\_INFO,}
+\DoxyCodeLine{00230\ \ \ \ \ warn\ =\ SPDLOG\_LEVEL\_WARN,}
+\DoxyCodeLine{00231\ \ \ \ \ err\ =\ SPDLOG\_LEVEL\_ERROR,}
+\DoxyCodeLine{00232\ \ \ \ \ critical\ =\ SPDLOG\_LEVEL\_CRITICAL,}
+\DoxyCodeLine{00233\ \ \ \ \ off\ =\ SPDLOG\_LEVEL\_OFF,}
+\DoxyCodeLine{00234\ \ \ \ \ n\_levels}
+\DoxyCodeLine{00235\ \};}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_NAME\_TRACE\ spdlog::string\_view\_t("{}trace"{}},\ 5)}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_NAME\_DEBUG\ spdlog::string\_view\_t("{}debug"{}},\ 5)}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_NAME\_INFO\ spdlog::string\_view\_t("{}info"{}},\ 4)}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_NAME\_WARNING\ spdlog::string\_view\_t("{}warning"{}},\ 7)}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_NAME\_ERROR\ spdlog::string\_view\_t("{}error"{}},\ 5)}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_NAME\_CRITICAL\ spdlog::string\_view\_t("{}critical"{}},\ 8)}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#define\ SPDLOG\_LEVEL\_NAME\_OFF\ spdlog::string\_view\_t("{}off"{}},\ 3)}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\#if\ !defined(SPDLOG\_LEVEL\_NAMES)}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_LEVEL\_NAMES\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_LEVEL\_NAME\_TRACE,\ SPDLOG\_LEVEL\_NAME\_DEBUG,\ SPDLOG\_LEVEL\_NAME\_INFO,\ SPDLOG\_LEVEL\_NAME\_WARNING,\ SPDLOG\_LEVEL\_NAME\_ERROR,\ \ \(\backslash\)}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SPDLOG\_LEVEL\_NAME\_CRITICAL,\ SPDLOG\_LEVEL\_NAME\_OFF\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00251\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \textcolor{preprocessor}{\#if\ !defined(SPDLOG\_SHORT\_LEVEL\_NAMES)}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \textcolor{preprocessor}{\#\ \ \ \ define\ SPDLOG\_SHORT\_LEVEL\_NAMES\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ "{}T"{}},\ "{}D"{},\ "{}I"{},\ "{}W"{},\ "{}E"{},\ "{}C"{},\ "{}O"{}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ SPDLOG\_API\ \textcolor{keyword}{const}\ string\_view\_t\ \&to\_string\_view(spdlog::level::level\_enum\ l)\ SPDLOG\_NOEXCEPT;}
+\DoxyCodeLine{00262\ SPDLOG\_API\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *to\_short\_c\_str(spdlog::level::level\_enum\ l)\ SPDLOG\_NOEXCEPT;}
+\DoxyCodeLine{00263\ SPDLOG\_API\ spdlog::level::level\_enum\ from\_str(\textcolor{keyword}{const}\ std::string\ \&name)\ SPDLOG\_NOEXCEPT;}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \}\ \textcolor{comment}{//\ namespace\ level}}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \textcolor{comment}{//}}
+\DoxyCodeLine{00268\ \textcolor{comment}{//\ Color\ mode\ used\ by\ sinks\ with\ color\ support.}}
+\DoxyCodeLine{00269\ \textcolor{comment}{//}}
+\DoxyCodeLine{00270\ \textcolor{keyword}{enum\ class}\ color\_mode}
+\DoxyCodeLine{00271\ \{}
+\DoxyCodeLine{00272\ \ \ \ \ always,}
+\DoxyCodeLine{00273\ \ \ \ \ automatic,}
+\DoxyCodeLine{00274\ \ \ \ \ never}
+\DoxyCodeLine{00275\ \};}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \textcolor{comment}{//}}
+\DoxyCodeLine{00278\ \textcolor{comment}{//\ Pattern\ time\ -\/\ specific\ time\ getting\ to\ use\ for\ pattern\_formatter.}}
+\DoxyCodeLine{00279\ \textcolor{comment}{//\ local\ time\ by\ default}}
+\DoxyCodeLine{00280\ \textcolor{comment}{//}}
+\DoxyCodeLine{00281\ \textcolor{keyword}{enum\ class}\ pattern\_time\_type}
+\DoxyCodeLine{00282\ \{}
+\DoxyCodeLine{00283\ \ \ \ \ local,\ \textcolor{comment}{//\ log\ localtime}}
+\DoxyCodeLine{00284\ \ \ \ \ utc\ \ \ \ \textcolor{comment}{//\ log\ utc}}
+\DoxyCodeLine{00285\ \};}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \textcolor{comment}{//}}
+\DoxyCodeLine{00288\ \textcolor{comment}{//\ Log\ exception}}
+\DoxyCodeLine{00289\ \textcolor{comment}{//}}
+\DoxyCodeLine{00290\ \textcolor{keyword}{class\ }SPDLOG\_API\ spdlog\_ex\ :\ \textcolor{keyword}{public}\ std::exception}
+\DoxyCodeLine{00291\ \{}
+\DoxyCodeLine{00292\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00293\ \ \ \ \ \textcolor{keyword}{explicit}\ spdlog\_ex(std::string\ msg);}
+\DoxyCodeLine{00294\ \ \ \ \ spdlog\_ex(\textcolor{keyword}{const}\ std::string\ \&msg,\ \textcolor{keywordtype}{int}\ last\_errno);}
+\DoxyCodeLine{00295\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *what()\ const\ SPDLOG\_NOEXCEPT\ override;}
+\DoxyCodeLine{00296\ }
+\DoxyCodeLine{00297\ private:}
+\DoxyCodeLine{00298\ \ \ \ \ std::\textcolor{keywordtype}{string}\ msg\_;}
+\DoxyCodeLine{00299\ \};}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ [[noreturn]]\ SPDLOG\_API\ \textcolor{keywordtype}{void}\ throw\_spdlog\_ex(const\ std::\textcolor{keywordtype}{string}\ \&msg,\ \textcolor{keywordtype}{int}\ last\_errno);}
+\DoxyCodeLine{00302\ [[noreturn]]\ SPDLOG\_API\ \textcolor{keywordtype}{void}\ throw\_spdlog\_ex(std::\textcolor{keywordtype}{string}\ msg);}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ struct\ source\_loc}
+\DoxyCodeLine{00305\ \{}
+\DoxyCodeLine{00306\ \ \ \ \ SPDLOG\_CONSTEXPR\ source\_loc()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00307\ \ \ \ \ SPDLOG\_CONSTEXPR\ source\_loc(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *filename\_in,\ \textcolor{keywordtype}{int}\ line\_in,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *funcname\_in)}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ :\ filename\{filename\_in\}}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ ,\ line\{line\_in\}}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ ,\ funcname\{funcname\_in\}}
+\DoxyCodeLine{00311\ \ \ \ \ \{\}}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \ \ \ \ SPDLOG\_CONSTEXPR\ \textcolor{keywordtype}{bool}\ empty()\ const\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00314\ \ \ \ \ \{}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ line\ ==\ 0;}
+\DoxyCodeLine{00316\ \ \ \ \ \}}
+\DoxyCodeLine{00317\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *filename\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00318\ \ \ \ \ \textcolor{keywordtype}{int}\ line\{0\};}
+\DoxyCodeLine{00319\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *funcname\{\textcolor{keyword}{nullptr}\};}
+\DoxyCodeLine{00320\ \};}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \textcolor{keyword}{struct\ }file\_event\_handlers}
+\DoxyCodeLine{00323\ \{}
+\DoxyCodeLine{00324\ \ \ \ \ file\_event\_handlers()}
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \ \ :\ before\_open(nullptr)}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \ \ ,\ after\_open(nullptr)}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \ \ ,\ before\_close(nullptr)}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \ \ ,\ after\_close(nullptr)}
+\DoxyCodeLine{00329\ \ \ \ \ \{\}}
+\DoxyCodeLine{00330\ }
+\DoxyCodeLine{00331\ \ \ \ \ std::function<void(\textcolor{keyword}{const}\ filename\_t\ \&filename)>\ before\_open;}
+\DoxyCodeLine{00332\ \ \ \ \ std::function<void(\textcolor{keyword}{const}\ filename\_t\ \&filename,\ std::FILE\ *file\_stream)>\ after\_open;}
+\DoxyCodeLine{00333\ \ \ \ \ std::function<void(\textcolor{keyword}{const}\ filename\_t\ \&filename,\ std::FILE\ *file\_stream)>\ before\_close;}
+\DoxyCodeLine{00334\ \ \ \ \ std::function<void(\textcolor{keyword}{const}\ filename\_t\ \&filename)>\ after\_close;}
+\DoxyCodeLine{00335\ \};}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \textcolor{keyword}{namespace\ }details\ \{}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \textcolor{comment}{//\ to\_string\_view}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ SPDLOG\_CONSTEXPR\_FUNC\ spdlog::string\_view\_t\ to\_string\_view(\textcolor{keyword}{const}\ memory\_buf\_t\ \&\mbox{\hyperlink{structbuf}{buf}})\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00342\ \{}
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{keywordflow}{return}\ spdlog::string\_view\_t\{\mbox{\hyperlink{structbuf}{buf}}.data(),\ \mbox{\hyperlink{structbuf}{buf}}.size()\};}
+\DoxyCodeLine{00344\ \}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ SPDLOG\_CONSTEXPR\_FUNC\ spdlog::string\_view\_t\ to\_string\_view(spdlog::string\_view\_t\ str)\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00347\ \{}
+\DoxyCodeLine{00348\ \ \ \ \ \textcolor{keywordflow}{return}\ str;}
+\DoxyCodeLine{00349\ \}}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\#if\ defined(SPDLOG\_WCHAR\_FILENAMES)\ ||\ defined(SPDLOG\_WCHAR\_TO\_UTF8\_SUPPORT)}}
+\DoxyCodeLine{00352\ SPDLOG\_CONSTEXPR\_FUNC\ spdlog::wstring\_view\_t\ to\_string\_view(\textcolor{keyword}{const}\ wmemory\_buf\_t\ \&\mbox{\hyperlink{structbuf}{buf}})\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00353\ \{}
+\DoxyCodeLine{00354\ \ \ \ \ \textcolor{keywordflow}{return}\ spdlog::wstring\_view\_t\{\mbox{\hyperlink{structbuf}{buf}}.data(),\ \mbox{\hyperlink{structbuf}{buf}}.size()\};}
+\DoxyCodeLine{00355\ \}}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ SPDLOG\_CONSTEXPR\_FUNC\ spdlog::wstring\_view\_t\ to\_string\_view(spdlog::wstring\_view\_t\ str)\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00358\ \{}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordflow}{return}\ str;}
+\DoxyCodeLine{00360\ \}}
+\DoxyCodeLine{00361\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\#ifndef\ SPDLOG\_USE\_STD\_FORMAT}}
+\DoxyCodeLine{00364\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00365\ \textcolor{keyword}{inline}\ fmt::basic\_string\_view<T>\ to\_string\_view(fmt::basic\_format\_string<T,\ Args...>\ fmt)}
+\DoxyCodeLine{00366\ \{}
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{keywordflow}{return}\ fmt;}
+\DoxyCodeLine{00368\ \}}
+\DoxyCodeLine{00369\ \textcolor{preprocessor}{\#elif\ \_\_cpp\_lib\_format\ >=\ 202207L}}
+\DoxyCodeLine{00370\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00371\ SPDLOG\_CONSTEXPR\_FUNC\ std::basic\_string\_view<T>\ to\_string\_view(std::basic\_format\_string<T,\ Args...>\ fmt)\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00372\ \{}
+\DoxyCodeLine{00373\ \ \ \ \ \textcolor{keywordflow}{return}\ fmt.get();}
+\DoxyCodeLine{00374\ \}}
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \textcolor{comment}{//\ make\_unique\ support\ for\ pre\ c++14}}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \textcolor{preprocessor}{\#if\ \_\_cplusplus\ >=\ 201402L\ }\textcolor{comment}{//\ C++14\ and\ beyond}}
+\DoxyCodeLine{00380\ \textcolor{keyword}{using\ }std::enable\_if\_t;}
+\DoxyCodeLine{00381\ \textcolor{keyword}{using\ }std::make\_unique;}
+\DoxyCodeLine{00382\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00383\ \textcolor{keyword}{template}<\textcolor{keywordtype}{bool}\ B,\ \textcolor{keyword}{class}\ T\ =\ \textcolor{keywordtype}{void}>}
+\DoxyCodeLine{00384\ \textcolor{keyword}{using\ }enable\_if\_t\ =\ \textcolor{keyword}{typename}\ std::enable\_if<B,\ T>::type;}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00387\ std::unique\_ptr<T>\ make\_unique(Args\ \&\&...\ args)}
+\DoxyCodeLine{00388\ \{}
+\DoxyCodeLine{00389\ \ \ \ \ \textcolor{keyword}{static\_assert}(!std::is\_array<T>::value,\ \textcolor{stringliteral}{"{}arrays\ not\ supported"{}});}
+\DoxyCodeLine{00390\ \ \ \ \ \textcolor{keywordflow}{return}\ std::unique\_ptr<T>(\textcolor{keyword}{new}\ T(std::forward<Args>(args)...));}
+\DoxyCodeLine{00391\ \}}
+\DoxyCodeLine{00392\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \textcolor{comment}{//\ to\ avoid\ useless\ casts\ (see\ https://github.com/nlohmann/json/issues/2893\#issuecomment-\/889152324)}}
+\DoxyCodeLine{00395\ template<typename\ T,\ typename\ U,\ enable\_if\_t<!std::is\_same<T,\ U>::value,\ \textcolor{keywordtype}{int}>\ =\ 0>}
+\DoxyCodeLine{00396\ \textcolor{keyword}{constexpr}\ T\ conditional\_static\_cast(U\ \mbox{\hyperlink{classvalue}{value}})}
+\DoxyCodeLine{00397\ \{}
+\DoxyCodeLine{00398\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}T\textcolor{keyword}{>}(\mbox{\hyperlink{classvalue}{value}});}
+\DoxyCodeLine{00399\ \}}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ template<typename\ T,\ typename\ U,\ enable\_if\_t<std::is\_same<T,\ U>::value,\ \textcolor{keywordtype}{int}>\ =\ 0>}
+\DoxyCodeLine{00402\ \textcolor{keyword}{constexpr}\ T\ conditional\_static\_cast(U\ \mbox{\hyperlink{classvalue}{value}})}
+\DoxyCodeLine{00403\ \{}
+\DoxyCodeLine{00404\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00405\ \}}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \}\ \textcolor{comment}{//\ namespace\ details}}
+\DoxyCodeLine{00408\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+\DoxyCodeLine{00409\ }
+\DoxyCodeLine{00410\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00411\ \textcolor{preprocessor}{\#\ \ \ \ include\ "{}common-\/inl.h"{}}}
+\DoxyCodeLine{00412\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

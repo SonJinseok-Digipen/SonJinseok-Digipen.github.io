@@ -1,0 +1,102 @@
+\hypertarget{smtp_8h_source}{}\doxysection{smtp.\+h}
+\label{smtp_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/smtp.h@{AseSprite/aseprite/third\_party/curl/lib/smtp.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_SMTP\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_SMTP\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2009\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}pingpong.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}curl\_sasl.h"{}}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ SMTP\ unique\ setup}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00031\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00032\ \ \ SMTP\_STOP,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ do\ nothing\ state,\ stops\ the\ state\ machine\ */}}
+\DoxyCodeLine{00033\ \ \ SMTP\_SERVERGREET,\ \textcolor{comment}{/*\ waiting\ for\ the\ initial\ greeting\ immediately\ after}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ a\ connect\ */}}
+\DoxyCodeLine{00035\ \ \ SMTP\_EHLO,}
+\DoxyCodeLine{00036\ \ \ SMTP\_HELO,}
+\DoxyCodeLine{00037\ \ \ SMTP\_STARTTLS,}
+\DoxyCodeLine{00038\ \ \ SMTP\_UPGRADETLS,\ \ \textcolor{comment}{/*\ asynchronously\ upgrade\ the\ connection\ to\ SSL/TLS}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (multi\ mode\ only)\ */}}
+\DoxyCodeLine{00040\ \ \ SMTP\_AUTH,}
+\DoxyCodeLine{00041\ \ \ SMTP\_COMMAND,\ \ \ \ \ \textcolor{comment}{/*\ VRFY,\ EXPN,\ NOOP,\ RSET\ and\ HELP\ */}}
+\DoxyCodeLine{00042\ \ \ SMTP\_MAIL,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ MAIL\ FROM\ */}}
+\DoxyCodeLine{00043\ \ \ SMTP\_RCPT,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ RCPT\ TO\ */}}
+\DoxyCodeLine{00044\ \ \ SMTP\_DATA,}
+\DoxyCodeLine{00045\ \ \ SMTP\_POSTDATA,}
+\DoxyCodeLine{00046\ \ \ SMTP\_QUIT,}
+\DoxyCodeLine{00047\ \ \ SMTP\_LAST\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ never\ used\ */}}
+\DoxyCodeLine{00048\ \}\ smtpstate;}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{comment}{/*\ This\ SMTP\ struct\ is\ used\ in\ the\ Curl\_easy.\ All\ SMTP\ data\ that\ is}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ connection-\/oriented\ must\ be\ in\ smtp\_conn\ to\ properly\ deal\ with\ the\ fact\ that}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ perhaps\ the\ Curl\_easy\ is\ changed\ between\ the\ times\ the\ connection\ is}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ used.\ */}}
+\DoxyCodeLine{00054\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_s_m_t_p}{SMTP}}\ \{}
+\DoxyCodeLine{00055\ \ \ curl\_pp\_transfer\ \mbox{\hyperlink{structtransfer}{transfer}};}
+\DoxyCodeLine{00056\ \ \ \textcolor{keywordtype}{char}\ *custom;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Custom\ Request\ */}}
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcurl__slist}{curl\_slist}}\ *rcpt;\ \textcolor{comment}{/*\ Recipient\ list\ */}}
+\DoxyCodeLine{00058\ \ \ \textcolor{keywordtype}{bool}\ rcpt\_had\_ok;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Whether\ any\ of\ RCPT\ TO\ commands\ (depends\ on}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ total\ number\ of\ recipients)\ succeeded\ so\ far\ */}}
+\DoxyCodeLine{00060\ \ \ \textcolor{keywordtype}{bool}\ trailing\_crlf;\ \ \ \ \ \ \textcolor{comment}{/*\ Specifies\ if\ the\ trailing\ CRLF\ is\ present\ */}}
+\DoxyCodeLine{00061\ \ \ \textcolor{keywordtype}{int}\ rcpt\_last\_error;\ \ \ \ \ \textcolor{comment}{/*\ The\ last\ error\ received\ for\ RCPT\ TO\ command\ */}}
+\DoxyCodeLine{00062\ \ \ \textcolor{keywordtype}{size\_t}\ eob;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ bytes\ of\ the\ EOB\ (End\ Of\ Body)\ that}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ have\ been\ received\ so\ far\ */}}
+\DoxyCodeLine{00064\ \};}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{comment}{/*\ smtp\_conn\ is\ used\ for\ struct\ connection-\/oriented\ data\ in\ the\ connectdata}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ struct\ */}}
+\DoxyCodeLine{00068\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsmtp__conn}{smtp\_conn}}\ \{}
+\DoxyCodeLine{00069\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpingpong}{pingpong}}\ pp;}
+\DoxyCodeLine{00070\ \ \ smtpstate\ \mbox{\hyperlink{structstate}{state}};\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Always\ use\ smtp.c:state()\ to\ change\ state!\ */}}
+\DoxyCodeLine{00071\ \ \ \textcolor{keywordtype}{bool}\ ssldone;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Is\ connect()\ over\ SSL\ done?\ */}}
+\DoxyCodeLine{00072\ \ \ \textcolor{keywordtype}{char}\ *domain;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Client\ address/name\ to\ send\ in\ the\ EHLO\ */}}
+\DoxyCodeLine{00073\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_s_a_s_l}{SASL}}\ sasl;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ SASL-\/related\ storage\ */}}
+\DoxyCodeLine{00074\ \ \ \textcolor{keywordtype}{bool}\ tls\_supported;\ \ \ \ \ \ \textcolor{comment}{/*\ StartTLS\ capability\ supported\ by\ server\ */}}
+\DoxyCodeLine{00075\ \ \ \textcolor{keywordtype}{bool}\ size\_supported;\ \ \ \ \ \textcolor{comment}{/*\ If\ server\ supports\ SIZE\ extension\ according\ to}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ RFC\ 1870\ */}}
+\DoxyCodeLine{00077\ \ \ \textcolor{keywordtype}{bool}\ utf8\_supported;\ \ \ \ \ \textcolor{comment}{/*\ If\ server\ supports\ SMTPUTF8\ extension\ according}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ to\ RFC\ 6531\ */}}
+\DoxyCodeLine{00079\ \ \ \textcolor{keywordtype}{bool}\ auth\_supported;\ \ \ \ \ \textcolor{comment}{/*\ AUTH\ capability\ supported\ by\ server\ */}}
+\DoxyCodeLine{00080\ \};}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__handler}{Curl\_handler}}\ Curl\_handler\_smtp;}
+\DoxyCodeLine{00083\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__handler}{Curl\_handler}}\ Curl\_handler\_smtps;}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{comment}{/*\ this\ is\ the\ 5-\/bytes\ End-\/Of-\/Body\ marker\ for\ SMTP\ */}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ SMTP\_EOB\ "{}\(\backslash\)x0d\(\backslash\)x0a\(\backslash\)x2e\(\backslash\)x0d\(\backslash\)x0a"{}}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ SMTP\_EOB\_LEN\ 5}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#define\ SMTP\_EOB\_FIND\_LEN\ 3}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{/*\ if\ found\ in\ data,\ replace\ it\ with\ this\ string\ instead\ */}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#define\ SMTP\_EOB\_REPL\ "{}\(\backslash\)x0d\(\backslash\)x0a\(\backslash\)x2e\(\backslash\)x2e"{}}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#define\ SMTP\_EOB\_REPL\_LEN\ 4}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ CURLcode\ Curl\_smtp\_escape\_eob(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{const}\ ssize\_t\ nread);}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_SMTP\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

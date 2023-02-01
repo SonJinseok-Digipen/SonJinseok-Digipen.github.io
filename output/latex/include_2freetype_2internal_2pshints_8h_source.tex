@@ -1,0 +1,705 @@
+\hypertarget{include_2freetype_2internal_2pshints_8h_source}{}\doxysection{pshints.\+h}
+\label{include_2freetype_2internal_2pshints_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/pshints.h@{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/pshints.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ pshints.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Interface\ to\ Postscript-\/specific\ (Type\ 1\ and\ Type\ 2)\ hints}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ recorders\ (specification\ only).\ \ These\ are\ used\ to\ support\ native}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ T1/T2\ hints\ in\ the\ 'type1',\ 'cid',\ and\ 'cff'\ font\ drivers.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2001-\/2022\ by}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#ifndef\ PSHINTS\_H\_}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ PSHINTS\_H\_}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <freetype/freetype.h>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <freetype/t1tables.h>}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ INTERNAL\ REPRESENTATION\ OF\ GLOBALS\ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s_h___globals_rec__}{PSH\_GlobalsRec\_}}*\ \ PSH\_Globals;}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00043\ \ \ (*PSH\_Globals\_NewFunc)(\ FT\_Memory\ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}},}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_p_s___private_rec__}{T1\_Private}}*\ \ \ private\_dict,}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PSH\_Globals*\ \ aglobals\ );}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00048\ \ \ (*PSH\_Globals\_SetScaleFunc)(\ PSH\_Globals\ \ globals,}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed\ \ \ \ \ x\_scale,}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed\ \ \ \ \ y\_scale,}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed\ \ \ \ \ x\_delta,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed\ \ \ \ \ y\_delta\ );}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00055\ \ \ (*PSH\_Globals\_DestroyFunc)(\ PSH\_Globals\ \ globals\ );}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s_h___globals___funcs_rec__}{PSH\_Globals\_FuncsRec\_}}}
+\DoxyCodeLine{00059\ \ \ \{}
+\DoxyCodeLine{00060\ \ \ \ \ PSH\_Globals\_NewFunc\ \ \ \ \ \ \ create;}
+\DoxyCodeLine{00061\ \ \ \ \ PSH\_Globals\_SetScaleFunc\ \ set\_scale;}
+\DoxyCodeLine{00062\ \ \ \ \ PSH\_Globals\_DestroyFunc\ \ \ destroy;}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \}\ \mbox{\hyperlink{struct_p_s_h___globals___funcs_rec__}{PSH\_Globals\_FuncsRec}},\ *\mbox{\hyperlink{struct_p_s_h___globals___funcs_rec__}{PSH\_Globals\_Funcs}};}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PUBLIC\ TYPE\ 1\ HINTS\ RECORDER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ \ \ *\ @type:}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ \ \ *\ \ \ This\ is\ a\ handle\ to\ an\ opaque\ structure\ used\ to\ record\ glyph\ hints}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ \ \ *\ \ \ from\ a\ Type\ 1\ character\ glyph\ character\ string.}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ *\ \ \ The\ methods\ used\ to\ operate\ on\ this\ object\ are\ defined\ by\ the}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ *\ \ \ @T1\_Hints\_FuncsRec\ structure.\ \ Recording\ glyph\ hints\ is\ normally}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ *\ \ \ achieved\ through\ the\ following\ scheme:}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ Open\ a\ new\ hint\ recording\ session\ by\ calling\ the\ 'open'\ method.}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ *\ \ \ \ \ This\ rewinds\ the\ recorder\ and\ prepare\ it\ for\ new\ input.}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ For\ each\ hint\ found\ in\ the\ glyph\ charstring,\ call\ the\ corresponding}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ *\ \ \ \ \ method\ ('stem',\ 'stem3',\ or\ 'reset').\ \ Note\ that\ these\ functions\ do}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ \ *\ \ \ \ \ not\ return\ an\ error\ code.}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ Close\ the\ recording\ session\ by\ calling\ the\ 'close'\ method.\ \ It}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ *\ \ \ \ \ returns\ an\ error\ code\ if\ the\ hints\ were\ invalid\ or\ something\ strange}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ *\ \ \ \ \ happened\ (e.g.,\ memory\ shortage).}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *\ \ \ The\ hints\ accumulated\ in\ the\ object\ can\ later\ be\ used\ by\ the}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ *\ \ \ PostScript\ hinter.}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00103\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }T1\_HintsRec\_*\ \ T1\_Hints;}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ \ \ *\ @type:}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_Funcs}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ *\ \ \ A\ pointer\ to\ the\ @T1\_Hints\_FuncsRec\ structure\ that\ defines\ the\ API\ of}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ \ \ *\ \ \ a\ given\ @T1\_Hints\ object.}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t1___hints___funcs_rec__}{T1\_Hints\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_t1___hints___funcs_rec__}{T1\_Hints\_Funcs}};}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_OpenFunc}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T1\_Hints\ class\ used\ to\ prepare\ it\ for\ a\ new\ Type\ 1}}
+\DoxyCodeLine{00126\ \textcolor{comment}{\ \ \ *\ \ \ hints\ recording\ session.}}
+\DoxyCodeLine{00127\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00129\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00130\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 1\ hints\ recorder.}}
+\DoxyCodeLine{00131\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00132\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00133\ \textcolor{comment}{\ \ \ *\ \ \ You\ should\ always\ call\ the\ @T1\_Hints\_CloseFunc\ method\ in\ order\ to}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ \ \ *\ \ \ close\ an\ opened\ recording\ session.}}
+\DoxyCodeLine{00135\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00136\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00137\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00138\ \ \ (*T1\_Hints\_OpenFunc)(\ T1\_Hints\ \ hints\ );}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_SetStemFunc}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T1\_Hints\ class\ used\ to\ record\ a\ new\ horizontal\ or}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ *\ \ \ vertical\ stem.\ \ This\ corresponds\ to\ the\ Type\ 1\ 'hstem'\ and\ 'vstem'}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ *\ \ \ operators.}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 1\ hints\ recorder.}}
+\DoxyCodeLine{00154\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00155\ \textcolor{comment}{\ \ \ *\ \ \ dimension\ ::}}
+\DoxyCodeLine{00156\ \textcolor{comment}{\ \ \ *\ \ \ \ \ 0\ for\ horizontal\ stems\ (hstem),\ 1\ for\ vertical\ ones\ (vstem).}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ \ \ *\ \ \ coords\ ::}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Array\ of\ 2\ coordinates\ in\ 16.16\ format,\ used\ as\ (position,length)}}
+\DoxyCodeLine{00160\ \textcolor{comment}{\ \ \ *\ \ \ \ \ stem\ descriptor.}}
+\DoxyCodeLine{00161\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00162\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00163\ \textcolor{comment}{\ \ \ *\ \ \ Use\ vertical\ coordinates\ (y)\ for\ horizontal\ stems\ (dim=0).\ \ Use}}
+\DoxyCodeLine{00164\ \textcolor{comment}{\ \ \ *\ \ \ horizontal\ coordinates\ (x)\ for\ vertical\ stems\ (dim=1).}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ \ \ *\ \ \ 'coords[0]'\ is\ the\ absolute\ stem\ position\ (lowest\ coordinate);}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ \ \ *\ \ \ 'coords[1]'\ is\ the\ length.}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ \ *\ \ \ The\ length\ can\ be\ negative,\ in\ which\ case\ it\ must\ be\ either\ -\/20\ or}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ \ *\ \ \ -\/21.\ \ It\ is\ interpreted\ as\ a\ 'ghost'\ stem,\ according\ to\ the\ Type\ 1}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ \ \ *\ \ \ specification.}}
+\DoxyCodeLine{00172\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00173\ \textcolor{comment}{\ \ \ *\ \ \ If\ the\ length\ is\ -\/21\ (corresponding\ to\ a\ bottom\ ghost\ stem),\ then\ the}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ \ \ *\ \ \ real\ stem\ position\ is\ 'coords[0]+coords[1]'.}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00177\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00178\ \ \ (*T1\_Hints\_SetStemFunc)(\ T1\_Hints\ \ \ hints,}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ dimension,}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed*\ \ coords\ );}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00184\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00185\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00186\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_SetStem3Func}}
+\DoxyCodeLine{00187\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00188\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00189\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T1\_Hints\ class\ used\ to\ record\ three}}
+\DoxyCodeLine{00190\ \textcolor{comment}{\ \ \ *\ \ \ counter-\/controlled\ horizontal\ or\ vertical\ stems\ at\ once.}}
+\DoxyCodeLine{00191\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00192\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00193\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 1\ hints\ recorder.}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ \ \ *\ \ \ dimension\ ::}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ \ \ *\ \ \ \ \ 0\ for\ horizontal\ stems,\ 1\ for\ vertical\ ones.}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00199\ \textcolor{comment}{\ \ \ *\ \ \ coords\ ::}}
+\DoxyCodeLine{00200\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ array\ of\ 6\ values\ in\ 16.16\ format,\ holding\ 3\ (position,length)}}
+\DoxyCodeLine{00201\ \textcolor{comment}{\ \ \ *\ \ \ \ \ pairs\ for\ the\ counter-\/controlled\ stems.}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00204\ \textcolor{comment}{\ \ \ *\ \ \ Use\ vertical\ coordinates\ (y)\ for\ horizontal\ stems\ (dim=0).\ \ Use}}
+\DoxyCodeLine{00205\ \textcolor{comment}{\ \ \ *\ \ \ horizontal\ coordinates\ (x)\ for\ vertical\ stems\ (dim=1).}}
+\DoxyCodeLine{00206\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00207\ \textcolor{comment}{\ \ \ *\ \ \ The\ lengths\ cannot\ be\ negative\ (ghost\ stems\ are\ never}}
+\DoxyCodeLine{00208\ \textcolor{comment}{\ \ \ *\ \ \ counter-\/controlled).}}
+\DoxyCodeLine{00209\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00210\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00211\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00212\ \ \ (*T1\_Hints\_SetStem3Func)(\ T1\_Hints\ \ \ hints,}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ dimension,}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed*\ \ coords\ );}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00218\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00219\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00220\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_ResetFunc}}
+\DoxyCodeLine{00221\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00222\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00223\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T1\_Hints\ class\ used\ to\ reset\ the\ stems\ hints\ in\ a}}
+\DoxyCodeLine{00224\ \textcolor{comment}{\ \ \ *\ \ \ recording\ session.}}
+\DoxyCodeLine{00225\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00226\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00227\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00228\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 1\ hints\ recorder.}}
+\DoxyCodeLine{00229\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ \ \ *\ \ \ end\_point\ ::}}
+\DoxyCodeLine{00231\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ index\ of\ the\ last\ point\ in\ the\ input\ glyph\ in\ which\ the}}
+\DoxyCodeLine{00232\ \textcolor{comment}{\ \ \ *\ \ \ \ \ previously\ defined\ hints\ apply.}}
+\DoxyCodeLine{00233\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00234\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00235\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00236\ \ \ (*T1\_Hints\_ResetFunc)(\ T1\_Hints\ \ hints,}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ end\_point\ );}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00241\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00242\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00243\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_CloseFunc}}
+\DoxyCodeLine{00244\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00245\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00246\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T1\_Hints\ class\ used\ to\ close\ a\ hint\ recording}}
+\DoxyCodeLine{00247\ \textcolor{comment}{\ \ \ *\ \ \ session.}}
+\DoxyCodeLine{00248\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00249\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00250\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00251\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 1\ hints\ recorder.}}
+\DoxyCodeLine{00252\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00253\ \textcolor{comment}{\ \ \ *\ \ \ end\_point\ ::}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ index\ of\ the\ last\ point\ in\ the\ input\ glyph.}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00256\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00257\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00258\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00259\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00260\ \textcolor{comment}{\ \ \ *\ \ \ The\ error\ code\ is\ set\ to\ indicate\ that\ an\ error\ occurred\ during\ the}}
+\DoxyCodeLine{00261\ \textcolor{comment}{\ \ \ *\ \ \ recording\ session.}}
+\DoxyCodeLine{00262\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00263\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00264\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00265\ \ \ (*T1\_Hints\_CloseFunc)(\ T1\_Hints\ \ hints,}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ end\_point\ );}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00270\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00271\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00272\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_ApplyFunc}}
+\DoxyCodeLine{00273\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00274\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00275\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T1\_Hints\ class\ used\ to\ apply\ hints\ to\ the}}
+\DoxyCodeLine{00276\ \textcolor{comment}{\ \ \ *\ \ \ corresponding\ glyph\ outline.\ \ Must\ be\ called\ once\ all\ hints\ have\ been}}
+\DoxyCodeLine{00277\ \textcolor{comment}{\ \ \ *\ \ \ recorded.}}
+\DoxyCodeLine{00278\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00279\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00281\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 1\ hints\ recorder.}}
+\DoxyCodeLine{00282\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ \ \ *\ \ \ outline\ ::}}
+\DoxyCodeLine{00284\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ pointer\ to\ the\ target\ outline\ descriptor.}}
+\DoxyCodeLine{00285\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00286\ \textcolor{comment}{\ \ \ *\ \ \ globals\ ::}}
+\DoxyCodeLine{00287\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ hinter\ globals\ for\ this\ font.}}
+\DoxyCodeLine{00288\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00289\ \textcolor{comment}{\ \ \ *\ \ \ hint\_mode\ ::}}
+\DoxyCodeLine{00290\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Hinting\ information.}}
+\DoxyCodeLine{00291\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00292\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00293\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00294\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00295\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00296\ \textcolor{comment}{\ \ \ *\ \ \ On\ input,\ all\ points\ within\ the\ outline\ are\ in\ font\ coordinates.\ On}}
+\DoxyCodeLine{00297\ \textcolor{comment}{\ \ \ *\ \ \ output,\ they\ are\ in\ 1/64th\ of\ pixels.}}
+\DoxyCodeLine{00298\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00299\ \textcolor{comment}{\ \ \ *\ \ \ The\ scaling\ transformation\ is\ taken\ from\ the\ 'globals'\ object\ which}}
+\DoxyCodeLine{00300\ \textcolor{comment}{\ \ \ *\ \ \ must\ correspond\ to\ the\ same\ font\ as\ the\ glyph.}}
+\DoxyCodeLine{00301\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00302\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00303\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00304\ \ \ (*T1\_Hints\_ApplyFunc)(\ T1\_Hints\ \ \ \ \ \ \ \ hints,}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ outline,}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PSH\_Globals\ \ \ \ \ globals,}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Render\_Mode\ \ hint\_mode\ );}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00311\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00312\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00313\ \textcolor{comment}{\ \ \ *\ \ \ T1\_Hints\_FuncsRec}}
+\DoxyCodeLine{00314\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00315\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00316\ \textcolor{comment}{\ \ \ *\ \ \ The\ structure\ used\ to\ provide\ the\ API\ to\ @T1\_Hints\ objects.}}
+\DoxyCodeLine{00317\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00318\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00319\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ T1\ Hints\ recorder.}}
+\DoxyCodeLine{00321\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00322\ \textcolor{comment}{\ \ \ *\ \ \ open\ ::}}
+\DoxyCodeLine{00323\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ open\ a\ recording\ session.}}
+\DoxyCodeLine{00324\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00325\ \textcolor{comment}{\ \ \ *\ \ \ close\ ::}}
+\DoxyCodeLine{00326\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ close\ a\ recording\ session.}}
+\DoxyCodeLine{00327\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00328\ \textcolor{comment}{\ \ \ *\ \ \ stem\ ::}}
+\DoxyCodeLine{00329\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ set\ a\ simple\ stem.}}
+\DoxyCodeLine{00330\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ \ \ *\ \ \ stem3\ ::}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ set\ counter-\/controlled\ stems.}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ \ *\ \ \ reset\ ::}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ reset\ stem\ hints.}}
+\DoxyCodeLine{00336\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00337\ \textcolor{comment}{\ \ \ *\ \ \ apply\ ::}}
+\DoxyCodeLine{00338\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ apply\ the\ hints\ to\ the\ corresponding\ glyph\ outline.}}
+\DoxyCodeLine{00339\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00340\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00341\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t1___hints___funcs_rec__}{T1\_Hints\_FuncsRec\_}}}
+\DoxyCodeLine{00342\ \ \ \{}
+\DoxyCodeLine{00343\ \ \ \ \ T1\_Hints\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hints;}
+\DoxyCodeLine{00344\ \ \ \ \ T1\_Hints\_OpenFunc\ \ \ \ \ \ open;}
+\DoxyCodeLine{00345\ \ \ \ \ T1\_Hints\_CloseFunc\ \ \ \ \ close;}
+\DoxyCodeLine{00346\ \ \ \ \ T1\_Hints\_SetStemFunc\ \ \ stem;}
+\DoxyCodeLine{00347\ \ \ \ \ T1\_Hints\_SetStem3Func\ \ stem3;}
+\DoxyCodeLine{00348\ \ \ \ \ T1\_Hints\_ResetFunc\ \ \ \ \ reset;}
+\DoxyCodeLine{00349\ \ \ \ \ T1\_Hints\_ApplyFunc\ \ \ \ \ apply;}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \ \ \}\ \mbox{\hyperlink{struct_t1___hints___funcs_rec__}{T1\_Hints\_FuncsRec}};}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00355\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00356\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00357\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PUBLIC\ TYPE\ 2\ HINTS\ RECORDER\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00358\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00359\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00360\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00364\ \textcolor{comment}{\ \ \ *\ @type:}}
+\DoxyCodeLine{00365\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints}}
+\DoxyCodeLine{00366\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00367\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00368\ \textcolor{comment}{\ \ \ *\ \ \ This\ is\ a\ handle\ to\ an\ opaque\ structure\ used\ to\ record\ glyph\ hints}}
+\DoxyCodeLine{00369\ \textcolor{comment}{\ \ \ *\ \ \ from\ a\ Type\ 2\ character\ glyph\ character\ string.}}
+\DoxyCodeLine{00370\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00371\ \textcolor{comment}{\ \ \ *\ \ \ The\ methods\ used\ to\ operate\ on\ this\ object\ are\ defined\ by\ the}}
+\DoxyCodeLine{00372\ \textcolor{comment}{\ \ \ *\ \ \ @T2\_Hints\_FuncsRec\ structure.\ \ Recording\ glyph\ hints\ is\ normally}}
+\DoxyCodeLine{00373\ \textcolor{comment}{\ \ \ *\ \ \ achieved\ through\ the\ following\ scheme:}}
+\DoxyCodeLine{00374\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00375\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ Open\ a\ new\ hint\ recording\ session\ by\ calling\ the\ 'open'\ method.}}
+\DoxyCodeLine{00376\ \textcolor{comment}{\ \ \ *\ \ \ \ \ This\ rewinds\ the\ recorder\ and\ prepare\ it\ for\ new\ input.}}
+\DoxyCodeLine{00377\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00378\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ For\ each\ hint\ found\ in\ the\ glyph\ charstring,\ call\ the\ corresponding}}
+\DoxyCodeLine{00379\ \textcolor{comment}{\ \ \ *\ \ \ \ \ method\ ('stems',\ 'hintmask',\ 'counters').\ \ Note\ that\ these\ functions}}
+\DoxyCodeLine{00380\ \textcolor{comment}{\ \ \ *\ \ \ \ \ do\ not\ return\ an\ error\ code.}}
+\DoxyCodeLine{00381\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00382\ \textcolor{comment}{\ \ \ *\ \ \ -\/\ Close\ the\ recording\ session\ by\ calling\ the\ 'close'\ method.\ \ It}}
+\DoxyCodeLine{00383\ \textcolor{comment}{\ \ \ *\ \ \ \ \ returns\ an\ error\ code\ if\ the\ hints\ were\ invalid\ or\ something\ strange}}
+\DoxyCodeLine{00384\ \textcolor{comment}{\ \ \ *\ \ \ \ \ happened\ (e.g.,\ memory\ shortage).}}
+\DoxyCodeLine{00385\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00386\ \textcolor{comment}{\ \ \ *\ \ \ The\ hints\ accumulated\ in\ the\ object\ can\ later\ be\ used\ by\ the}}
+\DoxyCodeLine{00387\ \textcolor{comment}{\ \ \ *\ \ \ Postscript\ hinter.}}
+\DoxyCodeLine{00388\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00389\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00390\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }T2\_HintsRec\_*\ \ T2\_Hints;}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00394\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00395\ \textcolor{comment}{\ \ \ *\ @type:}}
+\DoxyCodeLine{00396\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_Funcs}}
+\DoxyCodeLine{00397\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00398\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00399\ \textcolor{comment}{\ \ \ *\ \ \ A\ pointer\ to\ the\ @T2\_Hints\_FuncsRec\ structure\ that\ defines\ the\ API\ of}}
+\DoxyCodeLine{00400\ \textcolor{comment}{\ \ \ *\ \ \ a\ given\ @T2\_Hints\ object.}}
+\DoxyCodeLine{00401\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00402\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00403\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t2___hints___funcs_rec__}{T2\_Hints\_FuncsRec\_}}*\ \ \mbox{\hyperlink{struct_t2___hints___funcs_rec__}{T2\_Hints\_Funcs}};}
+\DoxyCodeLine{00404\ }
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00407\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00408\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00409\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_OpenFunc}}
+\DoxyCodeLine{00410\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00411\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00412\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T2\_Hints\ class\ used\ to\ prepare\ it\ for\ a\ new\ Type\ 2}}
+\DoxyCodeLine{00413\ \textcolor{comment}{\ \ \ *\ \ \ hints\ recording\ session.}}
+\DoxyCodeLine{00414\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00415\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00416\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00417\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 2\ hints\ recorder.}}
+\DoxyCodeLine{00418\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00419\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00420\ \textcolor{comment}{\ \ \ *\ \ \ You\ should\ always\ call\ the\ @T2\_Hints\_CloseFunc\ method\ in\ order\ to}}
+\DoxyCodeLine{00421\ \textcolor{comment}{\ \ \ *\ \ \ close\ an\ opened\ recording\ session.}}
+\DoxyCodeLine{00422\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00423\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00424\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00425\ \ \ (*T2\_Hints\_OpenFunc)(\ T2\_Hints\ \ hints\ );}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00429\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00430\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00431\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_StemsFunc}}
+\DoxyCodeLine{00432\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00433\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00434\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T2\_Hints\ class\ used\ to\ set\ the\ table\ of\ stems\ in}}
+\DoxyCodeLine{00435\ \textcolor{comment}{\ \ \ *\ \ \ either\ the\ vertical\ or\ horizontal\ dimension.\ \ Equivalent\ to\ the}}
+\DoxyCodeLine{00436\ \textcolor{comment}{\ \ \ *\ \ \ 'hstem',\ 'vstem',\ 'hstemhm',\ and\ 'vstemhm'\ Type\ 2\ operators.}}
+\DoxyCodeLine{00437\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00438\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00439\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00440\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 2\ hints\ recorder.}}
+\DoxyCodeLine{00441\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00442\ \textcolor{comment}{\ \ \ *\ \ \ dimension\ ::}}
+\DoxyCodeLine{00443\ \textcolor{comment}{\ \ \ *\ \ \ \ \ 0\ for\ horizontal\ stems\ (hstem),\ 1\ for\ vertical\ ones\ (vstem).}}
+\DoxyCodeLine{00444\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00445\ \textcolor{comment}{\ \ \ *\ \ \ count\ ::}}
+\DoxyCodeLine{00446\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ number\ of\ stems.}}
+\DoxyCodeLine{00447\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00448\ \textcolor{comment}{\ \ \ *\ \ \ coords\ ::}}
+\DoxyCodeLine{00449\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ array\ of\ 'count'\ (position,length)\ pairs\ in\ 16.16\ format.}}
+\DoxyCodeLine{00450\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00451\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00452\ \textcolor{comment}{\ \ \ *\ \ \ Use\ vertical\ coordinates\ (y)\ for\ horizontal\ stems\ (dim=0).\ \ Use}}
+\DoxyCodeLine{00453\ \textcolor{comment}{\ \ \ *\ \ \ horizontal\ coordinates\ (x)\ for\ vertical\ stems\ (dim=1).}}
+\DoxyCodeLine{00454\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00455\ \textcolor{comment}{\ \ \ *\ \ \ There\ are\ '2*count'\ elements\ in\ the\ 'coords'\ array.\ \ Each\ even\ element}}
+\DoxyCodeLine{00456\ \textcolor{comment}{\ \ \ *\ \ \ is\ an\ absolute\ position\ in\ font\ units,\ each\ odd\ element\ is\ a\ length\ in}}
+\DoxyCodeLine{00457\ \textcolor{comment}{\ \ \ *\ \ \ font\ units.}}
+\DoxyCodeLine{00458\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00459\ \textcolor{comment}{\ \ \ *\ \ \ A\ length\ can\ be\ negative,\ in\ which\ case\ it\ must\ be\ either\ -\/20\ or\ -\/21.}}
+\DoxyCodeLine{00460\ \textcolor{comment}{\ \ \ *\ \ \ It\ is\ interpreted\ as\ a\ 'ghost'\ stem,\ according\ to\ the\ Type\ 1}}
+\DoxyCodeLine{00461\ \textcolor{comment}{\ \ \ *\ \ \ specification.}}
+\DoxyCodeLine{00462\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00463\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00464\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00465\ \ \ (*T2\_Hints\_StemsFunc)(\ T2\_Hints\ \ \ hints,}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ dimension,}
+\DoxyCodeLine{00467\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ count,}
+\DoxyCodeLine{00468\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Fixed*\ \ coordinates\ );}
+\DoxyCodeLine{00469\ }
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00472\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00473\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00474\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_MaskFunc}}
+\DoxyCodeLine{00475\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00476\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00477\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T2\_Hints\ class\ used\ to\ set\ a\ given\ hintmask\ (this}}
+\DoxyCodeLine{00478\ \textcolor{comment}{\ \ \ *\ \ \ corresponds\ to\ the\ 'hintmask'\ Type\ 2\ operator).}}
+\DoxyCodeLine{00479\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00480\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00481\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00482\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 2\ hints\ recorder.}}
+\DoxyCodeLine{00483\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00484\ \textcolor{comment}{\ \ \ *\ \ \ end\_point\ ::}}
+\DoxyCodeLine{00485\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index\ of\ the\ last\ point\ to\ which\ the\ previously\ defined\ or}}
+\DoxyCodeLine{00486\ \textcolor{comment}{\ \ \ *\ \ \ \ \ activated\ hints\ apply.}}
+\DoxyCodeLine{00487\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00488\ \textcolor{comment}{\ \ \ *\ \ \ bit\_count\ ::}}
+\DoxyCodeLine{00489\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ number\ of\ bits\ in\ the\ hint\ mask.}}
+\DoxyCodeLine{00490\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00491\ \textcolor{comment}{\ \ \ *\ \ \ bytes\ ::}}
+\DoxyCodeLine{00492\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ array\ of\ bytes\ modelling\ the\ hint\ mask.}}
+\DoxyCodeLine{00493\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00494\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00495\ \textcolor{comment}{\ \ \ *\ \ \ If\ the\ hintmask\ starts\ the\ charstring\ (before\ any\ glyph\ point}}
+\DoxyCodeLine{00496\ \textcolor{comment}{\ \ \ *\ \ \ definition),\ the\ value\ of\ `end\_point`\ should\ be\ 0.}}
+\DoxyCodeLine{00497\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00498\ \textcolor{comment}{\ \ \ *\ \ \ `bit\_count`\ is\ the\ number\ of\ meaningful\ bits\ in\ the\ 'bytes'\ array;\ it}}
+\DoxyCodeLine{00499\ \textcolor{comment}{\ \ \ *\ \ \ must\ be\ equal\ to\ the\ total\ number\ of\ hints\ defined\ so\ far\ (i.e.,}}
+\DoxyCodeLine{00500\ \textcolor{comment}{\ \ \ *\ \ \ horizontal+verticals).}}
+\DoxyCodeLine{00501\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00502\ \textcolor{comment}{\ \ \ *\ \ \ The\ 'bytes'\ array\ can\ come\ directly\ from\ the\ Type\ 2\ charstring\ and}}
+\DoxyCodeLine{00503\ \textcolor{comment}{\ \ \ *\ \ \ respects\ the\ same\ format.}}
+\DoxyCodeLine{00504\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00505\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00506\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00507\ \ \ (*T2\_Hints\_MaskFunc)(\ T2\_Hints\ \ \ \ \ \ \ \ hints,}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ end\_point,}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ bit\_count,}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ FT\_Byte*\ \ \mbox{\hyperlink{classbytes}{bytes}}\ );}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ }
+\DoxyCodeLine{00513\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00514\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00515\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00516\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_CounterFunc}}
+\DoxyCodeLine{00517\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00518\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00519\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T2\_Hints\ class\ used\ to\ set\ a\ given\ counter\ mask\ (this}}
+\DoxyCodeLine{00520\ \textcolor{comment}{\ \ \ *\ \ \ corresponds\ to\ the\ 'hintmask'\ Type\ 2\ operator).}}
+\DoxyCodeLine{00521\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00522\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00523\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00524\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 2\ hints\ recorder.}}
+\DoxyCodeLine{00525\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00526\ \textcolor{comment}{\ \ \ *\ \ \ end\_point\ ::}}
+\DoxyCodeLine{00527\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ glyph\ index\ of\ the\ last\ point\ to\ which\ the\ previously\ defined\ or}}
+\DoxyCodeLine{00528\ \textcolor{comment}{\ \ \ *\ \ \ \ \ active\ hints\ apply.}}
+\DoxyCodeLine{00529\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00530\ \textcolor{comment}{\ \ \ *\ \ \ bit\_count\ ::}}
+\DoxyCodeLine{00531\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ number\ of\ bits\ in\ the\ hint\ mask.}}
+\DoxyCodeLine{00532\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ \ \ *\ \ \ bytes\ ::}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ array\ of\ bytes\ modelling\ the\ hint\ mask.}}
+\DoxyCodeLine{00535\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00536\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00537\ \textcolor{comment}{\ \ \ *\ \ \ If\ the\ hintmask\ starts\ the\ charstring\ (before\ any\ glyph\ point}}
+\DoxyCodeLine{00538\ \textcolor{comment}{\ \ \ *\ \ \ definition),\ the\ value\ of\ `end\_point`\ should\ be\ 0.}}
+\DoxyCodeLine{00539\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00540\ \textcolor{comment}{\ \ \ *\ \ \ `bit\_count`\ is\ the\ number\ of\ meaningful\ bits\ in\ the\ 'bytes'\ array;\ it}}
+\DoxyCodeLine{00541\ \textcolor{comment}{\ \ \ *\ \ \ must\ be\ equal\ to\ the\ total\ number\ of\ hints\ defined\ so\ far\ (i.e.,}}
+\DoxyCodeLine{00542\ \textcolor{comment}{\ \ \ *\ \ \ horizontal+verticals).}}
+\DoxyCodeLine{00543\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00544\ \textcolor{comment}{\ \ \ *\ \ \ \ The\ 'bytes'\ array\ can\ come\ directly\ from\ the\ Type\ 2\ charstring\ and}}
+\DoxyCodeLine{00545\ \textcolor{comment}{\ \ \ *\ \ \ \ respects\ the\ same\ format.}}
+\DoxyCodeLine{00546\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00547\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00548\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00549\ \ \ (*T2\_Hints\_CounterFunc)(\ T2\_Hints\ \ \ \ \ \ \ \ hints,}
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ bit\_count,}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ FT\_Byte*\ \ \mbox{\hyperlink{classbytes}{bytes}}\ );}
+\DoxyCodeLine{00552\ }
+\DoxyCodeLine{00553\ }
+\DoxyCodeLine{00554\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00555\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00556\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00557\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_CloseFunc}}
+\DoxyCodeLine{00558\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00559\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00560\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T2\_Hints\ class\ used\ to\ close\ a\ hint\ recording}}
+\DoxyCodeLine{00561\ \textcolor{comment}{\ \ \ *\ \ \ session.}}
+\DoxyCodeLine{00562\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00563\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00564\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00565\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 2\ hints\ recorder.}}
+\DoxyCodeLine{00566\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00567\ \textcolor{comment}{\ \ \ *\ \ \ end\_point\ ::}}
+\DoxyCodeLine{00568\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ index\ of\ the\ last\ point\ in\ the\ input\ glyph.}}
+\DoxyCodeLine{00569\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00570\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00571\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00572\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00573\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00574\ \textcolor{comment}{\ \ \ *\ \ \ The\ error\ code\ is\ set\ to\ indicate\ that\ an\ error\ occurred\ during\ the}}
+\DoxyCodeLine{00575\ \textcolor{comment}{\ \ \ *\ \ \ recording\ session.}}
+\DoxyCodeLine{00576\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00577\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00578\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00579\ \ \ (*T2\_Hints\_CloseFunc)(\ T2\_Hints\ \ hints,}
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ end\_point\ );}
+\DoxyCodeLine{00581\ }
+\DoxyCodeLine{00582\ }
+\DoxyCodeLine{00583\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00584\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00585\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00586\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_ApplyFunc}}
+\DoxyCodeLine{00587\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00588\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00589\ \textcolor{comment}{\ \ \ *\ \ \ A\ method\ of\ the\ @T2\_Hints\ class\ used\ to\ apply\ hints\ to\ the}}
+\DoxyCodeLine{00590\ \textcolor{comment}{\ \ \ *\ \ \ corresponding\ glyph\ outline.\ \ Must\ be\ called\ after\ the\ 'close'\ method.}}
+\DoxyCodeLine{00591\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00592\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00593\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00594\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ Type\ 2\ hints\ recorder.}}
+\DoxyCodeLine{00595\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00596\ \textcolor{comment}{\ \ \ *\ \ \ outline\ ::}}
+\DoxyCodeLine{00597\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ pointer\ to\ the\ target\ outline\ descriptor.}}
+\DoxyCodeLine{00598\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00599\ \textcolor{comment}{\ \ \ *\ \ \ globals\ ::}}
+\DoxyCodeLine{00600\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ hinter\ globals\ for\ this\ font.}}
+\DoxyCodeLine{00601\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00602\ \textcolor{comment}{\ \ \ *\ \ \ hint\_mode\ ::}}
+\DoxyCodeLine{00603\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Hinting\ information.}}
+\DoxyCodeLine{00604\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00605\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00606\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00607\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00608\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00609\ \textcolor{comment}{\ \ \ *\ \ \ On\ input,\ all\ points\ within\ the\ outline\ are\ in\ font\ coordinates.\ On}}
+\DoxyCodeLine{00610\ \textcolor{comment}{\ \ \ *\ \ \ output,\ they\ are\ in\ 1/64th\ of\ pixels.}}
+\DoxyCodeLine{00611\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00612\ \textcolor{comment}{\ \ \ *\ \ \ The\ scaling\ transformation\ is\ taken\ from\ the\ 'globals'\ object\ which}}
+\DoxyCodeLine{00613\ \textcolor{comment}{\ \ \ *\ \ \ must\ correspond\ to\ the\ same\ font\ than\ the\ glyph.}}
+\DoxyCodeLine{00614\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00615\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00616\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00617\ \ \ (*T2\_Hints\_ApplyFunc)(\ T2\_Hints\ \ \ \ \ \ \ \ hints,}
+\DoxyCodeLine{00618\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___outline__}{FT\_Outline}}*\ \ \ \ \ outline,}
+\DoxyCodeLine{00619\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PSH\_Globals\ \ \ \ \ globals,}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Render\_Mode\ \ hint\_mode\ );}
+\DoxyCodeLine{00621\ }
+\DoxyCodeLine{00622\ }
+\DoxyCodeLine{00623\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00624\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00625\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00626\ \textcolor{comment}{\ \ \ *\ \ \ T2\_Hints\_FuncsRec}}
+\DoxyCodeLine{00627\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00628\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00629\ \textcolor{comment}{\ \ \ *\ \ \ The\ structure\ used\ to\ provide\ the\ API\ to\ @T2\_Hints\ objects.}}
+\DoxyCodeLine{00630\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00631\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00632\ \textcolor{comment}{\ \ \ *\ \ \ hints\ ::}}
+\DoxyCodeLine{00633\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ T2\ hints\ recorder\ object.}}
+\DoxyCodeLine{00634\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00635\ \textcolor{comment}{\ \ \ *\ \ \ open\ ::}}
+\DoxyCodeLine{00636\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ open\ a\ recording\ session.}}
+\DoxyCodeLine{00637\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00638\ \textcolor{comment}{\ \ \ *\ \ \ close\ ::}}
+\DoxyCodeLine{00639\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ close\ a\ recording\ session.}}
+\DoxyCodeLine{00640\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00641\ \textcolor{comment}{\ \ \ *\ \ \ stems\ ::}}
+\DoxyCodeLine{00642\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ set\ the\ dimension's\ stems\ table.}}
+\DoxyCodeLine{00643\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00644\ \textcolor{comment}{\ \ \ *\ \ \ hintmask\ ::}}
+\DoxyCodeLine{00645\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ set\ hint\ masks.}}
+\DoxyCodeLine{00646\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00647\ \textcolor{comment}{\ \ \ *\ \ \ counter\ ::}}
+\DoxyCodeLine{00648\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ set\ counter\ masks.}}
+\DoxyCodeLine{00649\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00650\ \textcolor{comment}{\ \ \ *\ \ \ apply\ ::}}
+\DoxyCodeLine{00651\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ function\ to\ apply\ the\ hints\ on\ the\ corresponding\ glyph\ outline.}}
+\DoxyCodeLine{00652\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00653\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00654\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_t2___hints___funcs_rec__}{T2\_Hints\_FuncsRec\_}}}
+\DoxyCodeLine{00655\ \ \ \{}
+\DoxyCodeLine{00656\ \ \ \ \ T2\_Hints\ \ \ \ \ \ \ \ \ \ \ \ \ \ hints;}
+\DoxyCodeLine{00657\ \ \ \ \ T2\_Hints\_OpenFunc\ \ \ \ \ open;}
+\DoxyCodeLine{00658\ \ \ \ \ T2\_Hints\_CloseFunc\ \ \ \ close;}
+\DoxyCodeLine{00659\ \ \ \ \ T2\_Hints\_StemsFunc\ \ \ \ stems;}
+\DoxyCodeLine{00660\ \ \ \ \ T2\_Hints\_MaskFunc\ \ \ \ \ hintmask;}
+\DoxyCodeLine{00661\ \ \ \ \ T2\_Hints\_CounterFunc\ \ counter;}
+\DoxyCodeLine{00662\ \ \ \ \ T2\_Hints\_ApplyFunc\ \ \ \ apply;}
+\DoxyCodeLine{00663\ }
+\DoxyCodeLine{00664\ \ \ \}\ \mbox{\hyperlink{struct_t2___hints___funcs_rec__}{T2\_Hints\_FuncsRec}};}
+\DoxyCodeLine{00665\ }
+\DoxyCodeLine{00666\ }
+\DoxyCodeLine{00667\ \ \ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00668\ }
+\DoxyCodeLine{00669\ }
+\DoxyCodeLine{00670\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s_hinter___interface__}{PSHinter\_Interface\_}}}
+\DoxyCodeLine{00671\ \ \ \{}
+\DoxyCodeLine{00672\ \ \ \ \ \mbox{\hyperlink{struct_p_s_h___globals___funcs_rec__}{PSH\_Globals\_Funcs}}\ \ (*get\_globals\_funcs)(\ \mbox{\hyperlink{struct_f_t___module_rec__}{FT\_Module}}\ \ module\ );}
+\DoxyCodeLine{00673\ \ \ \ \ \mbox{\hyperlink{struct_t1___hints___funcs_rec__}{T1\_Hints\_Funcs}}\ \ \ \ \ (*get\_t1\_funcs)\ \ \ \ \ (\ \mbox{\hyperlink{struct_f_t___module_rec__}{FT\_Module}}\ \ module\ );}
+\DoxyCodeLine{00674\ \ \ \ \ \mbox{\hyperlink{struct_t2___hints___funcs_rec__}{T2\_Hints\_Funcs}}\ \ \ \ \ (*get\_t2\_funcs)\ \ \ \ \ (\ \mbox{\hyperlink{struct_f_t___module_rec__}{FT\_Module}}\ \ module\ );}
+\DoxyCodeLine{00675\ }
+\DoxyCodeLine{00676\ \ \ \}\ \mbox{\hyperlink{struct_p_s_hinter___interface__}{PSHinter\_Interface}};}
+\DoxyCodeLine{00677\ }
+\DoxyCodeLine{00678\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_p_s_hinter___interface__}{PSHinter\_Interface}}*\ \ \mbox{\hyperlink{struct_p_s_hinter___interface__}{PSHinter\_Service}};}
+\DoxyCodeLine{00679\ }
+\DoxyCodeLine{00680\ }
+\DoxyCodeLine{00681\ \textcolor{preprocessor}{\#define\ FT\_DEFINE\_PSHINTER\_INTERFACE(\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00682\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ class\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00683\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_globals\_funcs\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00684\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_t1\_funcs\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00685\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_t2\_funcs\_\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00686\ \textcolor{preprocessor}{\ \ static\ const\ PSHinter\_Interface\ \ class\_\ =\ \ \(\backslash\)}}
+\DoxyCodeLine{00687\ \textcolor{preprocessor}{\ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00688\ \textcolor{preprocessor}{\ \ \ \ get\_globals\_funcs\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00689\ \textcolor{preprocessor}{\ \ \ \ get\_t1\_funcs\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00690\ \textcolor{preprocessor}{\ \ \ \ get\_t2\_funcs\_\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00691\ \textcolor{preprocessor}{\ \ \};}}
+\DoxyCodeLine{00692\ }
+\DoxyCodeLine{00693\ }
+\DoxyCodeLine{00694\ FT\_END\_HEADER}
+\DoxyCodeLine{00695\ }
+\DoxyCodeLine{00696\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PSHINTS\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00697\ }
+\DoxyCodeLine{00698\ }
+\DoxyCodeLine{00699\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

@@ -1,0 +1,166 @@
+\hypertarget{external_2include_2spdlog_2details_2tcp__client-windows_8h_source}{}\doxysection{tcp\+\_\+client-\/windows.h}
+\label{external_2include_2spdlog_2details_2tcp__client-windows_8h_source}\index{Tengu/external/include/spdlog/details/tcp\_client-\/windows.h@{Tengu/external/include/spdlog/details/tcp\_client-\/windows.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#define\ WIN32\_LEAN\_AND\_MEAN}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ tcp\ client\ helper}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <spdlog/common.h>}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <spdlog/details/os.h>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <winsock2.h>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <windows.h>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <ws2tcpip.h>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#pragma\ comment(lib,\ "{}Ws2\_32.lib"{}})}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#pragma\ comment(lib,\ "{}Mswsock.lib"{}})}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#pragma\ comment(lib,\ "{}AdvApi32.lib"{}})}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{namespace\ }details\ \{}
+\DoxyCodeLine{00024\ \textcolor{keyword}{class\ }tcp\_client}
+\DoxyCodeLine{00025\ \{}
+\DoxyCodeLine{00026\ \ \ \ \ SOCKET\ socket\_\ =\ INVALID\_SOCKET;}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ init\_winsock\_()}
+\DoxyCodeLine{00029\ \ \ \ \ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ WSADATA\ wsaData;}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ rv\ =\ WSAStartup(MAKEWORD(2,\ 2),\ \&wsaData);}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rv\ !=\ 0)}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ throw\_winsock\_error\_(\textcolor{stringliteral}{"{}WSAStartup\ failed"{}},\ ::WSAGetLastError());}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00036\ \ \ \ \ \}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ throw\_winsock\_error\_(\textcolor{keyword}{const}\ std::string\ \&msg,\ \textcolor{keywordtype}{int}\ last\_error)}
+\DoxyCodeLine{00039\ \ \ \ \ \{}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[512];}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ ::FormatMessageA(FORMAT\_MESSAGE\_FROM\_SYSTEM\ |\ FORMAT\_MESSAGE\_IGNORE\_INSERTS,\ NULL,\ last\_error,}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \ MAKELANGID(LANG\_NEUTRAL,\ SUBLANG\_DEFAULT),\ \mbox{\hyperlink{structbuf}{buf}},\ (\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structbuf}{buf}})\ /\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char})),\ NULL);}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ throw\_spdlog\_ex(fmt\_lib::format(\textcolor{stringliteral}{"{}tcp\_sink\ -\/\ \{\}:\ \{\}"{}},\ msg,\ \mbox{\hyperlink{structbuf}{buf}}));}
+\DoxyCodeLine{00045\ \ \ \ \ \}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00048\ \ \ \ \ tcp\_client()}
+\DoxyCodeLine{00049\ \ \ \ \ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ init\_winsock\_();}
+\DoxyCodeLine{00051\ \ \ \ \ \}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \string~tcp\_client()}
+\DoxyCodeLine{00054\ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ close();}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ ::WSACleanup();}
+\DoxyCodeLine{00057\ \ \ \ \ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_connected()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ socket\_\ !=\ INVALID\_SOCKET;}
+\DoxyCodeLine{00062\ \ \ \ \ \}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{void}\ close()}
+\DoxyCodeLine{00065\ \ \ \ \ \{}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ ::closesocket(socket\_);}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ socket\_\ =\ INVALID\_SOCKET;}
+\DoxyCodeLine{00068\ \ \ \ \ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ SOCKET\ fd()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00071\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ socket\_;}
+\DoxyCodeLine{00073\ \ \ \ \ \}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ try\ to\ connect\ or\ throw\ on\ failure}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordtype}{void}\ connect(\textcolor{keyword}{const}\ std::string\ \&host,\ \textcolor{keywordtype}{int}\ port)}
+\DoxyCodeLine{00077\ \ \ \ \ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_connected())}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ close();}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }addrinfo\ hints}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \{\};}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ ZeroMemory(\&hints,\ \textcolor{keyword}{sizeof}(hints));}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ hints.ai\_family\ =\ AF\_INET;\ \ \ \ \ \ \ \textcolor{comment}{//\ IPv4}}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ hints.ai\_socktype\ =\ SOCK\_STREAM;\ \textcolor{comment}{//\ TCP}}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ hints.ai\_flags\ =\ AI\_NUMERICSERV;\ \textcolor{comment}{//\ port\ passed\ as\ as\ numeric\ value}}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ hints.ai\_protocol\ =\ 0;}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ port\_str\ =\ std::to\_string(port);}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }addrinfo\ *addrinfo\_result;}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ rv\ =\ ::getaddrinfo(host.c\_str(),\ port\_str.c\_str(),\ \&hints,\ \&addrinfo\_result);}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ last\_error\ =\ 0;}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rv\ !=\ 0)}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ last\_error\ =\ ::WSAGetLastError();}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ WSACleanup();}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ throw\_winsock\_error\_(\textcolor{stringliteral}{"{}getaddrinfo\ failed"{}},\ last\_error);}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Try\ each\ address\ until\ we\ successfully\ connect(2).}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ *rp\ =\ addrinfo\_result;\ rp\ !=\ \textcolor{keyword}{nullptr};\ rp\ =\ rp-\/>ai\_next)}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ socket\_\ =\ socket(rp-\/>ai\_family,\ rp-\/>ai\_socktype,\ rp-\/>ai\_protocol);}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (socket\_\ ==\ INVALID\_SOCKET)}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_error\ =\ ::WSAGetLastError();}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WSACleanup();}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (::connect(socket\_,\ rp-\/>ai\_addr,\ (\textcolor{keywordtype}{int})rp-\/>ai\_addrlen)\ ==\ 0)}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_error\ =\ ::WSAGetLastError();}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ close();}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ ::freeaddrinfo(addrinfo\_result);}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (socket\_\ ==\ INVALID\_SOCKET)}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ WSACleanup();}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ throw\_winsock\_error\_(\textcolor{stringliteral}{"{}connect\ failed"{}},\ last\_error);}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ set\ TCP\_NODELAY}}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ enable\_flag\ =\ 1;}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ ::setsockopt(socket\_,\ IPPROTO\_TCP,\ TCP\_NODELAY,\ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keywordtype}{char}\ *\textcolor{keyword}{>}(\&enable\_flag),\ \textcolor{keyword}{sizeof}(enable\_flag));}
+\DoxyCodeLine{00133\ \ \ \ \ \}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{comment}{//\ Send\ exactly\ n\_bytes\ of\ the\ given\ data.}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{comment}{//\ On\ error\ close\ the\ connection\ and\ throw.}}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordtype}{void}\ send(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ n\_bytes)}
+\DoxyCodeLine{00138\ \ \ \ \ \{}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ bytes\_sent\ =\ 0;}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (bytes\_sent\ <\ n\_bytes)}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ send\_flags\ =\ 0;}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ write\_result\ =\ ::send(socket\_,\ \mbox{\hyperlink{structdata}{data}}\ +\ bytes\_sent,\ (\textcolor{keywordtype}{int})(n\_bytes\ -\/\ bytes\_sent),\ send\_flags);}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (write\_result\ ==\ SOCKET\_ERROR)}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ last\_error\ =\ ::WSAGetLastError();}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ close();}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ throw\_winsock\_error\_(\textcolor{stringliteral}{"{}send\ failed"{}},\ last\_error);}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (write\_result\ ==\ 0)\ \textcolor{comment}{//\ (probably\ should\ not\ happen\ but\ in\ any\ case..)}}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ bytes\_sent\ +=\ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{size\_t}\textcolor{keyword}{>}(write\_result);}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00157\ \ \ \ \ \}}
+\DoxyCodeLine{00158\ \};}
+\DoxyCodeLine{00159\ \}\ \textcolor{comment}{//\ namespace\ details}}
+\DoxyCodeLine{00160\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

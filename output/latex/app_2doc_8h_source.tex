@@ -1,0 +1,267 @@
+\hypertarget{app_2doc_8h_source}{}\doxysection{doc.\+h}
+\label{app_2doc_8h_source}\index{AseSprite/aseprite/src/app/doc.h@{AseSprite/aseprite/src/app/doc.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2020\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_DOC\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_DOC\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/doc\_observer.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/extra\_cel.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/file/format\_options.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/transformation.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}base/disable\_copying.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}base/rw\_lock.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/blend\_mode.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}doc/color.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}doc/document.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}doc/frame.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}doc/mask\_boundaries.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}doc/pixel\_format.h"{}}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ "{}gfx/rect.h"{}}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}obs/observable.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}os/color\_space.h"{}}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{class\ }Cel;}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{class\ }Layer;}
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{class\ }Mask;}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{class\ }Tileset;}
+\DoxyCodeLine{00038\ \}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{keyword}{namespace\ }gfx\ \{}
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{class\ }Region;}
+\DoxyCodeLine{00042\ \}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{class\ }DocApi;}
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{class\ }DocUndo;}
+\DoxyCodeLine{00049\ \ \ \textcolor{keyword}{class\ }Transaction;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{using\ namespace\ }doc;}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \textcolor{keyword}{enum}\ DuplicateType\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ DuplicateExactCopy,}
+\DoxyCodeLine{00055\ \ \ \ \ DuplicateWithFlattenLayers,}
+\DoxyCodeLine{00056\ \ \ \};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \textcolor{comment}{//\ An\ application\ document.\ It\ is\ the\ class\ used\ to\ contain\ one\ file}}
+\DoxyCodeLine{00059\ \ \ \textcolor{comment}{//\ opened\ and\ being\ edited\ by\ the\ user\ (a\ sprite).}}
+\DoxyCodeLine{00060\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_doc}{Doc}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classdoc_1_1_document}{doc::Document}},}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classobs_1_1observable}{obs::observable}}<DocObserver>\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{enum}\ Flags\ \{}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ kAssociatedToFile\ =\ 1,\ \textcolor{comment}{//\ This\ sprite\ is\ associated\ to\ a\ file\ in\ the\ file-\/system}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ kMaskVisible\ \ \ \ \ \ =\ 2,\ \textcolor{comment}{//\ The\ mask\ wasn't\ hidden\ by\ the\ user}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ kInhibitBackup\ \ \ \ =\ 4,\ \textcolor{comment}{//\ Inhibit\ the\ backup\ process}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ kFullyBackedUp\ \ \ \ =\ 8,\ \textcolor{comment}{//\ Full\ backup\ was\ done}}
+\DoxyCodeLine{00067\ \ \ \ \ \};}
+\DoxyCodeLine{00068\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00069\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}(\mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ sprite);}
+\DoxyCodeLine{00070\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{\string~Doc}}();}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_ctx;\ \}}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{void}\ setContext(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ Lock/unlock\ API\ (RWLock\ wrapper)}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordtype}{bool}\ canWriteLockFromRead()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLock(\textcolor{keywordtype}{int}\ timeout);}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordtype}{bool}\ writeLock(\textcolor{keywordtype}{int}\ timeout);}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{bool}\ upgradeToWrite(\textcolor{keywordtype}{int}\ timeout);}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{void}\ downgradeToRead();}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{void}\ unlock();}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{bool}\ weakLock(std::atomic<base::RWLock::WeakLock>*\ weak\_lock\_flag);}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{void}\ weakUnlock();}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{comment}{//\ Sets\ active/running\ transaction.}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{void}\ setTransaction(\mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}*\ transaction);}
+\DoxyCodeLine{00088\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}*\ transaction()\ \{\ \textcolor{keywordflow}{return}\ m\_transaction;\ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//\ Returns\ a\ high-\/level\ API:\ observable\ and\ undoable\ methods.}}
+\DoxyCodeLine{00091\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_api}{DocApi}}\ getApi(\mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}\&\ transaction);}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{comment}{//\ Main\ properties}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_undo}{DocUndo}}*\ undoHistory()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_undo.get();\ \}}
+\DoxyCodeLine{00097\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_undo}{DocUndo}}*\ undoHistory()\ \{\ \textcolor{keywordflow}{return}\ m\_undo.get();\ \}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ bgColor()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00100\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ bgColor(\mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ osColorSpace()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_osColorSpace;\ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{comment}{//\ Notifications}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyGeneralUpdate();}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyColorSpaceChanged();}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyPaletteChanged();}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keywordtype}{void}\ notifySpritePixelsModified(\mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ sprite,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ region,\ frame\_t\ frame);}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyExposeSpritePixels(\mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ sprite,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ region);}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyLayerMergedDown(\mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ srcLayer,\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ targetLayer);}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyCelMoved(\mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ fromLayer,\ frame\_t\ fromFrame,\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ toLayer,\ frame\_t\ toFrame);}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyCelCopied(\mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ fromLayer,\ frame\_t\ fromFrame,\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ toLayer,\ frame\_t\ toFrame);}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordtype}{void}\ notifySelectionChanged();}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keywordtype}{void}\ notifySelectionBoundariesChanged();}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyTilesetChanged(\mbox{\hyperlink{classdoc_1_1_tileset}{Tileset}}*\ tileset);}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordtype}{void}\ notifyLayerGroupCollapseChange(\mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ layer);}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{comment}{//\ File\ related\ properties}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordtype}{bool}\ isModified()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordtype}{bool}\ isAssociatedToFile()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordtype}{void}\ markAsSaved();}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{comment}{//\ You\ can\ use\ this\ to\ indicate\ that\ we've\ destroyed\ (or\ we\ cannot}}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{comment}{//\ trust)\ the\ file\ associated\ with\ the\ document\ (e.g.\ when\ we}}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{comment}{//\ cancel\ a\ Save\ operation\ in\ the\ middle).\ So\ it's\ impossible\ to}}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{comment}{//\ back\ to\ the\ saved\ state\ using\ the\ UndoHistory.}}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordtype}{void}\ impossibleToBackToSavedState();}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ it\ does\ make\ sense\ to\ create\ a\ backup\ in\ this}}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{comment}{//\ document.\ For\ example,\ it\ doesn't\ make\ sense\ to\ create\ a\ backup}}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{comment}{//\ for\ an\ unmodified\ document.}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordtype}{bool}\ needsBackup()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{comment}{//\ Can\ be\ used\ to\ avoid\ creating\ a\ backup\ when\ the\ file\ is\ in\ a}}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{comment}{//\ unusual\ temporary\ state\ (e.g.\ when\ the\ file\ is\ resized\ to\ be}}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{comment}{//\ exported\ with\ other\ size)}}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keywordtype}{bool}\ inhibitBackup()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordtype}{void}\ setInhibitBackup(\textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ inhibitBackup);}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keywordtype}{void}\ markAsBackedUp();}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keywordtype}{bool}\ isFullyBackedUp()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{comment}{//\ Loaded\ options\ from\ file}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{keywordtype}{void}\ setFormatOptions(\textcolor{keyword}{const}\ FormatOptionsPtr\&\ format\_options);}
+\DoxyCodeLine{00151\ \ \ \ \ FormatOptionsPtr\ formatOptions()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_format\_options;\ \}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{comment}{//\ Boundaries}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordtype}{void}\ destroyMaskBoundaries();}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordtype}{void}\ generateMaskBoundaries(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_mask}{Mask}}*\ mask\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_mask_boundaries}{MaskBoundaries}}\&\ maskBoundaries()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_maskBoundaries;}
+\DoxyCodeLine{00161\ \ \ \ \ \}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_mask_boundaries}{MaskBoundaries}}\&\ maskBoundaries()\ \{}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_maskBoundaries;}
+\DoxyCodeLine{00165\ \ \ \ \ \}}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasMaskBoundaries()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ !m\_maskBoundaries.isEmpty();}
+\DoxyCodeLine{00169\ \ \ \ \ \}}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{comment}{//\ Extra\ Cel\ (it\ is\ used\ to\ draw\ pen\ preview,\ pixels\ in\ movement,\ etc.)}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ \ \ ExtraCelRef\ extraCel()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_extraCel;\ \}}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordtype}{void}\ setExtraCel(\textcolor{keyword}{const}\ ExtraCelRef\&\ extraCel)\ \{\ m\_extraCel\ =\ extraCel;\ \}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{comment}{//\ Mask}}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ current\ mask,\ it\ can\ be\ empty.\ The\ mask\ could\ be\ not}}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{comment}{//\ empty\ but\ hidden\ to\ the\ user\ if\ the\ setMaskVisible(false)\ was}}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{comment}{//\ used\ called\ before.}}
+\DoxyCodeLine{00183\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_mask}{Mask}}*\ mask()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_mask.get();\ \}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{comment}{//\ Sets\ the\ current\ mask.\ The\ new\ mask\ will\ be\ visible\ by\ default,}}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{comment}{//\ so\ you\ don't\ need\ to\ call\ setMaskVisible(true).}}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordtype}{void}\ setMask(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_mask}{Mask}}*\ mask);}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ only\ when\ the\ mask\ is\ not\ empty,\ and\ was\ not\ yet}}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{comment}{//\ hidden\ using\ setMaskVisible\ (e.g.\ when\ the\ user\ "{}deselect\ the}}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{comment}{//\ mask"{}).}}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordtype}{bool}\ isMaskVisible()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{comment}{//\ Changes\ the\ visibility\ state\ of\ the\ mask\ (it\ is\ useful\ only\ if}}
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{comment}{//\ the\ getMask()\ is\ not\ empty\ and\ the\ user\ can\ see\ that\ the\ mask\ is}}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{comment}{//\ being\ hidden\ and\ shown\ to\ him).}}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordtype}{void}\ setMaskVisible(\textcolor{keywordtype}{bool}\ visible);}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{comment}{//\ Transformation}}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\ getTransformation()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keywordtype}{void}\ setTransformation(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ transform);}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keywordtype}{void}\ resetTransformation();}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00207\ \ \ \ \ \textcolor{comment}{//\ Last\ point\ used\ to\ draw\ straight\ lines\ using\ freehand\ tools\ +\ Shift\ key}}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{comment}{//\ (EditorCustomizationDelegate::isStraightLineFromLastPoint()\ modifier)}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ NoLastDrawingPoint();}
+\DoxyCodeLine{00211\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ lastDrawingPoint()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_lastDrawingPoint;\ \}}
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{keywordtype}{void}\ setLastDrawingPoint(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ pos)\ \{\ m\_lastDrawingPoint\ =\ pos;\ \}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{comment}{//\ Copying}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{keywordtype}{void}\ copyLayerContent(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ sourceLayer,\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ destDoc,\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ destLayer)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00218\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ duplicate(DuplicateType\ type)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordtype}{void}\ close();}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00223\ \ \ \ \ \textcolor{keywordtype}{void}\ onFileNameChange()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onContextChanged();}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keywordtype}{void}\ removeFromContext();}
+\DoxyCodeLine{00228\ \ \ \ \ \textcolor{keywordtype}{void}\ updateOSColorSpace(\textcolor{keywordtype}{bool}\ appWideSignal);}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{comment}{//\ The\ document\ is\ in\ the\ collection\ of\ documents\ of\ this\ context.}}
+\DoxyCodeLine{00231\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ m\_ctx;}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{comment}{//\ Internal\ states\ of\ the\ document.}}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_flags;}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \ \ \textcolor{comment}{//\ Read-\/Write\ locks.}}
+\DoxyCodeLine{00237\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_r_w_lock}{base::RWLock}}\ m\_rwLock;}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \ \ \ \ \textcolor{comment}{//\ Undo\ and\ redo\ information\ about\ the\ document.}}
+\DoxyCodeLine{00240\ \ \ \ \ std::unique\_ptr<DocUndo>\ m\_undo;}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \ \ \textcolor{comment}{//\ Current\ transaction\ for\ this\ document\ (when\ this\ is\ commit(),\ a}}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{comment}{//\ new\ undo\ command\ is\ added\ to\ m\_undo).}}
+\DoxyCodeLine{00244\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}*\ m\_transaction;}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ \textcolor{comment}{//\ Selected\ mask\ region\ boundaries}}
+\DoxyCodeLine{00247\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_mask_boundaries}{doc::MaskBoundaries}}\ m\_maskBoundaries;}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{comment}{//\ Data\ to\ save\ the\ file\ in\ the\ same\ format\ that\ it\ was\ loaded}}
+\DoxyCodeLine{00250\ \ \ \ \ FormatOptionsPtr\ m\_format\_options;}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{comment}{//\ Extra\ cel\ used\ to\ draw\ extra\ stuff\ (e.g.\ editor's\ pen\ preview,\ pixels\ in\ movement,\ etc.)}}
+\DoxyCodeLine{00253\ \ \ \ \ ExtraCelRef\ m\_extraCel;}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \ \ \ \ \textcolor{comment}{//\ Current\ mask.}}
+\DoxyCodeLine{00256\ \ \ \ \ std::unique\_ptr<doc::Mask>\ m\_mask;}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{comment}{//\ Current\ transformation.}}
+\DoxyCodeLine{00259\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\ m\_transformation;}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ m\_lastDrawingPoint;}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \ \ \ \ \textcolor{comment}{//\ Last\ used\ color\ space\ to\ render\ a\ sprite.}}
+\DoxyCodeLine{00264\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ m\_osColorSpace;}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \ \ DISABLE\_COPYING(\mbox{\hyperlink{classapp_1_1_doc}{Doc}});}
+\DoxyCodeLine{00267\ \ \ \};}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

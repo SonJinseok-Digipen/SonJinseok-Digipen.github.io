@@ -1,0 +1,329 @@
+\hypertarget{median__cut_8h_source}{}\doxysection{median\+\_\+cut.\+h}
+\label{median__cut_8h_source}\index{AseSprite/aseprite/src/render/median\_cut.h@{AseSprite/aseprite/src/render/median\_cut.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ Render\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2001-\/2017\ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ RENDER\_MEDIAN\_CUT\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ RENDER\_MEDIAN\_CUT\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}doc/color.h"{}}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <list>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <queue>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{namespace\ }render\ \{}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Histogram>}
+\DoxyCodeLine{00019\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classrender_1_1_box}{Box}}\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{comment}{//\ These\ classes\ are\ used\ as\ parameters\ for\ some\ Box's\ generic}}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{comment}{//\ member\ functions,\ so\ we\ can\ access\ to\ a\ different\ axis\ using}}
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{comment}{//\ the\ same\ generic\ function\ (i=Red\ channel\ in\ RAxisGetter,\ etc.).}}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{struct\ }RAxisGetter\ \{\ \textcolor{keyword}{static}\ std::size\_t\ at(\textcolor{keyword}{const}\ Histogram\&\ h,\ \textcolor{keywordtype}{int}\ i,\ \textcolor{keywordtype}{int}\ j,\ \textcolor{keywordtype}{int}\ k,\ \textcolor{keywordtype}{int}\ l)\ \{\ \textcolor{keywordflow}{return}\ h.at(i,\ j,\ k,\ l);\ \}\ \};}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{struct\ }GAxisGetter\ \{\ \textcolor{keyword}{static}\ std::size\_t\ at(\textcolor{keyword}{const}\ Histogram\&\ h,\ \textcolor{keywordtype}{int}\ i,\ \textcolor{keywordtype}{int}\ j,\ \textcolor{keywordtype}{int}\ k,\ \textcolor{keywordtype}{int}\ l)\ \{\ \textcolor{keywordflow}{return}\ h.at(j,\ i,\ k,\ l);\ \}\ \};}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{struct\ }BAxisGetter\ \{\ \textcolor{keyword}{static}\ std::size\_t\ at(\textcolor{keyword}{const}\ Histogram\&\ h,\ \textcolor{keywordtype}{int}\ i,\ \textcolor{keywordtype}{int}\ j,\ \textcolor{keywordtype}{int}\ k,\ \textcolor{keywordtype}{int}\ l)\ \{\ \textcolor{keywordflow}{return}\ h.at(j,\ k,\ i,\ l);\ \}\ \};}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{struct\ }AAxisGetter\ \{\ \textcolor{keyword}{static}\ std::size\_t\ at(\textcolor{keyword}{const}\ Histogram\&\ h,\ \textcolor{keywordtype}{int}\ i,\ \textcolor{keywordtype}{int}\ j,\ \textcolor{keywordtype}{int}\ k,\ \textcolor{keywordtype}{int}\ l)\ \{\ \textcolor{keywordflow}{return}\ h.at(j,\ k,\ l,\ i);\ \}\ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{comment}{//\ These\ classes\ are\ used\ as\ template\ parameter\ to\ split\ a\ Box}}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{comment}{//\ along\ an\ axis\ (see\ splitAlongAxis)}}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keyword}{struct\ }RAxisSplitter\ \{}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box1(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ r)\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\mbox{\hyperlink{structbox}{box}}.r1,\ \mbox{\hyperlink{structbox}{box}}.g1,\ \mbox{\hyperlink{structbox}{box}}.b1,\ \mbox{\hyperlink{structbox}{box}}.a1,\ r,\ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.g2,\ \mbox{\hyperlink{structbox}{box}}.b2,\ \mbox{\hyperlink{structbox}{box}}.a2);\ \}}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box2(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ r)\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(r,\ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.g1,\ \mbox{\hyperlink{structbox}{box}}.b1,\ \mbox{\hyperlink{structbox}{box}}.a1,\ \mbox{\hyperlink{structbox}{box}}.r2,\ \mbox{\hyperlink{structbox}{box}}.g2,\ \mbox{\hyperlink{structbox}{box}}.b2,\ \mbox{\hyperlink{structbox}{box}}.a2);\ \}}
+\DoxyCodeLine{00034\ \ \ \ \ \};}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{struct\ }GAxisSplitter\ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box1(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ g)\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\mbox{\hyperlink{structbox}{box}}.r1,\ \mbox{\hyperlink{structbox}{box}}.g1,\ \mbox{\hyperlink{structbox}{box}}.b1,\ \mbox{\hyperlink{structbox}{box}}.a1,\ \mbox{\hyperlink{structbox}{box}}.r2,\ g,\ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.b2,\ \mbox{\hyperlink{structbox}{box}}.a2);\ \}}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box2(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ g)\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\mbox{\hyperlink{structbox}{box}}.r1,\ g,\ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.b1,\ \mbox{\hyperlink{structbox}{box}}.a1,\ \mbox{\hyperlink{structbox}{box}}.r2,\ \mbox{\hyperlink{structbox}{box}}.g2,\ \mbox{\hyperlink{structbox}{box}}.b2,\ \mbox{\hyperlink{structbox}{box}}.a2);\ \}}
+\DoxyCodeLine{00038\ \ \ \ \ \};}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{struct\ }BAxisSplitter\ \{}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box1(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ b)\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\mbox{\hyperlink{structbox}{box}}.r1,\ \mbox{\hyperlink{structbox}{box}}.g1,\ \mbox{\hyperlink{structbox}{box}}.b1,\ \mbox{\hyperlink{structbox}{box}}.a1,\ \mbox{\hyperlink{structbox}{box}}.r2,\ \mbox{\hyperlink{structbox}{box}}.g2,\ b,\ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.a2);\ \}}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box2(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ b)\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\mbox{\hyperlink{structbox}{box}}.r1,\ \mbox{\hyperlink{structbox}{box}}.g1,\ b,\ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.a1,\ \mbox{\hyperlink{structbox}{box}}.r2,\ \mbox{\hyperlink{structbox}{box}}.g2,\ \mbox{\hyperlink{structbox}{box}}.b2,\ \mbox{\hyperlink{structbox}{box}}.a2);\ \}}
+\DoxyCodeLine{00042\ \ \ \ \ \};}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{struct\ }AAxisSplitter\ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box1(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}})\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\mbox{\hyperlink{structbox}{box}}.r1,\ \mbox{\hyperlink{structbox}{box}}.g1,\ \mbox{\hyperlink{structbox}{box}}.b1,\ \mbox{\hyperlink{structbox}{box}}.a1,\ \mbox{\hyperlink{structbox}{box}}.r2,\ \mbox{\hyperlink{structbox}{box}}.g2,\ \mbox{\hyperlink{structbox}{box}}.b2,\ \mbox{\hyperlink{structa}{a}}\ \ \ \ \ );\ \}}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box2(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ \mbox{\hyperlink{structbox}{box}},\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}})\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\mbox{\hyperlink{structbox}{box}}.r1,\ \mbox{\hyperlink{structbox}{box}}.g1,\ \mbox{\hyperlink{structbox}{box}}.b1,\ \mbox{\hyperlink{structa}{a}},\ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.r2,\ \mbox{\hyperlink{structbox}{box}}.g2,\ \mbox{\hyperlink{structbox}{box}}.b2,\ \mbox{\hyperlink{structbox}{box}}.a2);\ \}}
+\DoxyCodeLine{00046\ \ \ \ \ \};}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classrender_1_1_box}{Box}}(\textcolor{keywordtype}{int}\ r1,\ \textcolor{keywordtype}{int}\ g1,\ \textcolor{keywordtype}{int}\ b1,\ \textcolor{keywordtype}{int}\ a1,}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ r2,\ \textcolor{keywordtype}{int}\ g2,\ \textcolor{keywordtype}{int}\ b2,\ \textcolor{keywordtype}{int}\ a2)}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ :\ r1(r1),\ g1(g1),\ b1(b1),\ a1(a1)}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ ,\ r2(r2),\ g2(g2),\ b2(b2),\ a2(a2)}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ ,\ points(0)}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ ,\ volume(calculateVolume())\ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{comment}{//\ Shrinks\ each\ plane\ of\ the\ box\ to\ a\ position\ where\ there\ are}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//\ points\ in\ the\ histogram.}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{void}\ shrink(\textcolor{keyword}{const}\ Histogram\&\ histogram)\ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ axisShrink<RAxisGetter>(histogram,\ r1,\ r2,\ g1,\ g2,\ b1,\ b2,\ a1,\ a2);}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ axisShrink<GAxisGetter>(histogram,\ g1,\ g2,\ r1,\ r2,\ b1,\ b2,\ a1,\ a2);}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ axisShrink<BAxisGetter>(histogram,\ b1,\ b2,\ r1,\ r2,\ g1,\ g2,\ a1,\ a2);}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ axisShrink<AAxisGetter>(histogram,\ a1,\ a2,\ r1,\ r2,\ g1,\ g2,\ b1,\ b2);}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \textcolor{comment}{//\ Calculate\ number\ of\ points\ inside\ the\ box\ (this\ is\ done\ by}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \textcolor{comment}{//\ first\ time\ here,\ because\ the\ Box\ ctor\ didn't\ calculate\ it).}}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ points\ =\ countPoints(histogram);}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \textcolor{comment}{//\ Recalculate\ the\ volume\ (used\ in\ operator<).}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ volume\ =\ calculateVolume();}
+\DoxyCodeLine{00071\ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{bool}\ split(\textcolor{keyword}{const}\ Histogram\&\ histogram,\ std::priority\_queue<Box>\&\ boxes)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \textcolor{comment}{//\ Split\ along\ the\ largest\ dimension\ of\ the\ box.}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((r2-\/r1)\ >=\ (g2-\/g1)\ \&\&}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ (r2-\/r1)\ >=\ (b2-\/b1)\ \&\&}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ (r2-\/r1)\ >=\ (a2-\/a1))\ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ splitAlongAxis<RAxisGetter,\ RAxisSplitter>(histogram,\ boxes,\ r1,\ r2,\ g1,\ g2,\ b1,\ b2,\ a1,\ a2);}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((g2-\/g1)\ >=\ (r2-\/r1)\ \&\&}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ (g2-\/g1)\ >=\ (b2-\/b1)\ \&\&}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ (g2-\/g1)\ >=\ (a2-\/a1))\ \{}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ splitAlongAxis<GAxisGetter,\ GAxisSplitter>(histogram,\ boxes,\ g1,\ g2,\ r1,\ r2,\ b1,\ b2,\ a1,\ a2);}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((b2-\/b1)\ >=\ (r2-\/r1)\ \&\&}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ (b2-\/b1)\ >=\ (g2-\/g1)\ \&\&}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ (b2-\/b1)\ >=\ (a2-\/a1))\ \{}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ splitAlongAxis<BAxisGetter,\ BAxisSplitter>(histogram,\ boxes,\ b1,\ b2,\ r1,\ r2,\ g1,\ g2,\ a1,\ a2);}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ splitAlongAxis<AAxisGetter,\ AAxisSplitter>(histogram,\ boxes,\ a1,\ a2,\ r1,\ r2,\ g1,\ g2,\ b1,\ b2);}
+\DoxyCodeLine{00094\ \ \ \ \ \}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ color\ enclosed\ by\ the\ box\ calculating\ the\ mean\ of}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{comment}{//\ all\ histogram's\ points\ inside\ the\ box.}}
+\DoxyCodeLine{00098\ \ \ \ \ uint32\_t\ meanColor(\textcolor{keyword}{const}\ Histogram\&\ histogram)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ std::size\_t\ r\ =\ 0,\ g\ =\ 0,\ b\ =\ 0,\ \mbox{\hyperlink{structa}{a}}\ =\ 0;}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ std::size\_t\ count\ =\ 0;}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ k,\ l;}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i=r1;\ i<=r2;\ ++i)}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=g1;\ j<=g2;\ ++j)}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k=b1;\ k<=b2;\ ++k)}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (l=a1;\ l<=a2;\ ++l)\ \{}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ c\ =\ histogram.at(i,\ j,\ k,\ l);}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ +=\ c\ *\ i;}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ g\ +=\ c\ *\ j;}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ b\ +=\ c\ *\ k;}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ +=\ c\ *\ l;}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count\ +=\ c;}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \textcolor{comment}{//\ No\ colors\ in\ the\ box?\ This\ should\ not\ be\ possible.}}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ ASSERT(count\ >\ 0\ \&\&\ \textcolor{stringliteral}{"{}Box\ without\ histogram\ points,\ you\ must\ fill\ the\ histogram\ before\ using\ this\ function."{}});}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (count\ ==\ 0)}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ doc::rgba(0,\ 0,\ 0,\ 255);}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \textcolor{comment}{//\ Calculate\ the\ mean.\ We\ have\ to\ do\ this\ before\ the\ *255}}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \textcolor{comment}{//\ multiplication\ to\ avoid\ a\ 32-\/bit\ overflow.\ E.g.\ Alpha\ channel}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \textcolor{comment}{//\ is\ the\ most\ proper\ to\ overflow\ the\ 32-\/bit\ capacity\ in\ case}}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \textcolor{comment}{//\ all\ pixels\ are\ opaque.}}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ r\ /=\ count;}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ g\ /=\ count;}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ b\ /=\ count;}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ /=\ count;}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ doc::rgba(\textcolor{keywordtype}{int}(255\ *\ r\ /\ (Histogram::RElements-\/1)),}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}(255\ *\ g\ /\ (Histogram::GElements-\/1)),}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}(255\ *\ b\ /\ (Histogram::BElements-\/1)),}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}(255\ *\ \mbox{\hyperlink{structa}{a}}\ /\ (Histogram::AElements-\/1)));}
+\DoxyCodeLine{00133\ \ \ \ \ \}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{comment}{//\ The\ boxes\ will\ be\ sort\ in\ the\ priority\_queue\ by\ volume.}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator<(\textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_box}{Box}}\&\ other)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ volume\ <\ other.volume;}
+\DoxyCodeLine{00138\ \ \ \ \ \}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{comment}{//\ Calculates\ the\ volume\ from\ the\ current\ box's\ dimensions.\ The}}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{comment}{//\ value\ returned\ by\ this\ function\ is\ cached\ in\ the\ "{}volume"{}}}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{comment}{//\ variable\ member\ of\ Box\ class\ to\ avoid\ multiplying\ several}}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{comment}{//\ times.}}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keywordtype}{int}\ calculateVolume()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (r2-\/r1+1)\ *\ (g2-\/g1+1)\ *\ (b2-\/b1+1)\ *\ (a2-\/a1+1);}
+\DoxyCodeLine{00148\ \ \ \ \ \}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ number\ of\ histogram's\ points\ inside\ the\ box\ bounds.}}
+\DoxyCodeLine{00151\ \ \ \ \ std::size\_t\ countPoints(\textcolor{keyword}{const}\ Histogram\&\ histogram)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ std::size\_t\ count\ =\ 0;}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ k,\ l;}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i=r1;\ i<=r2;\ ++i)}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=g1;\ j<=g2;\ ++j)}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k=b1;\ k<=b2;\ ++k)}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (l=a1;\ l<=a2;\ ++l)}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ count\ +=\ histogram.at(i,\ j,\ k,\ l);}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ count;}
+\DoxyCodeLine{00162\ \ \ \ \ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{comment}{//\ Reduces\ the\ specified\ side\ of\ the\ box\ (i1/i2)\ along\ the}}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{comment}{//\ specified\ axis\ (if\ AxisGetter\ is\ RAxisGetter,\ then\ i1=r1,}}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{comment}{//\ i2=r2;\ if\ AxisGetter\ is\ GAxisGetter,\ then\ i1=g1,\ i2=g2).}}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ AxisGetter>}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ axisShrink(\textcolor{keyword}{const}\ Histogram\&\ histogram,}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\&\ i1,\ \textcolor{keywordtype}{int}\&\ i2,}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ j1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ j2,}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ k1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ k2,}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ l1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ l2)}
+\DoxyCodeLine{00173\ \ \ \ \ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ j,\ k,\ l;}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \textcolor{comment}{//\ Shrink\ i1.}}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ i1<i2;\ ++i1)\ \{}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=j1;\ j<=j2;\ ++j)\ \{}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k=k1;\ k<=k2;\ ++k)\ \{}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (l=l1;\ l<=l2;\ ++l)\ \{}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (AxisGetter::at(histogram,\ i1,\ j,\ k,\ l)\ >\ 0)}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ doneA;}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ doneA:;}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ i2>i1;\ -\/-\/i2)\ \{}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=j1;\ j<=j2;\ ++j)\ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k=k1;\ k<=k2;\ ++k)\ \{}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (l=l1;\ l<=l2;\ ++l)\ \{}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (AxisGetter::at(histogram,\ i2,\ j,\ k,\ l)\ >\ 0)}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ doneB;}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \ \ doneB:;}
+\DoxyCodeLine{00202\ \ \ \ \ \}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{comment}{//\ Splits\ the\ box\ in\ two\ sub-\/boxes\ (if\ it's\ possible)\ along\ the}}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{comment}{//\ specified\ axis\ by\ AxisGetter\ template\ parameter\ and\ "{}i1/i2"{}}}
+\DoxyCodeLine{00206\ \ \ \ \ \textcolor{comment}{//\ arguments.\ Returns\ true\ if\ the\ split\ was\ done\ and\ the\ "{}boxes"{}}}
+\DoxyCodeLine{00207\ \ \ \ \ \textcolor{comment}{//\ queue\ contains\ the\ new\ two\ sub-\/boxes\ resulting\ from\ the\ split}}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{comment}{//\ operation.}}
+\DoxyCodeLine{00209\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ AxisGetter,\ \textcolor{keyword}{class}\ AxisSplitter>}
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keywordtype}{bool}\ splitAlongAxis(\textcolor{keyword}{const}\ Histogram\&\ histogram,}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::priority\_queue<Box>\&\ boxes,}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ i1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ i2,}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ j1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ j2,}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ k1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ k2,}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ l1,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\&\ l2)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \textcolor{comment}{//\ These\ two\ variables\ will\ be\ used\ to\ count\ how\ many\ points\ are}}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \textcolor{comment}{//\ in\ each\ side\ of\ the\ box\ if\ we\ split\ it\ in\ "{}i"{}\ position.}}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ std::size\_t\ totalPoints1\ =\ 0;}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ std::size\_t\ totalPoints2\ =\ this-\/>points;}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ i,\ j,\ k,\ l;}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \textcolor{comment}{//\ We\ will\ try\ to\ split\ the\ box\ along\ the\ "{}i"{}\ axis.\ Imagine\ a}}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \textcolor{comment}{//\ plane\ which\ its\ normal\ vector\ is\ "{}i"{}\ axis,\ so\ we\ will\ try\ to}}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \textcolor{comment}{//\ move\ this\ plane\ from\ "{}i1"{}\ to\ "{}i2"{}\ to\ find\ the\ median,\ where}}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \textcolor{comment}{//\ the\ number\ of\ points\ in\ both\ sides\ of\ the\ plane\ are}}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \textcolor{comment}{//\ approximated\ the\ same.}}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i=i1;\ i<=i2;\ ++i)\ \{}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ std::size\_t\ planePoints\ =\ 0;}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ We\ count\ all\ points\ in\ "{}i"{}\ plane.}}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (j=j1;\ j<=j2;\ ++j)}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (k=k1;\ k<=k2;\ ++k)}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (l=l1;\ l<=l2;\ ++l)}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ planePoints\ +=\ AxisGetter::at(histogram,\ i,\ j,\ k,\ l);}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ As\ we\ move\ the\ plane\ to\ split\ through\ "{}i"{}\ axis\ One\ side\ is\ getting\ more\ points,}}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ totalPoints1\ +=\ planePoints;}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ totalPoints2\ -\/=\ planePoints;}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (totalPoints1\ >\ totalPoints2)\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (totalPoints2\ >\ 0)\ \{}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box1(AxisSplitter::box1(*\textcolor{keyword}{this},\ i));}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box2(AxisSplitter::box2(*\textcolor{keyword}{this},\ i+1));}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ box1.points\ =\ totalPoints1;}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ \ \ box2.points\ =\ totalPoints2;}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \ \ \ \ boxes.push(box1);}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ boxes.push(box2);}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (totalPoints1-\/planePoints\ >\ 0)\ \{}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box1(AxisSplitter::box1(*\textcolor{keyword}{this},\ i-\/1));}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classrender_1_1_box}{Box}}\ box2(AxisSplitter::box2(*\textcolor{keyword}{this},\ i));}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ box1.points\ =\ totalPoints1-\/planePoints;}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ box2.points\ =\ totalPoints2+planePoints;}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ \ \ \ boxes.push(box1);}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ \ \ \ \ \ boxes.push(box2);}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00264\ \ \ \ \ \}}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \ \ \textcolor{keywordtype}{int}\ r1,\ g1,\ b1,\ a1;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Min\ point\ (closest\ to\ origin)}}
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordtype}{int}\ r2,\ g2,\ b2,\ a2;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Max\ point}}
+\DoxyCodeLine{00268\ \ \ \ \ std::size\_t\ points;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Number\ of\ points\ in\ the\ space\ which\ enclose\ this\ box}}
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{keywordtype}{int}\ volume;}
+\DoxyCodeLine{00270\ \ \ \};\ \textcolor{comment}{//\ end\ of\ class\ Box}}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \textcolor{comment}{//\ Median\ Cut\ Algorithm\ as\ described\ in\ P.\ Heckbert,\ "{}Color\ image}}
+\DoxyCodeLine{00273\ \ \ \textcolor{comment}{//\ quantization\ for\ frame\ buffer\ display,"{},\ Computer\ Graphics,}}
+\DoxyCodeLine{00274\ \ \ \textcolor{comment}{//\ 16(3),\ pp.\ 297-\/307\ (1982)}}
+\DoxyCodeLine{00275\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Histogram>}
+\DoxyCodeLine{00276\ \ \ \textcolor{keywordtype}{void}\ median\_cut(\textcolor{keyword}{const}\ Histogram\&\ histogram,\ std::size\_t\ maxBoxes,\ std::vector<uint32\_t>\&\ result)\ \{}
+\DoxyCodeLine{00277\ \ \ \ \ \textcolor{comment}{//\ We\ need\ a\ priority\ queue\ to\ split\ bigger\ boxes\ first\ (see\ Box::operator<).}}
+\DoxyCodeLine{00278\ \ \ \ \ std::priority\_queue<Box<Histogram>\ >\ boxes;}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{comment}{//\ First\ we\ start\ with\ one\ big\ box\ containing\ all\ histogram's\ samples.}}
+\DoxyCodeLine{00281\ \ \ \ \ boxes.push(\mbox{\hyperlink{classrender_1_1_box}{Box<Histogram>}}(0,\ 0,\ 0,\ 0,}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Histogram::RElements-\/1,}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Histogram::GElements-\/1,}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Histogram::BElements-\/1,}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Histogram::AElements-\/1));}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{comment}{//\ Then\ we\ split\ each\ box\ until\ we\ reach\ the\ maximum\ specified\ by}}
+\DoxyCodeLine{00288\ \ \ \ \ \textcolor{comment}{//\ the\ user\ (maxBoxes)\ or\ until\ there\ aren't\ more\ boxes\ to\ split.}}
+\DoxyCodeLine{00289\ \ \ \ \ \textcolor{keywordflow}{while}\ (!boxes.empty()\ \&\&\ boxes.size()\ <\ maxBoxes)\ \{}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \textcolor{comment}{//\ Get\ and\ remove\ the\ first\ (bigger)\ box\ to\ process\ from\ "{}boxes"{}\ queue.}}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \mbox{\hyperlink{classrender_1_1_box}{Box<Histogram>}}\ \mbox{\hyperlink{structbox}{box}}(boxes.top());}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ boxes.pop();}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \textcolor{comment}{//\ Shrink\ the\ box\ to\ the\ minimum,\ to\ enclose\ the\ same\ points\ in}}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \textcolor{comment}{//\ the\ histogram.}}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \mbox{\hyperlink{structbox}{box}}.shrink(histogram);}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \textcolor{comment}{//\ Try\ to\ split\ the\ box\ along\ the\ largest\ axis.}}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!\mbox{\hyperlink{structbox}{box}}.split(histogram,\ boxes))\ \{}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ we\ were\ not\ able\ to\ split\ the\ box\ (maybe\ because\ it\ is}}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ too\ small\ or\ there\ are\ not\ enough\ points\ to\ split\ it),\ then}}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ we\ add\ the\ box's\ color\ to\ the\ "{}result"{}\ vector\ directly\ (the}}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ box\ is\ not\ in\ the\ queue\ anymore).}}
+\DoxyCodeLine{00304\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (result.size()\ <\ maxBoxes)}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ \ \ result.push\_back(\mbox{\hyperlink{structbox}{box}}.meanColor(histogram));}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00309\ \ \ \ \ \}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{comment}{//\ When\ we\ reach\ the\ maximum\ number\ of\ boxes,\ we\ convert\ each\ box}}
+\DoxyCodeLine{00312\ \ \ \ \ \textcolor{comment}{//\ to\ a\ color\ for\ the\ "{}result"{}\ vector.}}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordflow}{while}\ (!boxes.empty()\ \&\&\ result.size()\ <\ maxBoxes)\ \{}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \textcolor{keyword}{const}\ Box<Histogram>\&\ \mbox{\hyperlink{structbox}{box}}(boxes.top());}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ doc::color\_t\ color\ =\ \mbox{\hyperlink{structbox}{box}}.meanColor(histogram);}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ result.push\_back(color);}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ boxes.pop();}
+\DoxyCodeLine{00318\ \ \ \ \ \}}
+\DoxyCodeLine{00319\ \ \ \}}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \}\ \textcolor{comment}{//\ namespace\ render}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

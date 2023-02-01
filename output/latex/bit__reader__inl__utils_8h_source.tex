@@ -1,0 +1,202 @@
+\hypertarget{bit__reader__inl__utils_8h_source}{}\doxysection{bit\+\_\+reader\+\_\+inl\+\_\+utils.\+h}
+\label{bit__reader__inl__utils_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/utils/bit\_reader\_inl\_utils.h@{AseSprite/aseprite/third\_party/libwebp/src/utils/bit\_reader\_inl\_utils.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2014\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Specific\ inlined\ methods\ for\ boolean\ decoder\ [VP8GetBit()\ ...]}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ This\ file\ should\ be\ included\ by\ the\ .c\ sources\ that\ actually\ need\ to\ call}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ these\ methods.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#ifndef\ WEBP\_UTILS\_BIT\_READER\_INL\_UTILS\_H\_}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#define\ WEBP\_UTILS\_BIT\_READER\_INL\_UTILS\_H\_}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifdef\ HAVE\_CONFIG\_H}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}src/webp/config.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <string.h>}\ \ \textcolor{comment}{//\ for\ memcpy}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}src/dsp/dsp.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}src/utils/bit\_reader\_utils.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}src/utils/endian\_inl\_utils.h"{}}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ "{}src/utils/utils.h"{}}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00031\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ Derived\ type\ lbit\_t\ =\ natural\ type\ for\ memory\ I/O}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#if\ \ \ (BITS\ >\ 32)}}
+\DoxyCodeLine{00038\ \textcolor{keyword}{typedef}\ uint64\_t\ lbit\_t;}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#elif\ (BITS\ >\ 16)}}
+\DoxyCodeLine{00040\ \textcolor{keyword}{typedef}\ uint32\_t\ lbit\_t;}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#elif\ (BITS\ >\ \ 8)}}
+\DoxyCodeLine{00042\ \textcolor{keyword}{typedef}\ uint16\_t\ lbit\_t;}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00044\ \textcolor{keyword}{typedef}\ uint8\_t\ lbit\_t;}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint8\_t\ kVP8Log2Range[128];}
+\DoxyCodeLine{00048\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint8\_t\ kVP8NewRange[128];}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ special\ case\ for\ the\ tail\ byte-\/reading}}
+\DoxyCodeLine{00051\ \textcolor{keywordtype}{void}\ VP8LoadFinalBytes(\mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ \textcolor{keyword}{const}\ br);}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00054\ \textcolor{comment}{//\ Inlined\ critical\ functions}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{comment}{//\ makes\ sure\ br-\/>value\_\ has\ at\ least\ BITS\ bits\ worth\ of\ data}}
+\DoxyCodeLine{00057\ \textcolor{keyword}{static}\ WEBP\_UBSAN\_IGNORE\_UNDEF\ WEBP\_INLINE}
+\DoxyCodeLine{00058\ \textcolor{keywordtype}{void}\ VP8LoadNewBytes(\mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ br)\ \{}
+\DoxyCodeLine{00059\ \ \ assert(br\ !=\ NULL\ \&\&\ br-\/>buf\_\ !=\ NULL);}
+\DoxyCodeLine{00060\ \ \ \textcolor{comment}{//\ Read\ 'BITS'\ bits\ at\ a\ time\ if\ possible.}}
+\DoxyCodeLine{00061\ \ \ \textcolor{keywordflow}{if}\ (br-\/>buf\_\ <\ br-\/>buf\_max\_)\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{comment}{//\ convert\ memory\ type\ to\ register\ type\ (with\ some\ zero'ing!)}}
+\DoxyCodeLine{00063\ \ \ \ \ bit\_t\ bits;}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_MIPS32)}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{comment}{//\ This\ is\ needed\ because\ of\ un-\/aligned\ read.}}
+\DoxyCodeLine{00066\ \ \ \ \ lbit\_t\ in\_bits;}
+\DoxyCodeLine{00067\ \ \ \ \ lbit\_t*\ p\_buf\_\ =\ (lbit\_t*)br-\/>buf\_;}
+\DoxyCodeLine{00068\ \ \ \ \ \_\_asm\_\_\ \textcolor{keyword}{volatile}(}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.set\ \ \ push\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.set\ \ \ at\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.set\ \ \ macro\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}ulw\ \ \ \ \%[in\_bits],\ 0(\%[p\_buf\_])\ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}.set\ \ \ pop\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ :\ [in\_bits]\textcolor{stringliteral}{"{}=r"{}}(in\_bits)}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ :\ [p\_buf\_]\textcolor{stringliteral}{"{}r"{}}(p\_buf\_)}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}memory"{}},\ \textcolor{stringliteral}{"{}at"{}}}
+\DoxyCodeLine{00077\ \ \ \ \ );}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00079\ \ \ \ \ lbit\_t\ in\_bits;}
+\DoxyCodeLine{00080\ \ \ \ \ memcpy(\&in\_bits,\ br-\/>buf\_,\ \textcolor{keyword}{sizeof}(in\_bits));}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00082\ \ \ \ \ br-\/>buf\_\ +=\ BITS\ >>\ 3;}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#if\ !defined(WORDS\_BIGENDIAN)}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#if\ (BITS\ >\ 32)}}
+\DoxyCodeLine{00085\ \ \ \ \ bits\ =\ BSwap64(in\_bits);}
+\DoxyCodeLine{00086\ \ \ \ \ bits\ >>=\ 64\ -\/\ BITS;}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#elif\ (BITS\ >=\ 24)}}
+\DoxyCodeLine{00088\ \ \ \ \ bits\ =\ BSwap32(in\_bits);}
+\DoxyCodeLine{00089\ \ \ \ \ bits\ >>=\ (32\ -\/\ BITS);}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#elif\ (BITS\ ==\ 16)}}
+\DoxyCodeLine{00091\ \ \ \ \ bits\ =\ BSwap16(in\_bits);}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#else\ \ \ }\textcolor{comment}{//\ BITS\ ==\ 8}}
+\DoxyCodeLine{00093\ \ \ \ \ bits\ =\ (bit\_t)in\_bits;}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ BITS\ >\ 32}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#else\ \ \ \ }\textcolor{comment}{//\ WORDS\_BIGENDIAN}}
+\DoxyCodeLine{00096\ \ \ \ \ bits\ =\ (bit\_t)in\_bits;}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordflow}{if}\ (BITS\ !=\ 8\ *\ \textcolor{keyword}{sizeof}(bit\_t))\ bits\ >>=\ (8\ *\ \textcolor{keyword}{sizeof}(bit\_t)\ -\/\ BITS);}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00099\ \ \ \ \ br-\/>value\_\ =\ bits\ |\ (br-\/>value\_\ <<\ BITS);}
+\DoxyCodeLine{00100\ \ \ \ \ br-\/>bits\_\ +=\ BITS;}
+\DoxyCodeLine{00101\ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00102\ \ \ \ \ VP8LoadFinalBytes(br);\ \ \ \ \textcolor{comment}{//\ no\ need\ to\ be\ inlined}}
+\DoxyCodeLine{00103\ \ \ \}}
+\DoxyCodeLine{00104\ \}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{comment}{//\ Read\ a\ bit\ with\ proba\ 'prob'.\ Speed-\/critical\ function!}}
+\DoxyCodeLine{00107\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8GetBit(\mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ br,}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ prob,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ label[])\ \{}
+\DoxyCodeLine{00109\ \ \ \textcolor{comment}{//\ Don't\ move\ this\ declaration!\ It\ makes\ a\ big\ speed\ difference\ to\ store}}
+\DoxyCodeLine{00110\ \ \ \textcolor{comment}{//\ 'range'\ *before*\ calling\ VP8LoadNewBytes(),\ even\ if\ this\ function\ doesn't}}
+\DoxyCodeLine{00111\ \ \ \textcolor{comment}{//\ alter\ br-\/>range\_\ value.}}
+\DoxyCodeLine{00112\ \ \ range\_t\ range\ =\ br-\/>range\_;}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordflow}{if}\ (br-\/>bits\_\ <\ 0)\ \{}
+\DoxyCodeLine{00114\ \ \ \ \ VP8LoadNewBytes(br);}
+\DoxyCodeLine{00115\ \ \ \}}
+\DoxyCodeLine{00116\ \ \ \{}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ pos\ =\ br-\/>bits\_;}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keyword}{const}\ range\_t\ split\ =\ (range\ *\ prob)\ >>\ 8;}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keyword}{const}\ range\_t\ \mbox{\hyperlink{classvalue}{value}}\ =\ (range\_t)(br-\/>value\_\ >>\ pos);}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ bit\ =\ (\mbox{\hyperlink{classvalue}{value}}\ >\ split);}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordflow}{if}\ (bit)\ \{}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ range\ -\/=\ split;}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ br-\/>value\_\ -\/=\ (bit\_t)(split\ +\ 1)\ <<\ pos;}
+\DoxyCodeLine{00124\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ range\ =\ split\ +\ 1;}
+\DoxyCodeLine{00126\ \ \ \ \ \}}
+\DoxyCodeLine{00127\ \ \ \ \ \{}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ shift\ =\ 7\ \string^\ BitsLog2Floor(range);}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ range\ <<=\ shift;}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ br-\/>bits\_\ -\/=\ shift;}
+\DoxyCodeLine{00131\ \ \ \ \ \}}
+\DoxyCodeLine{00132\ \ \ \ \ br-\/>range\_\ =\ range\ -\/\ 1;}
+\DoxyCodeLine{00133\ \ \ \ \ BT\_TRACK(br);}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keywordflow}{return}\ bit;}
+\DoxyCodeLine{00135\ \ \ \}}
+\DoxyCodeLine{00136\ \}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{comment}{//\ simplified\ version\ of\ VP8GetBit()\ for\ prob=0x80\ (note\ shift\ is\ always\ 1\ here)}}
+\DoxyCodeLine{00139\ \textcolor{keyword}{static}\ WEBP\_UBSAN\_IGNORE\_UNSIGNED\_OVERFLOW\ WEBP\_INLINE}
+\DoxyCodeLine{00140\ \textcolor{keywordtype}{int}\ VP8GetSigned(\mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ br,\ \textcolor{keywordtype}{int}\ v,}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ label[])\ \{}
+\DoxyCodeLine{00142\ \ \ \textcolor{keywordflow}{if}\ (br-\/>bits\_\ <\ 0)\ \{}
+\DoxyCodeLine{00143\ \ \ \ \ VP8LoadNewBytes(br);}
+\DoxyCodeLine{00144\ \ \ \}}
+\DoxyCodeLine{00145\ \ \ \{}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ pos\ =\ br-\/>bits\_;}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keyword}{const}\ range\_t\ split\ =\ br-\/>range\_\ >>\ 1;}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keyword}{const}\ range\_t\ \mbox{\hyperlink{classvalue}{value}}\ =\ (range\_t)(br-\/>value\_\ >>\ pos);}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keyword}{const}\ int32\_t\ mask\ =\ (int32\_t)(split\ -\/\ \mbox{\hyperlink{classvalue}{value}})\ >>\ 31;\ \ \textcolor{comment}{//\ -\/1\ or\ 0}}
+\DoxyCodeLine{00150\ \ \ \ \ br-\/>bits\_\ -\/=\ 1;}
+\DoxyCodeLine{00151\ \ \ \ \ br-\/>range\_\ +=\ mask;}
+\DoxyCodeLine{00152\ \ \ \ \ br-\/>range\_\ |=\ 1;}
+\DoxyCodeLine{00153\ \ \ \ \ br-\/>value\_\ -\/=\ (bit\_t)((split\ +\ 1)\ \&\ mask)\ <<\ pos;}
+\DoxyCodeLine{00154\ \ \ \ \ BT\_TRACK(br);}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keywordflow}{return}\ (v\ \string^\ mask)\ -\/\ mask;}
+\DoxyCodeLine{00156\ \ \ \}}
+\DoxyCodeLine{00157\ \}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8GetBitAlt(\mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ br,}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ prob,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ label[])\ \{}
+\DoxyCodeLine{00161\ \ \ \textcolor{comment}{//\ Don't\ move\ this\ declaration!\ It\ makes\ a\ big\ speed\ difference\ to\ store}}
+\DoxyCodeLine{00162\ \ \ \textcolor{comment}{//\ 'range'\ *before*\ calling\ VP8LoadNewBytes(),\ even\ if\ this\ function\ doesn't}}
+\DoxyCodeLine{00163\ \ \ \textcolor{comment}{//\ alter\ br-\/>range\_\ value.}}
+\DoxyCodeLine{00164\ \ \ range\_t\ range\ =\ br-\/>range\_;}
+\DoxyCodeLine{00165\ \ \ \textcolor{keywordflow}{if}\ (br-\/>bits\_\ <\ 0)\ \{}
+\DoxyCodeLine{00166\ \ \ \ \ VP8LoadNewBytes(br);}
+\DoxyCodeLine{00167\ \ \ \}}
+\DoxyCodeLine{00168\ \ \ \{}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ pos\ =\ br-\/>bits\_;}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keyword}{const}\ range\_t\ split\ =\ (range\ *\ prob)\ >>\ 8;}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keyword}{const}\ range\_t\ \mbox{\hyperlink{classvalue}{value}}\ =\ (range\_t)(br-\/>value\_\ >>\ pos);}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordtype}{int}\ bit;\ \ \textcolor{comment}{//\ Don't\ use\ 'const\ int\ bit\ =\ (value\ >\ split);"{},\ it's\ slower.}}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{classvalue}{value}}\ >\ split)\ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ range\ -\/=\ split\ +\ 1;}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ br-\/>value\_\ -\/=\ (bit\_t)(split\ +\ 1)\ <<\ pos;}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ bit\ =\ 1;}
+\DoxyCodeLine{00177\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ range\ =\ split;}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ bit\ =\ 0;}
+\DoxyCodeLine{00180\ \ \ \ \ \}}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordflow}{if}\ (range\ <=\ (range\_t)0x7e)\ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ shift\ =\ kVP8Log2Range[range];}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ range\ =\ kVP8NewRange[range];}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ br-\/>bits\_\ -\/=\ shift;}
+\DoxyCodeLine{00185\ \ \ \ \ \}}
+\DoxyCodeLine{00186\ \ \ \ \ br-\/>range\_\ =\ range;}
+\DoxyCodeLine{00187\ \ \ \ \ BT\_TRACK(br);}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{keywordflow}{return}\ bit;}
+\DoxyCodeLine{00189\ \ \ \}}
+\DoxyCodeLine{00190\ \}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00193\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_UTILS\_BIT\_READER\_INL\_UTILS\_H\_}}
+
+\end{DoxyCode}

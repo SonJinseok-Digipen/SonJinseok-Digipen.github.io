@@ -1,0 +1,340 @@
+\hypertarget{tga_8h_source}{}\doxysection{tga.\+h}
+\label{tga_8h_source}\index{AseSprite/aseprite/src/tga/tga.h@{AseSprite/aseprite/src/tga/tga.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ TGA\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2020-\/2021\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ TGA\_TGA\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ TGA\_TGA\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }tga\ \{}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \ \ \textcolor{keyword}{enum}\ ImageType\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ NoImage\ =\ 0,}
+\DoxyCodeLine{00021\ \ \ \ \ UncompressedIndexed\ =\ 1,}
+\DoxyCodeLine{00022\ \ \ \ \ UncompressedRgb\ =\ 2,}
+\DoxyCodeLine{00023\ \ \ \ \ UncompressedGray\ =\ 3,}
+\DoxyCodeLine{00024\ \ \ \ \ RleIndexed\ =\ 9,}
+\DoxyCodeLine{00025\ \ \ \ \ RleRgb\ =\ 10,}
+\DoxyCodeLine{00026\ \ \ \ \ RleGray\ =\ 11,}
+\DoxyCodeLine{00027\ \ \ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{typedef}\ uint32\_t\ \mbox{\hyperlink{structcolor__t}{color\_t}};}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_r\_shift\ \ =\ 0;}
+\DoxyCodeLine{00032\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_g\_shift\ \ =\ 8;}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_b\_shift\ \ =\ 16;}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_a\_shift\ \ =\ 24;}
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_r\_mask\ \ \ =\ 0x000000ff;}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_g\_mask\ \ \ =\ 0x0000ff00;}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_b\_mask\ \ \ =\ 0x00ff0000;}
+\DoxyCodeLine{00038\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_rgb\_mask\ =\ 0x00ffffff;}
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ color\_a\_mask\ \ \ =\ 0xff000000;}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \textcolor{keyword}{inline}\ uint8\_t\ getr(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c)\ \{\ \textcolor{keywordflow}{return}\ (c\ >>\ color\_r\_shift)\ \&\ 0xff;\ \}}
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{inline}\ uint8\_t\ getg(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c)\ \{\ \textcolor{keywordflow}{return}\ (c\ >>\ color\_g\_shift)\ \&\ 0xff;\ \}}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{inline}\ uint8\_t\ getb(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c)\ \{\ \textcolor{keywordflow}{return}\ (c\ >>\ color\_b\_shift)\ \&\ 0xff;\ \}}
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{inline}\ uint8\_t\ geta(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c)\ \{\ \textcolor{keywordflow}{return}\ (c\ >>\ color\_a\_shift)\ \&\ 0xff;\ \}}
+\DoxyCodeLine{00045\ \ \ \textcolor{keyword}{inline}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ rgba(uint8\_t\ r,\ uint8\_t\ g,\ uint8\_t\ b,\ uint8\_t\ \mbox{\hyperlink{structa}{a}}\ =\ 255)\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordflow}{return}\ ((r\ <<\ color\_r\_shift)\ |}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ (g\ <<\ color\_g\_shift)\ |}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ (b\ <<\ color\_b\_shift)\ |}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structa}{a}}\ <<\ color\_a\_shift));}
+\DoxyCodeLine{00050\ \ \ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtga_1_1_colormap}{Colormap}}\ \{}
+\DoxyCodeLine{00053\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00054\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_colormap}{Colormap}}()\ \{\ \}}
+\DoxyCodeLine{00055\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_colormap}{Colormap}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ n)\ :\ m\_color(n)\ \{\ \}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{int}\ size()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ int(m\_color.size());\ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\&\ operator[](\textcolor{keywordtype}{int}\ i)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_color[i];}
+\DoxyCodeLine{00061\ \ \ \ \ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\&\ operator[](\textcolor{keywordtype}{int}\ i)\ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_color[i];}
+\DoxyCodeLine{00065\ \ \ \ \ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{classtga_1_1_colormap}{Colormap}}\&\ o)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i=0;\ i<int(m\_color.size());\ ++i)\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_color[i]\ !=\ o[i])}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00073\ \ \ \ \ \}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classtga_1_1_colormap}{Colormap}}\&\ o)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ !operator==(o);}
+\DoxyCodeLine{00077\ \ \ \ \ \}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00080\ \ \ \ \ std::vector<color\_t>\ m\_color;}
+\DoxyCodeLine{00081\ \ \ \};}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtga_1_1_image}{Image}}\ \{}
+\DoxyCodeLine{00084\ \ \ \ \ uint8\_t*\ pixels;}
+\DoxyCodeLine{00085\ \ \ \ \ uint32\_t\ bytesPerPixel;}
+\DoxyCodeLine{00086\ \ \ \ \ uint32\_t\ rowstride;}
+\DoxyCodeLine{00087\ \ \ \};}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtga_1_1_header}{Header}}\ \{}
+\DoxyCodeLine{00090\ \ \ \ \ uint8\_t\ \ idLength;}
+\DoxyCodeLine{00091\ \ \ \ \ uint8\_t\ \ colormapType;}
+\DoxyCodeLine{00092\ \ \ \ \ uint8\_t\ \ imageType;}
+\DoxyCodeLine{00093\ \ \ \ \ uint16\_t\ colormapOrigin;}
+\DoxyCodeLine{00094\ \ \ \ \ uint16\_t\ colormapLength;}
+\DoxyCodeLine{00095\ \ \ \ \ uint8\_t\ \ colormapDepth;}
+\DoxyCodeLine{00096\ \ \ \ \ uint16\_t\ xOrigin;}
+\DoxyCodeLine{00097\ \ \ \ \ uint16\_t\ yOrigin;}
+\DoxyCodeLine{00098\ \ \ \ \ uint16\_t\ width;}
+\DoxyCodeLine{00099\ \ \ \ \ uint16\_t\ height;}
+\DoxyCodeLine{00100\ \ \ \ \ uint8\_t\ \ bitsPerPixel;}
+\DoxyCodeLine{00101\ \ \ \ \ uint8\_t\ \ imageDescriptor;}
+\DoxyCodeLine{00102\ \ \ \ \ std::string\ imageId;}
+\DoxyCodeLine{00103\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_colormap}{Colormap}}\ colormap;}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{bool}\ leftToRight()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(imageDescriptor\ \&\ 0x10);\ \}}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{bool}\ topToBottom()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (imageDescriptor\ \&\ 0x20);\ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasColormap()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (colormapLength\ >\ 0);}
+\DoxyCodeLine{00110\ \ \ \ \ \}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordtype}{bool}\ isRgb()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (imageType\ ==\ UncompressedRgb\ ||}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageType\ ==\ RleRgb);}
+\DoxyCodeLine{00115\ \ \ \ \ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{bool}\ isIndexed()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (imageType\ ==\ UncompressedIndexed\ ||}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageType\ ==\ RleIndexed);}
+\DoxyCodeLine{00120\ \ \ \ \ \}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordtype}{bool}\ isGray()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (imageType\ ==\ UncompressedGray\ ||}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageType\ ==\ RleGray);}
+\DoxyCodeLine{00125\ \ \ \ \ \}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keywordtype}{bool}\ isUncompressed()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (imageType\ ==\ UncompressedIndexed\ ||}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageType\ ==\ UncompressedRgb\ ||}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageType\ ==\ UncompressedGray);}
+\DoxyCodeLine{00131\ \ \ \ \ \}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{bool}\ isRle()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (imageType\ ==\ RleIndexed\ ||}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageType\ ==\ RleRgb\ ||}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ imageType\ ==\ RleGray);}
+\DoxyCodeLine{00137\ \ \ \ \ \}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordtype}{bool}\ validColormapType()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Indexed\ with\ palette}}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ (isIndexed()\ \&\&\ bitsPerPixel\ ==\ 8\ \&\&\ colormapType\ ==\ 1)\ ||}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Grayscale\ without\ palette}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ (isGray()\ \&\&\ bitsPerPixel\ ==\ 8\ \&\&\ colormapType\ ==\ 0)\ ||}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Non-\/indexed\ without\ palette}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ (bitsPerPixel\ >\ 8\ \&\&\ colormapType\ ==\ 0);}
+\DoxyCodeLine{00147\ \ \ \ \ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordtype}{bool}\ valid()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (imageType)\ \{}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ UncompressedIndexed:}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ RleIndexed:}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (bitsPerPixel\ ==\ 8);}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ UncompressedRgb:}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ RleRgb:}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (bitsPerPixel\ ==\ 15\ ||}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bitsPerPixel\ ==\ 16\ ||}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bitsPerPixel\ ==\ 24\ ||}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bitsPerPixel\ ==\ 32);}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ UncompressedGray:}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ RleGray:}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (bitsPerPixel\ ==\ 8);}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00165\ \ \ \ \ \}}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ number\ of\ bytes\ per\ pixel\ needed\ in\ an\ image}}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{comment}{//\ created\ with\ this\ Header\ information.}}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordtype}{int}\ bytesPerPixel()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (isRgb())}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 4;}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00174\ \ \ \ \ \}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \};}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \textcolor{keyword}{namespace\ }details\ \{}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtga_1_1details_1_1_image_iterator}{ImageIterator}}\ \{}
+\DoxyCodeLine{00181\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00182\ \ \ \ \ \mbox{\hyperlink{classtga_1_1details_1_1_image_iterator}{ImageIterator}}();}
+\DoxyCodeLine{00183\ \ \ \ \ \mbox{\hyperlink{classtga_1_1details_1_1_image_iterator}{ImageIterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_header}{Header}}\&\ header,\ \mbox{\hyperlink{structtga_1_1_image}{Image}}\&\ image);}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{comment}{//\ Put\ a\ pixel\ value\ into\ the\ image\ and\ advance\ the\ iterator.}}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordtype}{bool}\ putPixel(\textcolor{keyword}{const}\ T\ \mbox{\hyperlink{classvalue}{value}})\ \{}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ *((T*)m\_ptr)\ =\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ advance();}
+\DoxyCodeLine{00190\ \ \ \ \ \}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{comment}{//\ Get\ one\ pixel\ from\ the\ image\ and\ advance\ the\ iterator.}}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00194\ \ \ \ \ T\ getPixel()\ \{}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ T\ \mbox{\hyperlink{classvalue}{value}}\ =\ *((T*)m\_ptr);}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ advance();}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00198\ \ \ \ \ \}}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keywordtype}{bool}\ advance();}
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keywordtype}{void}\ calcPtr();}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \ \ \mbox{\hyperlink{structtga_1_1_image}{Image}}*\ m\_image;}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_x,\ m\_y;}
+\DoxyCodeLine{00206\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_w,\ m\_h;}
+\DoxyCodeLine{00207\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_dx,\ m\_dy;}
+\DoxyCodeLine{00208\ \ \ \ \ uint8\_t*\ m\_ptr;}
+\DoxyCodeLine{00209\ \ \ \};}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \}\ \textcolor{comment}{//\ namespace\ details}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtga_1_1_file_interface}{FileInterface}}\ \{}
+\DoxyCodeLine{00214\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classtga_1_1_file_interface}{\string~FileInterface}}()\ \{\ \}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ we\ can\ read/write\ bytes\ from/into\ the\ file}}
+\DoxyCodeLine{00218\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ ok()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{comment}{//\ Current\ position\ in\ the\ file}}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{size\_t}\ tell()\ =\ 0;}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ \textcolor{comment}{//\ Jump\ to\ the\ given\ position\ in\ the\ file}}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ seek(\textcolor{keywordtype}{size\_t}\ absPos)\ =\ 0;}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ next\ byte\ in\ the\ file\ or\ 0\ if\ ok()\ =\ false}}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keyword}{virtual}\ uint8\_t\ read8()\ =\ 0;}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{comment}{//\ Writes\ one\ byte\ in\ the\ file\ (or\ do\ nothing\ if\ ok()\ =\ false)}}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ write8(uint8\_t\ \mbox{\hyperlink{classvalue}{value}})\ =\ 0;}
+\DoxyCodeLine{00231\ \ \ \};}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtga_1_1_stdio_file_interface}{StdioFileInterface}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classtga_1_1_file_interface}{tga::FileInterface}}\ \{}
+\DoxyCodeLine{00234\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00235\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_stdio_file_interface}{StdioFileInterface}}(FILE*\ \mbox{\hyperlink{structfile}{file}});}
+\DoxyCodeLine{00236\ \ \ \ \ \textcolor{keywordtype}{bool}\ ok()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00237\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ tell()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{keywordtype}{void}\ seek(\textcolor{keywordtype}{size\_t}\ absPos)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00239\ \ \ \ \ uint8\_t\ read8()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00240\ \ \ \ \ \textcolor{keywordtype}{void}\ write8(uint8\_t\ \mbox{\hyperlink{classvalue}{value}})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00243\ \ \ \ \ FILE*\ m\_file;}
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_ok;}
+\DoxyCodeLine{00245\ \ \ \};}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtga_1_1_delegate}{Delegate}}\ \{}
+\DoxyCodeLine{00248\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classtga_1_1_delegate}{\string~Delegate}}()\ \{\}}
+\DoxyCodeLine{00250\ \ \ \ \ \textcolor{comment}{//\ Must\ return\ true\ if\ we\ should\ continue\ the\ decoding\ process.}}
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ notifyProgress(\textcolor{keywordtype}{double}\ progress)\ =\ 0;}
+\DoxyCodeLine{00252\ \ \ \};}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtga_1_1_decoder}{Decoder}}\ \{}
+\DoxyCodeLine{00255\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00256\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_decoder}{Decoder}}(\mbox{\hyperlink{classtga_1_1_file_interface}{FileInterface}}*\ \mbox{\hyperlink{structfile}{file}});}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasAlpha()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_hasAlpha;\ \}}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{comment}{//\ Reads\ the\ header\ +\ colormap\ (if\ the\ file\ has\ a}}
+\DoxyCodeLine{00261\ \ \ \ \ \textcolor{comment}{//\ colormap).\ Returns\ true\ if\ the\ header\ is\ valid.}}
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{keywordtype}{bool}\ readHeader(\mbox{\hyperlink{structtga_1_1_header}{Header}}\&\ header);}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \ \ \textcolor{comment}{//\ Reads\ the\ image.}}
+\DoxyCodeLine{00265\ \ \ \ \ \textcolor{keywordtype}{bool}\ readImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_header}{Header}}\&\ header,}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtga_1_1_image}{Image}}\&\ image,}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classtga_1_1_delegate}{Delegate}}*\ delegate\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{comment}{//\ Fixes\ alpha\ channel\ for\ images\ with\ invalid\ alpha\ values\ (this}}
+\DoxyCodeLine{00270\ \ \ \ \ \textcolor{comment}{//\ is\ optional,\ in\ case\ you\ want\ to\ preserve\ the\ original\ data}}
+\DoxyCodeLine{00271\ \ \ \ \ \textcolor{comment}{//\ from\ the\ file,\ don't\ use\ it).}}
+\DoxyCodeLine{00272\ \ \ \ \ \textcolor{keywordtype}{void}\ postProcessImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_header}{Header}}\&\ header,}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structtga_1_1_image}{Image}}\&\ image);}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00276\ \ \ \ \ \textcolor{keywordtype}{void}\ readColormap(\mbox{\hyperlink{structtga_1_1_header}{Header}}\&\ header);}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00279\ \ \ \ \ \textcolor{keywordtype}{bool}\ readUncompressedData(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ w,\ uint32\_t\ (\mbox{\hyperlink{classtga_1_1_decoder}{Decoder}}::*readPixel)());}
+\DoxyCodeLine{00280\ }
+\DoxyCodeLine{00281\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00282\ \ \ \ \ \textcolor{keywordtype}{bool}\ readRleData(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ w,\ uint32\_t\ (\mbox{\hyperlink{classtga_1_1_decoder}{Decoder}}::*readPixel)());}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \ \ \ \ uint8\_t\ read8();}
+\DoxyCodeLine{00285\ \ \ \ \ uint16\_t\ read16();}
+\DoxyCodeLine{00286\ \ \ \ \ uint32\_t\ read32();}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ read32AsRgb();}
+\DoxyCodeLine{00289\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ read24AsRgb();}
+\DoxyCodeLine{00290\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ read16AsRgb();}
+\DoxyCodeLine{00291\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ read8Color()\ \{\ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structcolor__t}{color\_t}})read8();\ \}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_file_interface}{FileInterface}}*\ m\_file;}
+\DoxyCodeLine{00294\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_hasAlpha\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00295\ \ \ \ \ \mbox{\hyperlink{classtga_1_1details_1_1_image_iterator}{details::ImageIterator}}\ m\_iterator;}
+\DoxyCodeLine{00296\ \ \ \};}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classtga_1_1_encoder}{Encoder}}\ \{}
+\DoxyCodeLine{00299\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00300\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_encoder}{Encoder}}(\mbox{\hyperlink{classtga_1_1_file_interface}{FileInterface}}*\ \mbox{\hyperlink{structfile}{file}});}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \ \ \textcolor{comment}{//\ Writes\ the\ header\ +\ colormap}}
+\DoxyCodeLine{00303\ \ \ \ \ \textcolor{keywordtype}{void}\ writeHeader(\textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_header}{Header}}\&\ header);}
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{keywordtype}{void}\ writeImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_header}{Header}}\&\ header,}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_image}{Image}}\&\ image,}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classtga_1_1_delegate}{Delegate}}*\ delegate\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00307\ \ \ \ \ \textcolor{keywordtype}{void}\ writeFooter();}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00310\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keywordtype}{void}\ writeRleScanline(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ w,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_image}{Image}}\&\ image,}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ (\mbox{\hyperlink{classtga_1_1_encoder}{Encoder}}::*writePixel)(\mbox{\hyperlink{structcolor__t}{color\_t}}));}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{keywordtype}{void}\ countRepeatedPixels(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ w,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structtga_1_1_image}{Image}}\&\ image,}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ x0,\ \textcolor{keywordtype}{int}\&\ offset,\ \textcolor{keywordtype}{int}\&\ count);}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ \ \ \textcolor{keywordtype}{void}\ write8(uint8\_t\ \mbox{\hyperlink{classvalue}{value}});}
+\DoxyCodeLine{00319\ \ \ \ \ \textcolor{keywordtype}{void}\ write16(uint16\_t\ \mbox{\hyperlink{classvalue}{value}});}
+\DoxyCodeLine{00320\ \ \ \ \ \textcolor{keywordtype}{void}\ write32(uint32\_t\ \mbox{\hyperlink{classvalue}{value}});}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \ \ \textcolor{keywordtype}{void}\ write8Color(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c)\ \{\ write8(uint8\_t(c));\ \}}
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keywordtype}{void}\ write16Rgb(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c);}
+\DoxyCodeLine{00324\ \ \ \ \ \textcolor{keywordtype}{void}\ write24Rgb(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c);}
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keywordtype}{void}\ write32Rgb(\mbox{\hyperlink{structcolor__t}{color\_t}}\ c);}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \ \ \ \ \mbox{\hyperlink{classtga_1_1_file_interface}{FileInterface}}*\ m\_file;}
+\DoxyCodeLine{00328\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_hasAlpha\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00329\ \ \ \ \ \mbox{\hyperlink{classtga_1_1details_1_1_image_iterator}{details::ImageIterator}}\ m\_iterator;}
+\DoxyCodeLine{00330\ \ \ \};}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \}\ \textcolor{comment}{//\ namespace\ tga}}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,121 @@
+\hypertarget{tree_8h_source}{}\doxysection{tree.\+h}
+\label{tree_8h_source}\index{AseSprite/aseprite/third\_party/libarchive/contrib/shar/tree.h@{AseSprite/aseprite/third\_party/libarchive/contrib/shar/tree.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ (c)\ 2003-\/2007\ Tim\ Kientzle}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ All\ rights\ reserved.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ Redistribution\ and\ use\ in\ source\ and\ binary\ forms,\ with\ or\ without}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ modification,\ are\ permitted\ provided\ that\ the\ following\ conditions}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ are\ met:}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ 1.\ Redistributions\ of\ source\ code\ must\ retain\ the\ above\ copyright}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ 2.\ Redistributions\ in\ binary\ form\ must\ reproduce\ the\ above\ copyright}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer\ in\ the}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ \ \ \ documentation\ and/or\ other\ materials\ provided\ with\ the\ distribution.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ THIS\ SOFTWARE\ IS\ PROVIDED\ BY\ THE\ AUTHOR(S)\ ``AS\ IS''\ AND\ ANY\ EXPRESS\ OR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IMPLIED\ WARRANTIES,\ INCLUDING,\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ OF\ MERCHANTABILITY\ AND\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ ARE\ DISCLAIMED.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ AUTHOR(S)\ BE\ LIABLE\ FOR\ ANY\ DIRECT,\ INDIRECT,}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ INCIDENTAL,\ SPECIAL,\ EXEMPLARY,\ OR\ CONSEQUENTIAL\ DAMAGES\ (INCLUDING,\ BUT}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ NOT\ LIMITED\ TO,\ PROCUREMENT\ OF\ SUBSTITUTE\ GOODS\ OR\ SERVICES;\ LOSS\ OF\ USE,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ DATA,\ OR\ PROFITS;\ OR\ BUSINESS\ INTERRUPTION)\ HOWEVER\ CAUSED\ AND\ ON\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ THEORY\ OF\ LIABILITY,\ WHETHER\ IN\ CONTRACT,\ STRICT\ LIABILITY,\ OR\ TORT}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ (INCLUDING\ NEGLIGENCE\ OR\ OTHERWISE)\ ARISING\ IN\ ANY\ WAY\ OUT\ OF\ THE\ USE\ OF}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ THIS\ SOFTWARE,\ EVEN\ IF\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH\ DAMAGE.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ \$FreeBSD\$}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ A\ set\ of\ routines\ for\ traversing\ directory\ trees.}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *\ Similar\ in\ concept\ to\ the\ fts\ library,\ but\ with\ a\ few}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ important\ differences:}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ \ \ \ *\ Uses\ less\ memory.\ \ In\ particular,\ fts\ stores\ an\ entire\ directory}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ \ \ \ \ \ in\ memory\ at\ a\ time.\ \ This\ package\ only\ keeps\ enough\ subdirectory}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ \ \ \ \ \ information\ in\ memory\ to\ track\ the\ traversal.\ \ Information}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ \ \ \ \ \ about\ non-\/directories\ is\ discarded\ as\ soon\ as\ possible.}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ \ \ \ *\ Supports\ very\ deep\ logical\ traversals.\ \ The\ fts\ package}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ \ \ \ \ \ uses\ "{}non-\/chdir"{}\ approach\ for\ logical\ traversals.\ \ This}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ \ \ \ \ \ package\ does\ use\ a\ chdir\ approach\ for\ logical\ traversals}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ \ \ \ \ \ and\ can\ therefore\ handle\ pathnames\ much\ longer\ than}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ \ \ \ \ \ PATH\_MAX.}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ \ \ \ *\ Supports\ deep\ physical\ traversals\ "{}out\ of\ the\ box."{}}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ \ \ \ \ \ Due\ to\ the\ memory\ optimizations\ above,\ there's\ no\ need\ to}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ \ \ \ \ \ limit\ dir\ names\ to\ 32k.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtree}{tree}};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{comment}{/*\ Initiate/terminate\ a\ tree\ traversal.\ */}}
+\DoxyCodeLine{00052\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtree}{tree}}\ *tree\_open(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \textcolor{comment}{/*\ pathname\ */});}
+\DoxyCodeLine{00053\ \textcolor{keywordtype}{void}\ tree\_close(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *\ tree\_next()\ returns\ Zero\ if\ there\ is\ no\ next\ entry,\ non-\/zero\ if\ there\ is.}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ *\ Note\ that\ directories\ are\ potentially\ visited\ three\ times.\ \ The\ first}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ *\ time\ as\ "{}regular"{}\ file.\ \ If\ tree\_descend()\ is\ invoked\ at\ that\ time,}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ the\ directory\ is\ added\ to\ a\ work\ list\ and\ will\ be\ visited\ two\ more}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ *\ times:\ \ once\ just\ after\ descending\ into\ the\ directory\ and\ again}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ *\ just\ after\ ascending\ back\ to\ the\ parent.}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ *\ TREE\_ERROR\ is\ returned\ if\ the\ descent\ failed\ (because\ the}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ *\ directory\ couldn't\ be\ opened,\ for\ instance).\ \ This\ is\ returned}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ *\ instead\ of\ TREE\_PREVISIT/TREE\_POSTVISIT.}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#define\ TREE\_REGULAR\ \ \ \ 1}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#define\ TREE\_POSTDESCENT\ \ \ \ 2}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#define\ TREE\_POSTASCENT\ 3}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ TREE\_ERROR\_DIR\ \ -\/1}}
+\DoxyCodeLine{00071\ \textcolor{keywordtype}{int}\ tree\_next(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keywordtype}{int}\ tree\_errno(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ *\ Request\ that\ current\ entry\ be\ visited.\ \ If\ you\ invoke\ it\ on\ every}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ *\ directory,\ you'll\ get\ a\ physical\ traversal.\ \ This\ is\ ignored\ if\ the}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ *\ current\ entry\ isn't\ a\ directory\ or\ a\ link\ to\ a\ directory.\ \ So,\ if}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ *\ you\ invoke\ this\ on\ every\ returned\ path,\ you'll\ get\ a\ full\ logical}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ *\ traversal.}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00082\ \textcolor{keywordtype}{void}\ tree\_descend(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ *\ Return\ information\ about\ the\ current\ entry.}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{keywordtype}{int}\ tree\_current\_depth(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00089\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ *\ The\ current\ full\ pathname,\ length\ of\ the\ full\ pathname,}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ *\ and\ a\ name\ that\ can\ be\ used\ to\ access\ the\ file.}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ *\ Because\ tree\ does\ use\ chdir\ extensively,\ the\ access\ path\ is}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ *\ almost\ never\ the\ same\ as\ the\ full\ current\ path.}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00095\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *tree\_current\_path(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00096\ \textcolor{keywordtype}{size\_t}\ tree\_current\_pathlen(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00097\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *tree\_current\_access\_path(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00098\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ *\ Request\ the\ lstat()\ or\ stat()\ data\ for\ the\ current\ path.\ \ Since\ the}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ *\ tree\ package\ needs\ to\ do\ some\ of\ this\ anyway,\ and\ caches\ the}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ *\ results,\ you\ should\ take\ advantage\ of\ it\ here\ if\ you\ need\ it\ rather}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ *\ than\ make\ a\ redundant\ stat()\ or\ lstat()\ call\ of\ your\ own.}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00104\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }stat\ *tree\_current\_stat(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00105\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }stat\ *tree\_current\_lstat(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00106\ \textcolor{comment}{/*\ The\ following\ tests\ may\ use\ mechanisms\ much\ faster\ than\ stat()/lstat().\ */}}
+\DoxyCodeLine{00107\ \textcolor{comment}{/*\ "{}is\_physical\_dir"{}\ is\ equivalent\ to\ S\_ISDIR(tree\_current\_lstat()-\/>st\_mode)\ */}}
+\DoxyCodeLine{00108\ \textcolor{keywordtype}{int}\ tree\_current\_is\_physical\_dir(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00109\ \textcolor{comment}{/*\ "{}is\_physical\_link"{}\ is\ equivalent\ to\ S\_ISLNK(tree\_current\_lstat()-\/>st\_mode)\ */}}
+\DoxyCodeLine{00110\ \textcolor{keywordtype}{int}\ tree\_current\_is\_physical\_link(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00111\ \textcolor{comment}{/*\ "{}is\_dir"{}\ is\ equivalent\ to\ S\_ISDIR(tree\_current\_stat()-\/>st\_mode)\ */}}
+\DoxyCodeLine{00112\ \textcolor{keywordtype}{int}\ tree\_current\_is\_dir(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *);}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{comment}{/*\ For\ testing/debugging:\ Dump\ the\ internal\ status\ to\ the\ given\ filehandle.\ */}}
+\DoxyCodeLine{00115\ \textcolor{keywordtype}{void}\ tree\_dump(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structtree}{tree}}\ *,\ FILE\ *);}
+
+\end{DoxyCode}

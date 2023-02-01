@@ -1,0 +1,576 @@
+\hypertarget{ftstream_8h_source}{}\doxysection{ftstream.\+h}
+\label{ftstream_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/ftstream.h@{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/ftstream.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftstream.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Stream\ handling\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ FTSTREAM\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ FTSTREAM\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <ft2build.h>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <freetype/ftsystem.h>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <freetype/internal/ftobjs.h>}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \ \ \textcolor{comment}{/*\ format\ of\ an\ 8-\/bit\ frame\_op\ value:\ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00032\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00033\ \ \ \textcolor{comment}{/*\ bit\ \ 76543210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00034\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ xxxxxxes\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00035\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00036\ \ \ \textcolor{comment}{/*\ s\ is\ set\ to\ 1\ if\ the\ value\ is\ signed.\ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00037\ \ \ \textcolor{comment}{/*\ e\ is\ set\ to\ 1\ if\ the\ value\ is\ little-\/endian.\ */}}
+\DoxyCodeLine{00038\ \ \ \textcolor{comment}{/*\ xxx\ is\ a\ command.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_SHIFT\ \ \ \ \ \ \ \ \ 2}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_SIGNED\ \ \ \ \ \ \ \ 1}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_LITTLE\ \ \ \ \ \ \ \ 2}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_COMMAND(\ x\ )\ \ (\ x\ >>\ FT\_FRAME\_OP\_SHIFT\ )}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ FT\_MAKE\_FRAME\_OP(\ command,\ little,\ sign\ )\ \(\backslash\)}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (\ command\ <<\ FT\_FRAME\_OP\_SHIFT\ )\ |\ (\ little\ <<\ 1\ )\ |\ sign\ )}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_END\ \ \ \ 0}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_START\ \ 1\ \ }\textcolor{comment}{/*\ start\ a\ new\ frame\ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_BYTE\ \ \ 2\ \ }\textcolor{comment}{/*\ read\ 1-\/byte\ value\ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_SHORT\ \ 3\ \ }\textcolor{comment}{/*\ read\ 2-\/byte\ value\ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_LONG\ \ \ 4\ \ }\textcolor{comment}{/*\ read\ 4-\/byte\ value\ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_OFF3\ \ \ 5\ \ }\textcolor{comment}{/*\ read\ 3-\/byte\ value\ \ \ \ \ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OP\_BYTES\ \ 6\ \ }\textcolor{comment}{/*\ read\ a\ bytes\ sequence\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ FT\_Frame\_Op\_}
+\DoxyCodeLine{00058\ \ \ \{}
+\DoxyCodeLine{00059\ \ \ \ \ ft\_frame\_end\ \ \ \ \ \ \ =\ 0,}
+\DoxyCodeLine{00060\ \ \ \ \ ft\_frame\_start\ \ \ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_START,\ 0,\ 0\ ),}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ ft\_frame\_byte\ \ \ \ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_BYTE,\ \ 0,\ 0\ ),}
+\DoxyCodeLine{00063\ \ \ \ \ ft\_frame\_schar\ \ \ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_BYTE,\ \ 0,\ 1\ ),}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ ft\_frame\_ushort\_be\ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_SHORT,\ 0,\ 0\ ),}
+\DoxyCodeLine{00066\ \ \ \ \ ft\_frame\_short\_be\ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_SHORT,\ 0,\ 1\ ),}
+\DoxyCodeLine{00067\ \ \ \ \ ft\_frame\_ushort\_le\ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_SHORT,\ 1,\ 0\ ),}
+\DoxyCodeLine{00068\ \ \ \ \ ft\_frame\_short\_le\ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_SHORT,\ 1,\ 1\ ),}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ ft\_frame\_ulong\_be\ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_LONG,\ 0,\ 0\ ),}
+\DoxyCodeLine{00071\ \ \ \ \ ft\_frame\_long\_be\ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_LONG,\ 0,\ 1\ ),}
+\DoxyCodeLine{00072\ \ \ \ \ ft\_frame\_ulong\_le\ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_LONG,\ 1,\ 0\ ),}
+\DoxyCodeLine{00073\ \ \ \ \ ft\_frame\_long\_le\ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_LONG,\ 1,\ 1\ ),}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ ft\_frame\_uoff3\_be\ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_OFF3,\ 0,\ 0\ ),}
+\DoxyCodeLine{00076\ \ \ \ \ ft\_frame\_off3\_be\ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_OFF3,\ 0,\ 1\ ),}
+\DoxyCodeLine{00077\ \ \ \ \ ft\_frame\_uoff3\_le\ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_OFF3,\ 1,\ 0\ ),}
+\DoxyCodeLine{00078\ \ \ \ \ ft\_frame\_off3\_le\ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_OFF3,\ 1,\ 1\ ),}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ ft\_frame\_bytes\ \ \ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_BYTES,\ 0,\ 0\ ),}
+\DoxyCodeLine{00081\ \ \ \ \ ft\_frame\_skip\ \ \ \ \ \ =\ FT\_MAKE\_FRAME\_OP(\ FT\_FRAME\_OP\_BYTES,\ 0,\ 1\ )}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \}\ FT\_Frame\_Op;}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t___frame___field__}{FT\_Frame\_Field\_}}}
+\DoxyCodeLine{00087\ \ \ \{}
+\DoxyCodeLine{00088\ \ \ \ \ FT\_Byte\ \ \ \ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00089\ \ \ \ \ FT\_Byte\ \ \ \ size;}
+\DoxyCodeLine{00090\ \ \ \ \ FT\_UShort\ \ offset;}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \}\ \mbox{\hyperlink{struct_f_t___frame___field__}{FT\_Frame\_Field}};}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \textcolor{comment}{/*\ Construct\ an\ FT\_Frame\_Field\ out\ of\ a\ structure\ type\ and\ a\ field\ name.\ */}}
+\DoxyCodeLine{00096\ \ \ \textcolor{comment}{/*\ The\ structure\ type\ must\ be\ set\ in\ the\ FT\_STRUCTURE\ macro\ before\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00097\ \ \ \textcolor{comment}{/*\ calling\ the\ FT\_FRAME\_START()\ macro.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00098\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#define\ FT\_FIELD\_SIZE(\ f\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Byte)sizeof\ (\ ((FT\_STRUCTURE*)0)-\/>f\ )}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ FT\_FIELD\_SIZE\_DELTA(\ f\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_Byte)sizeof\ (\ ((FT\_STRUCTURE*)0)-\/>f[0]\ )}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ FT\_FIELD\_OFFSET(\ f\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (FT\_UShort)(\ offsetof(\ FT\_STRUCTURE,\ f\ )\ )}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_FIELD(\ frame\_op,\ field\ )\ \(\backslash\)}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ frame\_op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_SIZE(\ field\ ),\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_OFFSET(\ field\ )\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ FT\_MAKE\_EMPTY\_FIELD(\ frame\_op\ )\ \ \{\ frame\_op,\ 0,\ 0\ \}}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_START(\ size\ )\ \ \ \{\ ft\_frame\_start,\ 0,\ size\ \}}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_END\ \ \ \ \ \ \ \ \ \ \ \ \ \{\ ft\_frame\_end,\ 0,\ 0\ \}}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_LONG(\ f\ )\ \ \ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_long\_be,\ f\ )}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_ULONG(\ f\ )\ \ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_ulong\_be,\ f\ )}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_SHORT(\ f\ )\ \ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_short\_be,\ f\ )}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_USHORT(\ f\ )\ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_ushort\_be,\ f\ )}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OFF3(\ f\ )\ \ \ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_off3\_be,\ f\ )}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_UOFF3(\ f\ )\ \ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_uoff3\_be,\ f\ )}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_BYTE(\ f\ )\ \ \ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_byte,\ f\ )}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_CHAR(\ f\ )\ \ \ \ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_schar,\ f\ )}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_LONG\_LE(\ f\ )\ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_long\_le,\ f\ )}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_ULONG\_LE(\ f\ )\ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_ulong\_le,\ f\ )}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_SHORT\_LE(\ f\ )\ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_short\_le,\ f\ )}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_USHORT\_LE(\ f\ )\ \ FT\_FRAME\_FIELD(\ ft\_frame\_ushort\_le,\ f\ )}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_OFF3\_LE(\ f\ )\ \ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_off3\_le,\ f\ )}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_UOFF3\_LE(\ f\ )\ \ \ FT\_FRAME\_FIELD(\ ft\_frame\_uoff3\_le,\ f\ )}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_SKIP\_LONG\ \ \ \ \ \ \ \{\ ft\_frame\_long\_be,\ 0,\ 0\ \}}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_SKIP\_SHORT\ \ \ \ \ \ \{\ ft\_frame\_short\_be,\ 0,\ 0\ \}}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_SKIP\_BYTE\ \ \ \ \ \ \ \{\ ft\_frame\_byte,\ 0,\ 0\ \}}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_BYTES(\ field,\ count\ )\ \(\backslash\)}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ ft\_frame\_bytes,\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ count,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_FIELD\_OFFSET(\ field\ )\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_SKIP\_BYTES(\ count\ )\ \ \{\ ft\_frame\_skip,\ count,\ 0\ \}}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ *\ Integer\ extraction\ macros\ -\/-\/\ the\ 'buffer'\ parameter\ must\ ALWAYS\ be\ of}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ *\ type\ 'char*'\ or\ equivalent\ (1-\/byte\ elements).}}
+\DoxyCodeLine{00154\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#define\ FT\_BYTE\_(\ p,\ i\ )\ \ (\ ((const\ FT\_Byte*)(p))[(i)]\ )}}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#define\ FT\_INT16(\ x\ )\ \ \ (\ (FT\_Int16)(x)\ \ )}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#define\ FT\_UINT16(\ x\ )\ \ (\ (FT\_UInt16)(x)\ )}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#define\ FT\_INT32(\ x\ )\ \ \ (\ (FT\_Int32)(x)\ \ )}}
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#define\ FT\_UINT32(\ x\ )\ \ (\ (FT\_UInt32)(x)\ )}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#define\ FT\_BYTE\_U16(\ p,\ i,\ s\ )\ \ (\ FT\_UINT16(\ FT\_BYTE\_(\ p,\ i\ )\ )\ <<\ (s)\ )}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\#define\ FT\_BYTE\_U32(\ p,\ i,\ s\ )\ \ (\ FT\_UINT32(\ FT\_BYTE\_(\ p,\ i\ )\ )\ <<\ (s)\ )}}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ \ *\ \ \ \ function\ \ \ \ \ \ acts\ on\ \ \ \ \ \ increases\ \ does\ range\ \ \ for\ \ \ \ emits}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pointer\ \ \ \ checking\ \ \ frames\ \ error}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ \ \ *\ \ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00172\ \textcolor{comment}{\ \ \ *\ \ \ FT\_PEEK\_XXX\ \ buffer\ pointer\ \ \ \ \ \ no\ \ \ \ \ \ \ \ \ no\ \ \ \ \ \ \ \ no\ \ \ \ \ no}}
+\DoxyCodeLine{00173\ \textcolor{comment}{\ \ \ *\ \ \ FT\_NEXT\_XXX\ \ buffer\ pointer\ \ \ \ \ yes\ \ \ \ \ \ \ \ \ no\ \ \ \ \ \ \ \ no\ \ \ \ \ no}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ \ \ *\ \ \ FT\_GET\_XXX\ \ \ stream-\/>cursor\ \ \ \ \ yes\ \ \ \ \ \ \ \ yes\ \ \ \ \ \ \ yes\ \ \ \ \ no}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ *\ \ \ FT\_READ\_XXX\ \ stream-\/>pos\ \ \ \ \ \ \ \ yes\ \ \ \ \ \ \ \ yes\ \ \ \ \ \ \ \ no\ \ \ \ yes}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00180\ \textcolor{comment}{\ \ \ *\ `FT\_PEEK\_XXX'\ are\ generic\ macros\ to\ get\ data\ from\ a\ buffer\ position.\ \ No}}
+\DoxyCodeLine{00181\ \textcolor{comment}{\ \ \ *\ safety\ checks\ are\ performed.}}
+\DoxyCodeLine{00182\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_SHORT(\ p\ )\ \ FT\_INT16(\ FT\_BYTE\_U16(\ p,\ 0,\ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U16(\ p,\ 1,\ 0\ )\ )}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_USHORT(\ p\ )\ \ FT\_UINT16(\ FT\_BYTE\_U16(\ p,\ 0,\ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U16(\ p,\ 1,\ 0\ )\ )}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_LONG(\ p\ )\ \ FT\_INT32(\ FT\_BYTE\_U32(\ p,\ 0,\ 24\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 2,\ \ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 3,\ \ 0\ )\ )}}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_ULONG(\ p\ )\ \ FT\_UINT32(\ FT\_BYTE\_U32(\ p,\ 0,\ 24\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 2,\ \ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 3,\ \ 0\ )\ )}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_OFF3(\ p\ )\ \ (\ FT\_INT32(\ FT\_BYTE\_U32(\ p,\ 0,\ 24\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 2,\ \ 8\ )\ )\ >>\ 8\ )}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_UOFF3(\ p\ )\ \ FT\_UINT32(\ FT\_BYTE\_U32(\ p,\ 0,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ \ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 2,\ \ 0\ )\ )}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_SHORT\_LE(\ p\ )\ \ FT\_INT16(\ FT\_BYTE\_U16(\ p,\ 1,\ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U16(\ p,\ 0,\ 0\ )\ )}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_USHORT\_LE(\ p\ )\ \ FT\_UINT16(\ FT\_BYTE\_U16(\ p,\ 1,\ 8\ )\ |\ \ \(\backslash\)}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U16(\ p,\ 0,\ 0\ )\ )}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_LONG\_LE(\ p\ )\ \ FT\_INT32(\ FT\_BYTE\_U32(\ p,\ 3,\ 24\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 2,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ \ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 0,\ \ 0\ )\ )}}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_ULONG\_LE(\ p\ )\ \ FT\_UINT32(\ FT\_BYTE\_U32(\ p,\ 3,\ 24\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 2,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00220\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ \ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 0,\ \ 0\ )\ )}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_OFF3\_LE(\ p\ )\ \ (\ FT\_INT32(\ FT\_BYTE\_U32(\ p,\ 2,\ 24\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 0,\ \ 8\ )\ )\ >>\ 8\ )}}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#define\ FT\_PEEK\_UOFF3\_LE(\ p\ )\ \ FT\_UINT32(\ FT\_BYTE\_U32(\ p,\ 2,\ 16\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 1,\ \ 8\ )\ |\ \(\backslash\)}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_BYTE\_U32(\ p,\ 0,\ \ 0\ )\ )}}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00232\ \textcolor{comment}{\ \ \ *\ `FT\_NEXT\_XXX'\ are\ generic\ macros\ to\ get\ data\ from\ a\ buffer\ position}}
+\DoxyCodeLine{00233\ \textcolor{comment}{\ \ \ *\ which\ is\ then\ increased\ appropriately.\ \ No\ safety\ checks\ are\ performed.}}
+\DoxyCodeLine{00234\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_CHAR(\ buffer\ )\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (signed\ char)*buffer++\ )}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_BYTE(\ buffer\ )\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (unsigned\ char)*buffer++\ )}}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_SHORT(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (short)(\ buffer\ +=\ 2,\ FT\_PEEK\_SHORT(\ buffer\ -\/\ 2\ )\ )\ )}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_USHORT(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (unsigned\ short)(\ buffer\ +=\ 2,\ FT\_PEEK\_USHORT(\ buffer\ -\/\ 2\ )\ )\ )}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_OFF3(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (long)(\ buffer\ +=\ 3,\ FT\_PEEK\_OFF3(\ buffer\ -\/\ 3\ )\ )\ )}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_UOFF3(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00251\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (unsigned\ long)(\ buffer\ +=\ 3,\ FT\_PEEK\_UOFF3(\ buffer\ -\/\ 3\ )\ )\ )}}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_LONG(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00254\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (long)(\ buffer\ +=\ 4,\ FT\_PEEK\_LONG(\ buffer\ -\/\ 4\ )\ )\ )}}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_ULONG(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (unsigned\ long)(\ buffer\ +=\ 4,\ FT\_PEEK\_ULONG(\ buffer\ -\/\ 4\ )\ )\ )}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_SHORT\_LE(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (short)(\ buffer\ +=\ 2,\ FT\_PEEK\_SHORT\_LE(\ buffer\ -\/\ 2\ )\ )\ )}}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_USHORT\_LE(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00264\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (unsigned\ short)(\ buffer\ +=\ 2,\ FT\_PEEK\_USHORT\_LE(\ buffer\ -\/\ 2\ )\ )\ )}}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_OFF3\_LE(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (long)(\ buffer\ +=\ 3,\ FT\_PEEK\_OFF3\_LE(\ buffer\ -\/\ 3\ )\ )\ )}}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_UOFF3\_LE(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (unsigned\ long)(\ buffer\ +=\ 3,\ FT\_PEEK\_UOFF3\_LE(\ buffer\ -\/\ 3\ )\ )\ )}}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_LONG\_LE(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (long)(\ buffer\ +=\ 4,\ FT\_PEEK\_LONG\_LE(\ buffer\ -\/\ 4\ )\ )\ )}}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\#define\ FT\_NEXT\_ULONG\_LE(\ buffer\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00276\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ (unsigned\ long)(\ buffer\ +=\ 4,\ FT\_PEEK\_ULONG\_LE(\ buffer\ -\/\ 4\ )\ )\ )}}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ }
+\DoxyCodeLine{00279\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00281\ \textcolor{comment}{\ \ \ *\ The\ `FT\_GET\_XXX`\ macros\ use\ an\ implicit\ 'stream'\ variable.}}
+\DoxyCodeLine{00282\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ \ \ *\ Note\ that\ a\ call\ to\ `FT\_STREAM\_SEEK`\ or\ `FT\_STREAM\_POS`\ has\ **no**}}
+\DoxyCodeLine{00284\ \textcolor{comment}{\ \ \ *\ effect\ on\ `FT\_GET\_XXX`!\ \ They\ operate\ on\ `stream-\/>pos`,\ while}}
+\DoxyCodeLine{00285\ \textcolor{comment}{\ \ \ *\ `FT\_GET\_XXX`\ use\ `stream-\/>cursor`.}}
+\DoxyCodeLine{00286\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00287\ \textcolor{preprocessor}{\#if\ 0}}
+\DoxyCodeLine{00288\ \textcolor{preprocessor}{\#define\ FT\_GET\_MACRO(\ type\ )\ \ \ \ FT\_NEXT\_\ \#\#\ type\ (\ stream-\/>cursor\ )}}
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \textcolor{preprocessor}{\#define\ FT\_GET\_CHAR()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ CHAR\ )}}
+\DoxyCodeLine{00291\ \textcolor{preprocessor}{\#define\ FT\_GET\_BYTE()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ BYTE\ )}}
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\#define\ FT\_GET\_SHORT()\ \ \ \ \ \ FT\_GET\_MACRO(\ SHORT\ )}}
+\DoxyCodeLine{00293\ \textcolor{preprocessor}{\#define\ FT\_GET\_USHORT()\ \ \ \ \ FT\_GET\_MACRO(\ USHORT\ )}}
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\#define\ FT\_GET\_OFF3()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ OFF3\ )}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\#define\ FT\_GET\_UOFF3()\ \ \ \ \ \ FT\_GET\_MACRO(\ UOFF3\ )}}
+\DoxyCodeLine{00296\ \textcolor{preprocessor}{\#define\ FT\_GET\_LONG()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ LONG\ )}}
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\#define\ FT\_GET\_ULONG()\ \ \ \ \ \ FT\_GET\_MACRO(\ ULONG\ )}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\#define\ FT\_GET\_TAG4()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ ULONG\ )}}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \textcolor{preprocessor}{\#define\ FT\_GET\_SHORT\_LE()\ \ \ FT\_GET\_MACRO(\ SHORT\_LE\ )}}
+\DoxyCodeLine{00301\ \textcolor{preprocessor}{\#define\ FT\_GET\_USHORT\_LE()\ \ FT\_GET\_MACRO(\ USHORT\_LE\ )}}
+\DoxyCodeLine{00302\ \textcolor{preprocessor}{\#define\ FT\_GET\_LONG\_LE()\ \ \ \ FT\_GET\_MACRO(\ LONG\_LE\ )}}
+\DoxyCodeLine{00303\ \textcolor{preprocessor}{\#define\ FT\_GET\_ULONG\_LE()\ \ \ FT\_GET\_MACRO(\ ULONG\_LE\ )}}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00306\ \textcolor{preprocessor}{\#define\ FT\_GET\_MACRO(\ func,\ type\ )\ \ \ \ \ \ \ \ (\ (type)func(\ stream\ )\ )}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \textcolor{preprocessor}{\#define\ FT\_GET\_CHAR()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetByte,\ FT\_Char\ )}}
+\DoxyCodeLine{00309\ \textcolor{preprocessor}{\#define\ FT\_GET\_BYTE()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetByte,\ FT\_Byte\ )}}
+\DoxyCodeLine{00310\ \textcolor{preprocessor}{\#define\ FT\_GET\_SHORT()\ \ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetUShort,\ FT\_Short\ )}}
+\DoxyCodeLine{00311\ \textcolor{preprocessor}{\#define\ FT\_GET\_USHORT()\ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetUShort,\ FT\_UShort\ )}}
+\DoxyCodeLine{00312\ \textcolor{preprocessor}{\#define\ FT\_GET\_UOFF3()\ \ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetUOffset,\ FT\_ULong\ )}}
+\DoxyCodeLine{00313\ \textcolor{preprocessor}{\#define\ FT\_GET\_LONG()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetULong,\ FT\_Long\ )}}
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\#define\ FT\_GET\_ULONG()\ \ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetULong,\ FT\_ULong\ )}}
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\#define\ FT\_GET\_TAG4()\ \ \ \ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetULong,\ FT\_ULong\ )}}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\#define\ FT\_GET\_SHORT\_LE()\ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetUShortLE,\ FT\_Short\ )}}
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\#define\ FT\_GET\_USHORT\_LE()\ \ FT\_GET\_MACRO(\ FT\_Stream\_GetUShortLE,\ FT\_UShort\ )}}
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\#define\ FT\_GET\_LONG\_LE()\ \ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetULongLE,\ FT\_Long\ )}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\#define\ FT\_GET\_ULONG\_LE()\ \ \ FT\_GET\_MACRO(\ FT\_Stream\_GetULongLE,\ FT\_ULong\ )}}
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \textcolor{preprocessor}{\#define\ FT\_READ\_MACRO(\ func,\ type,\ var\ )\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (\ var\ =\ (type)func(\ stream,\ \&error\ ),\ \(\backslash\)}}
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ error\ !=\ FT\_Err\_Ok\ )}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00329\ \textcolor{comment}{\ \ \ *\ The\ `FT\_READ\_XXX'\ macros\ use\ implicit\ `stream'\ and\ `error'\ variables.}}
+\DoxyCodeLine{00330\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ \ \ *\ `FT\_READ\_XXX'\ can\ be\ controlled\ with\ `FT\_STREAM\_SEEK'\ and}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ \ \ *\ `FT\_STREAM\_POS'.\ \ They\ use\ the\ full\ machinery\ to\ check\ whether\ a\ read\ is}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ \ \ *\ valid.}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\#define\ FT\_READ\_BYTE(\ var\ )\ \ \ \ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadByte,\ FT\_Byte,\ var\ )}}
+\DoxyCodeLine{00336\ \textcolor{preprocessor}{\#define\ FT\_READ\_CHAR(\ var\ )\ \ \ \ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadByte,\ FT\_Char,\ var\ )}}
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\#define\ FT\_READ\_SHORT(\ var\ )\ \ \ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadUShort,\ FT\_Short,\ var\ )}}
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\#define\ FT\_READ\_USHORT(\ var\ )\ \ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadUShort,\ FT\_UShort,\ var\ )}}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\#define\ FT\_READ\_UOFF3(\ var\ )\ \ \ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadUOffset,\ FT\_ULong,\ var\ )}}
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\#define\ FT\_READ\_LONG(\ var\ )\ \ \ \ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadULong,\ FT\_Long,\ var\ )}}
+\DoxyCodeLine{00341\ \textcolor{preprocessor}{\#define\ FT\_READ\_ULONG(\ var\ )\ \ \ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadULong,\ FT\_ULong,\ var\ )}}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \textcolor{preprocessor}{\#define\ FT\_READ\_SHORT\_LE(\ var\ )\ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadUShortLE,\ FT\_Short,\ var\ )}}
+\DoxyCodeLine{00344\ \textcolor{preprocessor}{\#define\ FT\_READ\_USHORT\_LE(\ var\ )\ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadUShortLE,\ FT\_UShort,\ var\ )}}
+\DoxyCodeLine{00345\ \textcolor{preprocessor}{\#define\ FT\_READ\_LONG\_LE(\ var\ )\ \ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadULongLE,\ FT\_Long,\ var\ )}}
+\DoxyCodeLine{00346\ \textcolor{preprocessor}{\#define\ FT\_READ\_ULONG\_LE(\ var\ )\ \ \ FT\_READ\_MACRO(\ FT\_Stream\_ReadULongLE,\ FT\_ULong,\ var\ )}}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\#ifndef\ FT\_CONFIG\_OPTION\_NO\_DEFAULT\_SYSTEM}}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \ \ \textcolor{comment}{/*\ initialize\ a\ stream\ for\ reading\ a\ regular\ system\ stream\ */}}
+\DoxyCodeLine{00352\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00353\ \ \ FT\_Stream\_Open(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ stream,}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \ filepathname\ );}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FT\_CONFIG\_OPTION\_NO\_DEFAULT\_SYSTEM\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \ \ \textcolor{comment}{/*\ create\ a\ new\ (input)\ stream\ from\ an\ FT\_Open\_Args\ structure\ */}}
+\DoxyCodeLine{00360\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00361\ \ \ FT\_Stream\_New(\ \mbox{\hyperlink{struct_f_t___library_rec__}{FT\_Library}}\ \ \ \ \ \ \ \ \ \ \ library,}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___open___args__}{FT\_Open\_Args}}*\ \ args,}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ \ \ \ \ \ *astream\ );}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \ \ \textcolor{comment}{/*\ free\ a\ stream\ */}}
+\DoxyCodeLine{00366\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00367\ \ \ FT\_Stream\_Free(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ external\ );}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ \textcolor{comment}{/*\ initialize\ a\ stream\ for\ reading\ in-\/memory\ data\ */}}
+\DoxyCodeLine{00371\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00372\ \ \ FT\_Stream\_OpenMemory(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ \ stream,}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ FT\_Byte*\ \ base,}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ size\ );}
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \ \ \textcolor{comment}{/*\ close\ a\ stream\ (does\ not\ destroy\ the\ stream\ structure)\ */}}
+\DoxyCodeLine{00377\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00378\ \ \ FT\_Stream\_Close(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \ \ \textcolor{comment}{/*\ seek\ within\ a\ stream.\ position\ is\ relative\ to\ start\ of\ stream\ */}}
+\DoxyCodeLine{00382\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00383\ \ \ FT\_Stream\_Seek(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ pos\ );}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \textcolor{comment}{/*\ skip\ bytes\ in\ a\ stream\ */}}
+\DoxyCodeLine{00387\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00388\ \ \ FT\_Stream\_Skip(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ \ \ distance\ );}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \ \ \textcolor{comment}{/*\ return\ current\ stream\ position\ */}}
+\DoxyCodeLine{00392\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00393\ \ \ FT\_Stream\_Pos(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \textcolor{comment}{/*\ read\ bytes\ from\ a\ stream\ into\ a\ user-\/allocated\ buffer,\ returns\ an\ */}}
+\DoxyCodeLine{00396\ \ \ \textcolor{comment}{/*\ error\ if\ not\ all\ bytes\ could\ be\ read.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00397\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00398\ \ \ FT\_Stream\_Read(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ count\ );}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \ \ \textcolor{comment}{/*\ read\ bytes\ from\ a\ stream\ at\ a\ given\ position\ */}}
+\DoxyCodeLine{00403\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00404\ \ \ FT\_Stream\_ReadAt(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ pos,}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ count\ );}
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \ \ \textcolor{comment}{/*\ try\ to\ read\ bytes\ at\ the\ end\ of\ a\ stream;\ return\ number\ of\ bytes\ */}}
+\DoxyCodeLine{00410\ \ \ \textcolor{comment}{/*\ really\ available\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00411\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00412\ \ \ FT\_Stream\_TryRead(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ count\ );}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ \ \ \textcolor{comment}{/*\ Enter\ a\ frame\ of\ `count'\ consecutive\ bytes\ in\ a\ stream.\ \ Returns\ an\ */}}
+\DoxyCodeLine{00417\ \ \ \textcolor{comment}{/*\ error\ if\ the\ frame\ could\ not\ be\ read/accessed.\ \ The\ caller\ can\ use\ \ */}}
+\DoxyCodeLine{00418\ \ \ \textcolor{comment}{/*\ the\ `FT\_Stream\_GetXXX'\ functions\ to\ retrieve\ frame\ data\ without\ \ \ \ \ */}}
+\DoxyCodeLine{00419\ \ \ \textcolor{comment}{/*\ error\ checks.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00420\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00421\ \ \ \textcolor{comment}{/*\ You\ must\ \_always\_\ call\ `FT\_Stream\_ExitFrame'\ once\ you\ have\ entered\ \ */}}
+\DoxyCodeLine{00422\ \ \ \textcolor{comment}{/*\ a\ stream\ frame!\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00423\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00424\ \ \ \textcolor{comment}{/*\ Nested\ frames\ are\ not\ permitted.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00425\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00426\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00427\ \ \ FT\_Stream\_EnterFrame(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00428\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ count\ );}
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \ \ \textcolor{comment}{/*\ exit\ a\ stream\ frame\ */}}
+\DoxyCodeLine{00431\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00432\ \ \ FT\_Stream\_ExitFrame(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \textcolor{comment}{/*\ Extract\ a\ stream\ frame.\ \ If\ the\ stream\ is\ disk-\/based,\ a\ heap\ block\ */}}
+\DoxyCodeLine{00436\ \ \ \textcolor{comment}{/*\ is\ allocated\ and\ the\ frame\ bytes\ are\ read\ into\ it.\ \ If\ the\ stream\ \ */}}
+\DoxyCodeLine{00437\ \ \ \textcolor{comment}{/*\ is\ memory-\/based,\ this\ function\ simply\ sets\ a\ pointer\ to\ the\ data.\ \ */}}
+\DoxyCodeLine{00438\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00439\ \ \ \textcolor{comment}{/*\ Useful\ to\ optimize\ access\ to\ memory-\/based\ streams\ transparently.\ \ \ */}}
+\DoxyCodeLine{00440\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00441\ \ \ \textcolor{comment}{/*\ `FT\_Stream\_GetXXX'\ functions\ can't\ be\ used.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00442\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00443\ \ \ \textcolor{comment}{/*\ An\ extracted\ frame\ must\ be\ `freed'\ with\ a\ call\ to\ the\ function\ \ \ \ \ */}}
+\DoxyCodeLine{00444\ \ \ \textcolor{comment}{/*\ `FT\_Stream\_ReleaseFrame'.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00445\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00446\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00447\ \ \ FT\_Stream\_ExtractFrame(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ count,}
+\DoxyCodeLine{00449\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte**\ \ pbytes\ );}
+\DoxyCodeLine{00450\ }
+\DoxyCodeLine{00451\ \ \ \textcolor{comment}{/*\ release\ an\ extract\ frame\ (see\ `FT\_Stream\_ExtractFrame')\ */}}
+\DoxyCodeLine{00452\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00453\ \ \ FT\_Stream\_ReleaseFrame(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00454\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte**\ \ pbytes\ );}
+\DoxyCodeLine{00455\ }
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ \ \ \textcolor{comment}{/*\ read\ a\ byte\ from\ an\ entered\ frame\ */}}
+\DoxyCodeLine{00458\ \ \ FT\_BASE(\ FT\_Byte\ )}
+\DoxyCodeLine{00459\ \ \ FT\_Stream\_GetByte(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00460\ }
+\DoxyCodeLine{00461\ \ \ \textcolor{comment}{/*\ read\ a\ 16-\/bit\ big-\/endian\ unsigned\ integer\ from\ an\ entered\ frame\ */}}
+\DoxyCodeLine{00462\ \ \ FT\_BASE(\ FT\_UShort\ )}
+\DoxyCodeLine{00463\ \ \ FT\_Stream\_GetUShort(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00464\ }
+\DoxyCodeLine{00465\ \ \ \textcolor{comment}{/*\ read\ a\ 24-\/bit\ big-\/endian\ unsigned\ integer\ from\ an\ entered\ frame\ */}}
+\DoxyCodeLine{00466\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00467\ \ \ FT\_Stream\_GetUOffset(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00468\ }
+\DoxyCodeLine{00469\ \ \ \textcolor{comment}{/*\ read\ a\ 32-\/bit\ big-\/endian\ unsigned\ integer\ from\ an\ entered\ frame\ */}}
+\DoxyCodeLine{00470\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00471\ \ \ FT\_Stream\_GetULong(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00472\ }
+\DoxyCodeLine{00473\ \ \ \textcolor{comment}{/*\ read\ a\ 16-\/bit\ little-\/endian\ unsigned\ integer\ from\ an\ entered\ frame\ */}}
+\DoxyCodeLine{00474\ \ \ FT\_BASE(\ FT\_UShort\ )}
+\DoxyCodeLine{00475\ \ \ FT\_Stream\_GetUShortLE(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00476\ }
+\DoxyCodeLine{00477\ \ \ \textcolor{comment}{/*\ read\ a\ 32-\/bit\ little-\/endian\ unsigned\ integer\ from\ an\ entered\ frame\ */}}
+\DoxyCodeLine{00478\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00479\ \ \ FT\_Stream\_GetULongLE(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00480\ }
+\DoxyCodeLine{00481\ }
+\DoxyCodeLine{00482\ \ \ \textcolor{comment}{/*\ read\ a\ byte\ from\ a\ stream\ */}}
+\DoxyCodeLine{00483\ \ \ FT\_BASE(\ FT\_Byte\ )}
+\DoxyCodeLine{00484\ \ \ FT\_Stream\_ReadByte(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00485\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Error*\ \ error\ );}
+\DoxyCodeLine{00486\ }
+\DoxyCodeLine{00487\ \ \ \textcolor{comment}{/*\ read\ a\ 16-\/bit\ big-\/endian\ unsigned\ integer\ from\ a\ stream\ */}}
+\DoxyCodeLine{00488\ \ \ FT\_BASE(\ FT\_UShort\ )}
+\DoxyCodeLine{00489\ \ \ FT\_Stream\_ReadUShort(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Error*\ \ error\ );}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \ \ \textcolor{comment}{/*\ read\ a\ 24-\/bit\ big-\/endian\ unsigned\ integer\ from\ a\ stream\ */}}
+\DoxyCodeLine{00493\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00494\ \ \ FT\_Stream\_ReadUOffset(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00495\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Error*\ \ error\ );}
+\DoxyCodeLine{00496\ }
+\DoxyCodeLine{00497\ \ \ \textcolor{comment}{/*\ read\ a\ 32-\/bit\ big-\/endian\ integer\ from\ a\ stream\ */}}
+\DoxyCodeLine{00498\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00499\ \ \ FT\_Stream\_ReadULong(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Error*\ \ error\ );}
+\DoxyCodeLine{00501\ }
+\DoxyCodeLine{00502\ \ \ \textcolor{comment}{/*\ read\ a\ 16-\/bit\ little-\/endian\ unsigned\ integer\ from\ a\ stream\ */}}
+\DoxyCodeLine{00503\ \ \ FT\_BASE(\ FT\_UShort\ )}
+\DoxyCodeLine{00504\ \ \ FT\_Stream\_ReadUShortLE(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Error*\ \ error\ );}
+\DoxyCodeLine{00506\ }
+\DoxyCodeLine{00507\ \ \ \textcolor{comment}{/*\ read\ a\ 32-\/bit\ little-\/endian\ unsigned\ integer\ from\ a\ stream\ */}}
+\DoxyCodeLine{00508\ \ \ FT\_BASE(\ FT\_ULong\ )}
+\DoxyCodeLine{00509\ \ \ FT\_Stream\_ReadULongLE(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Error*\ \ error\ );}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ \ \ \textcolor{comment}{/*\ Read\ a\ structure\ from\ a\ stream.\ \ The\ structure\ must\ be\ described\ */}}
+\DoxyCodeLine{00513\ \ \ \textcolor{comment}{/*\ by\ an\ array\ of\ FT\_Frame\_Field\ records.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00514\ \ \ FT\_BASE(\ FT\_Error\ )}
+\DoxyCodeLine{00515\ \ \ FT\_Stream\_ReadFields(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ stream,}
+\DoxyCodeLine{00516\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___frame___field__}{FT\_Frame\_Field}}*\ \ fields,}
+\DoxyCodeLine{00517\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ structure\ );}
+\DoxyCodeLine{00518\ }
+\DoxyCodeLine{00519\ }
+\DoxyCodeLine{00520\ \textcolor{preprocessor}{\#define\ FT\_STREAM\_POS()\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00521\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_Stream\_Pos(\ stream\ )}}
+\DoxyCodeLine{00522\ }
+\DoxyCodeLine{00523\ \textcolor{preprocessor}{\#define\ FT\_STREAM\_SEEK(\ position\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00524\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_SET\_ERROR(\ FT\_Stream\_Seek(\ stream,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00525\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_ULong)(position)\ )\ )}}
+\DoxyCodeLine{00526\ }
+\DoxyCodeLine{00527\ \textcolor{preprocessor}{\#define\ FT\_STREAM\_SKIP(\ distance\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00528\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_SET\_ERROR(\ FT\_Stream\_Skip(\ stream,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00529\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_Long)(distance)\ )\ )}}
+\DoxyCodeLine{00530\ }
+\DoxyCodeLine{00531\ \textcolor{preprocessor}{\#define\ FT\_STREAM\_READ(\ buffer,\ count\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00532\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_SET\_ERROR(\ FT\_Stream\_Read(\ stream,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00533\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_Byte*)(buffer),\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00534\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_ULong)(count)\ )\ )}}
+\DoxyCodeLine{00535\ }
+\DoxyCodeLine{00536\ \textcolor{preprocessor}{\#define\ FT\_STREAM\_READ\_AT(\ position,\ buffer,\ count\ )\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00537\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_SET\_ERROR(\ FT\_Stream\_ReadAt(\ stream,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00538\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_ULong)(position),\ \(\backslash\)}}
+\DoxyCodeLine{00539\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_Byte*)(buffer),\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00540\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_ULong)(count)\ )\ )}}
+\DoxyCodeLine{00541\ }
+\DoxyCodeLine{00542\ \textcolor{preprocessor}{\#define\ FT\_STREAM\_READ\_FIELDS(\ fields,\ object\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00543\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_SET\_ERROR(\ FT\_Stream\_ReadFields(\ stream,\ fields,\ object\ )\ )}}
+\DoxyCodeLine{00544\ }
+\DoxyCodeLine{00545\ }
+\DoxyCodeLine{00546\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_ENTER(\ size\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00547\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_SET\_ERROR(\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00548\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_DEBUG\_INNER(\ FT\_Stream\_EnterFrame(\ stream,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00549\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_ULong)(size)\ )\ )\ )}}
+\DoxyCodeLine{00550\ }
+\DoxyCodeLine{00551\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_EXIT()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00552\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_DEBUG\_INNER(\ FT\_Stream\_ExitFrame(\ stream\ )\ )}}
+\DoxyCodeLine{00553\ }
+\DoxyCodeLine{00554\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_EXTRACT(\ size,\ bytes\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00555\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_SET\_ERROR(\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00556\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FT\_DEBUG\_INNER(\ FT\_Stream\_ExtractFrame(\ stream,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00557\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_ULong)(size),\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00558\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_Byte**)\&(bytes)\ )\ )\ )}}
+\DoxyCodeLine{00559\ }
+\DoxyCodeLine{00560\ \textcolor{preprocessor}{\#define\ FT\_FRAME\_RELEASE(\ bytes\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00561\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_DEBUG\_INNER(\ FT\_Stream\_ReleaseFrame(\ stream,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00562\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (FT\_Byte**)\&(bytes)\ )\ )}}
+\DoxyCodeLine{00563\ }
+\DoxyCodeLine{00564\ }
+\DoxyCodeLine{00565\ FT\_END\_HEADER}
+\DoxyCodeLine{00566\ }
+\DoxyCodeLine{00567\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTSTREAM\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00568\ }
+\DoxyCodeLine{00569\ }
+\DoxyCodeLine{00570\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

@@ -1,0 +1,166 @@
+\hypertarget{ftvalid_8h_source}{}\doxysection{ftvalid.\+h}
+\label{ftvalid_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/ftvalid.h@{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/ftvalid.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftvalid.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ FreeType\ validation\ support\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2004-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ FTVALID\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ FTVALID\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <ft2build.h>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ FT\_CONFIG\_STANDARD\_LIBRARY\_H\ \ \ }\textcolor{comment}{/*\ for\ ft\_jmpbuf\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}compiler-\/macros.h"{}}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ /****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ****/}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ /****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ****/}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ /****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ V\ A\ L\ I\ D\ A\ T\ I\ O\ N\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ****/}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ /****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ****/}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ /****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ****/}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \textcolor{comment}{/*\ handle\ to\ a\ validation\ object\ */}}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_t___validator_rec__}{FT\_ValidatorRec\_}}\ volatile*\ \ FT\_Validator;}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ *\ There\ are\ three\ distinct\ validation\ levels\ defined\ here:}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ *\ FT\_VALIDATE\_DEFAULT\ ::}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ *\ \ \ A\ table\ that\ passes\ this\ validation\ level\ can\ be\ used\ reliably\ by}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ *\ \ \ FreeType.\ \ It\ generally\ means\ that\ all\ offsets\ have\ been\ checked\ to}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ *\ \ \ prevent\ out-\/of-\/bound\ reads,\ that\ array\ counts\ are\ correct,\ etc.}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ *\ FT\_VALIDATE\_TIGHT\ ::}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ *\ \ \ A\ table\ that\ passes\ this\ validation\ level\ can\ be\ used\ reliably\ and}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ *\ \ \ doesn't\ contain\ invalid\ data.\ \ For\ example,\ a\ charmap\ table\ that}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ *\ \ \ returns\ invalid\ glyph\ indices\ will\ not\ pass,\ even\ though\ it\ can\ be}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ *\ \ \ used\ with\ FreeType\ in\ default\ mode\ (the\ library\ will\ simply\ return\ an}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ *\ \ \ error\ later\ when\ trying\ to\ load\ the\ glyph).}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *\ \ \ It\ also\ checks\ that\ fields\ which\ must\ be\ a\ multiple\ of\ 2,\ 4,\ or\ 8,}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *\ \ \ don't\ have\ incorrect\ values,\ etc.}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *\ FT\_VALIDATE\_PARANOID\ ::}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *\ \ \ Only\ for\ font\ debugging.\ \ Checks\ that\ a\ table\ follows\ the}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *\ \ \ specification\ by\ 100\%.\ \ Very\ few\ fonts\ will\ be\ able\ to\ pass\ this\ level}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *\ \ \ anyway\ but\ it\ can\ be\ useful\ for\ certain\ tools\ like\ font}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ *\ \ \ editors/converters.}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00071\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ FT\_ValidationLevel\_}
+\DoxyCodeLine{00072\ \ \ \{}
+\DoxyCodeLine{00073\ \ \ \ \ FT\_VALIDATE\_DEFAULT\ =\ 0,}
+\DoxyCodeLine{00074\ \ \ \ \ FT\_VALIDATE\_TIGHT,}
+\DoxyCodeLine{00075\ \ \ \ \ FT\_VALIDATE\_PARANOID}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \}\ FT\_ValidationLevel;}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#if\ defined(\ \_MSC\_VER\ )\ \ \ \ \ \ }\textcolor{comment}{/*\ Visual\ C++\ (and\ Intel\ C++)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00081\ \ \ \textcolor{comment}{/*\ We\ disable\ the\ warning\ `structure\ was\ padded\ due\ to\ \ \ */}}
+\DoxyCodeLine{00082\ \ \ \textcolor{comment}{/*\ \_\_declspec(align())'\ in\ order\ to\ compile\ cleanly\ with\ */}}
+\DoxyCodeLine{00083\ \ \ \textcolor{comment}{/*\ the\ maximum\ level\ of\ warnings.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#pragma\ warning(\ push\ )}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#pragma\ warning(\ disable\ :\ 4324\ )}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_MSC\_VER\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \textcolor{comment}{/*\ validator\ structure\ */}}
+\DoxyCodeLine{00089\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t___validator_rec__}{FT\_ValidatorRec\_}}}
+\DoxyCodeLine{00090\ \ \ \{}
+\DoxyCodeLine{00091\ \ \ \ \ ft\_jmp\_buf\ \ \ \ \ \ \ \ \ \ jump\_buffer;\ \textcolor{comment}{/*\ used\ for\ exception\ handling\ \ \ \ \ \ */}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{const}\ FT\_Byte*\ \ \ \ \ \ base;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ address\ of\ table\ in\ memory\ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keyword}{const}\ FT\_Byte*\ \ \ \ \ \ limit;\ \ \ \ \ \ \ \textcolor{comment}{/*\ `base'\ +\ sizeof(table)\ in\ memory\ */}}
+\DoxyCodeLine{00095\ \ \ \ \ FT\_ValidationLevel\ \ level;\ \ \ \ \ \ \ \textcolor{comment}{/*\ validation\ level\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00096\ \ \ \ \ FT\_Error\ \ \ \ \ \ \ \ \ \ \ \ error;\ \ \ \ \ \ \ \textcolor{comment}{/*\ error\ returned.\ 0\ means\ success\ \ */}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \}\ \mbox{\hyperlink{struct_f_t___validator_rec__}{FT\_ValidatorRec}};}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#if\ defined(\ \_MSC\_VER\ )}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#pragma\ warning(\ pop\ )}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#define\ FT\_VALIDATOR(\ x\ )\ \ (\ (FT\_Validator)(\ x\ )\ )}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00108\ \ \ ft\_validator\_init(\ FT\_Validator\ \ \ \ \ \ \ \ valid,}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ FT\_Byte*\ \ \ \ \ \ base,}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ FT\_Byte*\ \ \ \ \ \ limit,}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ValidationLevel\ \ level\ );}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \textcolor{comment}{/*\ Do\ not\ use\ this.\ It's\ broken\ and\ will\ cause\ your\ validator\ to\ crash\ */}}
+\DoxyCodeLine{00114\ \ \ \textcolor{comment}{/*\ if\ you\ run\ it\ on\ an\ invalid\ font.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00115\ \ \ FT\_BASE(\ FT\_Int\ )}
+\DoxyCodeLine{00116\ \ \ ft\_validator\_run(\ FT\_Validator\ \ valid\ );}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \textcolor{comment}{/*\ Sets\ the\ error\ field\ in\ a\ validator,\ then\ calls\ `longjmp'\ to\ return\ */}}
+\DoxyCodeLine{00119\ \ \ \textcolor{comment}{/*\ to\ high-\/level\ caller.\ \ Using\ `setjmp/longjmp'\ avoids\ many\ stupid\ \ \ \ */}}
+\DoxyCodeLine{00120\ \ \ \textcolor{comment}{/*\ error\ checks\ within\ the\ validation\ routines.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00121\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00122\ \ \ FT\_BASE(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00123\ \ \ ft\_validator\_error(\ FT\_Validator\ \ valid,}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Error\ \ \ \ \ \ error\ );}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \textcolor{comment}{/*\ Calls\ ft\_validate\_error.\ \ Assumes\ that\ the\ `valid'\ local\ variable\ */}}
+\DoxyCodeLine{00128\ \ \ \textcolor{comment}{/*\ holds\ a\ pointer\ to\ the\ current\ validator\ object.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00129\ \ \ \textcolor{comment}{/*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#define\ FT\_INVALID(\ \_error\ )\ \ FT\_INVALID\_(\ \_error\ )}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ FT\_INVALID\_(\ \_error\ )\ \(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ ft\_validator\_error(\ valid,\ FT\_THROW(\ \_error\ )\ )}}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \textcolor{comment}{/*\ called\ when\ a\ broken\ table\ is\ detected\ */}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#define\ FT\_INVALID\_TOO\_SHORT\ \(\backslash\)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_INVALID(\ Invalid\_Table\ )}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \textcolor{comment}{/*\ called\ when\ an\ invalid\ offset\ is\ detected\ */}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#define\ FT\_INVALID\_OFFSET\ \(\backslash\)}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_INVALID(\ Invalid\_Offset\ )}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \textcolor{comment}{/*\ called\ when\ an\ invalid\ format/value\ is\ detected\ */}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#define\ FT\_INVALID\_FORMAT\ \(\backslash\)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_INVALID(\ Invalid\_Table\ )}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \textcolor{comment}{/*\ called\ when\ an\ invalid\ glyph\ index\ is\ detected\ */}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#define\ FT\_INVALID\_GLYPH\_ID\ \(\backslash\)}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_INVALID(\ Invalid\_Glyph\_Index\ )}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \textcolor{comment}{/*\ called\ when\ an\ invalid\ field\ value\ is\ detected\ */}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\#define\ FT\_INVALID\_DATA\ \(\backslash\)}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ FT\_INVALID(\ Invalid\_Table\ )}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ FT\_END\_HEADER}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTVALID\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

@@ -1,0 +1,265 @@
+\hypertarget{laf_2os_2system_8h_source}{}\doxysection{system.\+h}
+\label{laf_2os_2system_8h_source}\index{AseSprite/aseprite/laf/os/system.h@{AseSprite/aseprite/laf/os/system.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ OS\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2012-\/2017\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ OS\_SYSTEM\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ OS\_SYSTEM\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}gfx/fwd.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}os/app\_mode.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}os/capabilities.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}os/color\_space.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}os/keys.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}os/ref.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}os/screen.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}os/window.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}os/window\_spec.h"{}}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <stdexcept>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{namespace\ }os\ \{}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{class\ }ColorSpaceConversion;}
+\DoxyCodeLine{00030\ \ \ \textcolor{keyword}{class\ }EventQueue;}
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{class\ }Font;}
+\DoxyCodeLine{00032\ \ \ \textcolor{keyword}{class\ }FontManager;}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{class\ }Logger;}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{class\ }Menus;}
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{class\ }NativeDialogs;}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{class\ }Surface;}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{class\ }System;}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{using\ }SystemRef\ =\ Ref<System>;}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \textcolor{comment}{//\ TODO\ why\ we\ just\ don't\ return\ nullptr\ if\ the\ window\ creation\ fails?}}
+\DoxyCodeLine{00042\ \ \ \textcolor{comment}{//\ \ \ \ \ \ maybe\ an\ error\ handler\ function?}}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classos_1_1_window_creation_exception}{WindowCreationException}}\ :\ \textcolor{keyword}{public}\ std::runtime\_error\ \{}
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00045\ \ \ \ \ \mbox{\hyperlink{classos_1_1_window_creation_exception}{WindowCreationException}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ msg)\ \textcolor{keywordflow}{throw}()}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ :\ std::runtime\_error(msg)\ \{\ \}}
+\DoxyCodeLine{00047\ \ \ \};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \textcolor{comment}{//\ Windows-\/specific\ details:\ API\ to\ use\ to\ get\ tablet\ input\ information.}}
+\DoxyCodeLine{00050\ \ \ \textcolor{keyword}{enum\ class}\ TabletAPI\ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{//\ Default\ tablet\ API\ to\ use\ in\ the\ system\ (Windows\ Ink\ on}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{comment}{//\ Windows;\ only\ valid\ value\ on\ other\ systems).}}
+\DoxyCodeLine{00053\ \ \ \ \ Default\ =\ 0,}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{comment}{//\ Use\ Windows\ 8/10\ pointer\ messages\ (Windows\ Ink).}}
+\DoxyCodeLine{00056\ \ \ \ \ WindowsPointerInput\ =\ 0,}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//\ Use\ the\ Wintab\ API\ to\ get\ pressure\ information\ from\ packets\ but}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{comment}{//\ mouse\ movement\ from\ Windows\ system\ messages}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{comment}{//\ (WM\_MOUSEMOVE).}}
+\DoxyCodeLine{00061\ \ \ \ \ Wintab\ =\ 1,}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ Use\ the\ Wintab\ API\ processing\ packets\ directly\ (pressure\ and}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{comment}{//\ stylus\ movement\ information).\ With\ this\ we\ might\ get\ more}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{comment}{//\ precision\ from\ the\ device\ (but\ still\ work-\/in-\/progress,\ some}}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{comment}{//\ messages\ might\ be\ mixed\ up).}}
+\DoxyCodeLine{00067\ \ \ \ \ WintabPackets\ =\ 2,}
+\DoxyCodeLine{00068\ \ \ \};}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classos_1_1_system}{System}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classbase_1_1_ref_count}{RefCount}}\ \{}
+\DoxyCodeLine{00071\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classos_1_1_system}{\string~System}}()\ \{\ \}}
+\DoxyCodeLine{00073\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ Windows-\/specific:\ The\ app\ name\ at\ the\ moment\ is\ used\ to\ receive}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{comment}{//\ DDE\ messages\ (WM\_DDE\_INITIATE)\ and\ convert\ WM\_DDE\_EXECUTE}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{comment}{//\ messages\ into\ Event::DropFiles.\ This\ allows\ to\ the\ user}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{comment}{//\ double-\/click\ files\ in\ the\ File\ Explorer\ and\ open\ the\ file\ in\ a}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{comment}{//\ running\ instance\ of\ your\ app.}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{comment}{//\ To\ receive\ DDE\ messages\ you\ have\ to\ configure\ the\ registry\ in}}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{comment}{//\ this\ way\ (HKCR=HKEY\_CLASSES\_ROOT):}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{comment}{//\ \ \ HKCR\(\backslash\).appfile\ \ (Default)="{}AppFile"{}}}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{comment}{//\ \ \ HKCR\(\backslash\)AppFile\ \ \ (Default)="{}App\ File"{}}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{comment}{//\ \ \ HKCR\(\backslash\)AppFile\(\backslash\)shell\(\backslash\)open\(\backslash\)command\ \ \ \ \ \ \ \ \ \ \ \ \ (Default)="{}C:\(\backslash\)\(\backslash\)...\(\backslash\)\(\backslash\)AppName.EXE"{}}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{comment}{//\ \ \ HKCR\(\backslash\)AppFile\(\backslash\)shell\(\backslash\)open\(\backslash\)ddeexec\ \ \ \ \ \ \ \ \ \ \ \ \ (Default)="{}[open(\(\backslash\)"{}\%1\(\backslash\)"{})]"{}}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//\ \ \ HKCR\(\backslash\)AppFile\(\backslash\)shell\(\backslash\)open\(\backslash\)ddeexec\(\backslash\)application\ (Default)="{}AppName"{}}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{comment}{//\ \ \ HKCR\(\backslash\)AppFile\(\backslash\)shell\(\backslash\)open\(\backslash\)ddeexec\(\backslash\)topic\ \ \ \ \ \ \ (Default)="{}system"{}}}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ The\ default\ value\ of\ "{}HKCR\(\backslash\)AppFile\(\backslash\)shell\(\backslash\)open\(\backslash\)ddeexec\(\backslash\)application"{}}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{comment}{//\ must\ match\ the\ "{}appName"{}\ given\ in\ this\ function.}}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setAppName(\textcolor{keyword}{const}\ std::string\&\ appName)\ =\ 0;}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{comment}{//\ We\ can\ use\ this\ function\ to\ create\ an\ application\ that\ can\ run}}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{comment}{//\ in\ CLI\ and\ GUI\ mode\ depending\ on\ the\ given\ arguments,\ and\ in}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{comment}{//\ this\ way\ avoid\ to\ showing\ the\ app\ in\ the\ macOS\ dock\ bar\ if\ we}}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{comment}{//\ are\ running\ in\ CLI\ only.}}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setAppMode(AppMode\ appMode)\ =\ 0;}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{comment}{//\ Marks\ a\ specific\ file\ as\ a\ file\ that\ was\ processed\ in\ the\ CLI.}}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{comment}{//\ Only\ useful\ on\ macOS\ to\ avoid\ generating\ DropFiles\ events\ for}}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{comment}{//\ files\ that\ were\ processed\ from\ the\ CLI\ arguments\ directly.}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ markCliFileAsProcessed(\textcolor{keyword}{const}\ std::string\&\ cliFile)\ =\ 0;}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{comment}{//\ On\ macOS\ it\ calls\ [NSApplication\ finishLaunching]\ that\ will}}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{comment}{//\ produce\ some\ extra\ events\ like\ [NSApplicationDelegate}}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{comment}{//\ application:openFiles:]\ which\ generates\ os::Event::DropFiles}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{comment}{//\ events\ for\ each\ file\ specified\ in\ the\ command\ line.}}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{comment}{//\ You\ can\ ignore\ those\ DropFiles\ events\ if\ you've\ already}}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{comment}{//\ processed\ through\ the\ CLI\ arguments\ (app\_main(argc,\ argv))\ or}}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{comment}{//\ you\ can\ use\ markCliFileAsProcessed()\ before\ calling\ this}}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{comment}{//\ function.}}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ finishLaunching()\ =\ 0;}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{comment}{//\ We\ might\ need\ to\ call\ this\ function\ when\ the\ app\ is\ launched}}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{comment}{//\ from\ Steam.\ It\ appears\ that\ there\ is\ a\ bug\ on\ macOS\ Steam}}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{comment}{//\ client\ where\ the\ app\ is\ launched,\ activated,\ and\ then\ the\ Steam}}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{comment}{//\ client\ is\ activated\ again.}}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ activateApp()\ =\ 0;}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keyword}{virtual}\ Capabilities\ capabilities()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasCapability(Capabilities\ c)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{int}(capabilities())\ \&\ \textcolor{keywordtype}{int}(c))\ ==\ int(c);}
+\DoxyCodeLine{00126\ \ \ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{comment}{//\ Sets\ the\ specific\ API\ to\ use\ to\ process\ tablet/stylus/pen}}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{comment}{//\ messages.}}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{comment}{//\ It\ can\ be\ used\ to\ avoid\ loading\ wintab32.dll\ too\ (sometimes\ a}}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{comment}{//\ program\ can\ be\ locked\ when\ we\ load\ the\ wintab32.dll,\ so\ we\ need}}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{comment}{//\ a\ way\ to\ opt-\/out\ loading\ this\ library.)}}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setTabletAPI(TabletAPI\ api)\ =\ 0;}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keyword}{virtual}\ TabletAPI\ tabletAPI()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{comment}{//\ Sub-\/interfaces}}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classos_1_1_logger}{Logger}}*\ logger()\ =\ 0;}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classos_1_1_menus}{Menus}}*\ menus()\ =\ 0;}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classos_1_1_native_dialogs}{NativeDialogs}}*\ nativeDialogs()\ =\ 0;}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classos_1_1_event_queue}{EventQueue}}*\ eventQueue()\ =\ 0;}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ gpuAcceleration()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setGpuAcceleration(\textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}})\ =\ 0;}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ main\ screen}}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{ScreenRef}}\ mainScreen()\ =\ 0;}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{comment}{//\ Returns\ a\ list\ of\ screens\ attached\ to\ the\ computer.}}
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ listScreens(ScreenList\&\ screens)\ =\ 0;}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classos_1_1_window}{Window}}*\ defaultWindow()\ =\ 0;}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{comment}{//\ Creates\ a\ new\ window\ in\ the\ operating\ system\ with\ the\ given}}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{comment}{//\ specs\ (width,\ height,\ etc.).}}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keyword}{virtual}\ WindowRef\ makeWindow(\textcolor{keyword}{const}\ \mbox{\hyperlink{classos_1_1_window_spec}{WindowSpec}}\&\ spec)\ =\ 0;}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ WindowRef\ makeWindow(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ contentWidth,}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ contentHeight,}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ scale\ =\ 1)\ \{}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ makeWindow(\mbox{\hyperlink{classos_1_1_window_spec}{WindowSpec}}(contentWidth,\ contentHeight,\ scale));}
+\DoxyCodeLine{00162\ \ \ \ \ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<Surface>}}\ makeSurface(\textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ colorSpace\ =\ \textcolor{keyword}{nullptr})\ =\ 0;}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<Surface>}}\ makeRgbaSurface(\textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ colorSpace\ =\ \textcolor{keyword}{nullptr})\ =\ 0;}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<Surface>}}\ loadSurface(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename)\ =\ 0;}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<Surface>}}\ loadRgbaSurface(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename)\ =\ 0;}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{comment}{//\ Creates\ a\ new\ cursor\ with\ the\ given\ surface.}}
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{comment}{//\ Warning:\ On\ Windows\ there\ is\ a\ limit\ of\ 10,000\ GDI\ objects\ per}}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{comment}{//\ process\ and\ creating\ a\ cursor\ needs\ 3\ GDI\ objects\ (a\ HCURSOR}}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{comment}{//\ and\ two\ HBITMAPs).}}
+\DoxyCodeLine{00174\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<Cursor>}}\ makeCursor(\textcolor{keyword}{const}\ \mbox{\hyperlink{classos_1_1_surface}{Surface}}*\ surface,}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ focus,}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ scale)\ =\ 0;}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{comment}{//\ New\ font\ manager}}
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classos_1_1_font_manager}{FontManager}}*\ fontManager()\ =\ 0;}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{comment}{//\ Old\ font\ functions\ (to\ be\ removed)}}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<Font>}}\ loadSpriteSheetFont(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename,\ \textcolor{keywordtype}{int}\ scale\ =\ 1)\ =\ 0;}
+\DoxyCodeLine{00183\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<Font>}}\ loadTrueTypeFont(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename,\ \textcolor{keywordtype}{int}\ height)\ =\ 0;}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ the\ given\ scancode\ key\ is\ pressed/actived.}}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ isKeyPressed(KeyScancode\ scancode)\ =\ 0;}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ active\ pressed\ modifiers.}}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keyword}{virtual}\ KeyModifiers\ keyModifiers()\ =\ 0;}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ latest\ unicode\ character\ that\ activated\ the\ given}}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{comment}{//\ scancode.}}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ getUnicodeFromScancode(KeyScancode\ scancode)\ =\ 0;}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{comment}{//\ Indicates\ if\ you\ want\ to\ use\ dead\ keys\ or\ not.\ By\ default\ it's}}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{comment}{//\ false,\ which\ behaves\ as\ regular\ shortcuts.\ You\ should\ set\ this}}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{comment}{//\ to\ true\ when\ you're\ inside\ a\ text\ field\ in\ your\ app.}}
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{comment}{//\ TODO\ Improve\ this\ API\ using\ different\ input\ modes,}}
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ e.g.\ GameLike,\ TextInput,\ TextInputWithDeadKeys}}
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setTranslateDeadKeys(\textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}})\ =\ 0;}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ mouse\ position\ in\ the\ screen.\ Try\ to\ avoid\ using}}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{comment}{//\ this\ and\ prefer\ the\ Event\ mouse\ position.}}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ mousePosition()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \ \ \textcolor{comment}{//\ Sets\ the\ mouse\ position\ to\ a\ specific\ point\ in\ the\ screen.}}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setMousePosition(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ screenPosition)\ =\ 0;}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{comment}{//\ Gets\ a\ color\ from\ the\ desktop\ in\ given\ screen\ position.}}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{comment}{//\ WARNING\ for\ macOS:\ This\ function\ will\ ask\ the\ user\ for}}
+\DoxyCodeLine{00213\ \ \ \ \ \textcolor{comment}{//\ permissions\ to\ record\ the\ screen.\ If\ the\ app\ is\ not\ in\ a\ signed}}
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{comment}{//\ bundle,\ the\ color\ will\ be\ from\ the\ wallpaper,\ but\ if\ the}}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{comment}{//\ function\ is\ used\ in\ a\ signed\ bundled\ app,\ the\ color\ will\ be}}
+\DoxyCodeLine{00216\ \ \ \ \ \textcolor{comment}{//\ from\ any\ opened\ window.}}
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{keyword}{virtual}\ gfx::Color\ getColorFromScreen(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ screenPosition)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{comment}{//\ Color\ management}}
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ listColorSpaces(}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ std::vector<os::ColorSpaceRef>\&\ list)\ =\ 0;}
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ makeColorSpace(}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{gfx::ColorSpaceRef}}\&\ colorSpace)\ =\ 0;}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{Ref<ColorSpaceConversion>}}\ convertBetweenColorSpace(}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ src,}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ dst)\ =\ 0;}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \ \ \textcolor{comment}{//\ Set\ a\ default\ color\ profile\ for\ all\ windows\ (nullptr\ to\ use\ the}}
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{comment}{//\ active\ monitor\ color\ profile\ and\ change\ it\ dynamically\ when\ the}}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{comment}{//\ window\ changes\ to\ another\ monitor).}}
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setWindowsColorSpace(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ cs)\ =\ 0;}
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ windowsColorSpace()\ =\ 0;}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{comment}{//\ Function\ called\ to\ handle\ a\ "{}live\ resize"{}/resizing\ loop\ of\ a}}
+\DoxyCodeLine{00235\ \ \ \ \ \textcolor{comment}{//\ native\ window.\ If\ this\ is\ nullptr,\ an\ Event::ResizeWindow\ is}}
+\DoxyCodeLine{00236\ \ \ \ \ \textcolor{comment}{//\ generated\ when\ the\ resizing\ is\ finished.}}
+\DoxyCodeLine{00237\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{comment}{//\ TODO\ I\ think\ we\ should\ have\ a\ SystemDelegate\ or\ something}}
+\DoxyCodeLine{00239\ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ similar\ instead\ of\ a\ public\ property.}}
+\DoxyCodeLine{00240\ \ \ \ \ std::function<void(\mbox{\hyperlink{classos_1_1_window}{os::Window}}*)>\ handleWindowResize\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#if\ LAF\_WINDOWS}}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{comment}{//\ Only\ useful\ on\ Windows,\ the\ delegate\ must\ be\ a\ pointer\ to\ a}}
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{comment}{//\ WintabAPI::Delegate,\ and\ it\ must\ be\ deleted\ by\ the\ user}}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{comment}{//\ manually\ (it's\ not\ owned\ by\ the\ os::System\ impl).}}
+\DoxyCodeLine{00246\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{comment}{//\ This\ can\ be\ used\ to\ get\ information\ about\ the\ wintab32.dll}}
+\DoxyCodeLine{00248\ \ \ \ \ \textcolor{comment}{//\ vendor\ (company\ name,\ etc.)}}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setWintabDelegate(\textcolor{keywordtype}{void}*\ delegate)\ \{\ \}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00251\ \ \ \};}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{SystemRef}}\ make\_system();}
+\DoxyCodeLine{00254\ \ \ \mbox{\hyperlink{classos_1_1_system}{System}}*\ instance();}
+\DoxyCodeLine{00255\ \ \ \textcolor{keywordtype}{void}\ set\_instance(\mbox{\hyperlink{classos_1_1_system}{System}}*\ system);}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \}\ \textcolor{comment}{//\ namespace\ os}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

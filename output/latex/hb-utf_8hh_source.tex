@@ -1,0 +1,459 @@
+\hypertarget{hb-utf_8hh_source}{}\doxysection{hb-\/utf.hh}
+\label{hb-utf_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/utf.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/utf.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2011,2012,2014\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_UTF\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_UTF\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/open-\/type.hh"{}}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__utf8__t}{hb\_utf8\_t}}}
+\DoxyCodeLine{00036\ \{}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{typedef}\ uint8\_t\ codepoint\_t;}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00040\ \ \ next\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end,}
+\DoxyCodeLine{00042\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00043\ \ \ \ \ hb\_codepoint\_t\ replacement)}
+\DoxyCodeLine{00044\ \ \ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{comment}{/*\ Written\ to\ only\ accept\ well-\/formed\ sequences.}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ \ \ \ *\ Based\ on\ ideas\ from\ ICU's\ U8\_NEXT.}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ \ \ *\ Generates\ one\ "{}replacement"{}\ for\ each\ ill-\/formed\ byte.\ */}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ hb\_codepoint\_t\ c\ =\ *text++;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ >\ 0x7Fu)}
+\DoxyCodeLine{00052\ \ \ \ \ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_in\_range<hb\_codepoint\_t>\ (c,\ 0xC2u,\ 0xDFu))\ \textcolor{comment}{/*\ Two-\/byte\ */}}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ t1;}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (text\ <\ end\ \&\&}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ (t1\ =\ text[0]\ -\/\ 0x80u)\ <=\ 0x3Fu))}
+\DoxyCodeLine{00058\ \ \ \ \ \{}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ c\ =\ ((c\&0x1Fu)<<6)\ |\ t1;}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ text++;}
+\DoxyCodeLine{00061\ \ \ \ \ \}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ error;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (hb\_in\_range<hb\_codepoint\_t>\ (c,\ 0xE0u,\ 0xEFu))\ \textcolor{comment}{/*\ Three-\/byte\ */}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ t1,\ t2;}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (1\ <\ end\ -\/\ text\ \&\&}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ (t1\ =\ text[0]\ -\/\ 0x80u)\ <=\ 0x3Fu\ \&\&}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ (t2\ =\ text[1]\ -\/\ 0x80u)\ <=\ 0x3Fu))}
+\DoxyCodeLine{00071\ \ \ \ \ \{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ c\ =\ ((c\&0xFu)<<12)\ |\ (t1<<6)\ |\ t2;}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (c\ <\ 0x0800u\ ||\ hb\_in\_range<hb\_codepoint\_t>\ (c,\ 0xD800u,\ 0xDFFFu)))}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ error;}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ text\ +=\ 2;}
+\DoxyCodeLine{00076\ \ \ \ \ \}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ error;}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (hb\_in\_range<hb\_codepoint\_t>\ (c,\ 0xF0u,\ 0xF4u))\ \textcolor{comment}{/*\ Four-\/byte\ */}}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ t1,\ t2,\ t3;}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (2\ <\ end\ -\/\ text\ \&\&}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ (t1\ =\ text[0]\ -\/\ 0x80u)\ <=\ 0x3Fu\ \&\&}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ (t2\ =\ text[1]\ -\/\ 0x80u)\ <=\ 0x3Fu\ \&\&}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ (t3\ =\ text[2]\ -\/\ 0x80u)\ <=\ 0x3Fu))}
+\DoxyCodeLine{00087\ \ \ \ \ \{}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ c\ =\ ((c\&0x7u)<<18)\ |\ (t1<<12)\ |\ (t2<<6)\ |\ t3;}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!hb\_in\_range<hb\_codepoint\_t>\ (c,\ 0x10000u,\ 0x10FFFFu)))}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ error;}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ text\ +=\ 3;}
+\DoxyCodeLine{00092\ \ \ \ \ \}}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ error;}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordflow}{goto}\ error;}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ *unicode\ =\ c;}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ error:}
+\DoxyCodeLine{00104\ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00106\ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00109\ \ \ prev\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *start,}
+\DoxyCodeLine{00111\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00112\ \ \ \ \ hb\_codepoint\_t\ replacement)}
+\DoxyCodeLine{00113\ \ \ \{}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end\ =\ text-\/-\/;}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordflow}{while}\ (start\ <\ text\ \&\&\ (*text\ \&\ 0xc0)\ ==\ 0x80\ \&\&\ end\ -\/\ text\ <\ 4)}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ text-\/-\/;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (next\ (text,\ end,\ unicode,\ replacement)\ ==\ end))}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordflow}{return}\ end\ -\/\ 1;}
+\DoxyCodeLine{00123\ \ \ \}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00126\ \ \ strlen\ (\textcolor{keyword}{const}\ codepoint\_t\ *text)}
+\DoxyCodeLine{00127\ \ \ \{\ return\ ::strlen\ ((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ text);\ \}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00130\ \ \ encode\_len\ (hb\_codepoint\_t\ unicode)}
+\DoxyCodeLine{00131\ \ \ \{}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordflow}{if}\ (unicode\ <\ \ \ 0x0080u)\ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordflow}{if}\ (unicode\ <\ \ \ 0x0800u)\ \textcolor{keywordflow}{return}\ 2;}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keywordflow}{if}\ (unicode\ <\ \ 0x10000u)\ \textcolor{keywordflow}{return}\ 3;}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordflow}{if}\ (unicode\ <\ 0x110000u)\ \textcolor{keywordflow}{return}\ 4;}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordflow}{return}\ 3;}
+\DoxyCodeLine{00137\ \ \ \}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \textcolor{keyword}{static}\ codepoint\_t\ *}
+\DoxyCodeLine{00140\ \ \ encode\ (codepoint\_t\ *text,}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end,}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ hb\_codepoint\_t\ unicode)}
+\DoxyCodeLine{00143\ \ \ \{}
+\DoxyCodeLine{00144\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (unicode\ >=\ 0xD800u\ \&\&\ (unicode\ <=\ 0xDFFFu\ ||\ unicode\ >\ 0x10FFFFu)))}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ unicode\ =\ 0xFFFDu;}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keywordflow}{if}\ (unicode\ <\ 0x0080u)}
+\DoxyCodeLine{00147\ \ \ \ \ \ *text++\ =\ unicode;}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unicode\ <\ 0x0800u)}
+\DoxyCodeLine{00149\ \ \ \ \ \{}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (end\ -\/\ text\ >=\ 2)}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00152\ \ \ \ \ *text++\ =\ \ 0xC0u\ +\ (0x1Fu\ \&\ (unicode\ >>\ \ 6));}
+\DoxyCodeLine{00153\ \ \ \ \ *text++\ =\ \ 0x80u\ +\ (0x3Fu\ \&\ (unicode\ \ \ \ \ \ ));}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00155\ \ \ \ \ \}}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unicode\ <\ 0x10000u)}
+\DoxyCodeLine{00157\ \ \ \ \ \{}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (end\ -\/\ text\ >=\ 3)}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00160\ \ \ \ \ *text++\ =\ \ 0xE0u\ +\ (0x0Fu\ \&\ (unicode\ >>\ 12));}
+\DoxyCodeLine{00161\ \ \ \ \ *text++\ =\ \ 0x80u\ +\ (0x3Fu\ \&\ (unicode\ >>\ \ 6));}
+\DoxyCodeLine{00162\ \ \ \ \ *text++\ =\ \ 0x80u\ +\ (0x3Fu\ \&\ (unicode\ \ \ \ \ \ ));}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00164\ \ \ \ \ \}}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00166\ \ \ \ \ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (end\ -\/\ text\ >=\ 4)}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00169\ \ \ \ \ *text++\ =\ \ 0xF0u\ +\ (0x07u\ \&\ (unicode\ >>\ 18));}
+\DoxyCodeLine{00170\ \ \ \ \ *text++\ =\ \ 0x80u\ +\ (0x3Fu\ \&\ (unicode\ >>\ 12));}
+\DoxyCodeLine{00171\ \ \ \ \ *text++\ =\ \ 0x80u\ +\ (0x3Fu\ \&\ (unicode\ >>\ \ 6));}
+\DoxyCodeLine{00172\ \ \ \ \ *text++\ =\ \ 0x80u\ +\ (0x3Fu\ \&\ (unicode\ \ \ \ \ \ ));}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00174\ \ \ \ \ \}}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00176\ \ \ \}}
+\DoxyCodeLine{00177\ \};}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TCodepo\textcolor{keywordtype}{int}>}
+\DoxyCodeLine{00181\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__utf16__xe__t}{hb\_utf16\_xe\_t}}}
+\DoxyCodeLine{00182\ \{}
+\DoxyCodeLine{00183\ \ \ \textcolor{keyword}{static\_assert}\ (\textcolor{keyword}{sizeof}\ (TCodepoint)\ ==\ 2,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00184\ \ \ \textcolor{keyword}{typedef}\ TCodepoint\ codepoint\_t;}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00187\ \ \ next\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end,}
+\DoxyCodeLine{00189\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00190\ \ \ \ \ hb\_codepoint\_t\ replacement)}
+\DoxyCodeLine{00191\ \ \ \{}
+\DoxyCodeLine{00192\ \ \ \ \ hb\_codepoint\_t\ c\ =\ *text++;}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (!hb\_in\_range<hb\_codepoint\_t>\ (c,\ 0xD800u,\ 0xDFFFu)))}
+\DoxyCodeLine{00195\ \ \ \ \ \{}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ *unicode\ =\ c;}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00198\ \ \ \ \ \}}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (c\ <=\ 0xDBFFu\ \&\&\ text\ <\ end))}
+\DoxyCodeLine{00201\ \ \ \ \ \{}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \textcolor{comment}{/*\ High-\/surrogate\ in\ c\ */}}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ hb\_codepoint\_t\ l\ =\ *text;}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (hb\_in\_range<hb\_codepoint\_t>\ (l,\ 0xDC00u,\ 0xDFFFu)))}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00206\ \ \ \ \ \textcolor{comment}{/*\ Low-\/surrogate\ in\ l\ */}}
+\DoxyCodeLine{00207\ \ \ \ \ *unicode\ =\ (c\ <<\ 10)\ +\ l\ -\/\ ((0xD800u\ <<\ 10)\ -\/\ 0x10000u\ +\ 0xDC00u);}
+\DoxyCodeLine{00208\ \ \ \ \ \ text++;}
+\DoxyCodeLine{00209\ \ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00211\ \ \ \ \ \}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \ \ \textcolor{comment}{/*\ Lonely\ /\ out-\/of-\/order\ surrogate.\ */}}
+\DoxyCodeLine{00214\ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00215\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00216\ \ \ \}}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00219\ \ \ prev\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *start,}
+\DoxyCodeLine{00221\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00222\ \ \ \ \ hb\_codepoint\_t\ replacement)}
+\DoxyCodeLine{00223\ \ \ \{}
+\DoxyCodeLine{00224\ \ \ \ \ hb\_codepoint\_t\ c\ =\ *-\/-\/text;}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (!hb\_in\_range<hb\_codepoint\_t>\ (c,\ 0xD800u,\ 0xDFFFu)))}
+\DoxyCodeLine{00227\ \ \ \ \ \{}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ *unicode\ =\ c;}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00230\ \ \ \ \ \}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (c\ >=\ 0xDC00u\ \&\&\ start\ <\ text))}
+\DoxyCodeLine{00233\ \ \ \ \ \{}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \textcolor{comment}{/*\ Low-\/surrogate\ in\ c\ */}}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ hb\_codepoint\_t\ h\ =\ text[-\/1];}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (hb\_in\_range<hb\_codepoint\_t>\ (h,\ 0xD800u,\ 0xDBFFu)))}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{comment}{/*\ High-\/surrogate\ in\ h\ */}}
+\DoxyCodeLine{00239\ \ \ \ \ *unicode\ =\ (h\ <<\ 10)\ +\ c\ -\/\ ((0xD800u\ <<\ 10)\ -\/\ 0x10000u\ +\ 0xDC00u);}
+\DoxyCodeLine{00240\ \ \ \ \ text-\/-\/;}
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00243\ \ \ \ \ \}}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{comment}{/*\ Lonely\ /\ out-\/of-\/order\ surrogate.\ */}}
+\DoxyCodeLine{00246\ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00248\ \ \ \}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00252\ \ \ strlen\ (\textcolor{keyword}{const}\ codepoint\_t\ *text)}
+\DoxyCodeLine{00253\ \ \ \{}
+\DoxyCodeLine{00254\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ l\ =\ 0;}
+\DoxyCodeLine{00255\ \ \ \ \ \textcolor{keywordflow}{while}\ (*text++)\ l++;}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keywordflow}{return}\ l;}
+\DoxyCodeLine{00257\ \ \ \}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00260\ \ \ encode\_len\ (hb\_codepoint\_t\ unicode)}
+\DoxyCodeLine{00261\ \ \ \{}
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{keywordflow}{return}\ unicode\ <\ 0x10000\ ?\ 1\ :\ 2;}
+\DoxyCodeLine{00263\ \ \ \}}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \ \ \textcolor{keyword}{static}\ codepoint\_t\ *}
+\DoxyCodeLine{00266\ \ \ encode\ (codepoint\_t\ *text,}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end,}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ hb\_codepoint\_t\ unicode)}
+\DoxyCodeLine{00269\ \ \ \{}
+\DoxyCodeLine{00270\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (unicode\ >=\ 0xD800u\ \&\&\ (unicode\ <=\ 0xDFFFu\ ||\ unicode\ >\ 0x10FFFFu)))}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ unicode\ =\ 0xFFFDu;}
+\DoxyCodeLine{00272\ \ \ \ \ \textcolor{keywordflow}{if}\ (unicode\ <\ 0x10000u)}
+\DoxyCodeLine{00273\ \ \ \ \ \ *text++\ =\ unicode;}
+\DoxyCodeLine{00274\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (end\ -\/\ text\ >=\ 2)}
+\DoxyCodeLine{00275\ \ \ \ \ \{}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ unicode\ -\/=\ 0x10000u;}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ *text++\ =\ \ 0xD800u\ +\ (unicode\ >>\ 10);}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ *text++\ =\ \ 0xDC00u\ +\ (unicode\ \&\ 0x03FFu);}
+\DoxyCodeLine{00279\ \ \ \ \ \}}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00281\ \ \ \}}
+\DoxyCodeLine{00282\ \};}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__utf16__xe__t}{hb\_utf16\_xe\_t<uint16\_t>}}\ \mbox{\hyperlink{structhb__utf16__xe__t}{hb\_utf16\_t}};}
+\DoxyCodeLine{00285\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__utf16__xe__t}{hb\_utf16\_xe\_t<OT::HBUINT16>}}\ \mbox{\hyperlink{structhb__utf16__xe__t}{hb\_utf16\_be\_t}};}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TCodepo\textcolor{keywordtype}{int},\ \textcolor{keywordtype}{bool}\ val\textcolor{keywordtype}{id}ate=true>}
+\DoxyCodeLine{00289\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__utf32__xe__t}{hb\_utf32\_xe\_t}}}
+\DoxyCodeLine{00290\ \{}
+\DoxyCodeLine{00291\ \ \ \textcolor{keyword}{static\_assert}\ (\textcolor{keyword}{sizeof}\ (TCodepoint)\ ==\ 4,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00292\ \ \ \textcolor{keyword}{typedef}\ TCodepoint\ codepoint\_t;}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ TCodepoint\ *}
+\DoxyCodeLine{00295\ \ \ next\ (\textcolor{keyword}{const}\ TCodepoint\ *text,}
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{keyword}{const}\ TCodepoint\ *end\ HB\_UNUSED,}
+\DoxyCodeLine{00297\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00298\ \ \ \ \ hb\_codepoint\_t\ replacement)}
+\DoxyCodeLine{00299\ \ \ \{}
+\DoxyCodeLine{00300\ \ \ \ \ hb\_codepoint\_t\ c\ =\ *unicode\ =\ *text++;}
+\DoxyCodeLine{00301\ \ \ \ \ \textcolor{keywordflow}{if}\ (validate\ \&\&\ unlikely\ (c\ >=\ 0xD800u\ \&\&\ (c\ <=\ 0xDFFFu\ ||\ c\ >\ 0x10FFFFu)))}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00303\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00304\ \ \ \}}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ TCodepoint\ *}
+\DoxyCodeLine{00307\ \ \ prev\ (\textcolor{keyword}{const}\ TCodepoint\ *text,}
+\DoxyCodeLine{00308\ \ \ \ \ \textcolor{keyword}{const}\ TCodepoint\ *start\ HB\_UNUSED,}
+\DoxyCodeLine{00309\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00310\ \ \ \ \ hb\_codepoint\_t\ replacement)}
+\DoxyCodeLine{00311\ \ \ \{}
+\DoxyCodeLine{00312\ \ \ \ \ hb\_codepoint\_t\ c\ =\ *unicode\ =\ *-\/-\/text;}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordflow}{if}\ (validate\ \&\&\ unlikely\ (c\ >=\ 0xD800u\ \&\&\ (c\ <=\ 0xDFFFu\ ||\ c\ >\ 0x10FFFFu)))}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00316\ \ \ \}}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00319\ \ \ strlen\ (\textcolor{keyword}{const}\ TCodepoint\ *text)}
+\DoxyCodeLine{00320\ \ \ \{}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ l\ =\ 0;}
+\DoxyCodeLine{00322\ \ \ \ \ \textcolor{keywordflow}{while}\ (*text++)\ l++;}
+\DoxyCodeLine{00323\ \ \ \ \ \textcolor{keywordflow}{return}\ l;}
+\DoxyCodeLine{00324\ \ \ \}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00327\ \ \ encode\_len\ (hb\_codepoint\_t\ unicode\ HB\_UNUSED)}
+\DoxyCodeLine{00328\ \ \ \{}
+\DoxyCodeLine{00329\ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00330\ \ \ \}}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \ \ \textcolor{keyword}{static}\ codepoint\_t\ *}
+\DoxyCodeLine{00333\ \ \ encode\ (codepoint\_t\ *text,}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end\ HB\_UNUSED,}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ hb\_codepoint\_t\ unicode)}
+\DoxyCodeLine{00336\ \ \ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \textcolor{keywordflow}{if}\ (validate\ \&\&\ unlikely\ (unicode\ >=\ 0xD800u\ \&\&\ (unicode\ <=\ 0xDFFFu\ ||\ unicode\ >\ 0x10FFFFu)))}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ unicode\ =\ 0xFFFDu;}
+\DoxyCodeLine{00339\ \ \ \ \ *text++\ =\ unicode;}
+\DoxyCodeLine{00340\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00341\ \ \ \}}
+\DoxyCodeLine{00342\ \};}
+\DoxyCodeLine{00343\ }
+\DoxyCodeLine{00344\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__utf32__xe__t}{hb\_utf32\_xe\_t<uint32\_t>}}\ \mbox{\hyperlink{structhb__utf32__xe__t}{hb\_utf32\_t}};}
+\DoxyCodeLine{00345\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__utf32__xe__t}{hb\_utf32\_xe\_t<uint32\_t,\ false>}}\ \mbox{\hyperlink{structhb__utf32__xe__t}{hb\_utf32\_novalidate\_t}};}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__latin1__t}{hb\_latin1\_t}}}
+\DoxyCodeLine{00349\ \{}
+\DoxyCodeLine{00350\ \ \ \textcolor{keyword}{typedef}\ uint8\_t\ codepoint\_t;}
+\DoxyCodeLine{00351\ }
+\DoxyCodeLine{00352\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00353\ \ \ next\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00354\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end\ HB\_UNUSED,}
+\DoxyCodeLine{00355\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00356\ \ \ \ \ hb\_codepoint\_t\ replacement\ HB\_UNUSED)}
+\DoxyCodeLine{00357\ \ \ \{}
+\DoxyCodeLine{00358\ \ \ \ \ *unicode\ =\ *text++;}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00360\ \ \ \}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00363\ \ \ prev\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *start\ HB\_UNUSED,}
+\DoxyCodeLine{00365\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00366\ \ \ \ \ hb\_codepoint\_t\ replacement\ HB\_UNUSED)}
+\DoxyCodeLine{00367\ \ \ \{}
+\DoxyCodeLine{00368\ \ \ \ \ *unicode\ =\ *-\/-\/text;}
+\DoxyCodeLine{00369\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00370\ \ \ \}}
+\DoxyCodeLine{00371\ }
+\DoxyCodeLine{00372\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00373\ \ \ strlen\ (\textcolor{keyword}{const}\ codepoint\_t\ *text)}
+\DoxyCodeLine{00374\ \ \ \{}
+\DoxyCodeLine{00375\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ l\ =\ 0;}
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{keywordflow}{while}\ (*text++)\ l++;}
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keywordflow}{return}\ l;}
+\DoxyCodeLine{00378\ \ \ \}}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00381\ \ \ encode\_len\ (hb\_codepoint\_t\ unicode\ HB\_UNUSED)}
+\DoxyCodeLine{00382\ \ \ \{}
+\DoxyCodeLine{00383\ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00384\ \ \ \}}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \textcolor{keyword}{static}\ codepoint\_t\ *}
+\DoxyCodeLine{00387\ \ \ encode\ (codepoint\_t\ *text,}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end\ HB\_UNUSED,}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ hb\_codepoint\_t\ unicode)}
+\DoxyCodeLine{00390\ \ \ \{}
+\DoxyCodeLine{00391\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (unicode\ >=\ 0x0100u))}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ unicode\ =\ \textcolor{charliteral}{'?'};}
+\DoxyCodeLine{00393\ \ \ \ \ *text++\ =\ unicode;}
+\DoxyCodeLine{00394\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00395\ \ \ \}}
+\DoxyCodeLine{00396\ \};}
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ascii__t}{hb\_ascii\_t}}}
+\DoxyCodeLine{00400\ \{}
+\DoxyCodeLine{00401\ \ \ \textcolor{keyword}{typedef}\ uint8\_t\ codepoint\_t;}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00404\ \ \ next\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00405\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end\ HB\_UNUSED,}
+\DoxyCodeLine{00406\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00407\ \ \ \ \ hb\_codepoint\_t\ replacement\ HB\_UNUSED)}
+\DoxyCodeLine{00408\ \ \ \{}
+\DoxyCodeLine{00409\ \ \ \ \ *unicode\ =\ *text++;}
+\DoxyCodeLine{00410\ \ \ \ \ \textcolor{keywordflow}{if}\ (*unicode\ >=\ 0x0080u)}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00412\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00413\ \ \ \}}
+\DoxyCodeLine{00414\ }
+\DoxyCodeLine{00415\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ codepoint\_t\ *}
+\DoxyCodeLine{00416\ \ \ prev\ (\textcolor{keyword}{const}\ codepoint\_t\ *text,}
+\DoxyCodeLine{00417\ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *start\ HB\_UNUSED,}
+\DoxyCodeLine{00418\ \ \ \ \ hb\_codepoint\_t\ *unicode,}
+\DoxyCodeLine{00419\ \ \ \ \ hb\_codepoint\_t\ replacement)}
+\DoxyCodeLine{00420\ \ \ \{}
+\DoxyCodeLine{00421\ \ \ \ \ *unicode\ =\ *-\/-\/text;}
+\DoxyCodeLine{00422\ \ \ \ \ \textcolor{keywordflow}{if}\ (*unicode\ >=\ 0x0080u)}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ *unicode\ =\ replacement;}
+\DoxyCodeLine{00424\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00425\ \ \ \}}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00428\ \ \ strlen\ (\textcolor{keyword}{const}\ codepoint\_t\ *text)}
+\DoxyCodeLine{00429\ \ \ \{}
+\DoxyCodeLine{00430\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ l\ =\ 0;}
+\DoxyCodeLine{00431\ \ \ \ \ \textcolor{keywordflow}{while}\ (*text++)\ l++;}
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{keywordflow}{return}\ l;}
+\DoxyCodeLine{00433\ \ \ \}}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00436\ \ \ encode\_len\ (hb\_codepoint\_t\ unicode\ HB\_UNUSED)}
+\DoxyCodeLine{00437\ \ \ \{}
+\DoxyCodeLine{00438\ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00439\ \ \ \}}
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00441\ \ \ \textcolor{keyword}{static}\ codepoint\_t\ *}
+\DoxyCodeLine{00442\ \ \ encode\ (codepoint\_t\ *text,}
+\DoxyCodeLine{00443\ \ \ \ \ \ \ \textcolor{keyword}{const}\ codepoint\_t\ *end\ HB\_UNUSED,}
+\DoxyCodeLine{00444\ \ \ \ \ \ \ hb\_codepoint\_t\ unicode)}
+\DoxyCodeLine{00445\ \ \ \{}
+\DoxyCodeLine{00446\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (unicode\ >=\ 0x0080u))}
+\DoxyCodeLine{00447\ \ \ \ \ \ \ unicode\ =\ \textcolor{charliteral}{'?'};}
+\DoxyCodeLine{00448\ \ \ \ \ *text++\ =\ unicode;}
+\DoxyCodeLine{00449\ \ \ \ \ \textcolor{keywordflow}{return}\ text;}
+\DoxyCodeLine{00450\ \ \ \}}
+\DoxyCodeLine{00451\ \};}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_UTF\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

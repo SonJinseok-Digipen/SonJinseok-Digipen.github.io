@@ -1,0 +1,639 @@
+The \href{https://github.com/machinezone/IXWebSocket/tree/master/ws}{\texttt{ {\itshape ws}}} folder countains many interactive programs for chat, \href{https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_send.cpp}{\texttt{ file transfers}}, \href{https://github.com/machinezone/IXWebSocket/blob/master/ws/ws_http_client.cpp}{\texttt{ curl like}} http clients, demonstrating client and server usage.\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1740}{}\doxysection{Windows note}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1740}
+To use the network system on Windows, you need to initialize it once with {\itshape WSAStartup()} and clean it up with {\itshape WSACleanup()}. We have helpers for that which you can use, see below. This init would typically take place in your main function.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXNetSystem.h>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keywordtype}{int}\ main()}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ ix::initNetSystem();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ ...}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ ix::uninitNetSystem();}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1741}{}\doxysection{Web\+Socket client API}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1741}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXWebSocket.h>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{...}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Our\ websocket\ object}}
+\DoxyCodeLine{ix::WebSocket\ webSocket;}
+\DoxyCodeLine{}
+\DoxyCodeLine{std::string\ url(\textcolor{stringliteral}{"{}ws://localhost:8080/"{}});}
+\DoxyCodeLine{webSocket.setUrl(url);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Optional\ heart\ beat,\ sent\ every\ 45\ seconds\ when\ there\ is\ not\ any\ traffic}}
+\DoxyCodeLine{\textcolor{comment}{//\ to\ make\ sure\ that\ load\ balancers\ do\ not\ kill\ an\ idle\ connection.}}
+\DoxyCodeLine{webSocket.setPingInterval(45);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Per\ message\ deflate\ connection\ is\ enabled\ by\ default.\ You\ can\ tweak\ its\ parameters\ or\ disable\ it}}
+\DoxyCodeLine{webSocket.disablePerMessageDeflate();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Setup\ a\ callback\ to\ be\ fired\ when\ a\ message\ or\ an\ event\ (open,\ close,\ error)\ is\ received}}
+\DoxyCodeLine{webSocket.setOnMessageCallback([](\textcolor{keyword}{const}\ ix::WebSocketMessagePtr\&\ msg)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Message)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ msg-\/>str\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Now\ that\ our\ callback\ is\ setup,\ we\ can\ start\ our\ background\ thread\ and\ receive\ messages}}
+\DoxyCodeLine{webSocket.start();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Send\ a\ message\ to\ the\ server\ (default\ to\ TEXT\ mode)}}
+\DoxyCodeLine{webSocket.send(\textcolor{stringliteral}{"{}hello\ world"{}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ message\ can\ be\ sent\ in\ BINARY\ mode\ (useful\ if\ you\ send\ MsgPack\ data\ for\ example)}}
+\DoxyCodeLine{webSocket.sendBinary(\textcolor{stringliteral}{"{}some\ serialized\ binary\ data"{}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ ...\ finally\ ...}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Stop\ the\ connection}}
+\DoxyCodeLine{webSocket.stop()}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1742}{}\doxysubsection{Sending messages}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1742}
+{\ttfamily Web\+Socket\+Send\+Info result = websocket.\+send(\char`\"{}foo\char`\"{})} will send a message.
+
+If the connection was closed, sending will fail, and the success field of the result object will be set to false. There could also be a compression error in which case the compress\+Error field will be set to true. The payload\+Size field and wire\+Size fields will tell you respectively how much bytes the message weight, and how many bytes were sent on the wire (potentially compressed + counting the message header (a few bytes).
+
+There is an optional progress callback that can be passed in as the second argument. If a message is large it will be fragmented into chunks which will be sent independantly. Everytime the we can write a fragment into the OS network cache, the callback will be invoked. If a user wants to cancel a slow send, false should be returned from within the callback.
+
+Here is an example code snippet copied from the ws send sub-\/command. Each fragment weights 32K, so the total integer is the wire\+Size divided by 32K. As an example if you are sending 32M of data, uncompressed, total will be 1000. current will be set to 0 for the first fragment, then 1, 2 etc...
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{auto\ result\ =}
+\DoxyCodeLine{\ \ \ \ \_webSocket.sendBinary(serializedMsg,\ [this,\ throttle](int\ current,\ int\ total)\ -\/>\ bool\ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ spdlog::info("{}ws\_send:\ Step\ \{\}\ out\ of\ \{\}"{},\ current\ +\ 1,\ total);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ if\ (throttle)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::chrono::duration<double,\ std::milli>\ duration(10);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::this\_thread::sleep\_for(duration);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ return\ \_connected;}
+\DoxyCodeLine{\ \ \ \ \});}
+
+\end{DoxyCode}
+
+
+The {\ttfamily send()} and {\ttfamily send\+Text()} methods check that the string contains only valid UTF-\/8 characters. If you know that the string is a valid UTF-\/8 string you can skip that step and use the {\ttfamily send\+Utf8\+Text} method instead.
+
+With the IXWeb\+Socket\+Send\+Data overloads of {\ttfamily send\+Utf8\+Text} and {\ttfamily send\+Binary} it is possible to not only send std\+::string but also {\ttfamily std\+::vector\texorpdfstring{$<$}{<}char\texorpdfstring{$>$}{>}}, {\ttfamily std\+::vector\texorpdfstring{$<$}{<}uint8\+\_\+t\texorpdfstring{$>$}{>}} and {\ttfamily char$\ast$}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{std::vector<uint8\_t>\ data(\{1,\ 2,\ 3,\ 4\});}
+\DoxyCodeLine{auto\ result\ =\ webSocket.sendBinary(data);}
+\DoxyCodeLine{}
+\DoxyCodeLine{const\ char*\ text\ =\ "{}Hello\ World!"{};}
+\DoxyCodeLine{result\ =\ webSocket.sendUtf8Text(IXWebSocketSendData(text,\ strlen(text)));}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1743}{}\doxysubsection{Ready\+State}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1743}
+{\ttfamily get\+Ready\+State()} returns the state of the connection. There are 4 possible states.
+
+
+\begin{DoxyEnumerate}
+\item Ready\+State\+::\+Connecting -\/ The connection is not yet open.
+\item Ready\+State\+::\+Open -\/ The connection is open and ready to communicate.
+\item Ready\+State\+::\+Closing -\/ The connection is in the process of closing.
+\item Ready\+State\+::\+Closed -\/ The connection is closed or could not be opened.
+\end{DoxyEnumerate}\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1744}{}\doxysubsection{Open and Close notifications}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1744}
+The on\+Message event will be fired when the connection is opened or closed. This is similar to the \href{https://developer.mozilla.org/en-US/docs/Web/API/WebSocket}{\texttt{ Java\+Script browser API}}, which has {\ttfamily open} and {\ttfamily close} events notification that can be registered with the browser {\ttfamily add\+Event\+Listener}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.setOnMessageCallback([](\textcolor{keyword}{const}\ ix::WebSocketMessagePtr\&\ msg)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Open)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}send\ greetings"{}}\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Headers\ can\ be\ inspected\ (pairs\ of\ string/string)}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Handshake\ Headers:"{}}\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ for\ (auto\ it\ :\ msg-\/>headers)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ it.first\ <<\ \textcolor{stringliteral}{"{}:\ "{}}\ <<\ it.second\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Close)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}disconnected"{}}\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ The\ server\ can\ send\ an\ explicit\ code\ and\ reason\ for\ closing.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ This\ data\ can\ be\ accessed\ through\ the\ closeInfo\ object.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ msg-\/>closeInfo.code\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ msg-\/>closeInfo.reason\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{);}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1745}{}\doxysubsection{Error notification}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1745}
+\mbox{\hyperlink{class_a}{A}} message will be fired when there is an error with the connection. The message type will be {\ttfamily ix\+::\+Web\+Socket\+Message\+Type\+::\+Error}. Multiple fields will be available on the event to describe the error.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.setOnMessageCallback([](\textcolor{keyword}{const}\ ix::WebSocketMessagePtr\&\ msg)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Error)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::stringstream\ ss;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}Error:\ "{}}\ \ \ \ \ \ \ \ \ <<\ msg-\/>errorInfo.reason\ \ \ \ \ \ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}\#retries:\ "{}}\ \ \ \ \ \ <<\ msg-\/>errorInfo.retries\ \ \ \ \ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}Wait\ time(ms):\ "{}}\ <<\ msg-\/>errorInfo.wait\_time\ \ \ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}HTTP\ Status:\ "{}}\ \ \ <<\ msg-\/>errorInfo.http\_status\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ ss.str()\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{);}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1746}{}\doxysubsection{start, stop}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1746}
+
+\begin{DoxyEnumerate}
+\item {\ttfamily websocket.\+start()} connect to the remote server and starts the message receiving background thread.
+\item {\ttfamily websocket.\+stop()} disconnect from the remote server and closes the background thread.
+\end{DoxyEnumerate}\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1747}{}\doxysubsection{Configuring the remote url}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1747}
+The url can be set and queried after a websocket object has been created. You will have to call {\ttfamily stop} and {\ttfamily start} if you want to disconnect and connect to that new url.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{std::string\ url(\textcolor{stringliteral}{"{}wss://example.com"{}});}
+\DoxyCodeLine{websocket.configure(url);}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1748}{}\doxysubsection{Ping/\+Pong support}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1748}
+Ping/pong messages are used to implement keep-\/alive. 2 message types exists to identify ping and pong messages. Note that when a ping message is received, a pong is instantly send back as requested by the Web\+Socket spec.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.setOnMessageCallback([](\textcolor{keyword}{const}\ ix::WebSocketMessagePtr\&\ msg)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Ping\ ||}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ msg-\/>type\ ==\ ix::WebSocketMessageType::Pong)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}pong\ data:\ "{}}\ <<\ msg-\/>str\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{);}
+
+\end{DoxyCode}
+
+
+\mbox{\hyperlink{class_a}{A}} ping message can be sent to the server, with an optional data string.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{websocket.ping(\textcolor{stringliteral}{"{}ping\ data,\ optional\ (empty\ string\ is\ ok):\ limited\ to\ 125\ bytes\ long"{}});}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1749}{}\doxysubsection{Heartbeat.}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1749}
+You can configure an optional heart beat / keep-\/alive, sent every 45 seconds when there is no any traffic to make sure that load balancers do not kill an idle connection.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.setPingInterval(45);}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1750}{}\doxysubsection{Supply extra HTTP headers.}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1750}
+You can set extra \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} headers to be sent during the Web\+Socket handshake.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{WebSocketHttpHeaders\ headers;}
+\DoxyCodeLine{headers[\textcolor{stringliteral}{"{}foo"{}}]\ =\ \textcolor{stringliteral}{"{}bar"{}};}
+\DoxyCodeLine{webSocket.setExtraHeaders(headers);}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1751}{}\doxysubsection{Subprotocols}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1751}
+You can specify subprotocols to be set during the Web\+Socket handshake. For more info you can refer to \href{https://hpbn.co/websocket/\#subprotocol-negotiation}{\texttt{ this doc}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.addSubprotocol(\textcolor{stringliteral}{"{}appProtocol-\/v1"{}});}
+\DoxyCodeLine{webSocket.addSubprotocol(\textcolor{stringliteral}{"{}appProtocol-\/v2"{}});}
+
+\end{DoxyCode}
+
+
+The protocol that the server did accept is available in the open info {\ttfamily protocol} field.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{std::cout\ <<\ \textcolor{stringliteral}{"{}protocol:\ "{}}\ <<\ msg-\/>openInfo.protocol\ <<\ std::endl;}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1752}{}\doxysubsection{Automatic reconnection}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1752}
+Automatic reconnection kicks in when the connection is disconnected without the user consent. This feature is on by default and can be turned off.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.enableAutomaticReconnection();\ \ \textcolor{comment}{//\ turn\ on}}
+\DoxyCodeLine{webSocket.disableAutomaticReconnection();\ \textcolor{comment}{//\ turn\ off}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ enabled\ =\ webSocket.isAutomaticReconnectionEnabled();\ \textcolor{comment}{//\ query\ state}}
+
+\end{DoxyCode}
+
+
+The technique to calculate wait time is called \href{https://docs.aws.amazon.com/general/latest/gr/api-retries.html}{\texttt{ exponential backoff}}. Here are the default waiting times between attempts (from connecting with {\ttfamily ws connect ws\+://foo.com})
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{>\ Connection\ error:\ Got\ bad\ status\ connecting\ to\ foo.com,\ status:\ 301,\ HTTP\ Status\ line:\ HTTP/1.1\ 301\ Moved\ Permanently}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#retries:\ 1}
+\DoxyCodeLine{Wait\ time(ms):\ 100}
+\DoxyCodeLine{\#retries:\ 2}
+\DoxyCodeLine{Wait\ time(ms):\ 200}
+\DoxyCodeLine{\#retries:\ 3}
+\DoxyCodeLine{Wait\ time(ms):\ 400}
+\DoxyCodeLine{\#retries:\ 4}
+\DoxyCodeLine{Wait\ time(ms):\ 800}
+\DoxyCodeLine{\#retries:\ 5}
+\DoxyCodeLine{Wait\ time(ms):\ 1600}
+\DoxyCodeLine{\#retries:\ 6}
+\DoxyCodeLine{Wait\ time(ms):\ 3200}
+\DoxyCodeLine{\#retries:\ 7}
+\DoxyCodeLine{Wait\ time(ms):\ 6400}
+\DoxyCodeLine{\#retries:\ 8}
+\DoxyCodeLine{Wait\ time(ms):\ 10000}
+
+\end{DoxyCode}
+
+
+The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried. The minimum waiting time can also be set.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.setMaxWaitBetweenReconnectionRetries(5\ *\ 1000);\ \textcolor{comment}{//\ 5000ms\ =\ 5s}}
+\DoxyCodeLine{uint32\_t\ m\ =\ webSocket.getMaxWaitBetweenReconnectionRetries();}
+\DoxyCodeLine{}
+\DoxyCodeLine{webSocket.setMinWaitBetweenReconnectionRetries(1000);\ \textcolor{comment}{//\ 1000ms\ =\ 1s}}
+\DoxyCodeLine{uint32\_t\ m\ =\ webSocket.getMinWaitBetweenReconnectionRetries();}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1753}{}\doxysection{Handshake timeout}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1753}
+You can control how long to wait until timing out while waiting for the websocket handshake to be performed.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{int\ handshakeTimeoutSecs\ =\ 1;}
+\DoxyCodeLine{setHandshakeTimeout(handshakeTimeoutSecs);}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1754}{}\doxysection{Web\+Socket server API}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1754}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1755}{}\doxysubsection{Legacy api}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1755}
+This api was actually changed to take a weak\+\_\+ptr$<$\+Web\+Socket$>$ as the first argument to set\+On\+Connection\+Callback ; previously it would take a shared\+\_\+ptr$<$\+Web\+Socket$>$ which was creating cycles and then memory leaks problems.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXWebSocketServer.h>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{...}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Run\ a\ server\ on\ localhost\ at\ a\ given\ port.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Bound\ host\ name,\ max\ connections\ and\ listen\ backlog\ can\ also\ be\ passed\ in\ as\ parameters.}}
+\DoxyCodeLine{ix::WebSocketServer\ server(port);}
+\DoxyCodeLine{}
+\DoxyCodeLine{server.setOnConnectionCallback(}
+\DoxyCodeLine{\ \ \ \ [\&server](std::weak\_ptr<WebSocket>\ webSocket,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ std::shared\_ptr<ConnectionState>\ connectionState)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Remote\ ip:\ "{}}\ <<\ connectionState-\/>remoteIp\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ ws\ =\ webSocket.lock();}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ws)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ ws-\/>setOnMessageCallback(}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [webSocket,\ connectionState,\ \&server](\textcolor{keyword}{const}\ ix::WebSocketMessagePtr\ msg)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Open)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}New\ connection"{}}\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ A\ connection\ state\ object\ is\ available,\ and\ has\ a\ default\ id}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ You\ can\ subclass\ ConnectionState\ and\ pass\ an\ alternate\ factory}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ to\ override\ it.\ It\ is\ useful\ if\ you\ want\ to\ store\ custom}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ attributes\ per\ connection\ (authenticated\ bool\ flag,\ attributes,\ etc...)}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}id:\ "{}}\ <<\ connectionState-\/>getId()\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ The\ uri\ the\ client\ did\ connect\ to.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Uri:\ "{}}\ <<\ msg-\/>openInfo.uri\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Headers:"{}}\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ for\ (auto\ it\ :\ msg-\/>openInfo.headers)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ it.first\ <<\ \textcolor{stringliteral}{"{}:\ "{}}\ <<\ it.second\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Message)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ For\ an\ echo\ server,\ we\ just\ send\ back\ to\ the\ client\ whatever\ was\ received\ by\ the\ server}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ All\ connected\ clients\ are\ available\ in\ an\ std::set.\ See\ the\ broadcast\ cpp\ example.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Second\ parameter\ tells\ whether\ we\ are\ sending\ the\ message\ in\ binary\ or\ text\ mode.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Here\ we\ send\ it\ in\ the\ same\ mode\ as\ it\ was\ received.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ auto\ ws\ =\ webSocket.lock();}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (ws)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ws-\/>send(msg-\/>str,\ msg-\/>binary);}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ res\ =\ server.listen();}
+\DoxyCodeLine{\textcolor{keywordflow}{if}\ (!res.first)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Error\ handling}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Per\ message\ deflate\ connection\ is\ enabled\ by\ default.\ It\ can\ be\ disabled}}
+\DoxyCodeLine{\textcolor{comment}{//\ which\ might\ be\ helpful\ when\ running\ on\ low\ power\ devices\ such\ as\ a\ Rasbery\ Pi}}
+\DoxyCodeLine{server.disablePerMessageDeflate();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Run\ the\ server\ in\ the\ background.\ Server\ can\ be\ stoped\ by\ calling\ server.stop()}}
+\DoxyCodeLine{server.start();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Block\ until\ server.stop()\ is\ called.}}
+\DoxyCodeLine{server.wait();}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1756}{}\doxysubsection{New api}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1756}
+The new API does not require to use 2 nested callbacks, which is a bit annoying. The real fix is that there was a memory leak due to a shared\+\_\+ptr cycle, due to passing down a shared\+\_\+ptr$<$\+Web\+Socket$>$ down to the callbacks.
+
+The web\+Socket reference is guaranteed to be always valid ; by design the callback will never be invoked with a null web\+Socket object.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXWebSocketServer.h>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{...}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Run\ a\ server\ on\ localhost\ at\ a\ given\ port.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Bound\ host\ name,\ max\ connections\ and\ listen\ backlog\ can\ also\ be\ passed\ in\ as\ parameters.}}
+\DoxyCodeLine{ix::WebSocketServer\ server(port);}
+\DoxyCodeLine{}
+\DoxyCodeLine{server.setOnClientMessageCallback([](std::shared\_ptr<ix::ConnectionState>\ connectionState,\ \mbox{\hyperlink{classix_1_1_web_socket}{ix::WebSocket}}\ \&\ webSocket,\ \textcolor{keyword}{const}\ ix::WebSocketMessagePtr\ \&\ msg)\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ The\ ConnectionState\ object\ contains\ information\ about\ the\ connection,}}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ at\ this\ point\ only\ the\ client\ ip\ address\ and\ the\ port.}}
+\DoxyCodeLine{\ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Remote\ ip:\ "{}}\ <<\ connectionState-\/>getRemoteIp()\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Open)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}New\ connection"{}}\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ A\ connection\ state\ object\ is\ available,\ and\ has\ a\ default\ id}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ You\ can\ subclass\ ConnectionState\ and\ pass\ an\ alternate\ factory}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ to\ override\ it.\ It\ is\ useful\ if\ you\ want\ to\ store\ custom}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ attributes\ per\ connection\ (authenticated\ bool\ flag,\ attributes,\ etc...)}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}id:\ "{}}\ <<\ connectionState-\/>getId()\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ The\ uri\ the\ client\ did\ connect\ to.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Uri:\ "{}}\ <<\ msg-\/>openInfo.uri\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Headers:"{}}\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ for\ (auto\ it\ :\ msg-\/>openInfo.headers)}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}\(\backslash\)t"{}}\ <<\ it.first\ <<\ \textcolor{stringliteral}{"{}:\ "{}}\ <<\ it.second\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (msg-\/>type\ ==\ ix::WebSocketMessageType::Message)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ For\ an\ echo\ server,\ we\ just\ send\ back\ to\ the\ client\ whatever\ was\ received\ by\ the\ server}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ All\ connected\ clients\ are\ available\ in\ an\ std::set.\ See\ the\ broadcast\ cpp\ example.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Second\ parameter\ tells\ whether\ we\ are\ sending\ the\ message\ in\ binary\ or\ text\ mode.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Here\ we\ send\ it\ in\ the\ same\ mode\ as\ it\ was\ received.}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::cout\ <<\ \textcolor{stringliteral}{"{}Received:\ "{}}\ <<\ msg-\/>str\ <<\ std::endl;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ webSocket.send(msg-\/>str,\ msg-\/>binary);}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{\});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ res\ =\ server.listen();}
+\DoxyCodeLine{\textcolor{keywordflow}{if}\ (!res.first)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Error\ handling}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Per\ message\ deflate\ connection\ is\ enabled\ by\ default.\ It\ can\ be\ disabled}}
+\DoxyCodeLine{\textcolor{comment}{//\ which\ might\ be\ helpful\ when\ running\ on\ low\ power\ devices\ such\ as\ a\ Rasbery\ Pi}}
+\DoxyCodeLine{server.disablePerMessageDeflate();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Run\ the\ server\ in\ the\ background.\ Server\ can\ be\ stoped\ by\ calling\ server.stop()}}
+\DoxyCodeLine{server.start();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Block\ until\ server.stop()\ is\ called.}}
+\DoxyCodeLine{server.wait();}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1757}{}\doxysection{HTTP client API}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1757}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXHttpClient.h>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{...}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{\textcolor{comment}{//\ Preparation}}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{HttpClient\ httpClient;}
+\DoxyCodeLine{HttpRequestArgsPtr\ args\ =\ httpClient.createRequest();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Custom\ headers\ can\ be\ set}}
+\DoxyCodeLine{WebSocketHttpHeaders\ headers;}
+\DoxyCodeLine{headers[\textcolor{stringliteral}{"{}Foo"{}}]\ =\ \textcolor{stringliteral}{"{}bar"{}};}
+\DoxyCodeLine{args-\/>extraHeaders\ =\ headers;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Timeout\ options}}
+\DoxyCodeLine{args-\/>connectTimeout\ =\ connectTimeout;}
+\DoxyCodeLine{args-\/>transferTimeout\ =\ transferTimeout;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Redirect\ options}}
+\DoxyCodeLine{args-\/>followRedirects\ =\ followRedirects;}
+\DoxyCodeLine{args-\/>maxRedirects\ =\ maxRedirects;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Misc}}
+\DoxyCodeLine{args-\/>compress\ =\ compress;\ \textcolor{comment}{//\ Enable\ gzip\ compression}}
+\DoxyCodeLine{args-\/>verbose\ =\ verbose;}
+\DoxyCodeLine{args-\/>logger\ =\ [](\textcolor{keyword}{const}\ std::string\&\ msg)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ std::cout\ <<\ msg;}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{\textcolor{comment}{//\ Synchronous\ Request}}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{HttpResponsePtr\ out;}
+\DoxyCodeLine{std::string\ url\ =\ \textcolor{stringliteral}{"{}https://www.google.com"{}};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ HEAD\ request}}
+\DoxyCodeLine{out\ =\ httpClient.head(url,\ args);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ GET\ request}}
+\DoxyCodeLine{out\ =\ httpClient.get(url,\ args);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ POST\ request\ with\ parameters}}
+\DoxyCodeLine{HttpParameters\ httpParameters;}
+\DoxyCodeLine{httpParameters[\textcolor{stringliteral}{"{}foo"{}}]\ =\ \textcolor{stringliteral}{"{}bar"{}};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ HTTP\ form\ data\ can\ be\ passed\ in\ as\ well,\ for\ multi-\/part\ upload\ of\ files}}
+\DoxyCodeLine{HttpFormDataParameters\ httpFormDataParameters;}
+\DoxyCodeLine{httpParameters[\textcolor{stringliteral}{"{}baz"{}}]\ =\ \textcolor{stringliteral}{"{}booz"{}};}
+\DoxyCodeLine{}
+\DoxyCodeLine{out\ =\ httpClient.post(url,\ httpParameters,\ httpFormDataParameters,\ args);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ POST\ request\ with\ a\ body}}
+\DoxyCodeLine{out\ =\ httpClient.post(url,\ std::string(\textcolor{stringliteral}{"{}foo=bar"{}}),\ args);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ PUT\ and\ PATCH\ are\ available\ too.}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{\textcolor{comment}{//\ Result}}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ statusCode\ =\ response-\/>statusCode;\ \textcolor{comment}{//\ Can\ be\ HttpErrorCode::Ok,\ HttpErrorCode::UrlMalformed,\ etc...}}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ errorCode\ =\ response-\/>errorCode;\ \textcolor{comment}{//\ 200,\ 404,\ etc...}}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ responseHeaders\ =\ response-\/>headers;\ \textcolor{comment}{//\ All\ the\ headers\ in\ a\ special\ case-\/insensitive\ unordered\_map\ of\ (string,\ string)}}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ body\ =\ response-\/>body;\ \textcolor{comment}{//\ All\ the\ bytes\ from\ the\ response\ as\ an\ std::string}}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ errorMsg\ =\ response-\/>errorMsg;\ \textcolor{comment}{//\ Descriptive\ error\ message\ in\ case\ of\ failure}}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ uploadSize\ =\ response-\/>uploadSize;\ \textcolor{comment}{//\ Byte\ count\ of\ uploaded\ data}}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ downloadSize\ =\ response-\/>downloadSize;\ \textcolor{comment}{//\ Byte\ count\ of\ downloaded\ data}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{\textcolor{comment}{//\ Asynchronous\ Request}}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ async\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{HttpClient\ httpClient(async);}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ args\ =\ httpClient.createRequest(url,\ HttpClient::kGet);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ If\ you\ define\ a\ chunk\ callback\ it\ will\ be\ called\ repeteadly\ with\ the}}
+\DoxyCodeLine{\textcolor{comment}{//\ incoming\ data.\ This\ allows\ to\ process\ data\ on\ the\ go\ or\ write\ it\ to\ disk}}
+\DoxyCodeLine{\textcolor{comment}{//\ instead\ of\ accumulating\ the\ data\ in\ memory.}}
+\DoxyCodeLine{args.onChunkCallback\ =\ [](\textcolor{keyword}{const}\ std::string\&\ \mbox{\hyperlink{structdata}{data}})}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ process\ data}}
+\DoxyCodeLine{\};}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ Push\ the\ request\ to\ a\ queue,}}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ ok\ =\ httpClient.performRequest(args,\ [](\textcolor{keyword}{const}\ HttpResponsePtr\&\ response)}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ This\ callback\ execute\ in\ a\ background\ thread.\ Make\ sure\ you\ uses\ appropriate\ protection\ such\ as\ mutex}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ statusCode\ =\ response-\/>statusCode;\ \textcolor{comment}{//\ acess\ results}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ response-\/>body\ is\ empty\ if\ onChunkCallback\ was\ used}}
+\DoxyCodeLine{\ \ \ \ \}}
+\DoxyCodeLine{);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ ok\ will\ be\ false\ if\ your\ httpClient\ is\ not\ async}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ A\ request\ in\ progress\ can\ be\ cancelled\ by\ setting\ the\ cancel\ flag.\ It\ does\ nothing\ if\ the\ request\ already\ completed.}}
+\DoxyCodeLine{args-\/>cancel\ =\ \textcolor{keyword}{true};}
+
+\end{DoxyCode}
+
+
+See this \href{https://github.com/machinezone/IXWebSocket/issues/209}{\texttt{ issue}} for links about uploading files with \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} multipart.\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1758}{}\doxysection{HTTP server API}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1758}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#include\ <ixwebsocket/IXHttpServer.h>}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\mbox{\hyperlink{classix_1_1_http_server}{ix::HttpServer}}\ server(port,\ \mbox{\hyperlink{structhostname}{hostname}});}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{auto}\ res\ =\ server.listen();}
+\DoxyCodeLine{\textcolor{keywordflow}{if}\ (!res.first)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ \ \ std::cerr\ <<\ res.second\ <<\ std::endl;}
+\DoxyCodeLine{\ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{server.start();}
+\DoxyCodeLine{server.wait();}
+
+\end{DoxyCode}
+
+
+If you want to handle how requests are processed, implement the set\+On\+Connection\+Callback callback, which takes an Http\+Request\+Ptr as input, and returns an Http\+Response\+Ptr. You can look at Http\+Server\+::set\+Default\+Connection\+Callback for a slightly more advanced callback example.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{setOnConnectionCallback(}
+\DoxyCodeLine{\ \ \ \ [\textcolor{keyword}{this}](HttpRequestPtr\ request,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ std::shared\_ptr<ConnectionState>\ connectionState)\ -\/>\ HttpResponsePtr}
+\DoxyCodeLine{\ \ \ \ \{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Build\ a\ string\ for\ the\ response}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::stringstream\ ss;}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ ss\ <<\ connectionState-\/>getRemoteIp();}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ <<\ \textcolor{stringliteral}{"{}\ "{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ <<\ request-\/>method}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ <<\ \textcolor{stringliteral}{"{}\ "{}}}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ <<\ request-\/>uri;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ std::string\ \mbox{\hyperlink{structcontent}{content}}\ =\ ss.str();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ std::make\_shared<HttpResponse>(200,\ \textcolor{stringliteral}{"{}OK"{}},}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HttpErrorCode::Ok,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WebSocketHttpHeaders(),}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structcontent}{content}});}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1759}{}\doxysection{TLS support and configuration}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage_autotoc_md1759}
+To leverage TLS features, the library must be compiled with the option {\ttfamily USE\+\_\+\+TLS=1}.
+
+If you are using Open\+SSL, try to be on a version higher than 1.\+1.\+x as there there are thread safety problems with 1.\+0.\+x.
+
+Then, secure sockets are automatically used when connecting to a {\ttfamily wss\+://$\ast$} url.
+
+Additional TLS options can be configured by passing a {\ttfamily \mbox{\hyperlink{structix_1_1_socket_t_l_s_options}{ix\+::\+Socket\+TLSOptions}}} instance to the {\ttfamily set\+TLSOptions} on {\ttfamily \mbox{\hyperlink{classix_1_1_web_socket}{ix\+::\+Web\+Socket}}} (or {\ttfamily \mbox{\hyperlink{classix_1_1_web_socket_server}{ix\+::\+Web\+Socket\+Server}}} or {\ttfamily \mbox{\hyperlink{classix_1_1_http_server}{ix\+::\+Http\+Server}}})
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{webSocket.setTLSOptions(\{}
+\DoxyCodeLine{\ \ \ \ .certFile\ =\ \textcolor{stringliteral}{"{}path/to/cert/file.pem"{}},}
+\DoxyCodeLine{\ \ \ \ .keyFile\ =\ \textcolor{stringliteral}{"{}path/to/key/file.pem"{}},}
+\DoxyCodeLine{\ \ \ \ .caFile\ =\ \textcolor{stringliteral}{"{}path/to/trust/bundle/file.pem"{}},\ \textcolor{comment}{//\ as\ a\ file,\ or\ in\ memory\ buffer\ in\ PEM\ format}}
+\DoxyCodeLine{\ \ \ \ .tls\ =\ \textcolor{keyword}{true}\ \textcolor{comment}{//\ required\ in\ server\ mode}}
+\DoxyCodeLine{\});}
+
+\end{DoxyCode}
+
+
+Specifying {\ttfamily cert\+File} and {\ttfamily key\+File} configures the certificate that will be used to communicate with TLS peers.
+
+On a client, this is only necessary for connecting to servers that require a client certificate.
+
+On a server, this is necessary for TLS support.
+
+Specifying {\ttfamily ca\+File} configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates.
+\begin{DoxyItemize}
+\item The special value of {\ttfamily SYSTEM} (the default) indicates that the system-\/configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server.
+\item The special value of {\ttfamily NONE} can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity.
+\item If the value contain the special value {\ttfamily -\/-\/-\/-\/-\/BEGIN CERTIFICATE-\/-\/-\/-\/-\/}, the value will be read from memory, and not from a file. This is convenient on platforms like Android where reading / writing to the file system can be challenging without proper permissions, or without knowing the location of a temp directory.
+\end{DoxyItemize}
+
+For a client, specifying {\ttfamily ca\+File} can be used if connecting to a server that uses a self-\/signed cert, or when using a custom CA in an internal environment.
+
+For a server, specifying {\ttfamily ca\+File} implies that\+:
+\begin{DoxyEnumerate}
+\item You require clients to present a certificate
+\end{DoxyEnumerate}
+\begin{DoxyEnumerate}
+\item It must be signed by one of the trusted roots in the file 
+\end{DoxyEnumerate}

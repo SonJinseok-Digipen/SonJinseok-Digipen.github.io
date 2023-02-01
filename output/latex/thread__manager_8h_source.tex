@@ -1,0 +1,72 @@
+\hypertarget{thread__manager_8h_source}{}\doxysection{thread\+\_\+manager.\+h}
+\label{thread__manager_8h_source}\index{AseSprite/aseprite/third\_party/benchmark/src/thread\_manager.h@{AseSprite/aseprite/third\_party/benchmark/src/thread\_manager.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ BENCHMARK\_THREAD\_MANAGER\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ BENCHMARK\_THREAD\_MANAGER\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}benchmark/benchmark.h"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}mutex.h"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{keyword}{namespace\ }benchmark\ \{}
+\DoxyCodeLine{00010\ \textcolor{keyword}{namespace\ }internal\ \{}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbenchmark_1_1internal_1_1_thread_manager}{ThreadManager}}\ \{}
+\DoxyCodeLine{00013\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00014\ \ \ \mbox{\hyperlink{classbenchmark_1_1internal_1_1_thread_manager}{ThreadManager}}(\textcolor{keywordtype}{int}\ num\_threads)}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ :\ alive\_threads\_(num\_threads),\ start\_stop\_barrier\_(num\_threads)\ \{\}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \ \ Mutex\&\ GetBenchmarkMutex()\ \textcolor{keyword}{const}\ RETURN\_CAPABILITY(benchmark\_mutex\_)\ \{}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keywordflow}{return}\ benchmark\_mutex\_;}
+\DoxyCodeLine{00019\ \ \ \}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \textcolor{keywordtype}{bool}\ StartStopBarrier()\ EXCLUDES(end\_cond\_mutex\_)\ \{}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordflow}{return}\ start\_stop\_barrier\_.wait();}
+\DoxyCodeLine{00023\ \ \ \}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \textcolor{keywordtype}{void}\ NotifyThreadComplete()\ EXCLUDES(end\_cond\_mutex\_)\ \{}
+\DoxyCodeLine{00026\ \ \ \ \ start\_stop\_barrier\_.removeThread();}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordflow}{if}\ (-\/-\/alive\_threads\_\ ==\ 0)\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \mbox{\hyperlink{classbenchmark_1_1_mutex_lock}{MutexLock}}\ lock(end\_cond\_mutex\_);}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ end\_condition\_.notify\_all();}
+\DoxyCodeLine{00030\ \ \ \ \ \}}
+\DoxyCodeLine{00031\ \ \ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \textcolor{keywordtype}{void}\ WaitForAllThreads()\ EXCLUDES(end\_cond\_mutex\_)\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ \mbox{\hyperlink{classbenchmark_1_1_mutex_lock}{MutexLock}}\ lock(end\_cond\_mutex\_);}
+\DoxyCodeLine{00035\ \ \ \ \ end\_condition\_.wait(lock.native\_handle(),}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\textcolor{keyword}{this}]()\ \{\ return\ alive\_threads\_\ ==\ 0;\ \});}
+\DoxyCodeLine{00037\ \ \ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structbenchmark_1_1internal_1_1_thread_manager_1_1_result}{Result}}\ \{}
+\DoxyCodeLine{00041\ \ \ \ \ int64\_t\ iterations\ =\ 0;}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{double}\ real\_time\_used\ =\ 0;}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keywordtype}{double}\ cpu\_time\_used\ =\ 0;}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{double}\ manual\_time\_used\ =\ 0;}
+\DoxyCodeLine{00045\ \ \ \ \ int64\_t\ bytes\_processed\ =\ 0;}
+\DoxyCodeLine{00046\ \ \ \ \ int64\_t\ items\_processed\ =\ 0;}
+\DoxyCodeLine{00047\ \ \ \ \ int64\_t\ complexity\_n\ =\ 0;}
+\DoxyCodeLine{00048\ \ \ \ \ std::string\ report\_label\_;}
+\DoxyCodeLine{00049\ \ \ \ \ std::string\ error\_message\_;}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_error\_\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00051\ \ \ \ \ UserCounters\ counters;}
+\DoxyCodeLine{00052\ \ \ \};}
+\DoxyCodeLine{00053\ \ \ GUARDED\_BY(GetBenchmarkMutex())\ \mbox{\hyperlink{structbenchmark_1_1internal_1_1_thread_manager_1_1_result}{Result}}\ results;}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ private:}
+\DoxyCodeLine{00056\ \ \ mutable\ Mutex\ benchmark\_mutex\_;}
+\DoxyCodeLine{00057\ \ \ std::atomic<\textcolor{keywordtype}{int}>\ alive\_threads\_;}
+\DoxyCodeLine{00058\ \ \ \mbox{\hyperlink{classbenchmark_1_1_barrier}{Barrier}}\ start\_stop\_barrier\_;}
+\DoxyCodeLine{00059\ \ \ Mutex\ end\_cond\_mutex\_;}
+\DoxyCodeLine{00060\ \ \ Condition\ end\_condition\_;}
+\DoxyCodeLine{00061\ \};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \}\ \ \textcolor{comment}{//\ namespace\ internal}}
+\DoxyCodeLine{00064\ \}\ \ \textcolor{comment}{//\ namespace\ benchmark}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ BENCHMARK\_THREAD\_MANAGER\_H}}
+
+\end{DoxyCode}

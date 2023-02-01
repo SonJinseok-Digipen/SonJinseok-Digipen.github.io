@@ -1,0 +1,290 @@
+\hypertarget{hb-ot-map_8hh_source}{}\doxysection{hb-\/ot-\/map.hh}
+\label{hb-ot-map_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/map.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/map.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2009,2010\ \ Red\ Hat,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2010,2011,2012,2013\ \ Google,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ Red\ Hat\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#ifndef\ HB\_OT\_MAP\_HH}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ HB\_OT\_MAP\_HH}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/buffer.hh"{}}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ HB\_OT\_MAP\_MAX\_BITS\ 8u}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ HB\_OT\_MAP\_MAX\_VALUE\ ((1u\ <<\ HB\_OT\_MAP\_MAX\_BITS)\ -\/\ 1u)}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ hb\_tag\_t\ table\_tags[2]\ =\ \{HB\_OT\_TAG\_GSUB,\ HB\_OT\_TAG\_GPOS\};}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__map__t}{hb\_ot\_map\_t}}}
+\DoxyCodeLine{00043\ \{}
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__map__builder__t}{hb\_ot\_map\_builder\_t}};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__map__t_1_1feature__map__t}{feature\_map\_t}}\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ hb\_tag\_t\ tag;\ \textcolor{comment}{/*\ should\ be\ first\ for\ our\ bsearch\ to\ work\ */}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ index[2];\ \textcolor{comment}{/*\ GSUB/GPOS\ */}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stage[2];\ \textcolor{comment}{/*\ GSUB/GPOS\ */}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ shift;}
+\DoxyCodeLine{00053\ \ \ \ \ hb\_mask\_t\ mask;}
+\DoxyCodeLine{00054\ \ \ \ \ hb\_mask\_t\ \_1\_mask;\ \textcolor{comment}{/*\ mask\ for\ value=1,\ for\ quick\ access\ */}}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ needs\_fallback\ :\ 1;}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ auto\_zwnj\ :\ 1;}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ auto\_zwj\ :\ 1;}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ random\ :\ 1;}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{int}\ cmp\ (\textcolor{keyword}{const}\ hb\_tag\_t\ tag\_)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00061\ \textcolor{keyword}{\ \ \ \ }\{\ \textcolor{keywordflow}{return}\ tag\_\ <\ tag\ ?\ -\/1\ :\ tag\_\ >\ tag\ ?\ 1\ :\ 0;\ \}}
+\DoxyCodeLine{00062\ \ \ \};}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__map__t_1_1lookup__map__t}{lookup\_map\_t}}\ \{}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ index;}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ auto\_zwnj\ :\ 1;}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ auto\_zwj\ :\ 1;}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ random\ :\ 1;}
+\DoxyCodeLine{00069\ \ \ \ \ hb\_mask\_t\ mask;}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ HB\_INTERNAL\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ cmp\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *pa,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *pb)}
+\DoxyCodeLine{00072\ \ \ \ \ \{}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__map__t_1_1lookup__map__t}{lookup\_map\_t}}\ *\mbox{\hyperlink{structa}{a}}\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__map__t_1_1lookup__map__t}{lookup\_map\_t}}\ *)\ pa;}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__map__t_1_1lookup__map__t}{lookup\_map\_t}}\ *b\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__map__t_1_1lookup__map__t}{lookup\_map\_t}}\ *)\ pb;}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}}-\/>index\ <\ b-\/>index\ ?\ -\/1\ :\ \mbox{\hyperlink{structa}{a}}-\/>index\ >\ b-\/>index\ ?\ 1\ :\ 0;}
+\DoxyCodeLine{00076\ \ \ \ \ \}}
+\DoxyCodeLine{00077\ \ \ \};}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \textcolor{keyword}{typedef}\ void\ (*pause\_func\_t)\ (\textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,\ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ *\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__map__t_1_1stage__map__t}{stage\_map\_t}}\ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ last\_lookup;\ \textcolor{comment}{/*\ Cumulative\ */}}
+\DoxyCodeLine{00083\ \ \ \ \ pause\_func\_t\ pause\_func;}
+\DoxyCodeLine{00084\ \ \ \};}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{keywordtype}{void}\ init\ ()}
+\DoxyCodeLine{00087\ \ \ \{}
+\DoxyCodeLine{00088\ \ \ \ \ memset\ (\textcolor{keyword}{this},\ 0,\ \textcolor{keyword}{sizeof}\ (*\textcolor{keyword}{this}));}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ features.init\ ();}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ table\_index\ =\ 0;\ table\_index\ <\ 2;\ table\_index++)}
+\DoxyCodeLine{00092\ \ \ \ \ \{}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ lookups[table\_index].init\ ();}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ stages[table\_index].init\ ();}
+\DoxyCodeLine{00095\ \ \ \ \ \}}
+\DoxyCodeLine{00096\ \ \ \}}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordtype}{void}\ fini\ ()}
+\DoxyCodeLine{00098\ \ \ \{}
+\DoxyCodeLine{00099\ \ \ \ \ features.fini\ ();}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ table\_index\ =\ 0;\ table\_index\ <\ 2;\ table\_index++)}
+\DoxyCodeLine{00101\ \ \ \ \ \{}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ lookups[table\_index].fini\ ();}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ stages[table\_index].fini\ ();}
+\DoxyCodeLine{00104\ \ \ \ \ \}}
+\DoxyCodeLine{00105\ \ \ \}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ hb\_mask\_t\ get\_global\_mask\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ global\_mask;\ \}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ hb\_mask\_t\ get\_mask\ (hb\_tag\_t\ feature\_tag,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *shift\ =\ \textcolor{keyword}{nullptr})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00110\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keyword}{const}\ feature\_map\_t\ *map\ =\ features.bsearch\ (feature\_tag);}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordflow}{if}\ (shift)\ *shift\ =\ map\ ?\ map-\/>shift\ :\ 0;}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordflow}{return}\ map\ ?\ map-\/>mask\ :\ 0;}
+\DoxyCodeLine{00114\ \ \ \}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \textcolor{keywordtype}{bool}\ needs\_fallback\ (hb\_tag\_t\ feature\_tag)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00117\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keyword}{const}\ feature\_map\_t\ *map\ =\ features.bsearch\ (feature\_tag);}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordflow}{return}\ map\ ?\ map-\/>needs\_fallback\ :\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00120\ \ \ \}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ hb\_mask\_t\ get\_1\_mask\ (hb\_tag\_t\ feature\_tag)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00123\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keyword}{const}\ feature\_map\_t\ *map\ =\ features.bsearch\ (feature\_tag);}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordflow}{return}\ map\ ?\ map-\/>\_1\_mask\ :\ 0;}
+\DoxyCodeLine{00126\ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_feature\_index\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ table\_index,\ hb\_tag\_t\ feature\_tag)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00129\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keyword}{const}\ feature\_map\_t\ *map\ =\ features.bsearch\ (feature\_tag);}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordflow}{return}\ map\ ?\ map-\/>index[table\_index]\ :\ HB\_OT\_LAYOUT\_NO\_FEATURE\_INDEX;}
+\DoxyCodeLine{00132\ \ \ \}}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_feature\_stage\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ table\_index,\ hb\_tag\_t\ feature\_tag)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00135\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keyword}{const}\ feature\_map\_t\ *map\ =\ features.bsearch\ (feature\_tag);}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordflow}{return}\ map\ ?\ map-\/>stage[table\_index]\ :\ UINT\_MAX;}
+\DoxyCodeLine{00138\ \ \ \}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \textcolor{keywordtype}{void}\ get\_stage\_lookups\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ table\_index,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stage,}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ lookup\_map\_t\ **plookups,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *lookup\_count)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00142\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (stage\ >\ stages[table\_index].length))}
+\DoxyCodeLine{00144\ \ \ \ \ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ *plookups\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ *lookup\_count\ =\ 0;}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00148\ \ \ \ \ \}}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ stage\ ?\ stages[table\_index][stage\ -\/\ 1].last\_lookup\ :\ 0;}
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ \ \ =\ stage\ <\ stages[table\_index].length\ ?\ stages[table\_index][stage].last\_lookup\ :\ lookups[table\_index].length;}
+\DoxyCodeLine{00151\ \ \ \ \ *plookups\ =\ end\ ==\ start\ ?\ nullptr\ :\ \&lookups[table\_index][start];}
+\DoxyCodeLine{00152\ \ \ \ \ *lookup\_count\ =\ end\ -\/\ start;}
+\DoxyCodeLine{00153\ \ \ \}}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ collect\_lookups\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ table\_index,\ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ *lookups)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00156\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proxy>}
+\DoxyCodeLine{00157\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ apply\ (\textcolor{keyword}{const}\ Proxy\ \&proxy,}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,\ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ *\mbox{\hyperlink{classbuffer}{buffer}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00159\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ substitute\ (\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,\ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ *\mbox{\hyperlink{classbuffer}{buffer}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00160\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ position\ (\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,\ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ *\mbox{\hyperlink{classbuffer}{buffer}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00163\ \ \ hb\_tag\_t\ chosen\_script[2];}
+\DoxyCodeLine{00164\ \ \ \textcolor{keywordtype}{bool}\ found\_script[2];}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ hb\_mask\_t\ global\_mask;}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_sorted\_vector\_t<feature\_map\_t>}}\ features;}
+\DoxyCodeLine{00171\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<lookup\_map\_t>}}\ lookups[2];\ \textcolor{comment}{/*\ GSUB/GPOS\ */}}
+\DoxyCodeLine{00172\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<stage\_map\_t>}}\ stages[2];\ \textcolor{comment}{/*\ GSUB/GPOS\ */}}
+\DoxyCodeLine{00173\ \};}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{keyword}{enum}\ hb\_ot\_map\_feature\_flags\_t}
+\DoxyCodeLine{00176\ \{}
+\DoxyCodeLine{00177\ \ \ F\_NONE\ \ \ \ \ \ \ \ =\ 0x0000u,}
+\DoxyCodeLine{00178\ \ \ F\_GLOBAL\ \ \ \ \ \ =\ 0x0001u,\ \textcolor{comment}{/*\ Feature\ applies\ to\ all\ characters;\ results\ in\ no\ mask\ allocated\ for\ it.\ */}}
+\DoxyCodeLine{00179\ \ \ F\_HAS\_FALLBACK\ \ \ \ =\ 0x0002u,\ \textcolor{comment}{/*\ Has\ fallback\ implementation,\ so\ include\ mask\ bit\ even\ if\ feature\ not\ found.\ */}}
+\DoxyCodeLine{00180\ \ \ F\_MANUAL\_ZWNJ\ \ \ \ \ =\ 0x0004u,\ \textcolor{comment}{/*\ Don't\ skip\ over\ ZWNJ\ when\ matching\ **context**.\ */}}
+\DoxyCodeLine{00181\ \ \ F\_MANUAL\_ZWJ\ \ \ \ \ \ =\ 0x0008u,\ \textcolor{comment}{/*\ Don't\ skip\ over\ ZWJ\ when\ matching\ **input**.\ */}}
+\DoxyCodeLine{00182\ \ \ F\_MANUAL\_JOINERS\ \ =\ F\_MANUAL\_ZWNJ\ |\ F\_MANUAL\_ZWJ,}
+\DoxyCodeLine{00183\ \ \ F\_GLOBAL\_MANUAL\_JOINERS=\ F\_GLOBAL\ |\ F\_MANUAL\_JOINERS,}
+\DoxyCodeLine{00184\ \ \ F\_GLOBAL\_HAS\_FALLBACK\ =\ F\_GLOBAL\ |\ F\_HAS\_FALLBACK,}
+\DoxyCodeLine{00185\ \ \ F\_GLOBAL\_SEARCH\ \ \ =\ 0x0010u,\ \textcolor{comment}{/*\ If\ feature\ not\ found\ in\ LangSys,\ look\ for\ it\ in\ global\ feature\ list\ and\ pick\ one.\ */}}
+\DoxyCodeLine{00186\ \ \ F\_RANDOM\ \ \ \ \ \ =\ 0x0020u\ \ \textcolor{comment}{/*\ Randomly\ select\ a\ glyph\ from\ an\ AlternateSubstFormat1\ subtable.\ */}}
+\DoxyCodeLine{00187\ \};}
+\DoxyCodeLine{00188\ HB\_MARK\_AS\_FLAG\_T\ (hb\_ot\_map\_feature\_flags\_t);}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__map__feature__t}{hb\_ot\_map\_feature\_t}}}
+\DoxyCodeLine{00192\ \{}
+\DoxyCodeLine{00193\ \ \ hb\_tag\_t\ tag;}
+\DoxyCodeLine{00194\ \ \ hb\_ot\_map\_feature\_flags\_t\ flags;}
+\DoxyCodeLine{00195\ \};}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__shape__plan__key__t}{hb\_ot\_shape\_plan\_key\_t}};}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__map__builder__t}{hb\_ot\_map\_builder\_t}}}
+\DoxyCodeLine{00200\ \{}
+\DoxyCodeLine{00201\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ HB\_INTERNAL\ \mbox{\hyperlink{structhb__ot__map__builder__t}{hb\_ot\_map\_builder\_t}}\ (\mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ *face\_,}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__segment__properties__t}{hb\_segment\_properties\_t}}\ *props\_);}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ HB\_INTERNAL\ \mbox{\hyperlink{structhb__ot__map__builder__t}{\string~hb\_ot\_map\_builder\_t}}\ ();}
+\DoxyCodeLine{00207\ }
+\DoxyCodeLine{00208\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ add\_feature\ (hb\_tag\_t\ tag,}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_ot\_map\_feature\_flags\_t\ flags=F\_NONE,}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classvalue}{value}}=1);}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \textcolor{keywordtype}{void}\ add\_feature\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__map__feature__t}{hb\_ot\_map\_feature\_t}}\ \&\mbox{\hyperlink{structfeat}{feat}})}
+\DoxyCodeLine{00213\ \ \ \{\ add\_feature\ (\mbox{\hyperlink{structfeat}{feat}}.tag,\ \mbox{\hyperlink{structfeat}{feat}}.flags);\ \}}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ \textcolor{keywordtype}{void}\ enable\_feature\ (hb\_tag\_t\ tag,}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_ot\_map\_feature\_flags\_t\ flags=F\_NONE,}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classvalue}{value}}=1)}
+\DoxyCodeLine{00218\ \ \ \{\ add\_feature\ (tag,\ F\_GLOBAL\ |\ flags,\ \mbox{\hyperlink{classvalue}{value}});\ \}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \textcolor{keywordtype}{void}\ disable\_feature\ (hb\_tag\_t\ tag)}
+\DoxyCodeLine{00221\ \ \ \{\ add\_feature\ (tag,\ F\_GLOBAL,\ 0);\ \}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \textcolor{keywordtype}{void}\ add\_gsub\_pause\ (hb\_ot\_map\_t::pause\_func\_t\ pause\_func)}
+\DoxyCodeLine{00224\ \ \ \{\ add\_pause\ (0,\ pause\_func);\ \}}
+\DoxyCodeLine{00225\ \ \ \textcolor{keywordtype}{void}\ add\_gpos\_pause\ (hb\_ot\_map\_t::pause\_func\_t\ pause\_func)}
+\DoxyCodeLine{00226\ \ \ \{\ add\_pause\ (1,\ pause\_func);\ \}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ compile\ (\mbox{\hyperlink{structhb__ot__map__t}{hb\_ot\_map\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&m,}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__plan__key__t}{hb\_ot\_shape\_plan\_key\_t}}\ \&key);}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ add\_lookups\ (\mbox{\hyperlink{structhb__ot__map__t}{hb\_ot\_map\_t}}\ \ \&m,}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ table\_index,}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ feature\_index,}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ variations\_index,}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_mask\_t\ \ \ \ \ mask,}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ auto\_zwnj\ =\ \textcolor{keyword}{true},}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ auto\_zwj\ =\ \textcolor{keyword}{true},}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \ \ random\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \textcolor{keyword}{struct\ }feature\_info\_t\ \{}
+\DoxyCodeLine{00243\ \ \ \ \ hb\_tag\_t\ tag;}
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ seq;\ \textcolor{comment}{/*\ sequence\#,\ used\ for\ stable\ sorting\ only\ */}}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ max\_value;}
+\DoxyCodeLine{00246\ \ \ \ \ hb\_ot\_map\_feature\_flags\_t\ flags;}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ default\_value;\ \textcolor{comment}{/*\ for\ non-\/global\ features,\ what\ should\ the\ unset\ glyphs\ take\ */}}
+\DoxyCodeLine{00248\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stage[2];\ \textcolor{comment}{/*\ GSUB/GPOS\ */}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \ \ HB\_INTERNAL\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ cmp\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *pa,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *pb)}
+\DoxyCodeLine{00251\ \ \ \ \ \{}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \textcolor{keyword}{const}\ feature\_info\_t\ *\mbox{\hyperlink{structa}{a}}\ =\ (\textcolor{keyword}{const}\ feature\_info\_t\ *)\ pa;}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \textcolor{keyword}{const}\ feature\_info\_t\ *b\ =\ (\textcolor{keyword}{const}\ feature\_info\_t\ *)\ pb;}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structa}{a}}-\/>tag\ !=\ b-\/>tag)\ ?\ \ (\mbox{\hyperlink{structa}{a}}-\/>tag\ <\ b-\/>tag\ ?\ -\/1\ :\ 1)\ :}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structa}{a}}-\/>seq\ <\ b-\/>seq\ ?\ -\/1\ :\ \mbox{\hyperlink{structa}{a}}-\/>seq\ >\ b-\/>seq\ ?\ 1\ :\ 0);}
+\DoxyCodeLine{00256\ \ \ \ \ \}}
+\DoxyCodeLine{00257\ \ \ \};}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \textcolor{keyword}{struct\ }stage\_info\_t\ \{}
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ index;}
+\DoxyCodeLine{00261\ \ \ \ \ hb\_ot\_map\_t::pause\_func\_t\ pause\_func;}
+\DoxyCodeLine{00262\ \ \ \};}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ add\_pause\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ table\_index,\ hb\_ot\_map\_t::pause\_func\_t\ pause\_func);}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ *face;}
+\DoxyCodeLine{00269\ \ \ \mbox{\hyperlink{structhb__segment__properties__t}{hb\_segment\_properties\_t}}\ props;}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \ \ hb\_tag\_t\ chosen\_script[2];}
+\DoxyCodeLine{00272\ \ \ \textcolor{keywordtype}{bool}\ found\_script[2];}
+\DoxyCodeLine{00273\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ script\_index[2],\ language\_index[2];}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ current\_stage[2];\ \textcolor{comment}{/*\ GSUB/GPOS\ */}}
+\DoxyCodeLine{00278\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<feature\_info\_t>}}\ feature\_infos;}
+\DoxyCodeLine{00279\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<stage\_info\_t>}}\ stages[2];\ \textcolor{comment}{/*\ GSUB/GPOS\ */}}
+\DoxyCodeLine{00280\ \};}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_OT\_MAP\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

@@ -1,0 +1,79 @@
+This is the tool we use within the curl project to scan C source code and check that it adheres to our \mbox{\hyperlink{md__ase_sprite_aseprite_third_party_curl_docs__c_o_d_e__s_t_y_l_e}{Source Code Style guide}}.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md703}{}\doxysection{Usage}\label{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md703}
+\begin{DoxyVerb}checksrc.pl [options] [file1] [file2] ...
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md704}{}\doxysection{Command line options}\label{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md704}
+{\ttfamily -\/W\mbox{[}file\mbox{]}} skip that file and excludes it from being checked. Helpful when, for example, one of the files is generated.
+
+{\ttfamily -\/D\mbox{[}dir\mbox{]}} directory name to prepend to file names when accessing them.
+
+{\ttfamily -\/h} shows the help output, that also lists all recognized warnings\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md705}{}\doxysection{What does checksrc warn for?}\label{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md705}
+checksrc does not check and verify the code against the entire style guide, but the script is instead an effort to detect the most common mistakes and syntax mistakes that contributors make before they get accustomed to our code style. Heck, many of us regulars do the mistakes too and this script helps us keep the code in shape. \begin{DoxyVerb}checksrc.pl -h
+\end{DoxyVerb}
+ Lists how to use the script and it lists all existing warnings it has and problems it detects. At the time of this writing, the existing checksrc warnings are\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily ASSIGNWITHINCONDITION}\+: Assignment within a conditional expression. The code style mandates the assignment to be done outside of it.
+\item {\ttfamily ASTERISKNOSPACE}\+: \mbox{\hyperlink{class_a}{A}} pointer was declared like {\ttfamily char$\ast$ name} instead of the more appropriate {\ttfamily char $\ast$name} style. The asterisk should sit next to the name.
+\item {\ttfamily ASTERISKSPACE}\+: \mbox{\hyperlink{class_a}{A}} pointer was declared like {\ttfamily char $\ast$ name} instead of the more appropriate {\ttfamily char $\ast$name} style. The asterisk should sit right next to the name without a space in between.
+\item {\ttfamily BADCOMMAND}\+: There\textquotesingle{}s a bad !checksrc! instruction in the code. See the {\bfseries{Ignore certain warnings}} section below for details.
+\item {\ttfamily BANNEDFUNC}\+: \mbox{\hyperlink{class_a}{A}} banned function was used. The functions sprintf, vsprintf, strcat, strncat, gets are {\bfseries{never}} allowed in curl source code.
+\item {\ttfamily BRACEELSE}\+: \textquotesingle{}\} else\textquotesingle{} on the same line. The else is supposed to be on the following line.
+\item {\ttfamily BRACEPOS}\+: wrong position for an open brace ({\ttfamily \{}).
+\item {\ttfamily BRACEWHILE}\+: more than once space between end brace and while keyword
+\item {\ttfamily COMMANOSPACE}\+: a comma without following space
+\item {\ttfamily COPYRIGHT}\+: the file is missing a copyright statement!
+\item {\ttfamily CPPCOMMENTS}\+: {\ttfamily //} comment detected, that\textquotesingle{}s not C89 compliant
+\item {\ttfamily DOBRACE}\+: only use one space after do before open brace
+\item {\ttfamily EMPTYLINEBRACE}\+: found empty line before open brace
+\item {\ttfamily EQUALSNOSPACE}\+: no space after {\ttfamily =} sign
+\item {\ttfamily EQUALSNULL}\+: comparison with {\ttfamily == NULL} used in if/while. We use {\ttfamily !var}.
+\item {\ttfamily EXCLAMATIONSPACE}\+: space found after exclamations mark
+\item {\ttfamily FOPENMODE}\+: {\ttfamily fopen()} needs a macro for the mode string, use it
+\item {\ttfamily INDENTATION}\+: detected a wrong start column for code. Note that this warning only checks some specific places and will certainly miss many bad indentations.
+\item {\ttfamily LONGLINE}\+: \mbox{\hyperlink{class_a}{A}} line is longer than 79 columns.
+\item {\ttfamily MULTISPACE}\+: Multiple spaces were found where only one should be used.
+\item {\ttfamily NOSPACEEQUALS}\+: An equals sign was found without preceding space. We prefer {\ttfamily a = 2} and {\itshape not} {\ttfamily a=2}.
+\item {\ttfamily NOTEQUALSZERO}\+: check found using {\ttfamily != 0}. We use plain {\ttfamily if(var)}.
+\item {\ttfamily ONELINECONDITION}\+: do not put the conditional block on the same line as {\ttfamily if()}
+\item {\ttfamily OPENCOMMENT}\+: File ended with a comment ({\ttfamily /$\ast$}) still \char`\"{}open\char`\"{}.
+\item {\ttfamily PARENBRACE}\+: {\ttfamily )\{} was used without sufficient space in between.
+\item {\ttfamily RETURNNOSPACE}\+: {\ttfamily return} was used without space between the keyword and the following value.
+\item {\ttfamily SEMINOSPACE}\+: There was no space (or newline) following a semicolon.
+\item {\ttfamily SIZEOFNOPAREN}\+: Found use of sizeof without parentheses. We prefer {\ttfamily sizeof(int)} style.
+\item {\ttfamily SNPRINTF} -\/ Found use of {\ttfamily snprintf()}. Since we use an internal replacement with a different return code etc, we prefer {\ttfamily msnprintf()}.
+\item {\ttfamily SPACEAFTERPAREN}\+: there was a space after open parenthesis, {\ttfamily ( text}.
+\item {\ttfamily SPACEBEFORECLOSE}\+: there was a space before a close parenthesis, {\ttfamily text )}.
+\item {\ttfamily SPACEBEFORECOMMA}\+: there was a space before a comma, {\ttfamily one , two}.
+\item {\ttfamily SPACEBEFOREPAREN}\+: there was a space before an open parenthesis, {\ttfamily if (}, where one was not expected
+\item {\ttfamily SPACESEMICOLON}\+: there was a space before semicolon, {\ttfamily ;}.
+\item {\ttfamily TABS}\+: TAB characters are not allowed!
+\item {\ttfamily TRAILINGSPACE}\+: Trailing whitespace on the line
+\item {\ttfamily TYPEDEFSTRUCT}\+: we frown upon (most) typedefed structs
+\item {\ttfamily UNUSEDIGNORE}\+: a checksrc inlined warning ignore was asked for but not used, that\textquotesingle{}s an ignore that should be removed or changed to get used.
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md706}{}\doxysubsection{Extended warnings}\label{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md706}
+Some warnings are quite computationally expensive to perform, so they are turned off by default. To enable these warnings, place a {\ttfamily .checksrc} file in the directory where they should be activated with commands to enable the warnings you are interested in. The format of the file is to enable one warning per line like so\+: {\ttfamily enable \texorpdfstring{$<$}{<}EXTENDEDWARNING\texorpdfstring{$>$}{>}}
+
+Currently there is one extended warning which can be enabled\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily COPYRIGHTYEAR}\+: the current changeset hasn\textquotesingle{}t updated the copyright year in the source file
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md707}{}\doxysection{Ignore certain warnings}\label{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md707}
+Due to the nature of the source code and the flaws of the checksrc tool, there is sometimes a need to ignore specific warnings. checksrc allows a few different ways to do this.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md708}{}\doxysubsection{Inline ignore}\label{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md708}
+You can control what to ignore within a specific source file by providing instructions to checksrc in the source code itself. You need a magic marker that is {\ttfamily !checksrc!} followed by the instruction. The instruction can ask to ignore a specific warning N number of times or you ignore all of them until you mark the end of the ignored section.
+
+Inline ignores are only done for that single specific source code file.
+
+Example \begin{DoxyVerb}/* !checksrc! disable LONGLINE all */
+\end{DoxyVerb}
+ This will ignore the warning for overly long lines until it is re-\/enabled with\+: \begin{DoxyVerb}/* !checksrc! enable LONGLINE */
+\end{DoxyVerb}
+ If the enabling isn\textquotesingle{}t performed before the end of the file, it will be enabled automatically for the next file.
+
+You can also opt to ignore just N violations so that if you have a single long line you just can\textquotesingle{}t shorten and is agreed to be fine anyway\+: \begin{DoxyVerb}/* !checksrc! disable LONGLINE 1 */
+\end{DoxyVerb}
+ ... and the warning for long lines will be enabled again automatically after it has ignored that single warning. The number {\ttfamily 1} can of course be changed to any other integer number. It can be used to make sure only the exact intended instances are ignored and nothing extra.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md709}{}\doxysubsection{Directory wide ignore patterns}\label{md__ase_sprite_aseprite_third_party_curl_docs__c_h_e_c_k_s_r_c_autotoc_md709}
+This is a method we\textquotesingle{}ve transitioned away from. Use inline ignores as far as possible.
+
+Make a {\ttfamily checksrc.\+skip} file in the directory of the source code with the false positive, and include the full offending line into this file. 

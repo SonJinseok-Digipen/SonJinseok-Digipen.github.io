@@ -1,0 +1,280 @@
+\hypertarget{ssh_8h_source}{}\doxysection{ssh.\+h}
+\label{ssh_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/vssh/ssh.h@{AseSprite/aseprite/third\_party/curl/lib/vssh/ssh.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_SSH\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_SSH\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1998\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}curl\_setup.h"{}}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#if\ defined(HAVE\_LIBSSH2\_H)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ <libssh2.h>}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <libssh2\_sftp.h>}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#elif\ defined(HAVE\_LIBSSH\_LIBSSH\_H)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ <libssh/libssh.h>}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ <libssh/sftp.h>}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#elif\ defined(USE\_WOLFSSH)}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ <wolfssh/ssh.h>}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ <wolfssh/wolfsftp.h>}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ SSH\ unique\ setup}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00041\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00042\ \ \ SSH\_NO\_STATE\ =\ -\/1,\ \ \textcolor{comment}{/*\ Used\ for\ "{}nextState"{}\ so\ say\ there\ is\ none\ */}}
+\DoxyCodeLine{00043\ \ \ SSH\_STOP\ =\ 0,\ \ \ \ \ \ \ \textcolor{comment}{/*\ do\ nothing\ state,\ stops\ the\ state\ machine\ */}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ SSH\_INIT,\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ First\ state\ in\ SSH-\/CONNECT\ */}}
+\DoxyCodeLine{00046\ \ \ SSH\_S\_STARTUP,\ \ \ \ \ \ \textcolor{comment}{/*\ Session\ startup\ */}}
+\DoxyCodeLine{00047\ \ \ SSH\_HOSTKEY,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ verify\ hostkey\ */}}
+\DoxyCodeLine{00048\ \ \ SSH\_AUTHLIST,}
+\DoxyCodeLine{00049\ \ \ SSH\_AUTH\_PKEY\_INIT,}
+\DoxyCodeLine{00050\ \ \ SSH\_AUTH\_PKEY,}
+\DoxyCodeLine{00051\ \ \ SSH\_AUTH\_PASS\_INIT,}
+\DoxyCodeLine{00052\ \ \ SSH\_AUTH\_PASS,}
+\DoxyCodeLine{00053\ \ \ SSH\_AUTH\_AGENT\_INIT,\ \textcolor{comment}{/*\ initialize\ then\ wait\ for\ connection\ to\ agent\ */}}
+\DoxyCodeLine{00054\ \ \ SSH\_AUTH\_AGENT\_LIST,\ \textcolor{comment}{/*\ ask\ for\ list\ then\ wait\ for\ entire\ list\ to\ come\ */}}
+\DoxyCodeLine{00055\ \ \ SSH\_AUTH\_AGENT,\ \ \ \ \ \ \textcolor{comment}{/*\ attempt\ one\ key\ at\ a\ time\ */}}
+\DoxyCodeLine{00056\ \ \ SSH\_AUTH\_HOST\_INIT,}
+\DoxyCodeLine{00057\ \ \ SSH\_AUTH\_HOST,}
+\DoxyCodeLine{00058\ \ \ SSH\_AUTH\_KEY\_INIT,}
+\DoxyCodeLine{00059\ \ \ SSH\_AUTH\_KEY,}
+\DoxyCodeLine{00060\ \ \ SSH\_AUTH\_GSSAPI,}
+\DoxyCodeLine{00061\ \ \ SSH\_AUTH\_DONE,}
+\DoxyCodeLine{00062\ \ \ SSH\_SFTP\_INIT,}
+\DoxyCodeLine{00063\ \ \ SSH\_SFTP\_REALPATH,\ \ \ \textcolor{comment}{/*\ Last\ state\ in\ SSH-\/CONNECT\ */}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ SSH\_SFTP\_QUOTE\_INIT,\ \textcolor{comment}{/*\ First\ state\ in\ SFTP-\/DO\ */}}
+\DoxyCodeLine{00066\ \ \ SSH\_SFTP\_POSTQUOTE\_INIT,\ \textcolor{comment}{/*\ (Possibly)\ First\ state\ in\ SFTP-\/DONE\ */}}
+\DoxyCodeLine{00067\ \ \ SSH\_SFTP\_QUOTE,}
+\DoxyCodeLine{00068\ \ \ SSH\_SFTP\_NEXT\_QUOTE,}
+\DoxyCodeLine{00069\ \ \ SSH\_SFTP\_QUOTE\_STAT,}
+\DoxyCodeLine{00070\ \ \ SSH\_SFTP\_QUOTE\_SETSTAT,}
+\DoxyCodeLine{00071\ \ \ SSH\_SFTP\_QUOTE\_SYMLINK,}
+\DoxyCodeLine{00072\ \ \ SSH\_SFTP\_QUOTE\_MKDIR,}
+\DoxyCodeLine{00073\ \ \ SSH\_SFTP\_QUOTE\_RENAME,}
+\DoxyCodeLine{00074\ \ \ SSH\_SFTP\_QUOTE\_RMDIR,}
+\DoxyCodeLine{00075\ \ \ SSH\_SFTP\_QUOTE\_UNLINK,}
+\DoxyCodeLine{00076\ \ \ SSH\_SFTP\_QUOTE\_STATVFS,}
+\DoxyCodeLine{00077\ \ \ SSH\_SFTP\_GETINFO,}
+\DoxyCodeLine{00078\ \ \ SSH\_SFTP\_FILETIME,}
+\DoxyCodeLine{00079\ \ \ SSH\_SFTP\_TRANS\_INIT,}
+\DoxyCodeLine{00080\ \ \ SSH\_SFTP\_UPLOAD\_INIT,}
+\DoxyCodeLine{00081\ \ \ SSH\_SFTP\_CREATE\_DIRS\_INIT,}
+\DoxyCodeLine{00082\ \ \ SSH\_SFTP\_CREATE\_DIRS,}
+\DoxyCodeLine{00083\ \ \ SSH\_SFTP\_CREATE\_DIRS\_MKDIR,}
+\DoxyCodeLine{00084\ \ \ SSH\_SFTP\_READDIR\_INIT,}
+\DoxyCodeLine{00085\ \ \ SSH\_SFTP\_READDIR,}
+\DoxyCodeLine{00086\ \ \ SSH\_SFTP\_READDIR\_LINK,}
+\DoxyCodeLine{00087\ \ \ SSH\_SFTP\_READDIR\_BOTTOM,}
+\DoxyCodeLine{00088\ \ \ SSH\_SFTP\_READDIR\_DONE,}
+\DoxyCodeLine{00089\ \ \ SSH\_SFTP\_DOWNLOAD\_INIT,}
+\DoxyCodeLine{00090\ \ \ SSH\_SFTP\_DOWNLOAD\_STAT,\ \textcolor{comment}{/*\ Last\ state\ in\ SFTP-\/DO\ */}}
+\DoxyCodeLine{00091\ \ \ SSH\_SFTP\_CLOSE,\ \ \ \ \textcolor{comment}{/*\ Last\ state\ in\ SFTP-\/DONE\ */}}
+\DoxyCodeLine{00092\ \ \ SSH\_SFTP\_SHUTDOWN,\ \textcolor{comment}{/*\ First\ state\ in\ SFTP-\/DISCONNECT\ */}}
+\DoxyCodeLine{00093\ \ \ SSH\_SCP\_TRANS\_INIT,\ \textcolor{comment}{/*\ First\ state\ in\ SCP-\/DO\ */}}
+\DoxyCodeLine{00094\ \ \ SSH\_SCP\_UPLOAD\_INIT,}
+\DoxyCodeLine{00095\ \ \ SSH\_SCP\_DOWNLOAD\_INIT,}
+\DoxyCodeLine{00096\ \ \ SSH\_SCP\_DOWNLOAD,}
+\DoxyCodeLine{00097\ \ \ SSH\_SCP\_DONE,}
+\DoxyCodeLine{00098\ \ \ SSH\_SCP\_SEND\_EOF,}
+\DoxyCodeLine{00099\ \ \ SSH\_SCP\_WAIT\_EOF,}
+\DoxyCodeLine{00100\ \ \ SSH\_SCP\_WAIT\_CLOSE,}
+\DoxyCodeLine{00101\ \ \ SSH\_SCP\_CHANNEL\_FREE,\ \ \ \textcolor{comment}{/*\ Last\ state\ in\ SCP-\/DONE\ */}}
+\DoxyCodeLine{00102\ \ \ SSH\_SESSION\_DISCONNECT,\ \textcolor{comment}{/*\ First\ state\ in\ SCP-\/DISCONNECT\ */}}
+\DoxyCodeLine{00103\ \ \ SSH\_SESSION\_FREE,\ \ \ \ \ \ \ \textcolor{comment}{/*\ Last\ state\ in\ SCP/SFTP-\/DISCONNECT\ */}}
+\DoxyCodeLine{00104\ \ \ SSH\_QUIT,}
+\DoxyCodeLine{00105\ \ \ SSH\_LAST\ \ \textcolor{comment}{/*\ never\ used\ */}}
+\DoxyCodeLine{00106\ \}\ sshstate;}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{comment}{/*\ this\ struct\ is\ used\ in\ the\ HandleData\ struct\ which\ is\ part\ of\ the}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ Curl\_easy,\ which\ means\ this\ is\ used\ on\ a\ per-\/easy\ handle\ basis.}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ Everything\ that\ is\ strictly\ related\ to\ a\ connection\ is\ banned\ from\ this}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ struct.\ */}}
+\DoxyCodeLine{00112\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_s_s_h_p_r_o_t_o}{SSHPROTO}}\ \{}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordtype}{char}\ *path;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ path\ we\ operate\ on\ */}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#ifdef\ USE\_LIBSSH2}}
+\DoxyCodeLine{00115\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdynbuf}{dynbuf}}\ readdir\_link;}
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdynbuf}{dynbuf}}\ readdir;}
+\DoxyCodeLine{00117\ \ \ \textcolor{keywordtype}{char}\ *readdir\_filename;}
+\DoxyCodeLine{00118\ \ \ \textcolor{keywordtype}{char}\ *readdir\_longentry;}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ LIBSSH2\_SFTP\_ATTRIBUTES\ quote\_attrs;\ \textcolor{comment}{/*\ used\ by\ the\ SFTP\_QUOTE\ state\ */}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \textcolor{comment}{/*\ Here's\ a\ set\ of\ struct\ members\ used\ by\ the\ SFTP\_READDIR\ state\ */}}
+\DoxyCodeLine{00123\ \ \ LIBSSH2\_SFTP\_ATTRIBUTES\ readdir\_attrs;}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00125\ \};}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \textcolor{comment}{/*\ ssh\_conn\ is\ used\ for\ struct\ connection-\/oriented\ data\ in\ the\ connectdata}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ struct\ */}}
+\DoxyCodeLine{00129\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structssh__conn}{ssh\_conn}}\ \{}
+\DoxyCodeLine{00130\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *authlist;\ \ \ \ \ \ \ \textcolor{comment}{/*\ List\ of\ auth.\ methods,\ managed\ by\ libssh2\ */}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \textcolor{comment}{/*\ common\ */}}
+\DoxyCodeLine{00133\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passphrase;\ \ \ \ \ \textcolor{comment}{/*\ pass-\/phrase\ to\ use\ */}}
+\DoxyCodeLine{00134\ \ \ \textcolor{keywordtype}{char}\ *rsa\_pub;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ path\ name\ */}}
+\DoxyCodeLine{00135\ \ \ \textcolor{keywordtype}{char}\ *rsa;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ path\ name\ */}}
+\DoxyCodeLine{00136\ \ \ \textcolor{keywordtype}{bool}\ authed;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ connection\ has\ been\ authenticated\ fine\ */}}
+\DoxyCodeLine{00137\ \ \ \textcolor{keywordtype}{bool}\ acceptfail;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ used\ by\ the\ SFTP\_QUOTE\ (continue\ if}}
+\DoxyCodeLine{00138\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ quote\ command\ fails)\ */}}
+\DoxyCodeLine{00139\ \ \ sshstate\ \mbox{\hyperlink{structstate}{state}};\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ always\ use\ ssh.c:state()\ to\ change\ state!\ */}}
+\DoxyCodeLine{00140\ \ \ sshstate\ nextstate;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ state\ to\ goto\ after\ stopping\ */}}
+\DoxyCodeLine{00141\ \ \ CURLcode\ actualcode;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ actual\ error\ code\ */}}
+\DoxyCodeLine{00142\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcurl__slist}{curl\_slist}}\ *quote\_item;\ \textcolor{comment}{/*\ for\ the\ quote\ option\ */}}
+\DoxyCodeLine{00143\ \ \ \textcolor{keywordtype}{char}\ *quote\_path1;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ two\ generic\ pointers\ for\ the\ QUOTE\ stuff\ */}}
+\DoxyCodeLine{00144\ \ \ \textcolor{keywordtype}{char}\ *quote\_path2;}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \textcolor{keywordtype}{char}\ *homedir;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ when\ doing\ SFTP\ we\ figure\ out\ home\ dir\ in\ the}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ connect\ phase\ */}}
+\DoxyCodeLine{00148\ \ \ \textcolor{keywordtype}{char}\ *readdir\_line;}
+\DoxyCodeLine{00149\ \ \ \textcolor{comment}{/*\ end\ of\ READDIR\ stuff\ */}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{keywordtype}{int}\ secondCreateDirs;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ counter\ use\ by\ the\ code\ to\ see\ if\ the}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ second\ attempt\ has\ been\ made\ to\ change}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ to/create\ a\ directory\ */}}
+\DoxyCodeLine{00154\ \ \ \textcolor{keywordtype}{int}\ orig\_waitfor;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ default\ READ/WRITE\ bits\ wait\ for\ */}}
+\DoxyCodeLine{00155\ \ \ \textcolor{keywordtype}{char}\ *slash\_pos;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ used\ by\ the\ SFTP\_CREATE\_DIRS\ state\ */}}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#if\ defined(USE\_LIBSSH)}}
+\DoxyCodeLine{00158\ \ \ \textcolor{keywordtype}{char}\ *readdir\_linkPath;}
+\DoxyCodeLine{00159\ \ \ \textcolor{keywordtype}{size\_t}\ readdir\_len,\ readdir\_totalLen,\ readdir\_currLen;}
+\DoxyCodeLine{00160\ \textcolor{comment}{/*\ our\ variables\ */}}
+\DoxyCodeLine{00161\ \ \ \textcolor{keywordtype}{unsigned}\ kbd\_state;\ \textcolor{comment}{/*\ 0\ or\ 1\ */}}
+\DoxyCodeLine{00162\ \ \ ssh\_key\ privkey;}
+\DoxyCodeLine{00163\ \ \ ssh\_key\ pubkey;}
+\DoxyCodeLine{00164\ \ \ \textcolor{keywordtype}{int}\ auth\_methods;}
+\DoxyCodeLine{00165\ \ \ ssh\_session\ ssh\_session;}
+\DoxyCodeLine{00166\ \ \ ssh\_scp\ scp\_session;}
+\DoxyCodeLine{00167\ \ \ sftp\_session\ sftp\_session;}
+\DoxyCodeLine{00168\ \ \ sftp\_file\ sftp\_file;}
+\DoxyCodeLine{00169\ \ \ sftp\_dir\ sftp\_dir;}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \ \ \textcolor{keywordtype}{unsigned}\ sftp\_recv\_state;\ \textcolor{comment}{/*\ 0\ or\ 1\ */}}
+\DoxyCodeLine{00172\ \ \ \textcolor{keywordtype}{int}\ sftp\_file\_index;\ \textcolor{comment}{/*\ for\ async\ read\ */}}
+\DoxyCodeLine{00173\ \ \ sftp\_attributes\ readdir\_attrs;\ \textcolor{comment}{/*\ used\ by\ the\ SFTP\ readdir\ actions\ */}}
+\DoxyCodeLine{00174\ \ \ sftp\_attributes\ readdir\_link\_attrs;\ \textcolor{comment}{/*\ used\ by\ the\ SFTP\ readdir\ actions\ */}}
+\DoxyCodeLine{00175\ \ \ sftp\_attributes\ quote\_attrs;\ \textcolor{comment}{/*\ used\ by\ the\ SFTP\_QUOTE\ state\ */}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *readdir\_filename;\ \textcolor{comment}{/*\ points\ within\ readdir\_attrs\ */}}
+\DoxyCodeLine{00178\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *readdir\_longentry;}
+\DoxyCodeLine{00179\ \ \ \textcolor{keywordtype}{char}\ *readdir\_tmp;}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\#elif\ defined(USE\_LIBSSH2)}}
+\DoxyCodeLine{00181\ \ \ LIBSSH2\_SESSION\ *ssh\_session;\ \textcolor{comment}{/*\ Secure\ Shell\ session\ */}}
+\DoxyCodeLine{00182\ \ \ LIBSSH2\_CHANNEL\ *ssh\_channel;\ \textcolor{comment}{/*\ Secure\ Shell\ channel\ handle\ */}}
+\DoxyCodeLine{00183\ \ \ LIBSSH2\_SFTP\ *sftp\_session;\ \ \ \textcolor{comment}{/*\ SFTP\ handle\ */}}
+\DoxyCodeLine{00184\ \ \ LIBSSH2\_SFTP\_HANDLE\ *sftp\_handle;}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\#ifndef\ CURL\_DISABLE\_PROXY}}
+\DoxyCodeLine{00187\ \ \ \textcolor{comment}{/*\ for\ HTTPS\ proxy\ storage\ */}}
+\DoxyCodeLine{00188\ \ \ Curl\_recv\ *tls\_recv;}
+\DoxyCodeLine{00189\ \ \ Curl\_send\ *tls\_send;}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#ifdef\ HAVE\_LIBSSH2\_AGENT\_API}}
+\DoxyCodeLine{00193\ \ \ LIBSSH2\_AGENT\ *ssh\_agent;\ \ \ \ \ \textcolor{comment}{/*\ proxy\ to\ ssh-\/agent/pageant\ */}}
+\DoxyCodeLine{00194\ \ \ \textcolor{keyword}{struct\ }libssh2\_agent\_publickey\ *sshagent\_identity,}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *sshagent\_prev\_identity;}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \textcolor{comment}{/*\ note\ that\ HAVE\_LIBSSH2\_KNOWNHOST\_API\ is\ a\ define\ set\ in\ the\ libssh2.h}}
+\DoxyCodeLine{00199\ \textcolor{comment}{\ \ \ \ \ header\ */}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\#ifdef\ HAVE\_LIBSSH2\_KNOWNHOST\_API}}
+\DoxyCodeLine{00201\ \ \ LIBSSH2\_KNOWNHOSTS\ *kh;}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\#elif\ defined(USE\_WOLFSSH)}}
+\DoxyCodeLine{00204\ \ \ WOLFSSH\ *ssh\_session;}
+\DoxyCodeLine{00205\ \ \ WOLFSSH\_CTX\ *ctx;}
+\DoxyCodeLine{00206\ \ \ word32\ handleSz;}
+\DoxyCodeLine{00207\ \ \ \textcolor{keywordtype}{byte}\ handle[WOLFSSH\_MAX\_HANDLE];}
+\DoxyCodeLine{00208\ \ \ curl\_off\_t\ offset;}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ USE\_LIBSSH\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00210\ \};}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#if\ defined(USE\_LIBSSH)}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\#define\ CURL\_LIBSSH\_VERSION\ ssh\_version(0)}}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\#elif\ defined(USE\_LIBSSH2)}}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{comment}{/*\ Feature\ detection\ based\ on\ version\ numbers\ to\ better\ work\ with}}
+\DoxyCodeLine{00219\ \textcolor{comment}{\ \ \ non-\/configure\ platforms\ */}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#if\ !defined(LIBSSH2\_VERSION\_NUM)\ ||\ (LIBSSH2\_VERSION\_NUM\ <\ 0x001000)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\#\ \ error\ "{}SCP/SFTP\ protocols\ require\ libssh2\ 0.16\ or\ later"{}}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\#if\ LIBSSH2\_VERSION\_NUM\ >=\ 0x010000}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\#define\ HAVE\_LIBSSH2\_SFTP\_SEEK64\ 1}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#if\ LIBSSH2\_VERSION\_NUM\ >=\ 0x010100}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#define\ HAVE\_LIBSSH2\_VERSION\ 1}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\#if\ LIBSSH2\_VERSION\_NUM\ >=\ 0x010205}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#define\ HAVE\_LIBSSH2\_INIT\ 1}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\#define\ HAVE\_LIBSSH2\_EXIT\ 1}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\#if\ LIBSSH2\_VERSION\_NUM\ >=\ 0x010206}}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#define\ HAVE\_LIBSSH2\_KNOWNHOST\_CHECKP\ 1}}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\#define\ HAVE\_LIBSSH2\_SCP\_SEND64\ 1}}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#if\ LIBSSH2\_VERSION\_NUM\ >=\ 0x010208}}
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\#define\ HAVE\_LIBSSH2\_SESSION\_HANDSHAKE\ 1}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\#ifdef\ HAVE\_LIBSSH2\_VERSION}}
+\DoxyCodeLine{00248\ \textcolor{comment}{/*\ get\ it\ run-\/time\ if\ possible\ */}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\#define\ CURL\_LIBSSH2\_VERSION\ libssh2\_version(0)}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00251\ \textcolor{comment}{/*\ use\ build-\/time\ if\ run-\/time\ not\ possible\ */}}
+\DoxyCodeLine{00252\ \textcolor{preprocessor}{\#define\ CURL\_LIBSSH2\_VERSION\ LIBSSH2\_VERSION}}
+\DoxyCodeLine{00253\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ USE\_LIBSSH2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\#ifdef\ USE\_SSH}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__handler}{Curl\_handler}}\ Curl\_handler\_scp;}
+\DoxyCodeLine{00260\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__handler}{Curl\_handler}}\ Curl\_handler\_sftp;}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \textcolor{comment}{/*\ generic\ SSH\ backend\ functions\ */}}
+\DoxyCodeLine{00263\ CURLcode\ Curl\_ssh\_init(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00264\ \textcolor{keywordtype}{void}\ Curl\_ssh\_cleanup(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00265\ \textcolor{keywordtype}{void}\ Curl\_ssh\_version(\textcolor{keywordtype}{char}\ *\mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keywordtype}{size\_t}\ buflen);}
+\DoxyCodeLine{00266\ \textcolor{keywordtype}{void}\ Curl\_ssh\_attach(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structconnectdata}{connectdata}}\ *conn);}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00269\ \textcolor{comment}{/*\ for\ non-\/SSH\ builds\ */}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\#define\ Curl\_ssh\_cleanup()}}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\#define\ Curl\_ssh\_attach(x,y)}}
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_SSH\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

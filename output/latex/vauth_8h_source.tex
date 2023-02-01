@@ -1,0 +1,237 @@
+\hypertarget{vauth_8h_source}{}\doxysection{vauth.\+h}
+\label{vauth_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/vauth/vauth.h@{AseSprite/aseprite/third\_party/curl/lib/vauth/vauth.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_VAUTH\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_VAUTH\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2014\ -\/\ 2021,\ Steve\ Holme,\ <steve\_holme@hotmail.com>.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <curl/curl.h>}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}bufref.h"{}}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__easy}{Curl\_easy}};}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#if\ !defined(CURL\_DISABLE\_CRYPTO\_AUTH)}}
+\DoxyCodeLine{00032\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdigestdata}{digestdata}};}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#if\ defined(USE\_NTLM)}}
+\DoxyCodeLine{00036\ \textcolor{keyword}{struct\ }ntlmdata;}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#if\ defined(USE\_KERBEROS5)}}
+\DoxyCodeLine{00040\ \textcolor{keyword}{struct\ }kerberos5data;}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#if\ (defined(HAVE\_GSSAPI)\ ||\ defined(USE\_WINDOWS\_SSPI))\ \&\&\ defined(USE\_SPNEGO)}}
+\DoxyCodeLine{00044\ \textcolor{keyword}{struct\ }negotiatedata;}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#if\ defined(USE\_GSASL)}}
+\DoxyCodeLine{00048\ \textcolor{keyword}{struct\ }gsasldata;}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#if\ defined(USE\_WINDOWS\_SSPI)}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ GSS\_ERROR(status)\ ((status)\ \&\ 0x80000000)}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{/*\ This\ is\ used\ to\ build\ a\ SPN\ string\ */}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#if\ !defined(USE\_WINDOWS\_SSPI)}}
+\DoxyCodeLine{00057\ \textcolor{keywordtype}{char}\ *Curl\_auth\_build\_spn(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *service,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *host,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *realm);}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00060\ TCHAR\ *Curl\_auth\_build\_spn(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *service,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *host,}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *realm);}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{comment}{/*\ This\ is\ used\ to\ test\ if\ the\ user\ contains\ a\ Windows\ domain\ name\ */}}
+\DoxyCodeLine{00065\ \textcolor{keywordtype}{bool}\ Curl\_auth\_user\_contains\_domain(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *user);}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ PLAIN\ cleartext\ message\ */}}
+\DoxyCodeLine{00068\ CURLcode\ Curl\_auth\_create\_plain\_message(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *authzid,}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *authcid,}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structpasswd}{passwd}},}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ LOGIN\ cleartext\ message\ */}}
+\DoxyCodeLine{00074\ CURLcode\ Curl\_auth\_create\_login\_message(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{classvalue}{value}},}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ an\ EXTERNAL\ cleartext\ message\ */}}
+\DoxyCodeLine{00078\ CURLcode\ Curl\_auth\_create\_external\_message(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *user,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#if\ !defined(CURL\_DISABLE\_CRYPTO\_AUTH)}}
+\DoxyCodeLine{00082\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ CRAM-\/MD5\ response\ message\ */}}
+\DoxyCodeLine{00083\ CURLcode\ Curl\_auth\_create\_cram\_md5\_message(\textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *chlg,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *userp,}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwdp,}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{comment}{/*\ This\ is\ used\ to\ evaluate\ if\ DIGEST\ is\ supported\ */}}
+\DoxyCodeLine{00089\ \textcolor{keywordtype}{bool}\ Curl\_auth\_is\_digest\_supported(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ DIGEST-\/MD5\ response\ message\ */}}
+\DoxyCodeLine{00092\ CURLcode\ Curl\_auth\_create\_digest\_md5\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *chlg,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *userp,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwdp,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *service,}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{comment}{/*\ This\ is\ used\ to\ decode\ a\ HTTP\ DIGEST\ challenge\ message\ */}}
+\DoxyCodeLine{00100\ CURLcode\ Curl\_auth\_decode\_digest\_http\_message(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *chlg,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdigestdata}{digestdata}}\ *digest);}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ HTTP\ DIGEST\ response\ message\ */}}
+\DoxyCodeLine{00104\ CURLcode\ Curl\_auth\_create\_digest\_http\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *userp,}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwdp,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *request,}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *uri,}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structdigestdata}{digestdata}}\ *digest,}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ **outptr,\ \textcolor{keywordtype}{size\_t}\ *outlen);}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{/*\ This\ is\ used\ to\ clean\ up\ the\ digest\ specific\ data\ */}}
+\DoxyCodeLine{00113\ \textcolor{keywordtype}{void}\ Curl\_auth\_digest\_cleanup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structdigestdata}{digestdata}}\ *digest);}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !CURL\_DISABLE\_CRYPTO\_AUTH\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#ifdef\ USE\_GSASL}}
+\DoxyCodeLine{00117\ \textcolor{comment}{/*\ This\ is\ used\ to\ evaluate\ if\ MECH\ is\ supported\ by\ gsasl\ */}}
+\DoxyCodeLine{00118\ \textcolor{keywordtype}{bool}\ Curl\_auth\_gsasl\_is\_supported(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *mech,}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ gsasldata\ *gsasl);}
+\DoxyCodeLine{00121\ \textcolor{comment}{/*\ This\ is\ used\ to\ start\ a\ gsasl\ method\ */}}
+\DoxyCodeLine{00122\ CURLcode\ Curl\_auth\_gsasl\_start(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *userp,}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwdp,}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ gsasldata\ *gsasl);}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \textcolor{comment}{/*\ This\ is\ used\ to\ process\ and\ generate\ a\ new\ SASL\ token\ */}}
+\DoxyCodeLine{00128\ CURLcode\ Curl\_auth\_gsasl\_token(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *chlg,}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ gsasldata\ *gsasl,}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \textcolor{comment}{/*\ This\ is\ used\ to\ clean\ up\ the\ gsasl\ specific\ data\ */}}
+\DoxyCodeLine{00134\ \textcolor{keywordtype}{void}\ Curl\_auth\_gsasl\_cleanup(\textcolor{keyword}{struct}\ gsasldata\ *digest);}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#if\ defined(USE\_NTLM)}}
+\DoxyCodeLine{00138\ \textcolor{comment}{/*\ This\ is\ used\ to\ evaluate\ if\ NTLM\ is\ supported\ */}}
+\DoxyCodeLine{00139\ \textcolor{keywordtype}{bool}\ Curl\_auth\_is\_ntlm\_supported(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ NTLM\ type-\/1\ message\ */}}
+\DoxyCodeLine{00142\ CURLcode\ Curl\_auth\_create\_ntlm\_type1\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *userp,}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwdp,}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *service,}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *host,}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ ntlmdata\ *ntlm,}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{comment}{/*\ This\ is\ used\ to\ decode\ a\ base64\ encoded\ NTLM\ type-\/2\ message\ */}}
+\DoxyCodeLine{00151\ CURLcode\ Curl\_auth\_decode\_ntlm\_type2\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *type2,}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ ntlmdata\ *ntlm);}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ NTLM\ type-\/3\ message\ */}}
+\DoxyCodeLine{00156\ CURLcode\ Curl\_auth\_create\_ntlm\_type3\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *userp,}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwdp,}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ ntlmdata\ *ntlm,}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{comment}{/*\ This\ is\ used\ to\ clean\ up\ the\ NTLM\ specific\ data\ */}}
+\DoxyCodeLine{00163\ \textcolor{keywordtype}{void}\ Curl\_auth\_cleanup\_ntlm(\textcolor{keyword}{struct}\ ntlmdata\ *ntlm);}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ USE\_NTLM\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ OAuth\ 2.0\ message\ */}}
+\DoxyCodeLine{00167\ CURLcode\ Curl\_auth\_create\_oauth\_bearer\_message(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *user,}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *host,}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{long}\ port,}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *bearer,}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ XOAuth\ 2.0\ message\ */}}
+\DoxyCodeLine{00174\ CURLcode\ Curl\_auth\_create\_xoauth\_bearer\_message(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *user,}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *bearer,}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#if\ defined(USE\_KERBEROS5)}}
+\DoxyCodeLine{00179\ \textcolor{comment}{/*\ This\ is\ used\ to\ evaluate\ if\ GSSAPI\ (Kerberos\ V5)\ is\ supported\ */}}
+\DoxyCodeLine{00180\ \textcolor{keywordtype}{bool}\ Curl\_auth\_is\_gssapi\_supported(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ GSSAPI\ (Kerberos\ V5)\ user\ token}}
+\DoxyCodeLine{00183\ \textcolor{comment}{\ \ \ message\ */}}
+\DoxyCodeLine{00184\ CURLcode\ Curl\_auth\_create\_gssapi\_user\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *userp,}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwdp,}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *service,}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *host,}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ mutual,}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *chlg,}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ kerberos5data\ *krb5,}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ GSSAPI\ (Kerberos\ V5)\ security}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ \ \ token\ message\ */}}
+\DoxyCodeLine{00196\ CURLcode\ Curl\_auth\_create\_gssapi\_security\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *authzid,}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *chlg,}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ kerberos5data\ *krb5,}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structbufref}{bufref}}\ *out);}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \textcolor{comment}{/*\ This\ is\ used\ to\ clean\ up\ the\ GSSAPI\ specific\ data\ */}}
+\DoxyCodeLine{00203\ \textcolor{keywordtype}{void}\ Curl\_auth\_cleanup\_gssapi(\textcolor{keyword}{struct}\ kerberos5data\ *krb5);}
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ USE\_KERBEROS5\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \textcolor{preprocessor}{\#if\ defined(USE\_SPNEGO)}}
+\DoxyCodeLine{00207\ \textcolor{comment}{/*\ This\ is\ used\ to\ evaluate\ if\ SPNEGO\ (Negotiate)\ is\ supported\ */}}
+\DoxyCodeLine{00208\ \textcolor{keywordtype}{bool}\ Curl\_auth\_is\_spnego\_supported(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \textcolor{comment}{/*\ This\ is\ used\ to\ decode\ a\ base64\ encoded\ SPNEGO\ (Negotiate)\ challenge}}
+\DoxyCodeLine{00211\ \textcolor{comment}{\ \ \ message\ */}}
+\DoxyCodeLine{00212\ CURLcode\ Curl\_auth\_decode\_spnego\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *user,}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *passwood,}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *service,}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *host,}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *chlg64,}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ negotiatedata\ *nego);}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \textcolor{comment}{/*\ This\ is\ used\ to\ generate\ a\ base64\ encoded\ SPNEGO\ (Negotiate)\ response}}
+\DoxyCodeLine{00221\ \textcolor{comment}{\ \ \ message\ */}}
+\DoxyCodeLine{00222\ CURLcode\ Curl\_auth\_create\_spnego\_message(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ negotiatedata\ *nego,}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ **outptr,\ \textcolor{keywordtype}{size\_t}\ *outlen);}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \textcolor{comment}{/*\ This\ is\ used\ to\ clean\ up\ the\ SPNEGO\ specifiec\ data\ */}}
+\DoxyCodeLine{00227\ \textcolor{keywordtype}{void}\ Curl\_auth\_cleanup\_spnego(\textcolor{keyword}{struct}\ negotiatedata\ *nego);}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ USE\_SPNEGO\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_VAUTH\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

@@ -1,0 +1,179 @@
+\hypertarget{skia__system_8h_source}{}\doxysection{skia\+\_\+system.\+h}
+\label{skia__system_8h_source}\index{AseSprite/aseprite/laf/os/skia/skia\_system.h@{AseSprite/aseprite/laf/os/skia/skia\_system.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ OS\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2012-\/2017\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ OS\_SKIA\_SKIA\_SYSTEM\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ OS\_SKIA\_SKIA\_SYSTEM\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}gfx/color\_space.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}gfx/size.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}os/common/system.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}os/skia/skia\_color\_space.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}os/skia/skia\_font\_manager.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}os/skia/skia\_surface.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}os/skia/skia\_window.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}os/window\_spec.h"{}}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#if\ LAF\_WINDOWS}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\ \ \#include\ "{}os/win/color\_space.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\ \ \#include\ "{}os/win/system.h"{}}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\ \ \#define\ SkiaSystemBase\ SystemWin}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#elif\ LAF\_MACOS}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \#include\ "{}os/osx/color\_space.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \#include\ "{}os/osx/system.h"{}}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \#define\ SkiaSystemBase\ SystemOSX}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#elif\ LAF\_LINUX}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \#include\ "{}os/x11/system.h"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \#define\ SkiaSystemBase\ SystemX11}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}include/core/SkGraphics.h"{}}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{namespace\ }os\ \{}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classos_1_1_skia_system}{SkiaSystem}}\ :\ \textcolor{keyword}{public}\ SkiaSystemBase\ \{}
+\DoxyCodeLine{00042\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00043\ \ \ \mbox{\hyperlink{classos_1_1_skia_system}{SkiaSystem}}()}
+\DoxyCodeLine{00044\ \ \ \ \ :\ m\_defaultWindow(\textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00045\ \ \ \ \ ,\ m\_gpuAcceleration(\textcolor{keyword}{false})\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ SkGraphics::Init();}
+\DoxyCodeLine{00047\ \ \ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \mbox{\hyperlink{classos_1_1_skia_system}{\string~SkiaSystem}}()\ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{00051\ \ \ \}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ Capabilities\ capabilities()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordflow}{return}\ Capabilities(}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \textcolor{keywordtype}{int}(Capabilities::MultipleWindows)\ |}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \textcolor{keywordtype}{int}(Capabilities::CanResizeWindow)\ |}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \textcolor{keywordtype}{int}(Capabilities::WindowScale)\ |}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \textcolor{keywordtype}{int}(Capabilities::CustomMouseCursor)\ |}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \textcolor{keywordtype}{int}(Capabilities::ColorSpaces)}
+\DoxyCodeLine{00060\ \#ifndef\ \_\_APPLE\_\_}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ |\ \textcolor{keywordtype}{int}(Capabilities::CanStartWindowResize)}
+\DoxyCodeLine{00062\ \#endif}
+\DoxyCodeLine{00063\ \#\textcolor{keywordflow}{if}\ SK\_SUPPORT\_GPU}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ |\ \textcolor{keywordtype}{int}(Capabilities::GpuAccelerationSwitch)}
+\DoxyCodeLine{00065\ \#endif}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ );}
+\DoxyCodeLine{00067\ \ \ \}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \textcolor{keywordtype}{bool}\ gpuAcceleration()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_gpuAcceleration;}
+\DoxyCodeLine{00071\ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \textcolor{keywordtype}{void}\ setGpuAcceleration(\textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}})\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00074\ \ \ \ \ m\_gpuAcceleration\ =\ \mbox{\hyperlink{structstate}{state}};}
+\DoxyCodeLine{00075\ \ \ \}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \textcolor{keywordtype}{void}\ setTabletAPI(TabletAPI\ api)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#if\ LAF\_WINDOWS}}
+\DoxyCodeLine{00079\ \ \ \ \ SkiaSystemBase::setTabletAPI(api);}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{classos_1_1_skia_window}{SkiaWindow}}*\ window\ =\ \textcolor{keyword}{dynamic\_cast<}\mbox{\hyperlink{classos_1_1_skia_window}{SkiaWindow}}*\textcolor{keyword}{>}(defaultWindow()))\ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ window-\/>onTabletAPIChange();}
+\DoxyCodeLine{00082\ \ \ \ \ \}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00084\ \ \ \}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \mbox{\hyperlink{classos_1_1_window}{Window}}*\ defaultWindow()\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_defaultWindow;}
+\DoxyCodeLine{00088\ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ WindowRef\ makeWindow(\textcolor{keyword}{const}\ \mbox{\hyperlink{classos_1_1_window_spec}{WindowSpec}}\&\ spec)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keyword}{auto}\ window\ =\ make\_ref<SkiaWindow>(spec);}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_defaultWindow)}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ m\_defaultWindow\ =\ window.get();}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordflow}{if}\ (window\ \&\&\ m\_windowCS)}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ window-\/>setColorSpace(m\_windowCS);}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keywordflow}{return}\ window;}
+\DoxyCodeLine{00097\ \ \ \}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{SurfaceRef}}\ makeSurface(\textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ colorSpace)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keyword}{auto}\ sur\ =\ make\_ref<SkiaSurface>();}
+\DoxyCodeLine{00102\ \ \ \ \ sur-\/>create(width,\ height,\ colorSpace);}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordflow}{return}\ sur;}
+\DoxyCodeLine{00104\ \ \ \}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{SurfaceRef}}\ makeRgbaSurface(\textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ colorSpace)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keyword}{auto}\ sur\ =\ make\_ref<SkiaSurface>();}
+\DoxyCodeLine{00109\ \ \ \ \ sur-\/>createRgba(width,\ height,\ colorSpace);}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keywordflow}{return}\ sur;}
+\DoxyCodeLine{00111\ \ \ \}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{SurfaceRef}}\ loadSurface(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordflow}{return}\ SkiaSurface::loadSurface(filename);}
+\DoxyCodeLine{00115\ \ \ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{SurfaceRef}}\ loadRgbaSurface(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ filename)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordflow}{return}\ loadSurface(filename);}
+\DoxyCodeLine{00119\ \ \ \}}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \mbox{\hyperlink{classos_1_1_font_manager}{FontManager}}*\ fontManager()\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_fontManager)}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ m\_fontManager.reset(\textcolor{keyword}{new}\ \mbox{\hyperlink{classos_1_1_skia_font_manager}{SkiaFontManager}});}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_fontManager.get();}
+\DoxyCodeLine{00125\ \ \ \}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \textcolor{keywordtype}{void}\ setTranslateDeadKeys(\textcolor{keywordtype}{bool}\ \mbox{\hyperlink{structstate}{state}})\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_defaultWindow)}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ m\_defaultWindow-\/>setTranslateDeadKeys(\mbox{\hyperlink{structstate}{state}});}
+\DoxyCodeLine{00130\ \ \ \}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordtype}{void}\ listColorSpaces(std::vector<os::ColorSpaceRef>\&\ list)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00133\ \ \ \ \ list.push\_back(makeColorSpace(gfx::ColorSpace::MakeNone()));}
+\DoxyCodeLine{00134\ \ \ \ \ list.push\_back(makeColorSpace(gfx::ColorSpace::MakeSRGB()));}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#if\ LAF\_WINDOWS\ ||\ LAF\_MACOS}}
+\DoxyCodeLine{00137\ \ \ \ \ list\_display\_colorspaces(list);}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00139\ \ \ \}}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ makeColorSpace(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{gfx::ColorSpaceRef}}\&\ cs)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00142\ \ \ \ \ \textcolor{keywordflow}{return}\ os::make\_ref<SkiaColorSpace>(cs);}
+\DoxyCodeLine{00143\ \ \ \}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref<ColorSpaceConversion>}}\ convertBetweenColorSpace(}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ src,}
+\DoxyCodeLine{00147\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ dst)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordflow}{return}\ os::make\_ref<SkiaColorSpaceConversion>(src,\ dst);}
+\DoxyCodeLine{00149\ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{keywordtype}{void}\ setWindowsColorSpace(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ cs)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00152\ \ \ \ \ m\_windowCS\ =\ cs;}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_defaultWindow)}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ m\_defaultWindow-\/>setColorSpace(m\_windowCS);}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{comment}{//\ TODO\ change\ the\ color\ space\ of\ all\ windows}}
+\DoxyCodeLine{00158\ \ \ \}}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ windowsColorSpace()\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_windowCS;}
+\DoxyCodeLine{00162\ \ \ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00165\ \ \ \mbox{\hyperlink{classos_1_1_skia_window}{SkiaWindow}}*\ m\_defaultWindow;}
+\DoxyCodeLine{00166\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref<FontManager>}}\ m\_fontManager;}
+\DoxyCodeLine{00167\ \ \ \textcolor{keywordtype}{bool}\ m\_gpuAcceleration;}
+\DoxyCodeLine{00168\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ m\_windowCS;}
+\DoxyCodeLine{00169\ \};}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \}\ \textcolor{comment}{//\ namespace\ os}}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,108 @@
+\hypertarget{rescaler__utils_8h_source}{}\doxysection{rescaler\+\_\+utils.\+h}
+\label{rescaler__utils_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/utils/rescaler\_utils.h@{AseSprite/aseprite/third\_party/libwebp/src/utils/rescaler\_utils.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Rescaling\ functions}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_UTILS\_RESCALER\_UTILS\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_UTILS\_RESCALER\_UTILS\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00018\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ WEBP\_RESCALER\_RFIX\ 32\ \ \ }\textcolor{comment}{//\ fixed-\/point\ precision\ for\ multiplies}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ WEBP\_RESCALER\_ONE\ (1ull\ <<\ WEBP\_RESCALER\_RFIX)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#define\ WEBP\_RESCALER\_FRAC(x,\ y)\ \(\backslash\)}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ ((uint32\_t)(((uint64\_t)(x)\ <<\ WEBP\_RESCALER\_RFIX)\ /\ (y)))}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{//\ Structure\ used\ for\ on-\/the-\/fly\ rescaling}}
+\DoxyCodeLine{00029\ \textcolor{keyword}{typedef}\ uint32\_t\ rescaler\_t;\ \ \ \textcolor{comment}{//\ type\ for\ side-\/buffer}}
+\DoxyCodeLine{00030\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}};}
+\DoxyCodeLine{00031\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}\ \{}
+\DoxyCodeLine{00032\ \ \ \textcolor{keywordtype}{int}\ x\_expand;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ true\ if\ we're\ expanding\ in\ the\ x\ direction}}
+\DoxyCodeLine{00033\ \ \ \textcolor{keywordtype}{int}\ y\_expand;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ true\ if\ we're\ expanding\ in\ the\ y\ direction}}
+\DoxyCodeLine{00034\ \ \ \textcolor{keywordtype}{int}\ num\_channels;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ bytes\ to\ jump\ between\ pixels}}
+\DoxyCodeLine{00035\ \ \ uint32\_t\ fx\_scale;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ fixed-\/point\ scaling\ factors}}
+\DoxyCodeLine{00036\ \ \ uint32\_t\ fy\_scale;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ ''}}
+\DoxyCodeLine{00037\ \ \ uint32\_t\ fxy\_scale;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ ''}}
+\DoxyCodeLine{00038\ \ \ \textcolor{keywordtype}{int}\ y\_accum;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ vertical\ accumulator}}
+\DoxyCodeLine{00039\ \ \ \textcolor{keywordtype}{int}\ y\_add,\ y\_sub;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ vertical\ increments}}
+\DoxyCodeLine{00040\ \ \ \textcolor{keywordtype}{int}\ x\_add,\ x\_sub;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ horizontal\ increments}}
+\DoxyCodeLine{00041\ \ \ \textcolor{keywordtype}{int}\ src\_width,\ src\_height;\ \ \textcolor{comment}{//\ source\ dimensions}}
+\DoxyCodeLine{00042\ \ \ \textcolor{keywordtype}{int}\ dst\_width,\ dst\_height;\ \ \textcolor{comment}{//\ destination\ dimensions}}
+\DoxyCodeLine{00043\ \ \ \textcolor{keywordtype}{int}\ src\_y,\ dst\_y;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ row\ counters\ for\ input\ and\ output}}
+\DoxyCodeLine{00044\ \ \ uint8\_t*\ dst;}
+\DoxyCodeLine{00045\ \ \ \textcolor{keywordtype}{int}\ dst\_stride;}
+\DoxyCodeLine{00046\ \ \ rescaler\_t*\ irow,\ *frow;\ \ \ \ \textcolor{comment}{//\ work\ buffer}}
+\DoxyCodeLine{00047\ \};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{comment}{//\ Initialize\ a\ rescaler\ given\ scratch\ area\ 'work'\ and\ dimensions\ of\ src\ \&\ dst.}}
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00051\ \textcolor{keywordtype}{int}\ WebPRescalerInit(\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ rescaler,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ src\_width,\ \textcolor{keywordtype}{int}\ src\_height,}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ \textcolor{keyword}{const}\ dst,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ dst\_width,\ \textcolor{keywordtype}{int}\ dst\_height,\ \textcolor{keywordtype}{int}\ dst\_stride,}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ num\_channels,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rescaler\_t*\ \textcolor{keyword}{const}\ work);}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ If\ either\ 'scaled\_width'\ or\ 'scaled\_height'\ (but\ not\ both)\ is\ 0\ the\ value}}
+\DoxyCodeLine{00059\ \textcolor{comment}{//\ will\ be\ calculated\ preserving\ the\ aspect\ ratio,\ otherwise\ the\ values\ are}}
+\DoxyCodeLine{00060\ \textcolor{comment}{//\ left\ unmodified.\ Returns\ true\ on\ success,\ false\ if\ either\ value\ is\ 0\ after}}
+\DoxyCodeLine{00061\ \textcolor{comment}{//\ performing\ the\ scaling\ calculation.}}
+\DoxyCodeLine{00062\ \textcolor{keywordtype}{int}\ WebPRescalerGetScaledDimensions(\textcolor{keywordtype}{int}\ src\_width,\ \textcolor{keywordtype}{int}\ src\_height,}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ scaled\_width,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ scaled\_height);}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{comment}{//\ Returns\ the\ number\ of\ input\ lines\ needed\ next\ to\ produce\ one\ output\ line,}}
+\DoxyCodeLine{00067\ \textcolor{comment}{//\ considering\ that\ the\ maximum\ available\ input\ lines\ are\ 'max\_num\_lines'.}}
+\DoxyCodeLine{00068\ \textcolor{keywordtype}{int}\ WebPRescaleNeededLines(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ rescaler,}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ max\_num\_lines);}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{comment}{//\ Import\ multiple\ rows\ over\ all\ channels,\ until\ at\ least\ one\ row\ is\ ready\ to}}
+\DoxyCodeLine{00072\ \textcolor{comment}{//\ be\ exported.\ Returns\ the\ actual\ number\ of\ lines\ that\ were\ imported.}}
+\DoxyCodeLine{00073\ \textcolor{keywordtype}{int}\ WebPRescalerImport(\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ rescaler,\ \textcolor{keywordtype}{int}\ num\_rows,}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src,\ \textcolor{keywordtype}{int}\ src\_stride);}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{comment}{//\ Export\ as\ many\ rows\ as\ possible.\ Return\ the\ numbers\ of\ rows\ written.}}
+\DoxyCodeLine{00077\ \textcolor{keywordtype}{int}\ WebPRescalerExport(\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ rescaler);}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{//\ Return\ true\ if\ input\ is\ finished}}
+\DoxyCodeLine{00080\ \textcolor{keyword}{static}\ WEBP\_INLINE}
+\DoxyCodeLine{00081\ \textcolor{keywordtype}{int}\ WebPRescalerInputDone(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ rescaler)\ \{}
+\DoxyCodeLine{00082\ \ \ \textcolor{keywordflow}{return}\ (rescaler-\/>src\_y\ >=\ rescaler-\/>src\_height);}
+\DoxyCodeLine{00083\ \}}
+\DoxyCodeLine{00084\ \textcolor{comment}{//\ Return\ true\ if\ output\ is\ finished}}
+\DoxyCodeLine{00085\ \textcolor{keyword}{static}\ WEBP\_INLINE}
+\DoxyCodeLine{00086\ \textcolor{keywordtype}{int}\ WebPRescalerOutputDone(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ rescaler)\ \{}
+\DoxyCodeLine{00087\ \ \ \textcolor{keywordflow}{return}\ (rescaler-\/>dst\_y\ >=\ rescaler-\/>dst\_height);}
+\DoxyCodeLine{00088\ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{//\ Return\ true\ if\ there\ are\ pending\ output\ rows\ ready.}}
+\DoxyCodeLine{00091\ \textcolor{keyword}{static}\ WEBP\_INLINE}
+\DoxyCodeLine{00092\ \textcolor{keywordtype}{int}\ WebPRescalerHasPendingOutput(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ rescaler)\ \{}
+\DoxyCodeLine{00093\ \ \ \textcolor{keywordflow}{return}\ !WebPRescalerOutputDone(rescaler)\ \&\&\ (rescaler-\/>y\_accum\ <=\ 0);}
+\DoxyCodeLine{00094\ \}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00099\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_UTILS\_RESCALER\_UTILS\_H\_}}
+
+\end{DoxyCode}

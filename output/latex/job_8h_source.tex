@@ -1,0 +1,86 @@
+\hypertarget{job_8h_source}{}\doxysection{job.\+h}
+\label{job_8h_source}\index{AseSprite/aseprite/src/app/job.h@{AseSprite/aseprite/src/app/job.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2021\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_JOB\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_JOB\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}ui/alert.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}ui/timer.h"{}}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <exception>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_job}{Job}}\ \{}
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}\ runningJobs();}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_job}{Job}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ jobName);}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_job}{\string~Job}}();}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{comment}{//\ Starts\ the\ job\ calling\ onJob()\ event\ in\ another\ thread\ and}}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{comment}{//\ monitoring\ the\ progress\ with\ onMonitorTick()\ event.}}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keywordtype}{void}\ startJob();}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordtype}{void}\ waitJob();}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{comment}{//\ The\ onJob()\ can\ use\ this\ function\ to\ report\ progress\ of\ the}}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{comment}{//\ background\ job\ being\ done.\ 1.0\ is\ completed.}}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordtype}{void}\ jobProgress(\textcolor{keywordtype}{double}\ f);}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ job\ was\ canceled\ by\ the\ user\ (in\ case\ he}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{comment}{//\ pressed\ a\ "{}Cancel"{}\ button\ in\ the\ GUI).\ The\ onJob()\ thread\ should}}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{comment}{//\ check\ this\ variable\ periodically\ to\ stop\ working.}}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{bool}\ isCanceled();}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{comment}{//\ This\ member\ function\ is\ called\ from\ another\ dedicated\ thread}}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{comment}{//\ outside\ the\ GUI\ one,\ so\ you\ can\ do\ some\ image\ processing\ here.}}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{comment}{//\ Remember\ that\ you\ cannot\ use\ any\ GUI\ element\ in\ this\ handler.}}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onJob()\ =\ 0;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{//\ Called\ each\ 1000\ msecs\ by\ the\ GUI\ queue\ processing.}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{comment}{//\ It\ is\ executed\ from\ the\ main\ GUI\ thread.}}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onMonitoringTick();}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{void}\ done();}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ thread\_proc(\mbox{\hyperlink{classapp_1_1_job}{Job}}*\ self);}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ monitor\_proc(\textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ monitor\_free(\textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ std::thread\ m\_thread;}
+\DoxyCodeLine{00063\ \ \ \ \ std::unique\_ptr<ui::Timer>\ m\_timer;}
+\DoxyCodeLine{00064\ \ \ \ \ std::mutex\ m\_mutex;}
+\DoxyCodeLine{00065\ \ \ \ \ ui::AlertPtr\ m\_alert\_window;}
+\DoxyCodeLine{00066\ \ \ \ \ std::atomic<double>\ m\_last\_progress;}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_done\_flag;}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_canceled\_flag;}
+\DoxyCodeLine{00069\ \ \ \ \ std::exception\_ptr\ m\_error;}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{comment}{//\ these\ methods\ are\ privated\ and\ not\ defined}}
+\DoxyCodeLine{00072\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_job}{Job}}();}
+\DoxyCodeLine{00073\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_job}{Job}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_job}{Job}}\&);}
+\DoxyCodeLine{00074\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_job}{Job}}\&\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_job}{Job}}\&);}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

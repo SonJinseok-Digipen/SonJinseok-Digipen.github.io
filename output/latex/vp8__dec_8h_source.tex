@@ -1,0 +1,191 @@
+\hypertarget{vp8__dec_8h_source}{}\doxysection{vp8\+\_\+dec.\+h}
+\label{vp8__dec_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dec/vp8\_dec.h@{AseSprite/aseprite/third\_party/libwebp/src/dec/vp8\_dec.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2010\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ \ Low-\/level\ API\ for\ VP8\ decoder}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DEC\_VP8\_DEC\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_DEC\_VP8\_DEC\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}src/webp/decode.h"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00020\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00024\ \textcolor{comment}{//\ Lower-\/level\ API}}
+\DoxyCodeLine{00025\ \textcolor{comment}{//}}
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ These\ functions\ provide\ fine-\/grained\ control\ of\ the\ decoding\ process.}}
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ The\ call\ flow\ should\ resemble:}}
+\DoxyCodeLine{00028\ \textcolor{comment}{//}}
+\DoxyCodeLine{00029\ \textcolor{comment}{//\ \ \ VP8Io\ io;}}
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ \ \ VP8InitIo(\&io);}}
+\DoxyCodeLine{00031\ \textcolor{comment}{//\ \ \ io.data\ =\ data;}}
+\DoxyCodeLine{00032\ \textcolor{comment}{//\ \ \ io.data\_size\ =\ size;}}
+\DoxyCodeLine{00033\ \textcolor{comment}{//\ \ \ /*\ customize\ io's\ functions\ (setup()/put()/teardown())\ if\ needed.\ */}}
+\DoxyCodeLine{00034\ \textcolor{comment}{//}}
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ \ \ VP8Decoder*\ dec\ =\ VP8New();}}
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ \ \ int\ ok\ =\ VP8Decode(dec,\ \&io);}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ \ \ if\ (!ok)\ printf("{}Error:\ \%s\(\backslash\)n"{},\ VP8StatusMessage(dec));}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ \ \ VP8Delete(dec);}}
+\DoxyCodeLine{00039\ \textcolor{comment}{//\ \ \ return\ ok;}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{comment}{//\ Input\ /\ Output}}
+\DoxyCodeLine{00042\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_io}{VP8Io}}\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}};}
+\DoxyCodeLine{00043\ \textcolor{keyword}{typedef}\ int\ (*VP8IoPutHook)(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ io);}
+\DoxyCodeLine{00044\ \textcolor{keyword}{typedef}\ int\ (*VP8IoSetupHook)(\mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ io);}
+\DoxyCodeLine{00045\ \textcolor{keyword}{typedef}\ void\ (*VP8IoTeardownHook)(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ io);}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_io}{VP8Io}}\ \{}
+\DoxyCodeLine{00048\ \ \ \textcolor{comment}{//\ set\ by\ VP8GetHeaders()}}
+\DoxyCodeLine{00049\ \ \ \textcolor{keywordtype}{int}\ width,\ height;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ picture\ dimensions,\ in\ pixels\ (invariable).}}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ These\ are\ the\ original,\ uncropped\ dimensions.}}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ The\ actual\ area\ passed\ to\ put()\ is\ stored}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ in\ mb\_w\ /\ mb\_h\ fields.}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \textcolor{comment}{//\ set\ before\ calling\ put()}}
+\DoxyCodeLine{00055\ \ \ \textcolor{keywordtype}{int}\ mb\_y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ position\ of\ the\ current\ rows\ (in\ pixels)}}
+\DoxyCodeLine{00056\ \ \ \textcolor{keywordtype}{int}\ mb\_w;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ columns\ in\ the\ sample}}
+\DoxyCodeLine{00057\ \ \ \textcolor{keywordtype}{int}\ mb\_h;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ rows\ in\ the\ sample}}
+\DoxyCodeLine{00058\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ y,\ *u,\ *v;\ \ \textcolor{comment}{//\ rows\ to\ copy\ (in\ yuv420\ format)}}
+\DoxyCodeLine{00059\ \ \ \textcolor{keywordtype}{int}\ y\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ row\ stride\ for\ luma}}
+\DoxyCodeLine{00060\ \ \ \textcolor{keywordtype}{int}\ uv\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ row\ stride\ for\ chroma}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \textcolor{keywordtype}{void}*\ opaque;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ user\ data}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \textcolor{comment}{//\ called\ when\ fresh\ samples\ are\ available.\ Currently,\ samples\ are\ in}}
+\DoxyCodeLine{00065\ \ \ \textcolor{comment}{//\ YUV420\ format,\ and\ can\ be\ up\ to\ width\ x\ 24\ in\ size\ (depending\ on\ the}}
+\DoxyCodeLine{00066\ \ \ \textcolor{comment}{//\ in-\/loop\ filtering\ level,\ e.g.).\ Should\ return\ false\ in\ case\ of\ error}}
+\DoxyCodeLine{00067\ \ \ \textcolor{comment}{//\ or\ abort\ request.\ The\ actual\ size\ of\ the\ area\ to\ update\ is\ mb\_w\ x\ mb\_h}}
+\DoxyCodeLine{00068\ \ \ \textcolor{comment}{//\ in\ size,\ taking\ cropping\ into\ account.}}
+\DoxyCodeLine{00069\ \ \ VP8IoPutHook\ put;}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \textcolor{comment}{//\ called\ just\ before\ starting\ to\ decode\ the\ blocks.}}
+\DoxyCodeLine{00072\ \ \ \textcolor{comment}{//\ Must\ return\ false\ in\ case\ of\ setup\ error,\ true\ otherwise.\ If\ false\ is}}
+\DoxyCodeLine{00073\ \ \ \textcolor{comment}{//\ returned,\ teardown()\ will\ NOT\ be\ called.\ But\ if\ the\ setup\ succeeded}}
+\DoxyCodeLine{00074\ \ \ \textcolor{comment}{//\ and\ true\ is\ returned,\ then\ teardown()\ will\ always\ be\ called\ afterward.}}
+\DoxyCodeLine{00075\ \ \ VP8IoSetupHook\ \mbox{\hyperlink{namespacesetup}{setup}};}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \textcolor{comment}{//\ Called\ just\ after\ block\ decoding\ is\ finished\ (or\ when\ an\ error\ occurred}}
+\DoxyCodeLine{00078\ \ \ \textcolor{comment}{//\ during\ put()).\ Is\ NOT\ called\ if\ setup()\ failed.}}
+\DoxyCodeLine{00079\ \ \ VP8IoTeardownHook\ teardown;}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \textcolor{comment}{//\ this\ is\ a\ recommendation\ for\ the\ user-\/side\ yuv-\/>rgb\ converter.\ This\ flag}}
+\DoxyCodeLine{00082\ \ \ \textcolor{comment}{//\ is\ set\ when\ calling\ setup()\ hook\ and\ can\ be\ overwritten\ by\ it.\ It\ then}}
+\DoxyCodeLine{00083\ \ \ \textcolor{comment}{//\ can\ be\ taken\ into\ consideration\ during\ the\ put()\ method.}}
+\DoxyCodeLine{00084\ \ \ \textcolor{keywordtype}{int}\ fancy\_upsampling;}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{comment}{//\ Input\ buffer.}}
+\DoxyCodeLine{00087\ \ \ \textcolor{keywordtype}{size\_t}\ data\_size;}
+\DoxyCodeLine{00088\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \textcolor{comment}{//\ If\ true,\ in-\/loop\ filtering\ will\ not\ be\ performed\ even\ if\ present\ in\ the}}
+\DoxyCodeLine{00091\ \ \ \textcolor{comment}{//\ bitstream.\ Switching\ off\ filtering\ may\ speed\ up\ decoding\ at\ the\ expense}}
+\DoxyCodeLine{00092\ \ \ \textcolor{comment}{//\ of\ more\ visible\ blocking.\ Note\ that\ output\ will\ also\ be\ non-\/compliant}}
+\DoxyCodeLine{00093\ \ \ \textcolor{comment}{//\ with\ the\ VP8\ specifications.}}
+\DoxyCodeLine{00094\ \ \ \textcolor{keywordtype}{int}\ bypass\_filtering;}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \textcolor{comment}{//\ Cropping\ parameters.}}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordtype}{int}\ use\_cropping;}
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordtype}{int}\ crop\_left,\ crop\_right,\ crop\_top,\ crop\_bottom;}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \textcolor{comment}{//\ Scaling\ parameters.}}
+\DoxyCodeLine{00101\ \ \ \textcolor{keywordtype}{int}\ use\_scaling;}
+\DoxyCodeLine{00102\ \ \ \textcolor{keywordtype}{int}\ scaled\_width,\ scaled\_height;}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \textcolor{comment}{//\ If\ non\ NULL,\ pointer\ to\ the\ alpha\ data\ (if\ present)\ corresponding\ to\ the}}
+\DoxyCodeLine{00105\ \ \ \textcolor{comment}{//\ start\ of\ the\ current\ row\ (That\ is:\ it\ is\ pre-\/offset\ by\ mb\_y\ and\ takes}}
+\DoxyCodeLine{00106\ \ \ \textcolor{comment}{//\ cropping\ into\ account).}}
+\DoxyCodeLine{00107\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00108\ \};}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00111\ \textcolor{keywordtype}{int}\ VP8InitIoInternal(\mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const},\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \textcolor{comment}{//\ Set\ the\ custom\ IO\ function\ pointers\ and\ user-\/data.\ The\ setter\ for\ IO\ hooks}}
+\DoxyCodeLine{00114\ \textcolor{comment}{//\ should\ be\ called\ before\ initiating\ incremental\ decoding.\ Returns\ true\ if}}
+\DoxyCodeLine{00115\ \textcolor{comment}{//\ WebPIDecoder\ object\ is\ successfully\ modified,\ false\ otherwise.}}
+\DoxyCodeLine{00116\ \textcolor{keywordtype}{int}\ WebPISetIOHooks(\mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ \textcolor{keyword}{const}\ idec,}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VP8IoPutHook\ put,}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VP8IoSetupHook\ \mbox{\hyperlink{namespacesetup}{setup}},}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VP8IoTeardownHook\ teardown,}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ user\_data);}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{comment}{//\ Main\ decoding\ object.\ This\ is\ an\ opaque\ structure.}}
+\DoxyCodeLine{00123\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}\ \mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}};}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{//\ Create\ a\ new\ decoder\ object.}}
+\DoxyCodeLine{00126\ \mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ VP8New(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{comment}{//\ Must\ be\ called\ to\ make\ sure\ 'io'\ is\ initialized\ properly.}}
+\DoxyCodeLine{00129\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ version\ mismatch.\ Upon\ such\ failure,\ no\ other}}
+\DoxyCodeLine{00130\ \textcolor{comment}{//\ decoding\ function\ should\ be\ called\ (VP8Decode,\ VP8GetHeaders,\ ...)}}
+\DoxyCodeLine{00131\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8InitIo(\mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io)\ \{}
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordflow}{return}\ VP8InitIoInternal(io,\ WEBP\_DECODER\_ABI\_VERSION);}
+\DoxyCodeLine{00133\ \}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{comment}{//\ Decode\ the\ VP8\ frame\ header.\ Returns\ true\ if\ ok.}}
+\DoxyCodeLine{00136\ \textcolor{comment}{//\ Note:\ 'io-\/>data'\ must\ be\ pointing\ to\ the\ start\ of\ the\ VP8\ frame\ header.}}
+\DoxyCodeLine{00137\ \textcolor{keywordtype}{int}\ VP8GetHeaders(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io);}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \textcolor{comment}{//\ Decode\ a\ picture.\ Will\ call\ VP8GetHeaders()\ if\ it\ wasn't\ done\ already.}}
+\DoxyCodeLine{00140\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00141\ \textcolor{keywordtype}{int}\ VP8Decode(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io);}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{comment}{//\ Return\ current\ status\ of\ the\ decoder:}}
+\DoxyCodeLine{00144\ VP8StatusCode\ VP8Status(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{comment}{//\ return\ readable\ string\ corresponding\ to\ the\ last\ status.}}
+\DoxyCodeLine{00147\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ VP8StatusMessage(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{comment}{//\ Resets\ the\ decoder\ in\ its\ initial\ state,\ reclaiming\ memory.}}
+\DoxyCodeLine{00150\ \textcolor{comment}{//\ Not\ a\ mandatory\ call\ between\ calls\ to\ VP8Decode().}}
+\DoxyCodeLine{00151\ \textcolor{keywordtype}{void}\ VP8Clear(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{comment}{//\ Destroy\ the\ decoder\ object.}}
+\DoxyCodeLine{00154\ \textcolor{keywordtype}{void}\ VP8Delete(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00157\ \textcolor{comment}{//\ Miscellaneous\ VP8/VP8L\ bitstream\ probing\ functions.}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \textcolor{comment}{//\ Returns\ true\ if\ the\ next\ 3\ bytes\ in\ data\ contain\ the\ VP8\ signature.}}
+\DoxyCodeLine{00160\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ VP8CheckSignature(\textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size);}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{comment}{//\ Validates\ the\ VP8\ data-\/header\ and\ retrieves\ basic\ header\ information\ viz}}
+\DoxyCodeLine{00163\ \textcolor{comment}{//\ width\ and\ height.\ Returns\ 0\ in\ case\ of\ formatting\ error.\ *width/*height}}
+\DoxyCodeLine{00164\ \textcolor{comment}{//\ can\ be\ passed\ NULL.}}
+\DoxyCodeLine{00165\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ VP8GetInfo(}
+\DoxyCodeLine{00166\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ data\_size,\ \ \ \ \textcolor{comment}{//\ data\ available\ so\ far}}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ chunk\_size,\ \ \ \textcolor{comment}{//\ total\ data\ size\ expected\ in\ the\ chunk}}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ width,\ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ height);}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \textcolor{comment}{//\ Returns\ true\ if\ the\ next\ byte(s)\ in\ data\ is\ a\ VP8L\ signature.}}
+\DoxyCodeLine{00172\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ VP8LCheckSignature(\textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{comment}{//\ Validates\ the\ VP8L\ data-\/header\ and\ retrieves\ basic\ header\ information\ viz}}
+\DoxyCodeLine{00175\ \textcolor{comment}{//\ width,\ height\ and\ alpha.\ Returns\ 0\ in\ case\ of\ formatting\ error.}}
+\DoxyCodeLine{00176\ \textcolor{comment}{//\ width/height/has\_alpha\ can\ be\ passed\ NULL.}}
+\DoxyCodeLine{00177\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ VP8LGetInfo(}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,\ \ \textcolor{comment}{//\ data\ available\ so\ far}}
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ width,\ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ height,\ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ has\_alpha);}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00182\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DEC\_VP8\_DEC\_H\_}}
+
+\end{DoxyCode}

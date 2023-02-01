@@ -1,0 +1,104 @@
+\hypertarget{http__chunks_8h_source}{}\doxysection{http\+\_\+chunks.\+h}
+\label{http__chunks_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/http\_chunks.h@{AseSprite/aseprite/third\_party/curl/lib/http\_chunks.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_HTTP\_CHUNKS\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_HTTP\_CHUNKS\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1998\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconnectdata}{connectdata}};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *\ The\ longest\ possible\ hexadecimal\ number\ we\ support\ in\ a\ chunked\ transfer.}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ Neither\ RFC2616\ nor\ the\ later\ HTTP\ specs\ define\ a\ maximum\ chunk\ size.}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *\ For\ 64\ bit\ curl\_off\_t\ we\ support\ 16\ digits.\ For\ 32\ bit,\ 8\ digits.}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ CHUNK\_MAXNUM\_LEN\ (SIZEOF\_CURL\_OFF\_T\ *\ 2)}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00035\ \ \ \textcolor{comment}{/*\ await\ and\ buffer\ all\ hexadecimal\ digits\ until\ we\ get\ one\ that\ isn't\ a}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ \ \ hexadecimal\ digit.\ When\ done,\ we\ go\ CHUNK\_LF\ */}}
+\DoxyCodeLine{00037\ \ \ CHUNK\_HEX,}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \textcolor{comment}{/*\ wait\ for\ LF,\ ignore\ all\ else\ */}}
+\DoxyCodeLine{00040\ \ \ CHUNK\_LF,}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \textcolor{comment}{/*\ We\ eat\ the\ amount\ of\ data\ specified.\ When\ done,\ we\ move\ on\ to\ the}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ \ \ POST\_CR\ state.\ */}}
+\DoxyCodeLine{00044\ \ \ CHUNK\_DATA,}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \textcolor{comment}{/*\ POSTLF\ should\ get\ a\ CR\ and\ then\ a\ LF\ and\ nothing\ else,\ then\ move\ back\ to}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ \ \ HEX\ as\ the\ CRLF\ combination\ marks\ the\ end\ of\ a\ chunk.\ A\ missing\ CR\ is\ no}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ \ \ big\ deal.\ */}}
+\DoxyCodeLine{00049\ \ \ CHUNK\_POSTLF,}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{comment}{/*\ Used\ to\ mark\ that\ we're\ out\ of\ the\ game.\ \ NOTE:\ that\ there's\ a\ 'datasize'}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ \ \ field\ in\ the\ struct\ that\ will\ tell\ how\ many\ bytes\ that\ were\ not\ passed\ to}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ \ \ the\ client\ in\ the\ end\ of\ the\ last\ buffer!\ */}}
+\DoxyCodeLine{00054\ \ \ CHUNK\_STOP,}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \textcolor{comment}{/*\ At\ this\ point\ optional\ trailer\ headers\ can\ be\ found,\ unless\ the\ next\ line}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ \ \ is\ CRLF\ */}}
+\DoxyCodeLine{00058\ \ \ CHUNK\_TRAILER,}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \textcolor{comment}{/*\ A\ trailer\ CR\ has\ been\ found\ -\/\ next\ state\ is\ CHUNK\_TRAILER\_POSTCR.}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ \ \ Next\ char\ must\ be\ a\ LF\ */}}
+\DoxyCodeLine{00062\ \ \ CHUNK\_TRAILER\_CR,}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \textcolor{comment}{/*\ A\ trailer\ LF\ must\ be\ found\ now,\ otherwise\ CHUNKE\_BAD\_CHUNK\ will\ be}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ \ \ signalled\ If\ this\ is\ an\ empty\ trailer\ CHUNKE\_STOP\ will\ be\ signalled.}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ \ \ Otherwise\ the\ trailer\ will\ be\ broadcasted\ via\ Curl\_client\_write()\ and\ the}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ \ \ next\ state\ will\ be\ CHUNK\_TRAILER\ */}}
+\DoxyCodeLine{00068\ \ \ CHUNK\_TRAILER\_POSTCR}
+\DoxyCodeLine{00069\ \}\ ChunkyState;}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00072\ \ \ CHUNKE\_STOP\ =\ -\/1,}
+\DoxyCodeLine{00073\ \ \ CHUNKE\_OK\ =\ 0,}
+\DoxyCodeLine{00074\ \ \ CHUNKE\_TOO\_LONG\_HEX\ =\ 1,}
+\DoxyCodeLine{00075\ \ \ CHUNKE\_ILLEGAL\_HEX,}
+\DoxyCodeLine{00076\ \ \ CHUNKE\_BAD\_CHUNK,}
+\DoxyCodeLine{00077\ \ \ CHUNKE\_BAD\_ENCODING,}
+\DoxyCodeLine{00078\ \ \ CHUNKE\_OUT\_OF\_MEMORY,}
+\DoxyCodeLine{00079\ \ \ CHUNKE\_PASSTHRU\_ERROR,\ \textcolor{comment}{/*\ Curl\_httpchunk\_read()\ returns\ a\ CURLcode\ to\ use\ */}}
+\DoxyCodeLine{00080\ \ \ CHUNKE\_LAST}
+\DoxyCodeLine{00081\ \}\ CHUNKcode;}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *Curl\_chunked\_strerror(CHUNKcode\ \mbox{\hyperlink{structcode}{code}});}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__chunker}{Curl\_chunker}}\ \{}
+\DoxyCodeLine{00086\ \ \ curl\_off\_t\ datasize;}
+\DoxyCodeLine{00087\ \ \ ChunkyState\ \mbox{\hyperlink{structstate}{state}};}
+\DoxyCodeLine{00088\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ hexindex;}
+\DoxyCodeLine{00089\ \ \ \textcolor{keywordtype}{char}\ hexbuffer[\ CHUNK\_MAXNUM\_LEN\ +\ 1];\ \textcolor{comment}{/*\ +1\ for\ null-\/terminator\ */}}
+\DoxyCodeLine{00090\ \};}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{comment}{/*\ The\ following\ functions\ are\ defined\ in\ http\_chunks.c\ */}}
+\DoxyCodeLine{00093\ \textcolor{keywordtype}{void}\ Curl\_httpchunk\_init(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00094\ CHUNKcode\ Curl\_httpchunk\_read(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{char}\ *datap,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ssize\_t\ length,\ ssize\_t\ *wrote,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ CURLcode\ *passthru);}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_HTTP\_CHUNKS\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

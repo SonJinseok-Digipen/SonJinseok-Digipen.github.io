@@ -1,0 +1,732 @@
+\hypertarget{dsp_8h_source}{}\doxysection{dsp.\+h}
+\label{dsp_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dsp/dsp.h@{AseSprite/aseprite/third\_party/libwebp/src/dsp/dsp.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2011\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ \ \ Speed-\/critical\ functions.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DSP\_DSP\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_DSP\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifdef\ HAVE\_CONFIG\_H}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}src/webp/config.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00024\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ BPS\ 32\ \ \ }\textcolor{comment}{//\ this\ is\ the\ common\ stride\ for\ enc/dec}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ WEBP\_RESTRICT}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{comment}{//\ Declares\ a\ pointer\ with\ the\ restrict\ type\ qualifier\ if\ available.}}
+\DoxyCodeLine{00033\ \textcolor{comment}{//\ This\ allows\ code\ to\ hint\ to\ the\ compiler\ that\ only\ this\ pointer\ references\ a}}
+\DoxyCodeLine{00034\ \textcolor{comment}{//\ particular\ object\ or\ memory\ region\ within\ the\ scope\ of\ the\ block\ in\ which\ it}}
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ is\ declared.\ This\ may\ allow\ for\ improved\ optimizations\ due\ to\ the\ lack\ of}}
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ pointer\ aliasing.\ See\ also:}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ https://en.cppreference.com/w/c/language/restrict}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ WEBP\_RESTRICT\ \_\_restrict\_\_}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#elif\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ WEBP\_RESTRICT\ \_\_restrict}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ WEBP\_RESTRICT}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00047\ \textcolor{comment}{//\ CPU\ detection}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#\ define\ LOCAL\_GCC\_VERSION\ ((\_\_GNUC\_\_\ <<\ 8)\ |\ \_\_GNUC\_MINOR\_\_)}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#\ define\ LOCAL\_GCC\_PREREQ(maj,\ min)\ \(\backslash\)}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\ \ \ \ (LOCAL\_GCC\_VERSION\ >=\ (((maj)\ <<\ 8)\ |\ (min)))}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#\ define\ LOCAL\_GCC\_VERSION\ 0}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#\ define\ LOCAL\_GCC\_PREREQ(maj,\ min)\ 0}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#if\ defined(\_\_clang\_\_)}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#\ define\ LOCAL\_CLANG\_VERSION\ ((\_\_clang\_major\_\_\ <<\ 8)\ |\ \_\_clang\_minor\_\_)}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#\ define\ LOCAL\_CLANG\_PREREQ(maj,\ min)\ \(\backslash\)}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ \ \ (LOCAL\_CLANG\_VERSION\ >=\ (((maj)\ <<\ 8)\ |\ (min)))}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#\ define\ LOCAL\_CLANG\_VERSION\ 0}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#\ define\ LOCAL\_CLANG\_PREREQ(maj,\ min)\ 0}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#ifndef\ \_\_has\_builtin}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#\ define\ \_\_has\_builtin(x)\ 0}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#if\ !defined(HAVE\_CONFIG\_H)}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)\ \&\&\ \_MSC\_VER\ >\ 1310\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\ \ \ \ (defined(\_M\_X64)\ ||\ defined(\_M\_IX86))}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ WEBP\_MSC\_SSE2\ \ }\textcolor{comment}{//\ Visual\ C++\ SSE2\ targets}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)\ \&\&\ \_MSC\_VER\ >=\ 1500\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\ \ \ \ (defined(\_M\_X64)\ ||\ defined(\_M\_IX86))}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ WEBP\_MSC\_SSE41\ \ }\textcolor{comment}{//\ Visual\ C++\ SSE4.1\ targets}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{comment}{//\ WEBP\_HAVE\_*\ are\ used\ to\ indicate\ the\ presence\ of\ the\ instruction\ set\ in\ dsp}}
+\DoxyCodeLine{00084\ \textcolor{comment}{//\ files\ without\ intrinsics,\ allowing\ the\ corresponding\ Init()\ to\ be\ called.}}
+\DoxyCodeLine{00085\ \textcolor{comment}{//\ Files\ containing\ intrinsics\ will\ need\ to\ be\ built\ targeting\ the\ instruction}}
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ set\ so\ should\ succeed\ on\ one\ of\ the\ earlier\ tests.}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#if\ (defined(\_\_SSE2\_\_)\ ||\ defined(WEBP\_MSC\_SSE2))\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\ \ \ \ (!defined(HAVE\_CONFIG\_H)\ ||\ defined(WEBP\_HAVE\_SSE2))}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_SSE2}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_SSE2)\ \&\&\ !defined(WEBP\_HAVE\_SSE2)}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#define\ WEBP\_HAVE\_SSE2}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#if\ (defined(\_\_SSE4\_1\_\_)\ ||\ defined(WEBP\_MSC\_SSE41))\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\ \ \ \ (!defined(HAVE\_CONFIG\_H)\ ||\ defined(WEBP\_HAVE\_SSE41))}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_SSE41}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_SSE41)\ \&\&\ !defined(WEBP\_HAVE\_SSE41)}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ WEBP\_HAVE\_SSE41}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#undef\ WEBP\_MSC\_SSE41}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#undef\ WEBP\_MSC\_SSE2}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{comment}{//\ The\ intrinsics\ currently\ cause\ compiler\ errors\ with\ arm-\/nacl-\/gcc\ and\ the}}
+\DoxyCodeLine{00109\ \textcolor{comment}{//\ inline\ assembly\ would\ need\ to\ be\ modified\ for\ use\ with\ Native\ Client.}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#if\ ((defined(\_\_ARM\_NEON\_\_)\ ||\ defined(\_\_aarch64\_\_))\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\ \ \ \ \ (!defined(HAVE\_CONFIG\_H)\ ||\ defined(WEBP\_HAVE\_NEON)))\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ \ \ !defined(\_\_native\_client\_\_)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_NEON}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#if\ !defined(WEBP\_USE\_NEON)\ \&\&\ defined(\_\_ANDROID\_\_)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_ARM\_ARCH\_7A\_\_)\ \&\&\ defined(HAVE\_CPU\_FEATURES\_H)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ WEBP\_ANDROID\_NEON\ \ }\textcolor{comment}{//\ Android\ targets\ that\ may\ have\ NEON}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_NEON}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)\ \&\&\ \_MSC\_VER\ >=\ 1700\ \&\&\ defined(\_M\_ARM)}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_NEON}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_INTRINSICS}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_NEON)\ \&\&\ !defined(WEBP\_HAVE\_NEON)}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#define\ WEBP\_HAVE\_NEON}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#if\ defined(\_\_mips\_\_)\ \&\&\ !defined(\_\_mips64)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_mips\_isa\_rev)\ \&\&\ (\_\_mips\_isa\_rev\ >=\ 1)\ \&\&\ (\_\_mips\_isa\_rev\ <\ 6)}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_MIPS32}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#if\ (\_\_mips\_isa\_rev\ >=\ 2)}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_MIPS32\_R2}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#if\ defined(\_\_mips\_dspr2)\ ||\ (defined(\_\_mips\_dsp\_rev)\ \&\&\ \_\_mips\_dsp\_rev\ >=\ 2)}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_MIPS\_DSP\_R2}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#if\ defined(\_\_mips\_msa)\ \&\&\ defined(\_\_mips\_isa\_rev)\ \&\&\ (\_\_mips\_isa\_rev\ >=\ 5)}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_MSA}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DSP\_OMIT\_C\_CODE}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_OMIT\_C\_CODE\ 1}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_NEON)\ \&\&\ WEBP\_DSP\_OMIT\_C\_CODE}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\#define\ WEBP\_NEON\_OMIT\_C\_CODE\ 1}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\#define\ WEBP\_NEON\_OMIT\_C\_CODE\ 0}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#if\ !(LOCAL\_CLANG\_PREREQ(3,8)\ ||\ LOCAL\_GCC\_PREREQ(4,8)\ ||\ defined(\_\_aarch64\_\_))}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#define\ WEBP\_NEON\_WORK\_AROUND\_GCC\ 1}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#define\ WEBP\_NEON\_WORK\_AROUND\_GCC\ 0}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{comment}{//\ This\ macro\ prevents\ thread\_sanitizer\ from\ reporting\ known\ concurrent\ writes.}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\#define\ WEBP\_TSAN\_IGNORE\_FUNCTION}}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#if\ defined(\_\_has\_feature)}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\#if\ \_\_has\_feature(thread\_sanitizer)}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\#undef\ WEBP\_TSAN\_IGNORE\_FUNCTION}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\#define\ WEBP\_TSAN\_IGNORE\_FUNCTION\ \_\_attribute\_\_((no\_sanitize\_thread))}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_THREAD)\ \&\&\ !defined(\_WIN32)}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#include\ <pthread.h>}\ \ \textcolor{comment}{//\ NOLINT}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_INIT(func)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\ \ static\ volatile\ VP8CPUInfo\ func\ \#\#\ \_last\_cpuinfo\_used\ =\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\ \ \ \ \ \ (VP8CPUInfo)\&func\ \#\#\ \_last\_cpuinfo\_used;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ static\ pthread\_mutex\_t\ func\ \#\#\ \_lock\ =\ PTHREAD\_MUTEX\_INITIALIZER;\ \(\backslash\)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ if\ (pthread\_mutex\_lock(\&func\ \#\#\ \_lock))\ break;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ if\ (func\ \#\#\ \_last\_cpuinfo\_used\ !=\ VP8GetCPUInfo)\ func();\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ func\ \#\#\ \_last\_cpuinfo\_used\ =\ VP8GetCPUInfo;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\ \ (void)pthread\_mutex\_unlock(\&func\ \#\#\ \_lock);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\}\ while\ (0)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#else\ \ }\textcolor{comment}{//\ !(defined(WEBP\_USE\_THREAD)\ \&\&\ !defined(\_WIN32))}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_INIT(func)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\ \ static\ volatile\ VP8CPUInfo\ func\ \#\#\ \_last\_cpuinfo\_used\ =\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\ \ \ \ \ \ (VP8CPUInfo)\&func\ \#\#\ \_last\_cpuinfo\_used;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\ \ if\ (func\ \#\#\ \_last\_cpuinfo\_used\ ==\ VP8GetCPUInfo)\ break;\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\ \ func();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\ \ func\ \#\#\ \_last\_cpuinfo\_used\ =\ VP8GetCPUInfo;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\}\ while\ (0)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ defined(WEBP\_USE\_THREAD)\ \&\&\ !defined(\_WIN32)}}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \textcolor{comment}{//\ Defines\ an\ Init\ +\ helper\ function\ that\ control\ multiple\ initialization\ of}}
+\DoxyCodeLine{00194\ \textcolor{comment}{//\ function\ pointers\ /\ tables.}}
+\DoxyCodeLine{00195\ \textcolor{comment}{/*\ Usage:}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ \ \ WEBP\_DSP\_INIT\_FUNC(InitFunc)\ \{}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ \ \ \ \ ...function\ body}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ \ \}}}
+\DoxyCodeLine{00199\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_INIT\_FUNC(name)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\ \ static\ WEBP\_TSAN\_IGNORE\_FUNCTION\ void\ name\ \#\#\ \_body(void);\ \(\backslash\)}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\ \ WEBP\_TSAN\_IGNORE\_FUNCTION\ void\ name(void)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\ \ \ \ WEBP\_DSP\_INIT(name\ \#\#\ \_body);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\ \ static\ WEBP\_TSAN\_IGNORE\_FUNCTION\ void\ name\ \#\#\ \_body(void)}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#define\ WEBP\_UBSAN\_IGNORE\_UNDEF}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#define\ WEBP\_UBSAN\_IGNORE\_UNSIGNED\_OVERFLOW}}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#if\ defined(\_\_clang\_\_)\ \&\&\ defined(\_\_has\_attribute)}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#if\ \_\_has\_attribute(no\_sanitize)}}
+\DoxyCodeLine{00211\ \textcolor{comment}{//\ This\ macro\ prevents\ the\ undefined\ behavior\ sanitizer\ from\ reporting}}
+\DoxyCodeLine{00212\ \textcolor{comment}{//\ failures.\ This\ is\ only\ meant\ to\ silence\ unaligned\ loads\ on\ platforms\ that}}
+\DoxyCodeLine{00213\ \textcolor{comment}{//\ are\ known\ to\ support\ them.}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\#undef\ WEBP\_UBSAN\_IGNORE\_UNDEF}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#define\ WEBP\_UBSAN\_IGNORE\_UNDEF\ \(\backslash\)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\ \ \_\_attribute\_\_((no\_sanitize("{}undefined"{}})))}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{comment}{//\ This\ macro\ prevents\ the\ undefined\ behavior\ sanitizer\ from\ reporting}}
+\DoxyCodeLine{00219\ \textcolor{comment}{//\ failures\ related\ to\ unsigned\ integer\ overflows.\ This\ is\ only\ meant\ to}}
+\DoxyCodeLine{00220\ \textcolor{comment}{//\ silence\ cases\ where\ this\ well\ defined\ behavior\ is\ expected.}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#undef\ WEBP\_UBSAN\_IGNORE\_UNSIGNED\_OVERFLOW}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\#define\ WEBP\_UBSAN\_IGNORE\_UNSIGNED\_OVERFLOW\ \(\backslash\)}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\ \ \_\_attribute\_\_((no\_sanitize("{}unsigned-\/integer-\/overflow"{}})))}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \textcolor{comment}{//\ If\ 'ptr'\ is\ NULL,\ returns\ NULL.\ Otherwise\ returns\ 'ptr\ +\ off'.}}
+\DoxyCodeLine{00228\ \textcolor{comment}{//\ Prevents\ undefined\ behavior\ sanitizer\ nullptr-\/with-\/nonzero-\/offset\ warning.}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#if\ !defined(WEBP\_OFFSET\_PTR)}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#define\ WEBP\_OFFSET\_PTR(ptr,\ off)\ (((ptr)\ ==\ NULL)\ ?\ NULL\ :\ ((ptr)\ +\ (off)))}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \textcolor{comment}{//\ Regularize\ the\ definition\ of\ WEBP\_SWAP\_16BIT\_CSP\ (backward\ compatibility)}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#if\ !defined(WEBP\_SWAP\_16BIT\_CSP)}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\#define\ WEBP\_SWAP\_16BIT\_CSP\ 0}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \textcolor{comment}{//\ some\ endian\ fix\ (e.g.:\ mips-\/gcc\ doesn't\ define\ \_\_BIG\_ENDIAN\_\_)}}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#if\ !defined(WORDS\_BIGENDIAN)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\ \ \ \ (defined(\_\_BIG\_ENDIAN\_\_)\ ||\ defined(\_M\_PPC)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\ \ \ \ \ (defined(\_\_BYTE\_ORDER\_\_)\ \&\&\ (\_\_BYTE\_ORDER\_\_\ ==\ \_\_ORDER\_BIG\_ENDIAN\_\_)))}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#define\ WORDS\_BIGENDIAN}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00246\ \ \ kSSE2,}
+\DoxyCodeLine{00247\ \ \ kSSE3,}
+\DoxyCodeLine{00248\ \ \ kSlowSSSE3,\ \ \textcolor{comment}{//\ special\ feature\ for\ slow\ SSSE3\ architectures}}
+\DoxyCodeLine{00249\ \ \ kSSE4\_1,}
+\DoxyCodeLine{00250\ \ \ kAVX,}
+\DoxyCodeLine{00251\ \ \ kAVX2,}
+\DoxyCodeLine{00252\ \ \ kNEON,}
+\DoxyCodeLine{00253\ \ \ kMIPS32,}
+\DoxyCodeLine{00254\ \ \ kMIPSdspR2,}
+\DoxyCodeLine{00255\ \ \ kMSA}
+\DoxyCodeLine{00256\ \}\ CPUFeature;}
+\DoxyCodeLine{00257\ \textcolor{comment}{//\ returns\ true\ if\ the\ CPU\ supports\ the\ feature.}}
+\DoxyCodeLine{00258\ \textcolor{keyword}{typedef}\ int\ (*VP8CPUInfo)(CPUFeature\ feature);}
+\DoxyCodeLine{00259\ WEBP\_EXTERN\ VP8CPUInfo\ VP8GetCPUInfo;}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00262\ \textcolor{comment}{//\ Init\ stub\ generator}}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \textcolor{comment}{//\ Defines\ an\ init\ function\ stub\ to\ ensure\ each\ module\ exposes\ a\ symbol,}}
+\DoxyCodeLine{00265\ \textcolor{comment}{//\ avoiding\ a\ compiler\ warning.}}
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_INIT\_STUB(func)\ \(\backslash\)}}
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\ \ extern\ void\ func(void);\ \(\backslash\)}}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\ \ void\ func(void)\ \{\}}}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00271\ \textcolor{comment}{//\ Encoding}}
+\DoxyCodeLine{00272\ }
+\DoxyCodeLine{00273\ \textcolor{comment}{//\ Transforms}}
+\DoxyCodeLine{00274\ \textcolor{comment}{//\ VP8Idct:\ Does\ one\ of\ two\ inverse\ transforms.\ If\ do\_two\ is\ set,\ the\ transforms}}
+\DoxyCodeLine{00275\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ will\ be\ done\ for\ (ref,\ in,\ dst)\ and\ (ref\ +\ 4,\ in\ +\ 16,\ dst\ +\ 4).}}
+\DoxyCodeLine{00276\ \textcolor{keyword}{typedef}\ void\ (*VP8Idct)(\textcolor{keyword}{const}\ uint8\_t*\ ref,\ \textcolor{keyword}{const}\ int16\_t*\ in,\ uint8\_t*\ dst,}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ do\_two);}
+\DoxyCodeLine{00278\ \textcolor{keyword}{typedef}\ void\ (*VP8Fdct)(\textcolor{keyword}{const}\ uint8\_t*\ src,\ \textcolor{keyword}{const}\ uint8\_t*\ ref,\ int16\_t*\ out);}
+\DoxyCodeLine{00279\ \textcolor{keyword}{typedef}\ void\ (*VP8WHT)(\textcolor{keyword}{const}\ int16\_t*\ in,\ int16\_t*\ out);}
+\DoxyCodeLine{00280\ \textcolor{keyword}{extern}\ VP8Idct\ VP8ITransform;}
+\DoxyCodeLine{00281\ \textcolor{keyword}{extern}\ VP8Fdct\ VP8FTransform;}
+\DoxyCodeLine{00282\ \textcolor{keyword}{extern}\ VP8Fdct\ VP8FTransform2;\ \ \ \textcolor{comment}{//\ performs\ two\ transforms\ at\ a\ time}}
+\DoxyCodeLine{00283\ \textcolor{keyword}{extern}\ VP8WHT\ VP8FTransformWHT;}
+\DoxyCodeLine{00284\ \textcolor{comment}{//\ Predictions}}
+\DoxyCodeLine{00285\ \textcolor{comment}{//\ *dst\ is\ the\ destination\ block.\ *top\ and\ *left\ can\ be\ NULL.}}
+\DoxyCodeLine{00286\ \textcolor{keyword}{typedef}\ void\ (*VP8IntraPreds)(uint8\_t*\ dst,\ \textcolor{keyword}{const}\ uint8\_t*\ left,}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ top);}
+\DoxyCodeLine{00288\ \textcolor{keyword}{typedef}\ void\ (*VP8Intra4Preds)(uint8\_t*\ dst,\ \textcolor{keyword}{const}\ uint8\_t*\ top);}
+\DoxyCodeLine{00289\ \textcolor{keyword}{extern}\ VP8Intra4Preds\ VP8EncPredLuma4;}
+\DoxyCodeLine{00290\ \textcolor{keyword}{extern}\ VP8IntraPreds\ VP8EncPredLuma16;}
+\DoxyCodeLine{00291\ \textcolor{keyword}{extern}\ VP8IntraPreds\ VP8EncPredChroma8;}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \textcolor{keyword}{typedef}\ int\ (*VP8Metric)(\textcolor{keyword}{const}\ uint8\_t*\ pix,\ \textcolor{keyword}{const}\ uint8\_t*\ ref);}
+\DoxyCodeLine{00294\ \textcolor{keyword}{extern}\ VP8Metric\ VP8SSE16x16,\ VP8SSE16x8,\ VP8SSE8x8,\ VP8SSE4x4;}
+\DoxyCodeLine{00295\ \textcolor{keyword}{typedef}\ int\ (*VP8WMetric)(\textcolor{keyword}{const}\ uint8\_t*\ pix,\ \textcolor{keyword}{const}\ uint8\_t*\ ref,}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint16\_t*\ \textcolor{keyword}{const}\ weights);}
+\DoxyCodeLine{00297\ \textcolor{comment}{//\ The\ weights\ for\ VP8TDisto4x4\ and\ VP8TDisto16x16\ contain\ a\ row-\/major}}
+\DoxyCodeLine{00298\ \textcolor{comment}{//\ 4\ by\ 4\ symmetric\ matrix.}}
+\DoxyCodeLine{00299\ \textcolor{keyword}{extern}\ VP8WMetric\ VP8TDisto4x4,\ VP8TDisto16x16;}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \textcolor{comment}{//\ Compute\ the\ average\ (DC)\ of\ four\ 4x4\ blocks.}}
+\DoxyCodeLine{00302\ \textcolor{comment}{//\ Each\ sub-\/4x4\ block\ \#i\ sum\ is\ stored\ in\ dc[i].}}
+\DoxyCodeLine{00303\ \textcolor{keyword}{typedef}\ void\ (*VP8MeanMetric)(\textcolor{keyword}{const}\ uint8\_t*\ ref,\ uint32\_t\ dc[4]);}
+\DoxyCodeLine{00304\ \textcolor{keyword}{extern}\ VP8MeanMetric\ VP8Mean16x4;}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \textcolor{keyword}{typedef}\ void\ (*VP8BlockCopy)(\textcolor{keyword}{const}\ uint8\_t*\ src,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00307\ \textcolor{keyword}{extern}\ VP8BlockCopy\ VP8Copy4x4;}
+\DoxyCodeLine{00308\ \textcolor{keyword}{extern}\ VP8BlockCopy\ VP8Copy16x8;}
+\DoxyCodeLine{00309\ \textcolor{comment}{//\ Quantization}}
+\DoxyCodeLine{00310\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_matrix}{VP8Matrix}};\ \ \ \textcolor{comment}{//\ forward\ declaration}}
+\DoxyCodeLine{00311\ \textcolor{keyword}{typedef}\ int\ (*VP8QuantizeBlock)(int16\_t\ in[16],\ int16\_t\ out[16],}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_matrix}{VP8Matrix}}*\ \textcolor{keyword}{const}\ mtx);}
+\DoxyCodeLine{00313\ \textcolor{comment}{//\ Same\ as\ VP8QuantizeBlock,\ but\ quantizes\ two\ consecutive\ blocks.}}
+\DoxyCodeLine{00314\ \textcolor{keyword}{typedef}\ int\ (*VP8Quantize2Blocks)(int16\_t\ in[32],\ int16\_t\ out[32],}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_matrix}{VP8Matrix}}*\ \textcolor{keyword}{const}\ mtx);}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \textcolor{keyword}{extern}\ VP8QuantizeBlock\ VP8EncQuantizeBlock;}
+\DoxyCodeLine{00318\ \textcolor{keyword}{extern}\ VP8Quantize2Blocks\ VP8EncQuantize2Blocks;}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \textcolor{comment}{//\ specific\ to\ 2nd\ transform:}}
+\DoxyCodeLine{00321\ \textcolor{keyword}{typedef}\ int\ (*VP8QuantizeBlockWHT)(int16\_t\ in[16],\ int16\_t\ out[16],}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_matrix}{VP8Matrix}}*\ \textcolor{keyword}{const}\ mtx);}
+\DoxyCodeLine{00323\ \textcolor{keyword}{extern}\ VP8QuantizeBlockWHT\ VP8EncQuantizeBlockWHT;}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ VP8DspScan[16\ +\ 4\ +\ 4];}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \textcolor{comment}{//\ Collect\ histogram\ for\ susceptibility\ calculation.}}
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#define\ MAX\_COEFF\_THRESH\ \ \ 31\ \ \ }\textcolor{comment}{//\ size\ of\ histogram\ used\ by\ CollectHistogram.}}
+\DoxyCodeLine{00329\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00330\ \ \ \textcolor{comment}{//\ We\ only\ need\ to\ store\ max\_value\ and\ last\_non\_zero,\ not\ the\ distribution.}}
+\DoxyCodeLine{00331\ \ \ \textcolor{keywordtype}{int}\ max\_value;}
+\DoxyCodeLine{00332\ \ \ \textcolor{keywordtype}{int}\ last\_non\_zero;}
+\DoxyCodeLine{00333\ \}\ \mbox{\hyperlink{struct_v_p8_histogram}{VP8Histogram}};}
+\DoxyCodeLine{00334\ \textcolor{keyword}{typedef}\ void\ (*VP8CHisto)(\textcolor{keyword}{const}\ uint8\_t*\ ref,\ \textcolor{keyword}{const}\ uint8\_t*\ pred,}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ start\_block,\ \textcolor{keywordtype}{int}\ end\_block,}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_histogram}{VP8Histogram}}*\ \textcolor{keyword}{const}\ histo);}
+\DoxyCodeLine{00337\ \textcolor{keyword}{extern}\ VP8CHisto\ VP8CollectHistogram;}
+\DoxyCodeLine{00338\ \textcolor{comment}{//\ General-\/purpose\ util\ function\ to\ help\ VP8CollectHistogram().}}
+\DoxyCodeLine{00339\ \textcolor{keywordtype}{void}\ VP8SetHistogramData(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ distribution[MAX\_COEFF\_THRESH\ +\ 1],}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_histogram}{VP8Histogram}}*\ \textcolor{keyword}{const}\ histo);}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \textcolor{comment}{//\ must\ be\ called\ before\ using\ any\ of\ the\ above}}
+\DoxyCodeLine{00343\ \textcolor{keywordtype}{void}\ VP8EncDspInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00344\ }
+\DoxyCodeLine{00345\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00346\ \textcolor{comment}{//\ cost\ functions\ (encoding)}}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint16\_t\ VP8EntropyCost[256];\ \ \ \ \ \ \ \ \textcolor{comment}{//\ 8bit\ fixed-\/point\ log(p)}}
+\DoxyCodeLine{00349\ \textcolor{comment}{//\ approximate\ cost\ per\ level:}}
+\DoxyCodeLine{00350\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint16\_t\ VP8LevelFixedCosts[2047\ \textcolor{comment}{/*MAX\_LEVEL*/}\ +\ 1];}
+\DoxyCodeLine{00351\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint8\_t\ VP8EncBands[16\ +\ 1];}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}};}
+\DoxyCodeLine{00354\ \textcolor{keyword}{typedef}\ void\ (*VP8SetResidualCoeffsFunc)(\textcolor{keyword}{const}\ int16\_t*\ \textcolor{keyword}{const}\ coeffs,}
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}}*\ \textcolor{keyword}{const}\ res);}
+\DoxyCodeLine{00356\ \textcolor{keyword}{extern}\ VP8SetResidualCoeffsFunc\ VP8SetResidualCoeffs;}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \textcolor{comment}{//\ Cost\ calculation\ function.}}
+\DoxyCodeLine{00359\ \textcolor{keyword}{typedef}\ int\ (*VP8GetResidualCostFunc)(\textcolor{keywordtype}{int}\ ctx0,}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}}*\ \textcolor{keyword}{const}\ res);}
+\DoxyCodeLine{00361\ \textcolor{keyword}{extern}\ VP8GetResidualCostFunc\ VP8GetResidualCost;}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \textcolor{comment}{//\ must\ be\ called\ before\ anything\ using\ the\ above}}
+\DoxyCodeLine{00364\ \textcolor{keywordtype}{void}\ VP8EncDspCostInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00367\ \textcolor{comment}{//\ SSIM\ /\ PSNR\ utils}}
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ \textcolor{comment}{//\ struct\ for\ accumulating\ statistical\ moments}}
+\DoxyCodeLine{00370\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00371\ \ \ uint32\_t\ w;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ sum(w\_i)\ :\ sum\ of\ weights}}
+\DoxyCodeLine{00372\ \ \ uint32\_t\ xm,\ ym;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ sum(w\_i\ *\ x\_i),\ sum(w\_i\ *\ y\_i)}}
+\DoxyCodeLine{00373\ \ \ uint32\_t\ xxm,\ xym,\ yym;\ \ \textcolor{comment}{//\ sum(w\_i\ *\ x\_i\ *\ x\_i),\ etc.}}
+\DoxyCodeLine{00374\ \}\ \mbox{\hyperlink{struct_v_p8_disto_stats}{VP8DistoStats}};}
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \textcolor{comment}{//\ Compute\ the\ final\ SSIM\ value}}
+\DoxyCodeLine{00377\ \textcolor{comment}{//\ The\ non-\/clipped\ version\ assumes\ stats-\/>w\ =\ (2\ *\ VP8\_SSIM\_KERNEL\ +\ 1)\string^2.}}
+\DoxyCodeLine{00378\ \textcolor{keywordtype}{double}\ VP8SSIMFromStats(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_disto_stats}{VP8DistoStats}}*\ \textcolor{keyword}{const}\ stats);}
+\DoxyCodeLine{00379\ \textcolor{keywordtype}{double}\ VP8SSIMFromStatsClipped(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_disto_stats}{VP8DistoStats}}*\ \textcolor{keyword}{const}\ stats);}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \textcolor{preprocessor}{\#define\ VP8\_SSIM\_KERNEL\ 3\ \ \ }\textcolor{comment}{//\ total\ size\ of\ the\ kernel:\ 2\ *\ VP8\_SSIM\_KERNEL\ +\ 1}}
+\DoxyCodeLine{00382\ \textcolor{keyword}{typedef}\ double\ (*VP8SSIMGetClippedFunc)(\textcolor{keyword}{const}\ uint8\_t*\ src1,\ \textcolor{keywordtype}{int}\ stride1,}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src2,\ \textcolor{keywordtype}{int}\ stride2,}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ xo,\ \textcolor{keywordtype}{int}\ yo,\ \ \textcolor{comment}{//\ center\ position}}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ W,\ \textcolor{keywordtype}{int}\ H);\ \ \ \textcolor{comment}{//\ plane\ dimension}}
+\DoxyCodeLine{00386\ }
+\DoxyCodeLine{00387\ \textcolor{preprocessor}{\#if\ !defined(WEBP\_REDUCE\_SIZE)}}
+\DoxyCodeLine{00388\ \textcolor{comment}{//\ This\ version\ is\ called\ with\ the\ guarantee\ that\ you\ can\ load\ 8\ bytes\ and}}
+\DoxyCodeLine{00389\ \textcolor{comment}{//\ 8\ rows\ at\ offset\ src1\ and\ src2}}
+\DoxyCodeLine{00390\ \textcolor{keyword}{typedef}\ double\ (*VP8SSIMGetFunc)(\textcolor{keyword}{const}\ uint8\_t*\ src1,\ \textcolor{keywordtype}{int}\ stride1,}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src2,\ \textcolor{keywordtype}{int}\ stride2);}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \textcolor{keyword}{extern}\ VP8SSIMGetFunc\ VP8SSIMGet;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ unclipped\ /\ unchecked}}
+\DoxyCodeLine{00394\ \textcolor{keyword}{extern}\ VP8SSIMGetClippedFunc\ VP8SSIMGetClipped;\ \ \ \textcolor{comment}{//\ with\ clipping}}
+\DoxyCodeLine{00395\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00396\ }
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\#if\ !defined(WEBP\_DISABLE\_STATS)}}
+\DoxyCodeLine{00398\ \textcolor{keyword}{typedef}\ uint32\_t\ (*VP8AccumulateSSEFunc)(\textcolor{keyword}{const}\ uint8\_t*\ src1,}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src2,\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00400\ \textcolor{keyword}{extern}\ VP8AccumulateSSEFunc\ VP8AccumulateSSE;}
+\DoxyCodeLine{00401\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \textcolor{comment}{//\ must\ be\ called\ before\ using\ any\ of\ the\ above\ directly}}
+\DoxyCodeLine{00404\ \textcolor{keywordtype}{void}\ VP8SSIMDspInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00407\ \textcolor{comment}{//\ Decoding}}
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \textcolor{keyword}{typedef}\ void\ (*VP8DecIdct)(\textcolor{keyword}{const}\ int16\_t*\ coeffs,\ uint8\_t*\ dst);}
+\DoxyCodeLine{00410\ \textcolor{comment}{//\ when\ doing\ two\ transforms,\ coeffs\ is\ actually\ int16\_t[2][16].}}
+\DoxyCodeLine{00411\ \textcolor{keyword}{typedef}\ void\ (*VP8DecIdct2)(\textcolor{keyword}{const}\ int16\_t*\ coeffs,\ uint8\_t*\ dst,\ \textcolor{keywordtype}{int}\ do\_two);}
+\DoxyCodeLine{00412\ \textcolor{keyword}{extern}\ VP8DecIdct2\ VP8Transform;}
+\DoxyCodeLine{00413\ \textcolor{keyword}{extern}\ VP8DecIdct\ VP8TransformAC3;}
+\DoxyCodeLine{00414\ \textcolor{keyword}{extern}\ VP8DecIdct\ VP8TransformUV;}
+\DoxyCodeLine{00415\ \textcolor{keyword}{extern}\ VP8DecIdct\ VP8TransformDC;}
+\DoxyCodeLine{00416\ \textcolor{keyword}{extern}\ VP8DecIdct\ VP8TransformDCUV;}
+\DoxyCodeLine{00417\ \textcolor{keyword}{extern}\ VP8WHT\ VP8TransformWHT;}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \textcolor{comment}{//\ *dst\ is\ the\ destination\ block,\ with\ stride\ BPS.\ Boundary\ samples\ are}}
+\DoxyCodeLine{00420\ \textcolor{comment}{//\ assumed\ accessible\ when\ needed.}}
+\DoxyCodeLine{00421\ \textcolor{keyword}{typedef}\ void\ (*VP8PredFunc)(uint8\_t*\ dst);}
+\DoxyCodeLine{00422\ \textcolor{keyword}{extern}\ VP8PredFunc\ VP8PredLuma16[\textcolor{comment}{/*\ NUM\_B\_DC\_MODES\ */}];}
+\DoxyCodeLine{00423\ \textcolor{keyword}{extern}\ VP8PredFunc\ VP8PredChroma8[\textcolor{comment}{/*\ NUM\_B\_DC\_MODES\ */}];}
+\DoxyCodeLine{00424\ \textcolor{keyword}{extern}\ VP8PredFunc\ VP8PredLuma4[\textcolor{comment}{/*\ NUM\_BMODES\ */}];}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \textcolor{comment}{//\ clipping\ tables\ (for\ filtering)}}
+\DoxyCodeLine{00427\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ int8\_t*\ \textcolor{keyword}{const}\ VP8ksclip1;\ \ \textcolor{comment}{//\ clips\ [-\/1020,\ 1020]\ to\ [-\/128,\ 127]}}
+\DoxyCodeLine{00428\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ int8\_t*\ \textcolor{keyword}{const}\ VP8ksclip2;\ \ \textcolor{comment}{//\ clips\ [-\/112,\ 112]\ to\ [-\/16,\ 15]}}
+\DoxyCodeLine{00429\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ VP8kclip1;\ \ \textcolor{comment}{//\ clips\ [-\/255,511]\ to\ [0,255]}}
+\DoxyCodeLine{00430\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ VP8kabs0;\ \ \ \textcolor{comment}{//\ abs(x)\ for\ x\ in\ [-\/255,255]}}
+\DoxyCodeLine{00431\ \textcolor{comment}{//\ must\ be\ called\ first}}
+\DoxyCodeLine{00432\ \textcolor{keywordtype}{void}\ VP8InitClipTables(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \textcolor{comment}{//\ simple\ filter\ (only\ for\ luma)}}
+\DoxyCodeLine{00435\ \textcolor{keyword}{typedef}\ void\ (*VP8SimpleFilterFunc)(uint8\_t*\ p,\ \textcolor{keywordtype}{int}\ stride,\ \textcolor{keywordtype}{int}\ thresh);}
+\DoxyCodeLine{00436\ \textcolor{keyword}{extern}\ VP8SimpleFilterFunc\ VP8SimpleVFilter16;}
+\DoxyCodeLine{00437\ \textcolor{keyword}{extern}\ VP8SimpleFilterFunc\ VP8SimpleHFilter16;}
+\DoxyCodeLine{00438\ \textcolor{keyword}{extern}\ VP8SimpleFilterFunc\ VP8SimpleVFilter16i;\ \ \textcolor{comment}{//\ filter\ 3\ inner\ edges}}
+\DoxyCodeLine{00439\ \textcolor{keyword}{extern}\ VP8SimpleFilterFunc\ VP8SimpleHFilter16i;}
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00441\ \textcolor{comment}{//\ regular\ filter\ (on\ both\ macroblock\ edges\ and\ inner\ edges)}}
+\DoxyCodeLine{00442\ \textcolor{keyword}{typedef}\ void\ (*VP8LumaFilterFunc)(uint8\_t*\ luma,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00443\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ thresh,\ \textcolor{keywordtype}{int}\ ithresh,\ \textcolor{keywordtype}{int}\ hev\_t);}
+\DoxyCodeLine{00444\ \textcolor{keyword}{typedef}\ void\ (*VP8ChromaFilterFunc)(uint8\_t*\ u,\ uint8\_t*\ v,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ thresh,\ \textcolor{keywordtype}{int}\ ithresh,\ \textcolor{keywordtype}{int}\ hev\_t);}
+\DoxyCodeLine{00446\ \textcolor{comment}{//\ on\ outer\ edge}}
+\DoxyCodeLine{00447\ \textcolor{keyword}{extern}\ VP8LumaFilterFunc\ VP8VFilter16;}
+\DoxyCodeLine{00448\ \textcolor{keyword}{extern}\ VP8LumaFilterFunc\ VP8HFilter16;}
+\DoxyCodeLine{00449\ \textcolor{keyword}{extern}\ VP8ChromaFilterFunc\ VP8VFilter8;}
+\DoxyCodeLine{00450\ \textcolor{keyword}{extern}\ VP8ChromaFilterFunc\ VP8HFilter8;}
+\DoxyCodeLine{00451\ }
+\DoxyCodeLine{00452\ \textcolor{comment}{//\ on\ inner\ edge}}
+\DoxyCodeLine{00453\ \textcolor{keyword}{extern}\ VP8LumaFilterFunc\ VP8VFilter16i;\ \ \ \textcolor{comment}{//\ filtering\ 3\ inner\ edges\ altogether}}
+\DoxyCodeLine{00454\ \textcolor{keyword}{extern}\ VP8LumaFilterFunc\ VP8HFilter16i;}
+\DoxyCodeLine{00455\ \textcolor{keyword}{extern}\ VP8ChromaFilterFunc\ VP8VFilter8i;\ \ \textcolor{comment}{//\ filtering\ u\ and\ v\ altogether}}
+\DoxyCodeLine{00456\ \textcolor{keyword}{extern}\ VP8ChromaFilterFunc\ VP8HFilter8i;}
+\DoxyCodeLine{00457\ }
+\DoxyCodeLine{00458\ \textcolor{comment}{//\ Dithering.\ Combines\ dithering\ values\ (centered\ around\ 128)\ with\ dst[],}}
+\DoxyCodeLine{00459\ \textcolor{comment}{//\ according\ to:\ dst[]\ =\ clip(dst[]\ +\ (((dither[]-\/128)\ +\ 8)\ >>\ 4)}}
+\DoxyCodeLine{00460\ \textcolor{preprocessor}{\#define\ VP8\_DITHER\_DESCALE\ 4}}
+\DoxyCodeLine{00461\ \textcolor{preprocessor}{\#define\ VP8\_DITHER\_DESCALE\_ROUNDER\ (1\ <<\ (VP8\_DITHER\_DESCALE\ -\/\ 1))}}
+\DoxyCodeLine{00462\ \textcolor{preprocessor}{\#define\ VP8\_DITHER\_AMP\_BITS\ 7}}
+\DoxyCodeLine{00463\ \textcolor{preprocessor}{\#define\ VP8\_DITHER\_AMP\_CENTER\ (1\ <<\ VP8\_DITHER\_AMP\_BITS)}}
+\DoxyCodeLine{00464\ \textcolor{keyword}{extern}\ void\ (*VP8DitherCombine8x8)(\textcolor{keyword}{const}\ uint8\_t*\ dither,\ uint8\_t*\ dst,}
+\DoxyCodeLine{00465\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ dst\_stride);}
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \textcolor{comment}{//\ must\ be\ called\ before\ anything\ using\ the\ above}}
+\DoxyCodeLine{00468\ \textcolor{keywordtype}{void}\ VP8DspInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00469\ }
+\DoxyCodeLine{00470\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00471\ \textcolor{comment}{//\ WebP\ I/O}}
+\DoxyCodeLine{00472\ }
+\DoxyCodeLine{00473\ \textcolor{preprocessor}{\#define\ FANCY\_UPSAMPLING\ \ \ }\textcolor{comment}{//\ undefined\ to\ remove\ fancy\ upsampling\ support}}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \textcolor{comment}{//\ Convert\ a\ pair\ of\ y/u/v\ lines\ together\ to\ the\ output\ rgb/a\ colorspace.}}
+\DoxyCodeLine{00476\ \textcolor{comment}{//\ bottom\_y\ can\ be\ NULL\ if\ only\ one\ line\ of\ output\ is\ needed\ (at\ top/bottom).}}
+\DoxyCodeLine{00477\ \textcolor{keyword}{typedef}\ void\ (*WebPUpsampleLinePairFunc)(}
+\DoxyCodeLine{00478\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ top\_y,\ \textcolor{keyword}{const}\ uint8\_t*\ bottom\_y,}
+\DoxyCodeLine{00479\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ top\_u,\ \textcolor{keyword}{const}\ uint8\_t*\ top\_v,}
+\DoxyCodeLine{00480\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ cur\_u,\ \textcolor{keyword}{const}\ uint8\_t*\ cur\_v,}
+\DoxyCodeLine{00481\ \ \ \ \ uint8\_t*\ top\_dst,\ uint8\_t*\ bottom\_dst,\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00482\ }
+\DoxyCodeLine{00483\ \textcolor{preprocessor}{\#ifdef\ FANCY\_UPSAMPLING}}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \textcolor{comment}{//\ Fancy\ upsampling\ functions\ to\ convert\ YUV\ to\ RGB(A)\ modes}}
+\DoxyCodeLine{00486\ \textcolor{keyword}{extern}\ WebPUpsampleLinePairFunc\ WebPUpsamplers[\textcolor{comment}{/*\ MODE\_LAST\ */}];}
+\DoxyCodeLine{00487\ }
+\DoxyCodeLine{00488\ \textcolor{preprocessor}{\#endif\ \ \ \ }\textcolor{comment}{//\ FANCY\_UPSAMPLING}}
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ \textcolor{comment}{//\ Per-\/row\ point-\/sampling\ methods.}}
+\DoxyCodeLine{00491\ \textcolor{keyword}{typedef}\ void\ (*WebPSamplerRowFunc)(\textcolor{keyword}{const}\ uint8\_t*\ y,}
+\DoxyCodeLine{00492\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ u,\ \textcolor{keyword}{const}\ uint8\_t*\ v,}
+\DoxyCodeLine{00493\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ dst,\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00494\ \textcolor{comment}{//\ Generic\ function\ to\ apply\ 'WebPSamplerRowFunc'\ to\ the\ whole\ plane:}}
+\DoxyCodeLine{00495\ \textcolor{keywordtype}{void}\ WebPSamplerProcessPlane(\textcolor{keyword}{const}\ uint8\_t*\ y,\ \textcolor{keywordtype}{int}\ y\_stride,}
+\DoxyCodeLine{00496\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ u,\ \textcolor{keyword}{const}\ uint8\_t*\ v,\ \textcolor{keywordtype}{int}\ uv\_stride,}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ dst,\ \textcolor{keywordtype}{int}\ dst\_stride,}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ WebPSamplerRowFunc\ func);}
+\DoxyCodeLine{00499\ }
+\DoxyCodeLine{00500\ \textcolor{comment}{//\ Sampling\ functions\ to\ convert\ rows\ of\ YUV\ to\ RGB(A)}}
+\DoxyCodeLine{00501\ \textcolor{keyword}{extern}\ WebPSamplerRowFunc\ WebPSamplers[\textcolor{comment}{/*\ MODE\_LAST\ */}];}
+\DoxyCodeLine{00502\ }
+\DoxyCodeLine{00503\ \textcolor{comment}{//\ General\ function\ for\ converting\ two\ lines\ of\ ARGB\ or\ RGBA.}}
+\DoxyCodeLine{00504\ \textcolor{comment}{//\ 'alpha\_is\_last'\ should\ be\ true\ if\ 0xff000000\ is\ stored\ in\ memory\ as}}
+\DoxyCodeLine{00505\ \textcolor{comment}{//\ as\ 0x00,\ 0x00,\ 0x00,\ 0xff\ (little\ endian).}}
+\DoxyCodeLine{00506\ WebPUpsampleLinePairFunc\ WebPGetLinePairConverter(\textcolor{keywordtype}{int}\ alpha\_is\_last);}
+\DoxyCodeLine{00507\ }
+\DoxyCodeLine{00508\ \textcolor{comment}{//\ YUV444-\/>RGB\ converters}}
+\DoxyCodeLine{00509\ \textcolor{keyword}{typedef}\ void\ (*WebPYUV444Converter)(\textcolor{keyword}{const}\ uint8\_t*\ y,}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ u,\ \textcolor{keyword}{const}\ uint8\_t*\ v,}
+\DoxyCodeLine{00511\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ dst,\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00512\ }
+\DoxyCodeLine{00513\ \textcolor{keyword}{extern}\ WebPYUV444Converter\ WebPYUV444Converters[\textcolor{comment}{/*\ MODE\_LAST\ */}];}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \textcolor{comment}{//\ Must\ be\ called\ before\ using\ the\ WebPUpsamplers[]\ (and\ for\ premultiplied}}
+\DoxyCodeLine{00516\ \textcolor{comment}{//\ colorspaces\ like\ rgbA,\ rgbA4444,\ etc)}}
+\DoxyCodeLine{00517\ \textcolor{keywordtype}{void}\ WebPInitUpsamplers(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00518\ \textcolor{comment}{//\ Must\ be\ called\ before\ using\ WebPSamplers[]}}
+\DoxyCodeLine{00519\ \textcolor{keywordtype}{void}\ WebPInitSamplers(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00520\ \textcolor{comment}{//\ Must\ be\ called\ before\ using\ WebPYUV444Converters[]}}
+\DoxyCodeLine{00521\ \textcolor{keywordtype}{void}\ WebPInitYUV444Converters(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00522\ }
+\DoxyCodeLine{00523\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00524\ \textcolor{comment}{//\ ARGB\ -\/>\ YUV\ converters}}
+\DoxyCodeLine{00525\ }
+\DoxyCodeLine{00526\ \textcolor{comment}{//\ Convert\ ARGB\ samples\ to\ luma\ Y.}}
+\DoxyCodeLine{00527\ \textcolor{keyword}{extern}\ void\ (*WebPConvertARGBToY)(\textcolor{keyword}{const}\ uint32\_t*\ argb,\ uint8\_t*\ y,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00528\ \textcolor{comment}{//\ Convert\ ARGB\ samples\ to\ U/V\ with\ downsampling.\ do\_store\ should\ be\ '1'\ for}}
+\DoxyCodeLine{00529\ \textcolor{comment}{//\ even\ lines\ and\ '0'\ for\ odd\ ones.\ 'src\_width'\ is\ the\ original\ width,\ not}}
+\DoxyCodeLine{00530\ \textcolor{comment}{//\ the\ U/V\ one.}}
+\DoxyCodeLine{00531\ \textcolor{keyword}{extern}\ void\ (*WebPConvertARGBToUV)(\textcolor{keyword}{const}\ uint32\_t*\ argb,\ uint8\_t*\ u,\ uint8\_t*\ v,}
+\DoxyCodeLine{00532\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ src\_width,\ \textcolor{keywordtype}{int}\ do\_store);}
+\DoxyCodeLine{00533\ }
+\DoxyCodeLine{00534\ \textcolor{comment}{//\ Convert\ a\ row\ of\ accumulated\ (four-\/values)\ of\ rgba32\ toward\ U/V}}
+\DoxyCodeLine{00535\ \textcolor{keyword}{extern}\ void\ (*WebPConvertRGBA32ToUV)(\textcolor{keyword}{const}\ uint16\_t*\ \mbox{\hyperlink{structrgb}{rgb}},}
+\DoxyCodeLine{00536\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ u,\ uint8\_t*\ v,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00537\ }
+\DoxyCodeLine{00538\ \textcolor{comment}{//\ Convert\ RGB\ or\ BGR\ to\ Y}}
+\DoxyCodeLine{00539\ \textcolor{keyword}{extern}\ void\ (*WebPConvertRGB24ToY)(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structrgb}{rgb}},\ uint8\_t*\ y,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00540\ \textcolor{keyword}{extern}\ void\ (*WebPConvertBGR24ToY)(\textcolor{keyword}{const}\ uint8\_t*\ bgr,\ uint8\_t*\ y,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00541\ }
+\DoxyCodeLine{00542\ \textcolor{comment}{//\ used\ for\ plain-\/C\ fallback.}}
+\DoxyCodeLine{00543\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPConvertARGBToUV\_C(\textcolor{keyword}{const}\ uint32\_t*\ argb,\ uint8\_t*\ u,\ uint8\_t*\ v,}
+\DoxyCodeLine{00544\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ src\_width,\ \textcolor{keywordtype}{int}\ do\_store);}
+\DoxyCodeLine{00545\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPConvertRGBA32ToUV\_C(\textcolor{keyword}{const}\ uint16\_t*\ \mbox{\hyperlink{structrgb}{rgb}},}
+\DoxyCodeLine{00546\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ u,\ uint8\_t*\ v,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ \textcolor{comment}{//\ utilities\ for\ accurate\ RGB-\/>YUV\ conversion}}
+\DoxyCodeLine{00549\ \textcolor{keyword}{extern}\ uint64\_t\ (*WebPSharpYUVUpdateY)(\textcolor{keyword}{const}\ uint16\_t*\ src,\ \textcolor{keyword}{const}\ uint16\_t*\ ref,}
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t*\ dst,\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00551\ \textcolor{keyword}{extern}\ void\ (*WebPSharpYUVUpdateRGB)(\textcolor{keyword}{const}\ int16\_t*\ src,\ \textcolor{keyword}{const}\ int16\_t*\ ref,}
+\DoxyCodeLine{00552\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int16\_t*\ dst,\ \textcolor{keywordtype}{int}\ len);}
+\DoxyCodeLine{00553\ \textcolor{keyword}{extern}\ void\ (*WebPSharpYUVFilterRow)(\textcolor{keyword}{const}\ int16\_t*\ \mbox{\hyperlink{class_a}{A}},\ \textcolor{keyword}{const}\ int16\_t*\ B,}
+\DoxyCodeLine{00554\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ len,}
+\DoxyCodeLine{00555\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint16\_t*\ best\_y,\ uint16\_t*\ out);}
+\DoxyCodeLine{00556\ }
+\DoxyCodeLine{00557\ \textcolor{comment}{//\ Must\ be\ called\ before\ using\ the\ above.}}
+\DoxyCodeLine{00558\ \textcolor{keywordtype}{void}\ WebPInitConvertARGBToYUV(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00559\ }
+\DoxyCodeLine{00560\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00561\ \textcolor{comment}{//\ Rescaler}}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}};}
+\DoxyCodeLine{00564\ }
+\DoxyCodeLine{00565\ \textcolor{comment}{//\ Import\ a\ row\ of\ data\ and\ save\ its\ contribution\ in\ the\ rescaler.}}
+\DoxyCodeLine{00566\ \textcolor{comment}{//\ 'channel'\ denotes\ the\ channel\ number\ to\ be\ imported.\ 'Expand'\ corresponds\ to}}
+\DoxyCodeLine{00567\ \textcolor{comment}{//\ the\ wrk-\/>x\_expand\ case.\ Otherwise,\ 'Shrink'\ is\ to\ be\ used.}}
+\DoxyCodeLine{00568\ \textcolor{keyword}{typedef}\ void\ (*WebPRescalerImportRowFunc)(\textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk,}
+\DoxyCodeLine{00569\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src);}
+\DoxyCodeLine{00570\ }
+\DoxyCodeLine{00571\ \textcolor{keyword}{extern}\ WebPRescalerImportRowFunc\ WebPRescalerImportRowExpand;}
+\DoxyCodeLine{00572\ \textcolor{keyword}{extern}\ WebPRescalerImportRowFunc\ WebPRescalerImportRowShrink;}
+\DoxyCodeLine{00573\ }
+\DoxyCodeLine{00574\ \textcolor{comment}{//\ Export\ one\ row\ (starting\ at\ x\_out\ position)\ from\ rescaler.}}
+\DoxyCodeLine{00575\ \textcolor{comment}{//\ 'Expand'\ corresponds\ to\ the\ wrk-\/>y\_expand\ case.}}
+\DoxyCodeLine{00576\ \textcolor{comment}{//\ Otherwise\ 'Shrink'\ is\ to\ be\ used}}
+\DoxyCodeLine{00577\ \textcolor{keyword}{typedef}\ void\ (*WebPRescalerExportRowFunc)(\textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk);}
+\DoxyCodeLine{00578\ \textcolor{keyword}{extern}\ WebPRescalerExportRowFunc\ WebPRescalerExportRowExpand;}
+\DoxyCodeLine{00579\ \textcolor{keyword}{extern}\ WebPRescalerExportRowFunc\ WebPRescalerExportRowShrink;}
+\DoxyCodeLine{00580\ }
+\DoxyCodeLine{00581\ \textcolor{comment}{//\ Plain-\/C\ implementation,\ as\ fall-\/back.}}
+\DoxyCodeLine{00582\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPRescalerImportRowExpand\_C(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk,}
+\DoxyCodeLine{00583\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src);}
+\DoxyCodeLine{00584\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPRescalerImportRowShrink\_C(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk,}
+\DoxyCodeLine{00585\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src);}
+\DoxyCodeLine{00586\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPRescalerExportRowExpand\_C(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk);}
+\DoxyCodeLine{00587\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPRescalerExportRowShrink\_C(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk);}
+\DoxyCodeLine{00588\ }
+\DoxyCodeLine{00589\ \textcolor{comment}{//\ Main\ entry\ calls:}}
+\DoxyCodeLine{00590\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPRescalerImportRow(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk,}
+\DoxyCodeLine{00591\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src);}
+\DoxyCodeLine{00592\ \textcolor{comment}{//\ Export\ one\ row\ (starting\ at\ x\_out\ position)\ from\ rescaler.}}
+\DoxyCodeLine{00593\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ WebPRescalerExportRow(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \textcolor{keyword}{const}\ wrk);}
+\DoxyCodeLine{00594\ }
+\DoxyCodeLine{00595\ \textcolor{comment}{//\ Must\ be\ called\ first\ before\ using\ the\ above.}}
+\DoxyCodeLine{00596\ \textcolor{keywordtype}{void}\ WebPRescalerDspInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00597\ }
+\DoxyCodeLine{00598\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00599\ \textcolor{comment}{//\ Utilities\ for\ processing\ transparent\ channel.}}
+\DoxyCodeLine{00600\ }
+\DoxyCodeLine{00601\ \textcolor{comment}{//\ Apply\ alpha\ pre-\/multiply\ on\ an\ rgba,\ bgra\ or\ argb\ plane\ of\ size\ w\ *\ h.}}
+\DoxyCodeLine{00602\ \textcolor{comment}{//\ alpha\_first\ should\ be\ 0\ for\ argb,\ 1\ for\ rgba\ or\ bgra\ (where\ alpha\ is\ last).}}
+\DoxyCodeLine{00603\ \textcolor{keyword}{extern}\ void\ (*WebPApplyAlphaMultiply)(}
+\DoxyCodeLine{00604\ \ \ \ \ uint8\_t*\ rgba,\ \textcolor{keywordtype}{int}\ alpha\_first,\ \textcolor{keywordtype}{int}\ w,\ \textcolor{keywordtype}{int}\ h,\ \textcolor{keywordtype}{int}\ stride);}
+\DoxyCodeLine{00605\ }
+\DoxyCodeLine{00606\ \textcolor{comment}{//\ Same,\ buf\ specifically\ for\ RGBA4444\ format}}
+\DoxyCodeLine{00607\ \textcolor{keyword}{extern}\ void\ (*WebPApplyAlphaMultiply4444)(}
+\DoxyCodeLine{00608\ \ \ \ \ uint8\_t*\ rgba4444,\ \textcolor{keywordtype}{int}\ w,\ \textcolor{keywordtype}{int}\ h,\ \textcolor{keywordtype}{int}\ stride);}
+\DoxyCodeLine{00609\ }
+\DoxyCodeLine{00610\ \textcolor{comment}{//\ Dispatch\ the\ values\ from\ alpha[]\ plane\ to\ the\ ARGB\ destination\ 'dst'.}}
+\DoxyCodeLine{00611\ \textcolor{comment}{//\ Returns\ true\ if\ alpha[]\ plane\ has\ non-\/trivial\ values\ different\ from\ 0xff.}}
+\DoxyCodeLine{00612\ \textcolor{keyword}{extern}\ int\ (*WebPDispatchAlpha)(\textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ alpha,}
+\DoxyCodeLine{00613\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ alpha\_stride,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00614\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ WEBP\_RESTRICT\ dst,\ \textcolor{keywordtype}{int}\ dst\_stride);}
+\DoxyCodeLine{00615\ }
+\DoxyCodeLine{00616\ \textcolor{comment}{//\ Transfer\ packed\ 8b\ alpha[]\ values\ to\ green\ channel\ in\ dst[],\ zero'ing\ the}}
+\DoxyCodeLine{00617\ \textcolor{comment}{//\ A/R/B\ values.\ 'dst\_stride'\ is\ the\ stride\ for\ dst[]\ in\ uint32\_t\ units.}}
+\DoxyCodeLine{00618\ \textcolor{keyword}{extern}\ void\ (*WebPDispatchAlphaToGreen)(\textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ alpha,}
+\DoxyCodeLine{00619\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ alpha\_stride,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ WEBP\_RESTRICT\ dst,}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ dst\_stride);}
+\DoxyCodeLine{00622\ }
+\DoxyCodeLine{00623\ \textcolor{comment}{//\ Extract\ the\ alpha\ values\ from\ 32b\ values\ in\ argb[]\ and\ pack\ them\ into\ alpha[]}}
+\DoxyCodeLine{00624\ \textcolor{comment}{//\ (this\ is\ the\ opposite\ of\ WebPDispatchAlpha).}}
+\DoxyCodeLine{00625\ \textcolor{comment}{//\ Returns\ true\ if\ there's\ only\ trivial\ 0xff\ alpha\ values.}}
+\DoxyCodeLine{00626\ \textcolor{keyword}{extern}\ int\ (*WebPExtractAlpha)(\textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ argb,}
+\DoxyCodeLine{00627\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ argb\_stride,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00628\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ WEBP\_RESTRICT\ alpha,}
+\DoxyCodeLine{00629\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ alpha\_stride);}
+\DoxyCodeLine{00630\ }
+\DoxyCodeLine{00631\ \textcolor{comment}{//\ Extract\ the\ green\ values\ from\ 32b\ values\ in\ argb[]\ and\ pack\ them\ into\ alpha[]}}
+\DoxyCodeLine{00632\ \textcolor{comment}{//\ (this\ is\ the\ opposite\ of\ WebPDispatchAlphaToGreen).}}
+\DoxyCodeLine{00633\ \textcolor{keyword}{extern}\ void\ (*WebPExtractGreen)(\textcolor{keyword}{const}\ uint32\_t*\ WEBP\_RESTRICT\ argb,}
+\DoxyCodeLine{00634\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ WEBP\_RESTRICT\ alpha,\ \textcolor{keywordtype}{int}\ size);}
+\DoxyCodeLine{00635\ }
+\DoxyCodeLine{00636\ \textcolor{comment}{//\ Pre-\/Multiply\ operation\ transforms\ x\ into\ x\ *\ A\ /\ 255\ \ (where\ x=Y,R,G\ or\ B).}}
+\DoxyCodeLine{00637\ \textcolor{comment}{//\ Un-\/Multiply\ operation\ transforms\ x\ into\ x\ *\ 255\ /\ A.}}
+\DoxyCodeLine{00638\ }
+\DoxyCodeLine{00639\ \textcolor{comment}{//\ Pre-\/Multiply\ or\ Un-\/Multiply\ (if\ 'inverse'\ is\ true)\ argb\ values\ in\ a\ row.}}
+\DoxyCodeLine{00640\ \textcolor{keyword}{extern}\ void\ (*WebPMultARGBRow)(uint32\_t*\ \textcolor{keyword}{const}\ ptr,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ inverse);}
+\DoxyCodeLine{00641\ }
+\DoxyCodeLine{00642\ \textcolor{comment}{//\ Same\ a\ WebPMultARGBRow(),\ but\ for\ several\ rows.}}
+\DoxyCodeLine{00643\ \textcolor{keywordtype}{void}\ WebPMultARGBRows(uint8\_t*\ ptr,\ \textcolor{keywordtype}{int}\ stride,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ num\_rows,}
+\DoxyCodeLine{00644\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ inverse);}
+\DoxyCodeLine{00645\ }
+\DoxyCodeLine{00646\ \textcolor{comment}{//\ Same\ for\ a\ row\ of\ single\ values,\ with\ side\ alpha\ values.}}
+\DoxyCodeLine{00647\ \textcolor{keyword}{extern}\ void\ (*WebPMultRow)(uint8\_t*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ ptr,}
+\DoxyCodeLine{00648\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ alpha,}
+\DoxyCodeLine{00649\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ inverse);}
+\DoxyCodeLine{00650\ }
+\DoxyCodeLine{00651\ \textcolor{comment}{//\ Same\ a\ WebPMultRow(),\ but\ for\ several\ 'num\_rows'\ rows.}}
+\DoxyCodeLine{00652\ \textcolor{keywordtype}{void}\ WebPMultRows(uint8\_t*\ WEBP\_RESTRICT\ ptr,\ \textcolor{keywordtype}{int}\ stride,}
+\DoxyCodeLine{00653\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ alpha,\ \textcolor{keywordtype}{int}\ alpha\_stride,}
+\DoxyCodeLine{00654\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ num\_rows,\ \textcolor{keywordtype}{int}\ inverse);}
+\DoxyCodeLine{00655\ }
+\DoxyCodeLine{00656\ \textcolor{comment}{//\ Plain-\/C\ versions,\ used\ as\ fallback\ by\ some\ implementations.}}
+\DoxyCodeLine{00657\ \textcolor{keywordtype}{void}\ WebPMultRow\_C(uint8\_t*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ ptr,}
+\DoxyCodeLine{00658\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ \textcolor{keyword}{const}\ alpha,}
+\DoxyCodeLine{00659\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ inverse);}
+\DoxyCodeLine{00660\ \textcolor{keywordtype}{void}\ WebPMultARGBRow\_C(uint32\_t*\ \textcolor{keyword}{const}\ ptr,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ inverse);}
+\DoxyCodeLine{00661\ }
+\DoxyCodeLine{00662\ \textcolor{preprocessor}{\#ifdef\ WORDS\_BIGENDIAN}}
+\DoxyCodeLine{00663\ \textcolor{comment}{//\ ARGB\ packing\ function:\ a/r/g/b\ input\ is\ rgba\ or\ bgra\ order.}}
+\DoxyCodeLine{00664\ \textcolor{keyword}{extern}\ void\ (*WebPPackARGB)(\textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00665\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ r,}
+\DoxyCodeLine{00666\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ g,}
+\DoxyCodeLine{00667\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ b,}
+\DoxyCodeLine{00668\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ len,\ uint32\_t*\ WEBP\_RESTRICT\ out);}
+\DoxyCodeLine{00669\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00670\ }
+\DoxyCodeLine{00671\ \textcolor{comment}{//\ RGB\ packing\ function.\ 'step'\ can\ be\ 3\ or\ 4.\ r/g/b\ input\ is\ rgb\ or\ bgr\ order.}}
+\DoxyCodeLine{00672\ \textcolor{keyword}{extern}\ void\ (*WebPPackRGB)(\textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ r,}
+\DoxyCodeLine{00673\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ g,}
+\DoxyCodeLine{00674\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ WEBP\_RESTRICT\ b,}
+\DoxyCodeLine{00675\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ len,\ \textcolor{keywordtype}{int}\ step,\ uint32\_t*\ WEBP\_RESTRICT\ out);}
+\DoxyCodeLine{00676\ }
+\DoxyCodeLine{00677\ \textcolor{comment}{//\ This\ function\ returns\ true\ if\ src[i]\ contains\ a\ value\ different\ from\ 0xff.}}
+\DoxyCodeLine{00678\ \textcolor{keyword}{extern}\ int\ (*WebPHasAlpha8b)(\textcolor{keyword}{const}\ uint8\_t*\ src,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{00679\ \textcolor{comment}{//\ This\ function\ returns\ true\ if\ src[4*i]\ contains\ a\ value\ different\ from\ 0xff.}}
+\DoxyCodeLine{00680\ \textcolor{keyword}{extern}\ int\ (*WebPHasAlpha32b)(\textcolor{keyword}{const}\ uint8\_t*\ src,\ \textcolor{keywordtype}{int}\ length);}
+\DoxyCodeLine{00681\ \textcolor{comment}{//\ replaces\ transparent\ values\ in\ src[]\ by\ 'color'.}}
+\DoxyCodeLine{00682\ \textcolor{keyword}{extern}\ void\ (*WebPAlphaReplace)(uint32\_t*\ src,\ \textcolor{keywordtype}{int}\ length,\ uint32\_t\ color);}
+\DoxyCodeLine{00683\ }
+\DoxyCodeLine{00684\ \textcolor{comment}{//\ To\ be\ called\ first\ before\ using\ the\ above.}}
+\DoxyCodeLine{00685\ \textcolor{keywordtype}{void}\ WebPInitAlphaProcessing(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00686\ }
+\DoxyCodeLine{00687\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00688\ \textcolor{comment}{//\ Filter\ functions}}
+\DoxyCodeLine{00689\ }
+\DoxyCodeLine{00690\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{\ \ \ \ \ \textcolor{comment}{//\ Filter\ types.}}
+\DoxyCodeLine{00691\ \ \ WEBP\_FILTER\_NONE\ =\ 0,}
+\DoxyCodeLine{00692\ \ \ WEBP\_FILTER\_HORIZONTAL,}
+\DoxyCodeLine{00693\ \ \ WEBP\_FILTER\_VERTICAL,}
+\DoxyCodeLine{00694\ \ \ WEBP\_FILTER\_GRADIENT,}
+\DoxyCodeLine{00695\ \ \ WEBP\_FILTER\_LAST\ =\ WEBP\_FILTER\_GRADIENT\ +\ 1,\ \ \textcolor{comment}{//\ end\ marker}}
+\DoxyCodeLine{00696\ \ \ WEBP\_FILTER\_BEST,\ \ \ \ \textcolor{comment}{//\ meta-\/types}}
+\DoxyCodeLine{00697\ \ \ WEBP\_FILTER\_FAST}
+\DoxyCodeLine{00698\ \}\ WEBP\_FILTER\_TYPE;}
+\DoxyCodeLine{00699\ }
+\DoxyCodeLine{00700\ \textcolor{keyword}{typedef}\ void\ (*WebPFilterFunc)(\textcolor{keyword}{const}\ uint8\_t*\ in,\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00701\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ stride,\ uint8\_t*\ out);}
+\DoxyCodeLine{00702\ \textcolor{comment}{//\ In-\/place\ un-\/filtering.}}
+\DoxyCodeLine{00703\ \textcolor{comment}{//\ Warning!\ 'prev\_line'\ pointer\ can\ be\ equal\ to\ 'cur\_line'\ or\ 'preds'.}}
+\DoxyCodeLine{00704\ \textcolor{keyword}{typedef}\ void\ (*WebPUnfilterFunc)(\textcolor{keyword}{const}\ uint8\_t*\ prev\_line,\ \textcolor{keyword}{const}\ uint8\_t*\ preds,}
+\DoxyCodeLine{00705\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t*\ cur\_line,\ \textcolor{keywordtype}{int}\ width);}
+\DoxyCodeLine{00706\ }
+\DoxyCodeLine{00707\ \textcolor{comment}{//\ Filter\ the\ given\ data\ using\ the\ given\ predictor.}}
+\DoxyCodeLine{00708\ \textcolor{comment}{//\ 'in'\ corresponds\ to\ a\ 2-\/dimensional\ pixel\ array\ of\ size\ (stride\ *\ height)}}
+\DoxyCodeLine{00709\ \textcolor{comment}{//\ in\ raster\ order.}}
+\DoxyCodeLine{00710\ \textcolor{comment}{//\ 'stride'\ is\ number\ of\ bytes\ per\ scan\ line\ (with\ possible\ padding).}}
+\DoxyCodeLine{00711\ \textcolor{comment}{//\ 'out'\ should\ be\ pre-\/allocated.}}
+\DoxyCodeLine{00712\ \textcolor{keyword}{extern}\ WebPFilterFunc\ WebPFilters[WEBP\_FILTER\_LAST];}
+\DoxyCodeLine{00713\ }
+\DoxyCodeLine{00714\ \textcolor{comment}{//\ In-\/place\ reconstruct\ the\ original\ data\ from\ the\ given\ filtered\ data.}}
+\DoxyCodeLine{00715\ \textcolor{comment}{//\ The\ reconstruction\ will\ be\ done\ for\ 'num\_rows'\ rows\ starting\ from\ 'row'}}
+\DoxyCodeLine{00716\ \textcolor{comment}{//\ (assuming\ rows\ upto\ 'row\ -\/\ 1'\ are\ already\ reconstructed).}}
+\DoxyCodeLine{00717\ \textcolor{keyword}{extern}\ WebPUnfilterFunc\ WebPUnfilters[WEBP\_FILTER\_LAST];}
+\DoxyCodeLine{00718\ }
+\DoxyCodeLine{00719\ \textcolor{comment}{//\ To\ be\ called\ first\ before\ using\ the\ above.}}
+\DoxyCodeLine{00720\ \textcolor{keywordtype}{void}\ VP8FiltersInit(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00721\ }
+\DoxyCodeLine{00722\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00723\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00724\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00725\ }
+\DoxyCodeLine{00726\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DSP\_DSP\_H\_}}
+
+\end{DoxyCode}

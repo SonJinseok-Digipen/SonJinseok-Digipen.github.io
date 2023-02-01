@@ -1,0 +1,84 @@
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md858}{}\doxysection{Summary}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md858}
+{\bfseries{ECH}} means {\bfseries{Encrypted Client Hello}}, a TLS 1.\+3 extension which is currently the subject of an \href{https://datatracker.ietf.org/doc/draft-ietf-tls-esni/}{\texttt{ IETF Draft}}. (ECH was formerly known as ESNI).
+
+This file is intended to show the latest current state of ECH support in {\bfseries{curl}} and {\bfseries{libcurl}}.
+
+At end of August 2019, an \href{https://github.com/niallor/curl/}{\texttt{ experimental fork of curl}}, built using an \href{https://github.com/sftcd/openssl/}{\texttt{ experimental fork of Open\+SSL}}, which in turn provided an implementation of ECH, was demonstrated interoperating with a server belonging to the \href{https://defo.ie/}{\texttt{ DEfO Project}}.
+
+Further sections here describe
+
+
+\begin{DoxyItemize}
+\item resources needed for building and demonstrating {\bfseries{curl}} support for ECH,
+\item progress to date,
+\item TODO items, and
+\item additional details of specific stages of the progress.
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md859}{}\doxysection{Resources needed}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md859}
+To build and demonstrate ECH support in {\bfseries{curl}} and/or {\bfseries{libcurl}}, you will need
+
+
+\begin{DoxyItemize}
+\item a TLS library, supported by {\bfseries{libcurl}}, which implements ECH;
+\item an edition of {\bfseries{curl}} and/or {\bfseries{libcurl}} which supports the ECH implementation of the chosen TLS library;
+\item an environment for building and running {\bfseries{curl}}, and at least building {\bfseries{Open\+SSL}};
+\item a server, supporting ECH, against which to run a demonstration and perhaps a specific target URL;
+\item some instructions.
+\end{DoxyItemize}
+
+The following set of resources is currently known to be available.
+
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{4}{|X[-1]}|}
+\hline
+\cellcolor{\tableheadbgcolor}\textbf{ Set   }&\cellcolor{\tableheadbgcolor}\textbf{ Component   }&\cellcolor{\tableheadbgcolor}\textbf{ Location   }&\cellcolor{\tableheadbgcolor}\textbf{ Remarks    }\\\cline{1-4}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\cellcolor{\tableheadbgcolor}\textbf{ Set   }&\cellcolor{\tableheadbgcolor}\textbf{ Component   }&\cellcolor{\tableheadbgcolor}\textbf{ Location   }&\cellcolor{\tableheadbgcolor}\textbf{ Remarks    }\\\cline{1-4}
+\endhead
+DEfO   &TLS library   &\href{https://github.com/sftcd/openssl/}{\texttt{ sftcd/openssl}}   &Tag {\itshape esni-\/2019-\/08-\/30} avoids bleeding edge    \\\cline{1-4}
+&curl fork   &\href{https://github.com/niallor/curl/}{\texttt{ niallor/curl}}   &Tag {\itshape esni-\/2019-\/08-\/30} likewise    \\\cline{1-4}
+&instructions   &\href{https://github.com/niallor/curl/blob/master/ESNI-README.md}{\texttt{ ESNI-\/\+README}}   &\\\cline{1-4}
+\end{longtabu}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md860}{}\doxysection{Progress}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md860}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md861}{}\doxysubsection{PR 4011 (\+Jun 2019) expected in curl release 7.\+67.\+0 (\+Oct 2019)}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md861}
+
+\begin{DoxyItemize}
+\item Details below;
+\item New configuration option\+: {\ttfamily -\/-\/enable-\/ech};
+\item Build-\/time check for availability of resources needed for ECH support;
+\item Pre-\/processor symbol {\ttfamily USE\+\_\+\+ECH} for conditional compilation of ECH support code, subject to configuration option and availability of needed resources.
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md862}{}\doxysection{TODO}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md862}
+
+\begin{DoxyItemize}
+\item (next PR) Add libcurl options to set ECH parameters.
+\item (next PR) Add curl tool command line options to set ECH parameters.
+\item (WIP) Extend DoH functions so that published ECH parameters can be retrieved from DNS instead of being required as options.
+\item (WIP) Work with Open\+SSL community to finalize ECH API.
+\item Track Open\+SSL ECH API in libcurl
+\item Identify and implement any changes needed for CMake.
+\item Optimize build-\/time checking of available resources.
+\item Encourage ECH support work on other TLS/\+SSL backends.
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md863}{}\doxysection{Additional detail}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md863}
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md864}{}\doxysubsection{PR 4011}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md864}
+{\bfseries{TLS\+: Provide ECH support framework for curl and libcurl}}
+
+The proposed change provides a framework to facilitate work to implement ECH support in curl and libcurl. It is not intended either to provide ECH functionality or to favour any particular TLS-\/providing backend. Specifically, the change reserves a feature bit for ECH support (symbol {\ttfamily CURL\+\_\+\+VERSION\+\_\+\+ECH}), implements setting and reporting of this bit, includes dummy book-\/keeping for the symbol, adds a build-\/time configuration option ({\ttfamily -\/-\/enable-\/ech}), provides an extensible check for resources available to provide ECH support, and defines a compiler pre-\/processor symbol ({\ttfamily USE\+\_\+\+ECH}) accordingly.
+
+Proposed-\/by\+: @niallor (Niall \mbox{\hyperlink{class_o}{O}}\textquotesingle{}Reilly)\textbackslash{} Encouraged-\/by\+: @sftcd (Stephen Farrell)\textbackslash{} See-\/also\+: \href{https://curl.se/mail/lib-2019-05/0108.html}{\texttt{ this message}}
+
+Limitations\+:
+\begin{DoxyItemize}
+\item Book-\/keeping (symbols-\/in-\/versions) needs real release number, not \textquotesingle{}DUMMY\textquotesingle{}.
+\item Framework is incomplete, as it covers autoconf, but not CMake.
+\item Check for available resources, although extensible, refers only to specific work in progress (\href{https://github.com/sftcd/openssl/tree/master/esnistuff}{\texttt{ described here}}) to implement ECH for Open\+SSL, as this is the immediate motivation for the proposed change.
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md865}{}\doxysection{References}\label{md__ase_sprite_aseprite_third_party_curl_docs__e_c_h_autotoc_md865}
+Cloudflare blog\+: \href{https://blog.cloudflare.com/esni/}{\texttt{ Encrypting SNI\+: Fixing One of the Core Internet Bugs}}
+
+Cloudflare blog\+: \href{https://blog.cloudflare.com/encrypted-sni/}{\texttt{ Encrypt it or lose it\+: how encrypted SNI works}}
+
+IETF Draft\+: \href{https://datatracker.ietf.org/doc/draft-ietf-tls-esni/}{\texttt{ Encrypted Server Name Indication for TLS 1.\+3}}
+
+\DoxyHorRuler{0}
+ 

@@ -1,0 +1,145 @@
+\hypertarget{external_2include_2spdlog_2sinks_2stdout__sinks-inl_8h_source}{}\doxysection{stdout\+\_\+sinks-\/inl.h}
+\label{external_2include_2spdlog_2sinks_2stdout__sinks-inl_8h_source}\index{Tengu/external/include/spdlog/sinks/stdout\_sinks-\/inl.h@{Tengu/external/include/spdlog/sinks/stdout\_sinks-\/inl.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#ifndef\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#\ \ \ \ include\ <spdlog/sinks/stdout\_sinks.h>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <spdlog/details/console\_globals.h>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <spdlog/pattern\_formatter.h>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifdef\ \_WIN32}}
+\DoxyCodeLine{00015\ \textcolor{comment}{//\ under\ windows\ using\ fwrite\ to\ non-\/binary\ stream\ results\ in\ \(\backslash\)r\(\backslash\)r\(\backslash\)n\ (see\ issue\ \#1675)}}
+\DoxyCodeLine{00016\ \textcolor{comment}{//\ so\ instead\ we\ use\ ::FileWrite}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#\ \ \ \ include\ <spdlog/details/windows\_include.h>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#\ \ \ \ ifndef\ \_USING\_V110\_SDK71\_\ }\textcolor{comment}{//\ fileapi.h\ doesn't\ exist\ in\ winxp}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#\ \ \ \ \ \ \ \ include\ <fileapi.h>}\ \ \ \textcolor{comment}{//\ WriteFile\ (..)}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#\ \ \ \ endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#\ \ \ \ include\ <io.h>}\ \ \ \ \textcolor{comment}{//\ \_get\_osfhandle(..)}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#\ \ \ \ include\ <stdio.h>}\ \textcolor{comment}{//\ \_fileno(..)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{//\ WIN32}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{namespace\ }sinks\ \{}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ConsoleMutex>}
+\DoxyCodeLine{00032\ SPDLOG\_INLINE\ stdout\_sink\_base<ConsoleMutex>::stdout\_sink\_base(FILE\ *\mbox{\hyperlink{structfile}{file}})}
+\DoxyCodeLine{00033\ \ \ \ \ :\ mutex\_(ConsoleMutex::mutex())}
+\DoxyCodeLine{00034\ \ \ \ \ ,\ file\_(\mbox{\hyperlink{structfile}{file}})}
+\DoxyCodeLine{00035\ \ \ \ \ ,\ formatter\_(details::make\_unique<spdlog::pattern\_formatter>())}
+\DoxyCodeLine{00036\ \{}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#ifdef\ \_WIN32}}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{comment}{//\ get\ windows\ handle\ from\ the\ FILE*\ object}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ handle\_\ =\ \textcolor{keyword}{reinterpret\_cast<}HANDLE\textcolor{keyword}{>}(::\_get\_osfhandle(::\_fileno(file\_)));}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{comment}{//\ don't\ throw\ to\ support\ cases\ where\ no\ console\ is\ attached,}}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{comment}{//\ and\ let\ the\ log\ method\ to\ do\ nothing\ if\ (handle\_\ ==\ INVALID\_HANDLE\_VALUE).}}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{comment}{//\ throw\ only\ if\ non\ stdout/stderr\ target\ is\ requested\ (probably\ regular\ file\ and\ not\ console).}}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordflow}{if}\ (handle\_\ ==\ INVALID\_HANDLE\_VALUE\ \&\&\ \mbox{\hyperlink{structfile}{file}}\ !=\ stdout\ \&\&\ \mbox{\hyperlink{structfile}{file}}\ !=\ stderr)}
+\DoxyCodeLine{00046\ \ \ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ throw\_spdlog\_ex(\textcolor{stringliteral}{"{}spdlog::stdout\_sink\_base:\ \_get\_osfhandle()\ failed"{}},\ errno);}
+\DoxyCodeLine{00048\ \ \ \ \ \}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WIN32}}
+\DoxyCodeLine{00050\ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ConsoleMutex>}
+\DoxyCodeLine{00053\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ stdout\_sink\_base<ConsoleMutex>::log(\textcolor{keyword}{const}\ details::log\_msg\ \&msg)}
+\DoxyCodeLine{00054\ \{}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#ifdef\ \_WIN32}}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordflow}{if}\ (handle\_\ ==\ INVALID\_HANDLE\_VALUE)}
+\DoxyCodeLine{00057\ \ \ \ \ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00059\ \ \ \ \ \}}
+\DoxyCodeLine{00060\ \ \ \ \ std::lock\_guard<mutex\_t>\ lock(mutex\_);}
+\DoxyCodeLine{00061\ \ \ \ \ memory\_buf\_t\ formatted;}
+\DoxyCodeLine{00062\ \ \ \ \ formatter\_-\/>format(msg,\ formatted);}
+\DoxyCodeLine{00063\ \ \ \ \ ::fflush(file\_);\ \textcolor{comment}{//\ flush\ in\ case\ there\ is\ something\ in\ this\ file\_\ already}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{auto}\ size\ =\ \textcolor{keyword}{static\_cast<}DWORD\textcolor{keyword}{>}(formatted.size());}
+\DoxyCodeLine{00065\ \ \ \ \ DWORD\ bytes\_written\ =\ 0;}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{bool}\ ok\ =\ ::WriteFile(handle\_,\ formatted.data(),\ size,\ \&bytes\_written,\ \textcolor{keyword}{nullptr})\ !=\ 0;}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordflow}{if}\ (!ok)}
+\DoxyCodeLine{00068\ \ \ \ \ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ throw\_spdlog\_ex(\textcolor{stringliteral}{"{}stdout\_sink\_base:\ WriteFile()\ failed.\ GetLastError():\ "{}}\ +\ std::to\_string(::GetLastError()));}
+\DoxyCodeLine{00070\ \ \ \ \ \}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00072\ \ \ \ \ std::lock\_guard<mutex\_t>\ lock(mutex\_);}
+\DoxyCodeLine{00073\ \ \ \ \ memory\_buf\_t\ formatted;}
+\DoxyCodeLine{00074\ \ \ \ \ formatter\_-\/>format(msg,\ formatted);}
+\DoxyCodeLine{00075\ \ \ \ \ ::fwrite(formatted.data(),\ \textcolor{keyword}{sizeof}(\textcolor{keywordtype}{char}),\ formatted.size(),\ file\_);}
+\DoxyCodeLine{00076\ \ \ \ \ ::fflush(file\_);\ \textcolor{comment}{//\ flush\ every\ line\ to\ terminal}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ WIN32}}
+\DoxyCodeLine{00078\ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ConsoleMutex>}
+\DoxyCodeLine{00081\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ stdout\_sink\_base<ConsoleMutex>::flush()}
+\DoxyCodeLine{00082\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ std::lock\_guard<mutex\_t>\ lock(mutex\_);}
+\DoxyCodeLine{00084\ \ \ \ \ fflush(file\_);}
+\DoxyCodeLine{00085\ \}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ConsoleMutex>}
+\DoxyCodeLine{00088\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ stdout\_sink\_base<ConsoleMutex>::set\_pattern(\textcolor{keyword}{const}\ std::string\ \&pattern)}
+\DoxyCodeLine{00089\ \{}
+\DoxyCodeLine{00090\ \ \ \ \ std::lock\_guard<mutex\_t>\ lock(mutex\_);}
+\DoxyCodeLine{00091\ \ \ \ \ formatter\_\ =\ std::unique\_ptr<spdlog::formatter>(\textcolor{keyword}{new}\ pattern\_formatter(pattern));}
+\DoxyCodeLine{00092\ \}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ConsoleMutex>}
+\DoxyCodeLine{00095\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ stdout\_sink\_base<ConsoleMutex>::set\_formatter(std::unique\_ptr<spdlog::formatter>\ sink\_formatter)}
+\DoxyCodeLine{00096\ \{}
+\DoxyCodeLine{00097\ \ \ \ \ std::lock\_guard<mutex\_t>\ lock(mutex\_);}
+\DoxyCodeLine{00098\ \ \ \ \ formatter\_\ =\ std::move(sink\_formatter);}
+\DoxyCodeLine{00099\ \}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{comment}{//\ stdout\ sink}}
+\DoxyCodeLine{00102\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ConsoleMutex>}
+\DoxyCodeLine{00103\ SPDLOG\_INLINE\ stdout\_sink<ConsoleMutex>::stdout\_sink()}
+\DoxyCodeLine{00104\ \ \ \ \ :\ stdout\_sink\_base<ConsoleMutex>(stdout)}
+\DoxyCodeLine{00105\ \{\}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{comment}{//\ stderr\ sink}}
+\DoxyCodeLine{00108\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ConsoleMutex>}
+\DoxyCodeLine{00109\ SPDLOG\_INLINE\ stderr\_sink<ConsoleMutex>::stderr\_sink()}
+\DoxyCodeLine{00110\ \ \ \ \ :\ stdout\_sink\_base<ConsoleMutex>(stderr)}
+\DoxyCodeLine{00111\ \{\}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \}\ \textcolor{comment}{//\ namespace\ sinks}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{comment}{//\ factory\ methods}}
+\DoxyCodeLine{00116\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Factory>}
+\DoxyCodeLine{00117\ SPDLOG\_INLINE\ std::shared\_ptr<logger>\ stdout\_logger\_mt(\textcolor{keyword}{const}\ std::string\ \&logger\_name)}
+\DoxyCodeLine{00118\ \{}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordflow}{return}\ Factory::template\ create<sinks::stdout\_sink\_mt>(logger\_name);}
+\DoxyCodeLine{00120\ \}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Factory>}
+\DoxyCodeLine{00123\ SPDLOG\_INLINE\ std::shared\_ptr<logger>\ stdout\_logger\_st(\textcolor{keyword}{const}\ std::string\ \&logger\_name)}
+\DoxyCodeLine{00124\ \{}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordflow}{return}\ Factory::template\ create<sinks::stdout\_sink\_st>(logger\_name);}
+\DoxyCodeLine{00126\ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Factory>}
+\DoxyCodeLine{00129\ SPDLOG\_INLINE\ std::shared\_ptr<logger>\ stderr\_logger\_mt(\textcolor{keyword}{const}\ std::string\ \&logger\_name)}
+\DoxyCodeLine{00130\ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordflow}{return}\ Factory::template\ create<sinks::stderr\_sink\_mt>(logger\_name);}
+\DoxyCodeLine{00132\ \}}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Factory>}
+\DoxyCodeLine{00135\ SPDLOG\_INLINE\ std::shared\_ptr<logger>\ stderr\_logger\_st(\textcolor{keyword}{const}\ std::string\ \&logger\_name)}
+\DoxyCodeLine{00136\ \{}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordflow}{return}\ Factory::template\ create<sinks::stderr\_sink\_st>(logger\_name);}
+\DoxyCodeLine{00138\ \}}
+\DoxyCodeLine{00139\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

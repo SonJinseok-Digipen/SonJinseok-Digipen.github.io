@@ -1,0 +1,240 @@
+\hypertarget{pixels__movement_8h_source}{}\doxysection{pixels\+\_\+movement.\+h}
+\label{pixels__movement_8h_source}\index{AseSprite/aseprite/src/app/ui/editor/pixels\_movement.h@{AseSprite/aseprite/src/app/ui/editor/pixels\_movement.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2021\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_UI\_EDITOR\_PIXELS\_MOVEMENT\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_UI\_EDITOR\_PIXELS\_MOVEMENT\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/context\_access.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/extra\_cel.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/site.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/transformation.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}app/tx.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}app/ui/editor/handle\_type.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/algorithm/flip\_type.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}doc/frame.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}doc/image\_ref.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}gfx/size.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}obs/connection.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00028\ \ \ \textcolor{keyword}{class\ }Mask;}
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00030\ \}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{class\ }Doc;}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{namespace\ }cmd\ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{class\ }SetMask;}
+\DoxyCodeLine{00037\ \ \ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_pixels_movement_delegate}{PixelsMovementDelegate}}\ \{}
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_pixels_movement_delegate}{\string~PixelsMovementDelegate}}()\ \{\ \}}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onPivotChange()\ =\ 0;}
+\DoxyCodeLine{00043\ \ \ \};}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{comment}{//\ Helper\ class\ to\ move\ pixels\ interactively\ and\ control\ undo\ history}}
+\DoxyCodeLine{00046\ \ \ \textcolor{comment}{//\ correctly.\ \ The\ extra\ cel\ of\ the\ sprite\ is\ temporally\ used\ to\ show}}
+\DoxyCodeLine{00047\ \ \ \textcolor{comment}{//\ feedback,\ drag,\ and\ drop\ the\ specified\ image\ in\ the\ constructor}}
+\DoxyCodeLine{00048\ \ \ \textcolor{comment}{//\ (which\ generally\ would\ be\ the\ selected\ region\ or\ the\ clipboard}}
+\DoxyCodeLine{00049\ \ \ \textcolor{comment}{//\ content).}}
+\DoxyCodeLine{00050\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_pixels_movement}{PixelsMovement}}\ \{}
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{enum}\ MoveModifier\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ NormalMovement\ =\ 1,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ SnapToGridMovement\ =\ 2,}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ AngleSnapMovement\ =\ 4,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ MaintainAspectRatioMovement\ =\ 8,}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ LockAxisMovement\ =\ 16,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ ScaleFromPivot\ =\ 32,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ FineControl\ =\ 64,}
+\DoxyCodeLine{00060\ \ \ \ \ \};}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{enum}\ CommitChangesOption\ \{}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ DontCommitChanges,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ CommitChanges,}
+\DoxyCodeLine{00065\ \ \ \ \ \};}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{enum}\ KeepMaskOption\ \{}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ DontKeepMask,}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ KeepMask,}
+\DoxyCodeLine{00070\ \ \ \ \ \};}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_pixels_movement}{PixelsMovement}}(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_site}{Site}}\ site,}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ moveThis,}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_mask}{Mask}}*\ mask,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ operationName);}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ HandleType\ handle()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_handle;\ \}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{bool}\ canHandleFrameChange()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_canHandleFrameChange;\ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{void}\ setDelegate(\mbox{\hyperlink{classapp_1_1_pixels_movement_delegate}{PixelsMovementDelegate}}*\ delegate);}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{void}\ setFastMode(\textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ fastMode);}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{void}\ trim();}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{void}\ cutMask();}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keywordtype}{void}\ copyMask();}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{void}\ catchImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::PointF}}\&\ pos,\ HandleType\ handle);}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{void}\ catchImageAgain(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::PointF}}\&\ pos,\ HandleType\ handle);}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//\ Moves\ the\ image\ to\ the\ new\ position\ (relative\ to\ the\ start}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ position\ given\ in\ the\ ctor).}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordtype}{void}\ moveImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::PointF}}\&\ pos,\ MoveModifier\ moveModifier);}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{comment}{//\ Returns\ a\ copy\ of\ the\ current\ image\ being\ dragged\ with\ the}}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{comment}{//\ current\ transformation.}}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keywordtype}{void}\ getDraggedImageCopy(std::unique\_ptr<Image>\&\ outputImage,}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::unique\_ptr<Mask>\&\ outputMask);}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{comment}{//\ Copies\ the\ image\ being\ dragged\ in\ the\ current\ position.}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{void}\ stampImage();}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordtype}{void}\ dropImageTemporarily();}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordtype}{void}\ dropImage();}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keywordtype}{void}\ discardImage(\textcolor{keyword}{const}\ CommitChangesOption\ commit\ =\ CommitChanges,}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ KeepMaskOption\ keepMask\ =\ DontKeepMask);}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{bool}\ isDragging()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getImageBounds();}
+\DoxyCodeLine{00109\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\ getInitialImageSize()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{void}\ setMaskColor(\textcolor{keywordtype}{bool}\ opaque,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ mask\_color);}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{comment}{//\ Flips\ the\ image\ and\ mask\ in\ the\ given\ direction\ in\ "{}flipType"{}.}}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{comment}{//\ Flip\ Horizontally/Vertically\ commands\ are\ replaced\ calling\ this}}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{comment}{//\ function,\ so\ they\ work\ more\ as\ the\ user\ would\ expect\ (flip\ the}}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{comment}{//\ current\ selection\ instead\ of\ dropping\ and\ flipping\ it).}}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{void}\ flipImage(doc::algorithm::FlipType\ flipType);}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{comment}{//\ Rotates\ the\ image\ and\ the\ mask\ the\ given\ angle.\ It's\ used\ to}}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{comment}{//\ simulate\ RotateCommand\ when\ we're\ inside\ MovingPixelsState.}}
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordtype}{void}\ rotate(\textcolor{keywordtype}{double}\ angle);}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordtype}{void}\ shift(\textcolor{keywordtype}{int}\ dx,\ \textcolor{keywordtype}{int}\ dy);}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{comment}{//\ Navigate\ frames}}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordtype}{bool}\ gotoFrame(\textcolor{keyword}{const}\ doc::frame\_t\ deltaFrame);}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ getTransformation()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_currentData;\ \}}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordtype}{void}\ setTransformation(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ t);}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keywordtype}{void}\ setTransformationBase(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ t);}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{void}\ adjustPivot();}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keywordtype}{bool}\ editMultipleCels()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordtype}{void}\ stampImage(\textcolor{keywordtype}{bool}\ finalStamp);}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordtype}{void}\ stampExtraCelImage();}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordtype}{void}\ onPivotChange();}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keywordtype}{void}\ onRotationAlgorithmChange();}
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordtype}{void}\ redrawExtraImage(\mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}*\ transformation\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{keywordtype}{void}\ redrawCurrentMask();}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{keywordtype}{void}\ drawImage(}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ transformation,}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ dst,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::PointF}}\&\ pt,}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ renderOriginalLayer);}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keywordtype}{void}\ drawMask(\mbox{\hyperlink{classdoc_1_1_mask}{doc::Mask}}*\ dst,\ \textcolor{keywordtype}{bool}\ shrink);}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keywordtype}{void}\ drawParallelogram(}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ transformation,}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ dst,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ src,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_mask}{doc::Mask}}*\ mask,}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation_1_1_corners}{Transformation::Corners}}\&\ corners,}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::PointF}}\&\ leftTop);}
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keywordtype}{void}\ drawTransformedTilemap(}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ transformation,}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ dst,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ src,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_mask}{doc::Mask}}*\ mask);}
+\DoxyCodeLine{00154\ \ \ \ \ \textcolor{keywordtype}{void}\ updateDocumentMask();}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keywordtype}{void}\ hideDocumentMask();}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordtype}{void}\ flipOriginalImage(\textcolor{keyword}{const}\ doc::algorithm::FlipType\ flipType);}
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordtype}{void}\ shiftOriginalImage(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ dx,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ dy,}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle);}
+\DoxyCodeLine{00160\ \ \ \ \ CelList\ getEditableCels();}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordtype}{void}\ reproduceAllTransformationsWithInnerCmds();}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#if\ \_DEBUG}}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{keywordtype}{void}\ dumpInnerCmds();}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_pixels_movement_delegate}{PixelsMovementDelegate}}*\ m\_delegate\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_context_reader}{ContextReader}}\ m\_reader;}
+\DoxyCodeLine{00168\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_site}{Site}}\ m\_site;}
+\DoxyCodeLine{00169\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_document;}
+\DoxyCodeLine{00170\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_tx}{Tx}}\ m\_tx;}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_isDragging;}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_adjustPivot;}
+\DoxyCodeLine{00173\ \ \ \ \ HandleType\ m\_handle;}
+\DoxyCodeLine{00174\ \ \ \ \ doc::ImageRef\ m\_originalImage;}
+\DoxyCodeLine{00175\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::PointF}}\ m\_catchPos;}
+\DoxyCodeLine{00176\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\ m\_initialData;}
+\DoxyCodeLine{00177\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\ m\_currentData;}
+\DoxyCodeLine{00178\ \ \ \ \ std::unique\_ptr<Mask>\ m\_initialMask,\ m\_initialMask0;}
+\DoxyCodeLine{00179\ \ \ \ \ std::unique\_ptr<Mask>\ m\_currentMask;}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_opaque;}
+\DoxyCodeLine{00181\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_maskColor;}
+\DoxyCodeLine{00182\ \ \ \ \ \mbox{\hyperlink{classobs_1_1scoped__connection}{obs::scoped\_connection}}\ m\_pivotVisConn;}
+\DoxyCodeLine{00183\ \ \ \ \ \mbox{\hyperlink{classobs_1_1scoped__connection}{obs::scoped\_connection}}\ m\_pivotPosConn;}
+\DoxyCodeLine{00184\ \ \ \ \ \mbox{\hyperlink{classobs_1_1scoped__connection}{obs::scoped\_connection}}\ m\_rotAlgoConn;}
+\DoxyCodeLine{00185\ \ \ \ \ ExtraCelRef\ m\_extraCel;}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_canHandleFrameChange;}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{comment}{//\ Fast\ mode\ is\ used\ to\ give\ a\ faster\ feedback\ to\ the\ user}}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{comment}{//\ avoiding\ RotSprite\ on\ each\ mouse\ movement.}}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_fastMode;}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_needsRotSpriteRedraw;}
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{comment}{//\ Commands\ used\ in\ the\ interaction\ with\ the\ transformed\ pixels.}}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{comment}{//\ This\ is\ used\ to\ re-\/create\ the\ whole\ interaction\ on\ each}}
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{comment}{//\ modified\ cel\ when\ we\ are\ modifying\ multiples\ cels\ at\ the\ same}}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{comment}{//\ time,\ or\ also\ to\ re-\/create\ it\ when\ we\ switch\ to\ another\ frame.}}
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keyword}{struct\ }InnerCmd\ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \textcolor{keyword}{enum}\ Type\ \{\ None,\ Clear,\ Flip,\ Shift,\ Stamp\ \}\ type;}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ doc::algorithm::FlipType\ type;}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \}\ flip;}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ dx,\ dy;}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ angle;}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \}\ shift;}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}*\ transformation;}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \}\ stamp;}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \}\ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ InnerCmd()\ :\ type(None)\ \{\ \}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ InnerCmd(InnerCmd\&\&);}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \string~InnerCmd();}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ InnerCmd(\textcolor{keyword}{const}\ InnerCmd\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ InnerCmd\&\ operator=(\textcolor{keyword}{const}\ InnerCmd\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \textcolor{keyword}{static}\ InnerCmd\ MakeClear();}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \textcolor{keyword}{static}\ InnerCmd\ MakeFlip(\textcolor{keyword}{const}\ doc::algorithm::FlipType\ flipType);}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \textcolor{keyword}{static}\ InnerCmd\ MakeShift(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ dx,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ dy,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{double}\ angle);}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \textcolor{keyword}{static}\ InnerCmd\ MakeStamp(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_transformation}{Transformation}}\&\ t);}
+\DoxyCodeLine{00220\ \ \ \ \ \};}
+\DoxyCodeLine{00221\ \ \ \ \ std::vector<InnerCmd>\ m\_innerCmds;}
+\DoxyCodeLine{00222\ \ \ \};}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \textcolor{keyword}{inline}\ PixelsMovement::MoveModifier\&\ operator|=(PixelsMovement::MoveModifier\&\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ PixelsMovement::MoveModifier\&\ b)\ \{}
+\DoxyCodeLine{00226\ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ =\ \textcolor{keyword}{static\_cast<}PixelsMovement::MoveModifier\textcolor{keyword}{>}(\mbox{\hyperlink{structa}{a}}\ |\ b);}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00228\ \ \ \}}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \textcolor{keyword}{typedef}\ std::shared\_ptr<PixelsMovement>\ PixelsMovementPtr;}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

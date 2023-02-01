@@ -1,0 +1,1368 @@
+\hypertarget{hb-ot-glyf-table_8hh_source}{}\doxysection{hb-\/ot-\/glyf-\/table.hh}
+\label{hb-ot-glyf-table_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/glyf-\/table.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/glyf-\/table.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2015\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2019\ \ Adobe\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Copyright\ ©\ 2019\ \ Ebrahim\ Byagowi}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod,\ Garret\ Rieger,\ Roderick\ Sheeter}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ Adobe\ Author(s):\ Michiharu\ Ariza}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#ifndef\ HB\_OT\_GLYF\_TABLE\_HH}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ HB\_OT\_GLYF\_TABLE\_HH}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/open-\/type.hh"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/head-\/table.hh"{}}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/hmtx-\/table.hh"{}}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/var-\/gvar-\/table.hh"{}}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ "{}hb-\/draw.hh"{}}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{namespace\ }OT\ \{}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ loca\ -\/-\/\ Index\ to\ Location}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ https://docs.microsoft.com/en-\/us/typography/opentype/spec/loca}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ HB\_OT\_TAG\_loca\ HB\_TAG('l','o','c','a')}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#ifndef\ HB\_MAX\_COMPOSITE\_OPERATIONS}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ HB\_MAX\_COMPOSITE\_OPERATIONS\ 100000}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1loca}{loca}}}
+\DoxyCodeLine{00054\ \{}
+\DoxyCodeLine{00055\ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf}{glyf}};}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ hb\_tag\_t\ tableTag\ =\ HB\_OT\_TAG\_loca;}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \textcolor{keywordtype}{bool}\ sanitize\ (\mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ *c\ HB\_UNUSED)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ TRACE\_SANITIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00062\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00063\ \ \ \}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00066\ \ \ \mbox{\hyperlink{struct_o_t_1_1_unsized_array_of}{UnsizedArrayOf<HBUINT8>}}}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ dataZ;\ \ \textcolor{comment}{/*\ Location\ data.\ */}}
+\DoxyCodeLine{00068\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00069\ \ \ DEFINE\_SIZE\_MIN\ (0);\ \ \textcolor{comment}{/*\ In\ reality,\ this\ is\ UNBOUNDED()\ type;\ but\ since\ we\ always}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ check\ the\ size\ externally,\ allow\ Null()\ object\ of\ it\ by}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ defining\ it\ \_MIN\ instead.\ */}}
+\DoxyCodeLine{00072\ \};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ *\ glyf\ -\/-\/\ TrueType\ Glyph\ Data}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ *\ https://docs.microsoft.com/en-\/us/typography/opentype/spec/glyf}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ HB\_OT\_TAG\_glyf\ HB\_TAG('g','l','y','f')}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf}{glyf}}}
+\DoxyCodeLine{00083\ \{}
+\DoxyCodeLine{00084\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ hb\_tag\_t\ tableTag\ =\ HB\_OT\_TAG\_glyf;}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{keywordtype}{bool}\ sanitize\ (\mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ *c\ HB\_UNUSED)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00087\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00088\ \ \ \ \ TRACE\_SANITIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{comment}{/*\ Runtime\ checks\ as\ eager\ sanitizing\ each\ glyph\ is\ costy\ */}}
+\DoxyCodeLine{00090\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00091\ \ \ \}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Iterator,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__source__of}{hb\_is\_source\_of}}\ (Iterator,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}))>}
+\DoxyCodeLine{00095\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00096\ \ \ \_add\_loca\_and\_head\ (\mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *\ plan,\ Iterator\ padded\_offsets,\ \textcolor{keywordtype}{bool}\ use\_short\_loca)}
+\DoxyCodeLine{00097\ \ \ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ num\_offsets\ =\ padded\_offsets.len\ ()\ +\ 1;}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ entry\_size\ =\ use\_short\_loca\ ?\ 2\ :\ 4;}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{char}\ *loca\_prime\_data\ =\ (\textcolor{keywordtype}{char}\ *)\ hb\_calloc\ (entry\_size,\ num\_offsets);}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!loca\_prime\_data))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ DEBUG\_MSG\ (SUBSET,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}loca\ entry\_size\ \%d\ num\_offsets\ \%d\ size\ \%d"{}},}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ entry\_size,\ num\_offsets,\ entry\_size\ *\ num\_offsets);}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordflow}{if}\ (use\_short\_loca)}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \_write\_loca\ (padded\_offsets,\ 1,\ hb\_array\ ((\mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ *)\ loca\_prime\_data,\ num\_offsets));}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \_write\_loca\ (padded\_offsets,\ 0,\ hb\_array\ ((\mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT32}}\ *)\ loca\_prime\_data,\ num\_offsets));}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *loca\_blob\ =\ hb\_blob\_create\ (loca\_prime\_data,}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ entry\_size\ *\ num\_offsets,}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HB\_MEMORY\_MODE\_WRITABLE,}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loca\_prime\_data,}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_free);}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordtype}{bool}\ result\ =\ plan-\/>add\_table\ (HB\_OT\_TAG\_loca,\ loca\_blob)}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \ \ \ \ \ \&\&\ \_add\_head\_and\_set\_loca\_version\ (plan,\ use\_short\_loca);}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ hb\_blob\_destroy\ (loca\_blob);}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{00123\ \ \ \}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ IteratorIn,\ \textcolor{keyword}{typename}\ IteratorOut,}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__source__of}{hb\_is\_source\_of}}\ (IteratorIn,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})),}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__sink__of}{hb\_is\_sink\_of}}\ (IteratorOut,\ \textcolor{keywordtype}{unsigned}))>}
+\DoxyCodeLine{00128\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00129\ \ \ \_write\_loca\ (IteratorIn\ it,\ \textcolor{keywordtype}{unsigned}\ right\_shift,\ IteratorOut\ dest)}
+\DoxyCodeLine{00130\ \ \ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset\ =\ 0;}
+\DoxyCodeLine{00132\ \ \ \ \ dest\ <<\ 0;}
+\DoxyCodeLine{00133\ \ \ \ \ +\ it}
+\DoxyCodeLine{00134\ \ \ \ \ |\ hb\_map\ ([=,\ \&offset]\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ padded\_size)}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ offset\ +=\ padded\_size;}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}loca\ entry\ offset\ \%d"{}},\ offset);}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ offset\ >>\ right\_shift;}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{00140\ \ \ \ \ |\ hb\_sink\ (dest)}
+\DoxyCodeLine{00141\ \ \ \ \ ;}
+\DoxyCodeLine{00142\ \ \ \}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \textcolor{comment}{/*\ requires\ source\ of\ SubsetGlyph\ complains\ the\ identifier\ isn't\ declared\ */}}
+\DoxyCodeLine{00145\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterator>}
+\DoxyCodeLine{00146\ \ \ \textcolor{keywordtype}{bool}\ serialize\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ Iterator\ it,}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ use\_short\_loca,}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan)}
+\DoxyCodeLine{00150\ \ \ \{}
+\DoxyCodeLine{00151\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00152\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ init\_len\ =\ c-\/>length\ ();}
+\DoxyCodeLine{00153\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \&\_\ :\ it)\ \_.serialize\ (c,\ use\_short\_loca,\ plan);}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{comment}{/*\ As\ a\ special\ case\ when\ all\ glyph\ in\ the\ font\ are\ empty,\ add\ a\ zero\ byte}}
+\DoxyCodeLine{00156\ \textcolor{comment}{\ \ \ \ \ *\ to\ the\ table,\ so\ that\ OTS\ doesn’t\ reject\ it,\ and\ to\ make\ the\ table\ work}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ \ \ \ \ *\ on\ Windows\ as\ well.}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ \ \ \ \ *\ See\ https://github.com/khaledhosny/ots/issues/52\ */}}
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keywordflow}{if}\ (init\_len\ ==\ c-\/>length\ ())}
+\DoxyCodeLine{00160\ \ \ \ \ \{}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ empty\_byte;}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ empty\_byte\ =\ 0;}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ c-\/>copy\ (empty\_byte);}
+\DoxyCodeLine{00164\ \ \ \ \ \}}
+\DoxyCodeLine{00165\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00166\ \ \ \}}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \textcolor{comment}{/*\ Byte\ region(s)\ per\ glyph\ to\ output}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ \ \ \ unpadded,\ hints\ removed\ if\ so\ requested}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ \ \ \ If\ we\ fail\ to\ process\ a\ glyph\ we\ produce\ an\ empty\ (0-\/length)\ glyph\ */}}
+\DoxyCodeLine{00171\ \ \ \textcolor{keywordtype}{bool}\ subset\ (\mbox{\hyperlink{structhb__subset__context__t}{hb\_subset\_context\_t}}\ *c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00172\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00173\ \ \ \ \ TRACE\_SUBSET\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf}{glyf}}\ *glyf\_prime\ =\ c-\/>serializer-\/>start\_embed\ <\mbox{\hyperlink{struct_o_t_1_1glyf}{glyf}}>\ ();}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!c-\/>serializer-\/>check\_success\ (glyf\_prime)))\ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<SubsetGlyph>}}\ glyphs;}
+\DoxyCodeLine{00179\ \ \ \ \ \_populate\_subset\_glyphs\ (c-\/>plan,\ \&glyphs);}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keyword}{auto}\ padded\_offsets\ =}
+\DoxyCodeLine{00182\ \ \ \ \ +\ hb\_iter\ (glyphs)}
+\DoxyCodeLine{00183\ \ \ \ \ |\ hb\_map\ (\&SubsetGlyph::padded\_size)}
+\DoxyCodeLine{00184\ \ \ \ \ ;}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ max\_offset\ =\ +\ padded\_offsets\ |\ hb\_reduce\ (hb\_add,\ 0);}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordtype}{bool}\ use\_short\_loca\ =\ max\_offset\ <\ 0x1FFFF;}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \ \ glyf\_prime-\/>serialize\ (c-\/>serializer,\ hb\_iter\ (glyphs),\ use\_short\_loca,\ c-\/>plan);}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordflow}{if}\ (!use\_short\_loca)\ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ padded\_offsets\ =}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ +\ hb\_iter\ (glyphs)}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \ \ |\ hb\_map\ (\&SubsetGlyph::length)}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{00196\ \ \ \ \ \}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (c-\/>serializer-\/>in\_error\ ()))\ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00200\ \ \ \ \ return\_trace\ (c-\/>serializer-\/>check\_success\ (\_add\_loca\_and\_head\ (c-\/>plan,}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ padded\_offsets,}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ use\_short\_loca)));}
+\DoxyCodeLine{00203\ \ \ \}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ SubsetGlyph>}
+\DoxyCodeLine{00206\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00207\ \ \ \_populate\_subset\_glyphs\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ \ \ *plan,}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<SubsetGlyph>}}\ *glyphs\ \textcolor{comment}{/*\ OUT\ */})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00209\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00210\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{OT::glyf::accelerator\_t}}\ \mbox{\hyperlink{struct_o_t_1_1glyf}{glyf}}\ (plan-\/>source);}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ +\ hb\_range\ (plan-\/>num\_output\_glyphs\ ())}
+\DoxyCodeLine{00213\ \ \ \ \ |\ hb\_map\ ([\&]\ (hb\_codepoint\_t\ new\_gid)}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_subset_glyph}{SubsetGlyph}}\ subset\_glyph\ =\ \{0\};}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ subset\_glyph.new\_gid\ =\ new\_gid;}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ should\ never\ fail:\ all\ old\ gids\ should\ be\ mapped\ */}}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!plan-\/>old\_gid\_for\_new\_gid\ (new\_gid,\ \&subset\_glyph.old\_gid))}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ subset\_glyph;}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ if\ (new\_gid\ ==\ 0\ \&\&}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !(plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NOTDEF\_OUTLINE))}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ subset\_glyph.source\_glyph\ =\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ ();}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ subset\_glyph.source\_glyph\ =\ \mbox{\hyperlink{struct_o_t_1_1glyf}{glyf}}.glyph\_for\_gid\ (subset\_glyph.old\_gid,\ \textcolor{keyword}{true});}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ if\ (plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NO\_HINTING)}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ subset\_glyph.drop\_hints\_bytes\ ();}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ subset\_glyph.dest\_start\ =\ subset\_glyph.source\_glyph.get\_bytes\ ();}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ subset\_glyph;}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ \})}
+\DoxyCodeLine{00233\ \ \ \ \ |\ hb\_sink\ (glyphs)}
+\DoxyCodeLine{00234\ \ \ \ \ ;}
+\DoxyCodeLine{00235\ \ \ \}}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00238\ \ \ \_add\_head\_and\_set\_loca\_version\ (\mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan,\ \textcolor{keywordtype}{bool}\ use\_short\_loca)}
+\DoxyCodeLine{00239\ \ \ \{}
+\DoxyCodeLine{00240\ \ \ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *head\_blob\ =\ \mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ ().reference\_table<\mbox{\hyperlink{struct_o_t_1_1head}{head}}>\ (plan-\/>source);}
+\DoxyCodeLine{00241\ \ \ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *head\_prime\_blob\ =\ hb\_blob\_copy\_writable\_or\_fail\ (head\_blob);}
+\DoxyCodeLine{00242\ \ \ \ \ hb\_blob\_destroy\ (head\_blob);}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!head\_prime\_blob))}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1head}{head}}\ *head\_prime\ =\ (\mbox{\hyperlink{struct_o_t_1_1head}{head}}\ *)\ hb\_blob\_get\_data\_writable\ (head\_prime\_blob,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00248\ \ \ \ \ head\_prime-\/>indexToLocFormat\ =\ use\_short\_loca\ ?\ 0\ :\ 1;}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keywordtype}{bool}\ success\ =\ plan-\/>add\_table\ (HB\_OT\_TAG\_head,\ head\_prime\_blob);}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ hb\_blob\_destroy\ (head\_prime\_blob);}
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{keywordflow}{return}\ success;}
+\DoxyCodeLine{00253\ \ \ \}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}}
+\DoxyCodeLine{00256\ \ \ \{}
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{keyword}{enum}\ composite\_glyph\_flag\_t}
+\DoxyCodeLine{00259\ \ \ \ \ \{}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ ARG\_1\_AND\_2\_ARE\_WORDS\ =\ 0x0001,}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ ARGS\_ARE\_XY\_VALUES\ \ \ \ =\ 0x0002,}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ ROUND\_XY\_TO\_GRID\ \ \ \ \ \ =\ 0x0004,}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ WE\_HAVE\_A\_SCALE\ \ \ \ \ \ \ =\ 0x0008,}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ MORE\_COMPONENTS\ \ \ \ \ \ \ =\ 0x0020,}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ WE\_HAVE\_AN\_X\_AND\_Y\_SCALE\ \ =\ 0x0040,}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ WE\_HAVE\_A\_TWO\_BY\_TWO\ \ =\ 0x0080,}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ WE\_HAVE\_INSTRUCTIONS\ \ =\ 0x0100,}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ USE\_MY\_METRICS\ \ \ \ \ \ \ \ =\ 0x0200,}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ OVERLAP\_COMPOUND\ \ \ \ \ \ =\ 0x0400,}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ SCALED\_COMPONENT\_OFFSET\ \ \ =\ 0x0800,}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ UNSCALED\_COMPONENT\_OFFSET\ =\ 0x1000}
+\DoxyCodeLine{00272\ \ \ \ \ \};}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00275\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_size\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00276\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size\ =\ min\_size;}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \textcolor{comment}{/*\ arg1\ and\ 2\ are\ int16\ */}}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flags\ \&\ ARG\_1\_AND\_2\_ARE\_WORDS)\ size\ +=\ 4;}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \textcolor{comment}{/*\ arg1\ and\ 2\ are\ int8\ */}}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ size\ +=\ 2;}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \textcolor{comment}{/*\ One\ x\ 16\ bit\ (scale)\ */}}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flags\ \&\ WE\_HAVE\_A\_SCALE)\ size\ +=\ 2;}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \textcolor{comment}{/*\ Two\ x\ 16\ bit\ (xscale,\ yscale)\ */}}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (flags\ \&\ WE\_HAVE\_AN\_X\_AND\_Y\_SCALE)\ size\ +=\ 4;}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \textcolor{comment}{/*\ Four\ x\ 16\ bit\ (xscale,\ scale01,\ scale10,\ yscale)\ */}}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (flags\ \&\ WE\_HAVE\_A\_TWO\_BY\_TWO)\ size\ +=\ 8;}
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ size;}
+\DoxyCodeLine{00291\ \ \ \ \ \}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ \ \textcolor{keywordtype}{void}\ set\_glyph\_index\ (hb\_codepoint\_t\ new\_gid)\ \{\ glyphIndex\ =\ new\_gid;\ \}}
+\DoxyCodeLine{00294\ \ \ \ \ hb\_codepoint\_t\ get\_glyph\_index\ ()\textcolor{keyword}{\ \ \ \ \ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ glyphIndex;\ \}}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_instructions\_flag\ ()\ \ \{\ flags\ =\ (uint16\_t)\ flags\ \&\ \string~WE\_HAVE\_INSTRUCTIONS;\ \}}
+\DoxyCodeLine{00297\ \ \ \ \ \textcolor{keywordtype}{void}\ set\_overlaps\_flag\ ()}
+\DoxyCodeLine{00298\ \ \ \ \ \{}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ flags\ =\ (uint16\_t)\ flags\ |\ OVERLAP\_COMPOUND;}
+\DoxyCodeLine{00300\ \ \ \ \ \}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_instructions\ ()\textcolor{keyword}{\ \ const\ }\{\ \textcolor{keywordflow}{return}\ \ \ flags\ \&\ WE\_HAVE\_INSTRUCTIONS;\ \}}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_more\ ()\textcolor{keyword}{\ \ \ \ \ \ \ \ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ \ \ flags\ \&\ MORE\_COMPONENTS;\ \}}
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_use\_my\_metrics\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \ \ flags\ \&\ USE\_MY\_METRICS;\ \}}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_anchored\ ()\textcolor{keyword}{\ \ \ \ \ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ !(flags\ \&\ ARGS\_ARE\_XY\_VALUES);\ \}}
+\DoxyCodeLine{00307\ \ \ \ \ \textcolor{keywordtype}{void}\ get\_anchor\_points\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \&point1,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \&point2)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00308\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ *p\ =\ \&StructAfter<const\ HBUINT8>\ (glyphIndex);}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flags\ \&\ ARG\_1\_AND\_2\_ARE\_WORDS)}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00312\ \ \ \ \ point1\ =\ ((\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ *)\ p)[0];}
+\DoxyCodeLine{00313\ \ \ \ \ point2\ =\ ((\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ *)\ p)[1];}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00317\ \ \ \ \ point1\ =\ p[0];}
+\DoxyCodeLine{00318\ \ \ \ \ point2\ =\ p[1];}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00320\ \ \ \ \ \}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \ \ \textcolor{keywordtype}{void}\ transform\_points\ (\mbox{\hyperlink{struct_o_t_1_1contour__point__vector__t}{contour\_point\_vector\_t}}\ \&points)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00323\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ matrix[4];}
+\DoxyCodeLine{00325\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ trans;}
+\DoxyCodeLine{00326\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (get\_transformation\ (matrix,\ trans))}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00328\ \ \ \ \ \textcolor{keywordflow}{if}\ (scaled\_offsets\ ())}
+\DoxyCodeLine{00329\ \ \ \ \ \{}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ points.translate\ (trans);}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ points.transform\ (matrix);}
+\DoxyCodeLine{00332\ \ \ \ \ \}}
+\DoxyCodeLine{00333\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00334\ \ \ \ \ \{}
+\DoxyCodeLine{00335\ \ \ \ \ \ \ points.transform\ (matrix);}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ points.translate\ (trans);}
+\DoxyCodeLine{00337\ \ \ \ \ \}}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00339\ \ \ \ \ \}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \ \ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00342\ \ \ \ \ \textcolor{keywordtype}{bool}\ scaled\_offsets\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00343\ \textcolor{keyword}{\ \ \ \ }\{\ \textcolor{keywordflow}{return}\ (flags\ \&\ (SCALED\_COMPONENT\_OFFSET\ |\ UNSCALED\_COMPONENT\_OFFSET))\ ==\ SCALED\_COMPONENT\_OFFSET;\ \}}
+\DoxyCodeLine{00344\ }
+\DoxyCodeLine{00345\ \ \ \ \ \textcolor{keywordtype}{bool}\ get\_transformation\ (\textcolor{keywordtype}{float}\ (\&matrix)[4],\ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ \&trans)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00346\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ matrix[0]\ =\ matrix[3]\ =\ 1.f;}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ matrix[1]\ =\ matrix[2]\ =\ 0.f;}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ tx,\ ty;}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBINT8}}\ *p\ =\ \&StructAfter<const\ HBINT8>\ (glyphIndex);}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flags\ \&\ ARG\_1\_AND\_2\_ARE\_WORDS)}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00354\ \ \ \ \ tx\ =\ *(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBINT16}}\ *)\ p;}
+\DoxyCodeLine{00355\ \ \ \ \ p\ +=\ HBINT16::static\_size;}
+\DoxyCodeLine{00356\ \ \ \ \ ty\ =\ *(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBINT16}}\ *)\ p;}
+\DoxyCodeLine{00357\ \ \ \ \ p\ +=\ HBINT16::static\_size;}
+\DoxyCodeLine{00358\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00359\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00361\ \ \ \ \ tx\ =\ *p++;}
+\DoxyCodeLine{00362\ \ \ \ \ ty\ =\ *p++;}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_anchored\ ())\ tx\ =\ ty\ =\ 0;}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \ \ \ \ \ \ trans.init\ ((\textcolor{keywordtype}{float})\ tx,\ (float)\ ty);}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00369\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_f2_d_o_t14}{F2DOT14}}\ *points\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_f2_d_o_t14}{F2DOT14}}\ *)\ p;}
+\DoxyCodeLine{00370\ \ \ \ \ \textcolor{keywordflow}{if}\ (flags\ \&\ WE\_HAVE\_A\_SCALE)}
+\DoxyCodeLine{00371\ \ \ \ \ \{}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ matrix[0]\ =\ matrix[3]\ =\ points[0].to\_float\ ();}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00374\ \ \ \ \ \}}
+\DoxyCodeLine{00375\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (flags\ \&\ WE\_HAVE\_AN\_X\_AND\_Y\_SCALE)}
+\DoxyCodeLine{00376\ \ \ \ \ \{}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ matrix[0]\ =\ points[0].to\_float\ ();}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ matrix[3]\ =\ points[1].to\_float\ ();}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00380\ \ \ \ \ \}}
+\DoxyCodeLine{00381\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (flags\ \&\ WE\_HAVE\_A\_TWO\_BY\_TWO)}
+\DoxyCodeLine{00382\ \ \ \ \ \{}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ matrix[0]\ =\ points[0].to\_float\ ();}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ matrix[1]\ =\ points[1].to\_float\ ();}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ matrix[2]\ =\ points[2].to\_float\ ();}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ matrix[3]\ =\ points[3].to\_float\ ();}
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00388\ \ \ \ \ \}}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00390\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ tx\ ||\ ty;}
+\DoxyCodeLine{00391\ \ \ \ \ \}}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \ \ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00394\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ \ \ \ flags;}
+\DoxyCodeLine{00395\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_h_b_glyph_i_d16}{HBGlyphID16}}\ \ glyphIndex;}
+\DoxyCodeLine{00396\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00397\ \ \ \ \ DEFINE\_SIZE\_MIN\ (4);}
+\DoxyCodeLine{00398\ \ \ \};}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\ :\ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}<composite\_iter\_t,\ const\ CompositeGlyphChain\ \&>}
+\DoxyCodeLine{00401\ \ \ \{}
+\DoxyCodeLine{00402\ \ \ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}\ *\mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{\_\_item\_t\_\_}};}
+\DoxyCodeLine{00403\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ glyph\_,\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{\_\_item\_t\_\_}}\ current\_)\ :}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ glyph\ (glyph\_),\ current\ (\textcolor{keyword}{nullptr}),\ current\_size\ (0)}
+\DoxyCodeLine{00405\ \ \ \ \ \{}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ set\_next\ (current\_);}
+\DoxyCodeLine{00407\ \ \ \ \ \}}
+\DoxyCodeLine{00408\ }
+\DoxyCodeLine{00409\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\ ()\ :\ glyph\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ ()),\ current\ (\textcolor{keyword}{nullptr}),\ current\_size\ (0)\ \{\}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}\ \&\_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *current;\ \}}
+\DoxyCodeLine{00412\ \ \ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ current;\ \}}
+\DoxyCodeLine{00413\ \ \ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()}
+\DoxyCodeLine{00414\ \ \ \ \ \{}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!current-\/>has\_more\ ())\ \{\ current\ =\ \textcolor{keyword}{nullptr};\ \textcolor{keywordflow}{return};\ \}}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \ \ \ \ \ \ set\_next\ (\&StructAtOffset<CompositeGlyphChain>\ (current,\ current\_size));}
+\DoxyCodeLine{00418\ \ \ \ \ \}}
+\DoxyCodeLine{00419\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\&\ o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00420\ \textcolor{keyword}{\ \ \ \ }\{\ \textcolor{keywordflow}{return}\ glyph\ !=\ o.glyph\ ||\ current\ !=\ o.current;\ \}}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \ \ \ \ \textcolor{keywordtype}{void}\ set\_next\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}\ *composite)}
+\DoxyCodeLine{00424\ \ \ \ \ \{}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!glyph.check\_range\ (composite,\ CompositeGlyphChain::min\_size))}
+\DoxyCodeLine{00426\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \ \ current\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00428\ \ \ \ \ \ \ \ \ current\_size\ =\ 0;}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ size\ =\ composite-\/>get\_size\ ();}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!glyph.check\_range\ (composite,\ size))}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ \ \ current\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ current\_size\ =\ 0;}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00437\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \ \ \ \ \ \ current\ =\ composite;}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ current\_size\ =\ size;}
+\DoxyCodeLine{00441\ \ \ \ \ \}}
+\DoxyCodeLine{00442\ }
+\DoxyCodeLine{00443\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00444\ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ glyph;}
+\DoxyCodeLine{00445\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{\_\_item\_t\_\_}}\ current;}
+\DoxyCodeLine{00446\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ current\_size;}
+\DoxyCodeLine{00447\ \ \ \};}
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ \ \ \textcolor{keyword}{enum}\ phantom\_point\_index\_t}
+\DoxyCodeLine{00450\ \ \ \{}
+\DoxyCodeLine{00451\ \ \ \ \ PHANTOM\_LEFT\ \ \ =\ 0,}
+\DoxyCodeLine{00452\ \ \ \ \ PHANTOM\_RIGHT\ \ =\ 1,}
+\DoxyCodeLine{00453\ \ \ \ \ PHANTOM\_TOP\ \ \ \ =\ 2,}
+\DoxyCodeLine{00454\ \ \ \ \ PHANTOM\_BOTTOM\ =\ 3,}
+\DoxyCodeLine{00455\ \ \ \ \ PHANTOM\_COUNT\ \ =\ 4}
+\DoxyCodeLine{00456\ \ \ \};}
+\DoxyCodeLine{00457\ }
+\DoxyCodeLine{00458\ \ \ \textcolor{keyword}{struct\ }accelerator\_t;}
+\DoxyCodeLine{00459\ }
+\DoxyCodeLine{00460\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}}
+\DoxyCodeLine{00461\ \ \ \{}
+\DoxyCodeLine{00462\ \ \ \ \ \textcolor{keyword}{enum}\ simple\_glyph\_flag\_t}
+\DoxyCodeLine{00463\ \ \ \ \ \{}
+\DoxyCodeLine{00464\ \ \ \ \ \ \ FLAG\_ON\_CURVE\ \ \ \ \ \ \ =\ 0x01,}
+\DoxyCodeLine{00465\ \ \ \ \ \ \ FLAG\_X\_SHORT\ \ \ \ \ \ \ \ =\ 0x02,}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ FLAG\_Y\_SHORT\ \ \ \ \ \ \ \ =\ 0x04,}
+\DoxyCodeLine{00467\ \ \ \ \ \ \ FLAG\_REPEAT\ \ \ \ \ \ \ \ \ =\ 0x08,}
+\DoxyCodeLine{00468\ \ \ \ \ \ \ FLAG\_X\_SAME\ \ \ \ \ \ \ \ \ =\ 0x10,}
+\DoxyCodeLine{00469\ \ \ \ \ \ \ FLAG\_Y\_SAME\ \ \ \ \ \ \ \ \ =\ 0x20,}
+\DoxyCodeLine{00470\ \ \ \ \ \ \ FLAG\_OVERLAP\_SIMPLE\ =\ 0x40,}
+\DoxyCodeLine{00471\ \ \ \ \ \ \ FLAG\_RESERVED2\ \ \ \ \ \ =\ 0x80}
+\DoxyCodeLine{00472\ \ \ \ \ \};}
+\DoxyCodeLine{00473\ }
+\DoxyCodeLine{00474\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00475\ \ \ \ \ \textcolor{keyword}{struct\ }GlyphHeader}
+\DoxyCodeLine{00476\ \ \ \ \ \{}
+\DoxyCodeLine{00477\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_data\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ numberOfContours;\ \}}
+\DoxyCodeLine{00478\ }
+\DoxyCodeLine{00479\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ get\_extents\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{accelerator\_t}}\ \&glyf\_accelerator,}
+\DoxyCodeLine{00480\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_codepoint\_t\ gid,\ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ *extents)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00481\ \textcolor{keyword}{\ \ \ \ \ \ }\{}
+\DoxyCodeLine{00482\ \ \ \ \ \textcolor{comment}{/*\ Undocumented\ rasterizer\ behavior:\ shift\ glyph\ to\ the\ left\ by\ (lsb\ -\/\ xMin),\ i.e.,\ xMin\ =\ lsb\ */}}
+\DoxyCodeLine{00483\ \ \ \ \ \textcolor{comment}{/*\ extents-\/>x\_bearing\ =\ hb\_min\ (glyph\_header.xMin,\ glyph\_header.xMax);\ */}}
+\DoxyCodeLine{00484\ \ \ \ \ extents-\/>x\_bearing\ =\ font-\/>em\_scale\_x\ (glyf\_accelerator.hmtx-\/>get\_side\_bearing\ (gid));}
+\DoxyCodeLine{00485\ \ \ \ \ extents-\/>y\_bearing\ =\ font-\/>em\_scale\_y\ (hb\_max\ (yMin,\ yMax));}
+\DoxyCodeLine{00486\ \ \ \ \ extents-\/>width\ \ \ \ \ =\ font-\/>em\_scale\_x\ (hb\_max\ (xMin,\ xMax)\ -\/\ hb\_min\ (xMin,\ xMax));}
+\DoxyCodeLine{00487\ \ \ \ \ extents-\/>height\ \ \ \ =\ font-\/>em\_scale\_y\ (hb\_min\ (yMin,\ yMax)\ -\/\ hb\_max\ (yMin,\ yMax));}
+\DoxyCodeLine{00488\ }
+\DoxyCodeLine{00489\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBINT16}}\ \ \ \ numberOfContours;}
+\DoxyCodeLine{00493\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ the\ number\ of\ contours\ is}}
+\DoxyCodeLine{00494\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ greater\ than\ or\ equal\ to\ zero,}}
+\DoxyCodeLine{00495\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ this\ is\ a\ simple\ glyph;\ if\ negative,}}
+\DoxyCodeLine{00496\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ this\ is\ a\ composite\ glyph.\ */}}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{FWORD}}\ \ \ \ xMin;\ \ \ \textcolor{comment}{/*\ Minimum\ x\ for\ coordinate\ data.\ */}}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{FWORD}}\ \ \ \ yMin;\ \ \ \textcolor{comment}{/*\ Minimum\ y\ for\ coordinate\ data.\ */}}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{FWORD}}\ \ \ \ xMax;\ \ \ \textcolor{comment}{/*\ Maximum\ x\ for\ coordinate\ data.\ */}}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{FWORD}}\ \ \ \ yMax;\ \ \ \textcolor{comment}{/*\ Maximum\ y\ for\ coordinate\ data.\ */}}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ DEFINE\_SIZE\_STATIC\ (10);}
+\DoxyCodeLine{00503\ \ \ \ \ \};}
+\DoxyCodeLine{00504\ }
+\DoxyCodeLine{00505\ \ \ \ \ \textcolor{keyword}{struct\ }SimpleGlyph}
+\DoxyCodeLine{00506\ \ \ \ \ \{}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ \textcolor{keyword}{const}\ GlyphHeader\ \&header;}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \mbox{\hyperlink{classbytes}{bytes}};}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ SimpleGlyph\ (\textcolor{keyword}{const}\ GlyphHeader\ \&header\_,\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ bytes\_)\ :}
+\DoxyCodeLine{00510\ \ \ \ \ header\ (header\_),\ \mbox{\hyperlink{classbytes}{bytes}}\ (bytes\_)\ \{\}}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ instruction\_len\_offset\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00513\ \textcolor{keyword}{\ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ GlyphHeader::static\_size\ +\ 2\ *\ header.numberOfContours;\ \}}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ length\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ instruction\_len)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00516\ \textcolor{keyword}{\ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ instruction\_len\_offset\ ()\ +\ 2\ +\ instruction\_len;\ \}}
+\DoxyCodeLine{00517\ }
+\DoxyCodeLine{00518\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ instructions\_length\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00519\ \textcolor{keyword}{\ \ \ \ \ \ }\{}
+\DoxyCodeLine{00520\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ instruction\_length\_offset\ =\ instruction\_len\_offset\ ();}
+\DoxyCodeLine{00521\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (instruction\_length\_offset\ +\ 2\ >\ \mbox{\hyperlink{classbytes}{bytes}}.length))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00522\ }
+\DoxyCodeLine{00523\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ \&instructionLength\ =\ StructAtOffset<HBUINT16>\ (\&\mbox{\hyperlink{classbytes}{bytes}},\ instruction\_length\_offset);}
+\DoxyCodeLine{00524\ \ \ \ \ \textcolor{comment}{/*\ Out\ of\ bounds\ of\ the\ current\ glyph\ */}}
+\DoxyCodeLine{00525\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (length\ (instructionLength)\ >\ \mbox{\hyperlink{classbytes}{bytes}}.length))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00526\ \ \ \ \ \textcolor{keywordflow}{return}\ instructionLength;}
+\DoxyCodeLine{00527\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00528\ }
+\DoxyCodeLine{00529\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ trim\_padding\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00530\ \textcolor{keyword}{\ \ \ \ \ \ }\{}
+\DoxyCodeLine{00531\ \ \ \ \ \textcolor{comment}{/*\ based\ on\ FontTools\ \_g\_l\_y\_f.py::trim\ */}}
+\DoxyCodeLine{00532\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t\ *glyph\ =\ (uint8\_t*)\ \mbox{\hyperlink{classbytes}{bytes}}.arrayZ;}
+\DoxyCodeLine{00533\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t\ *glyph\_end\ =\ glyph\ +\ \mbox{\hyperlink{classbytes}{bytes}}.length;}
+\DoxyCodeLine{00534\ \ \ \ \ \textcolor{comment}{/*\ simple\ glyph\ w/contours,\ possibly\ trimmable\ */}}
+\DoxyCodeLine{00535\ \ \ \ \ glyph\ +=\ instruction\_len\_offset\ ();}
+\DoxyCodeLine{00536\ }
+\DoxyCodeLine{00537\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (glyph\ +\ 2\ >=\ glyph\_end))\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ ();}
+\DoxyCodeLine{00538\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_coordinates\ =\ StructAtOffset<HBUINT16>\ (glyph\ -\/\ 2,\ 0)\ +\ 1;}
+\DoxyCodeLine{00539\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_instructions\ =\ StructAtOffset<HBUINT16>\ (glyph,\ 0);}
+\DoxyCodeLine{00540\ }
+\DoxyCodeLine{00541\ \ \ \ \ glyph\ +=\ 2\ +\ num\_instructions;}
+\DoxyCodeLine{00542\ }
+\DoxyCodeLine{00543\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ coord\_bytes\ =\ 0;}
+\DoxyCodeLine{00544\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ coords\_with\_flags\ =\ 0;}
+\DoxyCodeLine{00545\ \ \ \ \ \textcolor{keywordflow}{while}\ (glyph\ <\ glyph\_end)}
+\DoxyCodeLine{00546\ \ \ \ \ \{}
+\DoxyCodeLine{00547\ \ \ \ \ \ \ uint8\_t\ flag\ =\ *glyph;}
+\DoxyCodeLine{00548\ \ \ \ \ \ \ glyph++;}
+\DoxyCodeLine{00549\ }
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ repeat\ =\ 1;}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flag\ \&\ FLAG\_REPEAT)}
+\DoxyCodeLine{00552\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00553\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (glyph\ >=\ glyph\_end))\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ ();}
+\DoxyCodeLine{00554\ \ \ \ \ \ \ \ \ repeat\ =\ *glyph\ +\ 1;}
+\DoxyCodeLine{00555\ \ \ \ \ \ \ \ \ glyph++;}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00557\ }
+\DoxyCodeLine{00558\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ xBytes,\ yBytes;}
+\DoxyCodeLine{00559\ \ \ \ \ \ \ xBytes\ =\ yBytes\ =\ 0;}
+\DoxyCodeLine{00560\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flag\ \&\ FLAG\_X\_SHORT)\ xBytes\ =\ 1;}
+\DoxyCodeLine{00561\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((flag\ \&\ FLAG\_X\_SAME)\ ==\ 0)\ xBytes\ =\ 2;}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flag\ \&\ FLAG\_Y\_SHORT)\ yBytes\ =\ 1;}
+\DoxyCodeLine{00564\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((flag\ \&\ FLAG\_Y\_SAME)\ ==\ 0)\ yBytes\ =\ 2;}
+\DoxyCodeLine{00565\ }
+\DoxyCodeLine{00566\ \ \ \ \ \ \ coord\_bytes\ +=\ (xBytes\ +\ yBytes)\ *\ repeat;}
+\DoxyCodeLine{00567\ \ \ \ \ \ \ coords\_with\_flags\ +=\ repeat;}
+\DoxyCodeLine{00568\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (coords\_with\_flags\ >=\ num\_coordinates)\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00569\ \ \ \ \ \}}
+\DoxyCodeLine{00570\ }
+\DoxyCodeLine{00571\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (coords\_with\_flags\ !=\ num\_coordinates))\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ ();}
+\DoxyCodeLine{00572\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ (\mbox{\hyperlink{classbytes}{bytes}}.sub\_array\ (0,\ \mbox{\hyperlink{classbytes}{bytes}}.length\ +\ coord\_bytes\ -\/\ (glyph\_end\ -\/\ glyph)));}
+\DoxyCodeLine{00573\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ \ \ \ \ \ \ \textcolor{comment}{/*\ zero\ instruction\ length\ */}}
+\DoxyCodeLine{00576\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_hints\ ()}
+\DoxyCodeLine{00577\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00578\ \ \ \ \ GlyphHeader\ \&glyph\_header\ =\ \textcolor{keyword}{const\_cast<}GlyphHeader\ \&\textcolor{keyword}{>}\ (header);}
+\DoxyCodeLine{00579\ \ \ \ \ (\mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ \&)\ StructAtOffset<HBUINT16>\ (\&glyph\_header,\ instruction\_len\_offset\ ())\ =\ 0;}
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00581\ }
+\DoxyCodeLine{00582\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_hints\_bytes\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \&dest\_start,\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \&dest\_end)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00583\ \textcolor{keyword}{\ \ \ \ \ \ }\{}
+\DoxyCodeLine{00584\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ instructions\_len\ =\ instructions\_length\ ();}
+\DoxyCodeLine{00585\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ glyph\_length\ =\ length\ (instructions\_len);}
+\DoxyCodeLine{00586\ \ \ \ \ dest\_start\ =\ \mbox{\hyperlink{classbytes}{bytes}}.sub\_array\ (0,\ glyph\_length\ -\/\ instructions\_len);}
+\DoxyCodeLine{00587\ \ \ \ \ dest\_end\ =\ \mbox{\hyperlink{classbytes}{bytes}}.sub\_array\ (glyph\_length,\ \mbox{\hyperlink{classbytes}{bytes}}.length\ -\/\ glyph\_length);}
+\DoxyCodeLine{00588\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00589\ }
+\DoxyCodeLine{00590\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ set\_overlaps\_flag\ ()}
+\DoxyCodeLine{00591\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00592\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!header.numberOfContours))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00593\ }
+\DoxyCodeLine{00594\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ flags\_offset\ =\ length\ (instructions\_length\ ());}
+\DoxyCodeLine{00595\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (flags\_offset\ +\ 1\ >\ \mbox{\hyperlink{classbytes}{bytes}}.length))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00596\ }
+\DoxyCodeLine{00597\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ \&first\_flag\ =\ (\mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ \&)\ StructAtOffset<HBUINT16>\ (\&\mbox{\hyperlink{classbytes}{bytes}},\ flags\_offset);}
+\DoxyCodeLine{00598\ \ \ \ \ \ \ \ \ first\_flag\ =\ (uint8\_t)\ first\_flag\ |\ FLAG\_OVERLAP\_SIMPLE;}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00600\ }
+\DoxyCodeLine{00601\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ read\_points\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ *\&p\ \textcolor{comment}{/*\ IN/OUT\ */},}
+\DoxyCodeLine{00602\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__vector__t}{contour\_point\_vector\_t}}\ \&points\_\ \textcolor{comment}{/*\ IN/OUT\ */},}
+\DoxyCodeLine{00603\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \&\mbox{\hyperlink{classbytes}{bytes}},}
+\DoxyCodeLine{00604\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ (*\ setter)\ (\mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ \&\_,\ \textcolor{keywordtype}{float}\ v),}
+\DoxyCodeLine{00605\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ simple\_glyph\_flag\_t\ short\_flag,}
+\DoxyCodeLine{00606\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ simple\_glyph\_flag\_t\ same\_flag)}
+\DoxyCodeLine{00607\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00608\ \ \ \ \ \textcolor{keywordtype}{float}\ v\ =\ 0;}
+\DoxyCodeLine{00609\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ points\_.length;\ i++)}
+\DoxyCodeLine{00610\ \ \ \ \ \{}
+\DoxyCodeLine{00611\ \ \ \ \ \ \ uint8\_t\ flag\ =\ points\_[i].flag;}
+\DoxyCodeLine{00612\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flag\ \&\ short\_flag)}
+\DoxyCodeLine{00613\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00614\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!\mbox{\hyperlink{classbytes}{bytes}}.check\_range\ (p)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00615\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flag\ \&\ same\_flag)}
+\DoxyCodeLine{00616\ \ \ \ \ \ \ \ \ \ \ v\ +=\ *p++;}
+\DoxyCodeLine{00617\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00618\ \ \ \ \ \ \ \ \ \ \ v\ -\/=\ *p++;}
+\DoxyCodeLine{00619\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00622\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!(flag\ \&\ same\_flag))}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00624\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!\mbox{\hyperlink{classbytes}{bytes}}.check\_range\ ((\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ *)\ p)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00625\ \ \ \ \ \ \ \ \ \ \ v\ +=\ *(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBINT16}}\ *)\ p;}
+\DoxyCodeLine{00626\ \ \ \ \ \ \ \ \ \ \ p\ +=\ HBINT16::static\_size;}
+\DoxyCodeLine{00627\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00628\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00629\ \ \ \ \ \ \ setter\ (points\_[i],\ v);}
+\DoxyCodeLine{00630\ \ \ \ \ \}}
+\DoxyCodeLine{00631\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00632\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00633\ }
+\DoxyCodeLine{00634\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ get\_contour\_points\ (\mbox{\hyperlink{struct_o_t_1_1contour__point__vector__t}{contour\_point\_vector\_t}}\ \&points\_\ \textcolor{comment}{/*\ OUT\ */},}
+\DoxyCodeLine{00635\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ phantom\_only\ =\ \textcolor{keyword}{false})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00636\ \textcolor{keyword}{\ \ \ \ \ \ }\{}
+\DoxyCodeLine{00637\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT16}}\ *endPtsOfContours\ =\ \&StructAfter<HBUINT16>\ (header);}
+\DoxyCodeLine{00638\ \ \ \ \ \textcolor{keywordtype}{int}\ num\_contours\ =\ header.numberOfContours;}
+\DoxyCodeLine{00639\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!\mbox{\hyperlink{classbytes}{bytes}}.check\_range\ (\&endPtsOfContours[num\_contours\ +\ 1])))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00640\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_points\ =\ endPtsOfContours[num\_contours\ -\/\ 1]\ +\ 1;}
+\DoxyCodeLine{00641\ }
+\DoxyCodeLine{00642\ \ \ \ \ points\_.resize\ (num\_points);}
+\DoxyCodeLine{00643\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ points\_.length;\ i++)\ points\_[i].init\ ();}
+\DoxyCodeLine{00644\ \ \ \ \ \textcolor{keywordflow}{if}\ (phantom\_only)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00645\ }
+\DoxyCodeLine{00646\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ num\_contours;\ i++)}
+\DoxyCodeLine{00647\ \ \ \ \ \ \ points\_[endPtsOfContours[i]].is\_end\_point\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00648\ }
+\DoxyCodeLine{00649\ \ \ \ \ \textcolor{comment}{/*\ Skip\ instructions\ */}}
+\DoxyCodeLine{00650\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ *p\ =\ \&StructAtOffset<HBUINT8>\ (\&endPtsOfContours[num\_contours\ +\ 1],}
+\DoxyCodeLine{00651\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ endPtsOfContours[num\_contours]);}
+\DoxyCodeLine{00652\ }
+\DoxyCodeLine{00653\ \ \ \ \ \textcolor{comment}{/*\ Read\ flags\ */}}
+\DoxyCodeLine{00654\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ num\_points;\ i++)}
+\DoxyCodeLine{00655\ \ \ \ \ \{}
+\DoxyCodeLine{00656\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!\mbox{\hyperlink{classbytes}{bytes}}.check\_range\ (p)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00657\ \ \ \ \ \ \ uint8\_t\ flag\ =\ *p++;}
+\DoxyCodeLine{00658\ \ \ \ \ \ \ points\_[i].flag\ =\ flag;}
+\DoxyCodeLine{00659\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (flag\ \&\ FLAG\_REPEAT)}
+\DoxyCodeLine{00660\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00661\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!\mbox{\hyperlink{classbytes}{bytes}}.check\_range\ (p)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00662\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ repeat\_count\ =\ *p++;}
+\DoxyCodeLine{00663\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ ((repeat\_count-\/-\/\ >\ 0)\ \&\&\ (++i\ <\ num\_points))}
+\DoxyCodeLine{00664\ \ \ \ \ \ \ \ \ \ \ points\_[i].flag\ =\ flag;}
+\DoxyCodeLine{00665\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00666\ \ \ \ \ \}}
+\DoxyCodeLine{00667\ }
+\DoxyCodeLine{00668\ \ \ \ \ \textcolor{comment}{/*\ Read\ x\ \&\ y\ coordinates\ */}}
+\DoxyCodeLine{00669\ \ \ \ \ \textcolor{keywordflow}{return}\ read\_points\ (p,\ points\_,\ \mbox{\hyperlink{classbytes}{bytes}},\ []\ (\mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ \&p,\ \textcolor{keywordtype}{float}\ v)\ \{\ p.x\ =\ v;\ \},}
+\DoxyCodeLine{00670\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FLAG\_X\_SHORT,\ FLAG\_X\_SAME)}
+\DoxyCodeLine{00671\ \ \ \ \ \ \ \ \ \&\&\ read\_points\ (p,\ points\_,\ \mbox{\hyperlink{classbytes}{bytes}},\ []\ (\mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ \&p,\ \textcolor{keywordtype}{float}\ v)\ \{\ p.y\ =\ v;\ \},}
+\DoxyCodeLine{00672\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FLAG\_Y\_SHORT,\ FLAG\_Y\_SAME);}
+\DoxyCodeLine{00673\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00674\ \ \ \ \ \};}
+\DoxyCodeLine{00675\ }
+\DoxyCodeLine{00676\ \ \ \ \ \textcolor{keyword}{struct\ }CompositeGlyph}
+\DoxyCodeLine{00677\ \ \ \ \ \{}
+\DoxyCodeLine{00678\ \ \ \ \ \ \ \textcolor{keyword}{const}\ GlyphHeader\ \&header;}
+\DoxyCodeLine{00679\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \mbox{\hyperlink{classbytes}{bytes}};}
+\DoxyCodeLine{00680\ \ \ \ \ \ \ CompositeGlyph\ (\textcolor{keyword}{const}\ GlyphHeader\ \&header\_,\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ bytes\_)\ :}
+\DoxyCodeLine{00681\ \ \ \ \ header\ (header\_),\ \mbox{\hyperlink{classbytes}{bytes}}\ (bytes\_)\ \{\}}
+\DoxyCodeLine{00682\ }
+\DoxyCodeLine{00683\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\ get\_iterator\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00684\ \textcolor{keyword}{\ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\ (\mbox{\hyperlink{classbytes}{bytes}},\ \&StructAfter<CompositeGlyphChain,\ GlyphHeader>\ (header));\ \}}
+\DoxyCodeLine{00685\ }
+\DoxyCodeLine{00686\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ instructions\_length\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \mbox{\hyperlink{classbytes}{bytes}})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00687\ \textcolor{keyword}{\ \ \ \ \ \ }\{}
+\DoxyCodeLine{00688\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ \mbox{\hyperlink{classbytes}{bytes}}.length;}
+\DoxyCodeLine{00689\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ \mbox{\hyperlink{classbytes}{bytes}}.length;}
+\DoxyCodeLine{00690\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}\ *last\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00691\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \&item\ :\ get\_iterator\ ())}
+\DoxyCodeLine{00692\ \ \ \ \ \ \ last\ =\ \&item;}
+\DoxyCodeLine{00693\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!last))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00694\ }
+\DoxyCodeLine{00695\ \ \ \ \ \textcolor{keywordflow}{if}\ (last-\/>has\_instructions\ ())}
+\DoxyCodeLine{00696\ \ \ \ \ \ \ start\ =\ (\textcolor{keywordtype}{char}\ *)\ last\ -\/\ \&\mbox{\hyperlink{classbytes}{bytes}}\ +\ last-\/>get\_size\ ();}
+\DoxyCodeLine{00697\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (start\ >\ end))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00698\ \ \ \ \ \textcolor{keywordflow}{return}\ end\ -\/\ start;}
+\DoxyCodeLine{00699\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00700\ }
+\DoxyCodeLine{00701\ \ \ \ \ \ \ \textcolor{comment}{/*\ Trimming\ for\ composites\ not\ implemented.}}
+\DoxyCodeLine{00702\ \textcolor{comment}{\ \ \ \ \ \ \ *\ If\ removing\ hints\ it\ falls\ out\ of\ that.\ */}}
+\DoxyCodeLine{00703\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ trim\_padding\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ (\mbox{\hyperlink{classbytes}{bytes}});\ \}}
+\DoxyCodeLine{00704\ }
+\DoxyCodeLine{00705\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_hints\ ()}
+\DoxyCodeLine{00706\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00707\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \&\_\ :\ get\_iterator\ ())}
+\DoxyCodeLine{00708\ \ \ \ \ \ \ \textcolor{keyword}{const\_cast<}\mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}\ \&\textcolor{keyword}{>}\ (\_).drop\_instructions\_flag\ ();}
+\DoxyCodeLine{00709\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00710\ }
+\DoxyCodeLine{00711\ \ \ \ \ \ \ \textcolor{comment}{/*\ Chop\ instructions\ off\ the\ end\ */}}
+\DoxyCodeLine{00712\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_hints\_bytes\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \&dest\_start)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00713\ \textcolor{keyword}{\ \ \ \ \ \ }\{\ dest\_start\ =\ \mbox{\hyperlink{classbytes}{bytes}}.sub\_array\ (0,\ \mbox{\hyperlink{classbytes}{bytes}}.length\ -\/\ instructions\_length\ (\mbox{\hyperlink{classbytes}{bytes}}));\ \}}
+\DoxyCodeLine{00714\ }
+\DoxyCodeLine{00715\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ set\_overlaps\_flag\ ()}
+\DoxyCodeLine{00716\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00717\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const\_cast<}\mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}\ \&\textcolor{keyword}{>}\ (StructAfter<CompositeGlyphChain,\ GlyphHeader>\ (header))}
+\DoxyCodeLine{00718\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .set\_overlaps\_flag\ ();}
+\DoxyCodeLine{00719\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00720\ \ \ \ \ \};}
+\DoxyCodeLine{00721\ }
+\DoxyCodeLine{00722\ \ \ \ \ \textcolor{keyword}{enum}\ glyph\_type\_t\ \{\ EMPTY,\ SIMPLE,\ COMPOSITE\ \};}
+\DoxyCodeLine{00723\ }
+\DoxyCodeLine{00724\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00725\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\ get\_composite\_iterator\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00726\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00727\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (type\ !=\ COMPOSITE)\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1composite__iter__t}{composite\_iter\_t}}\ ();}
+\DoxyCodeLine{00728\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ CompositeGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).get\_iterator\ ();}
+\DoxyCodeLine{00729\ \ \ \ \ \}}
+\DoxyCodeLine{00730\ }
+\DoxyCodeLine{00731\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ trim\_padding\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00732\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00733\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (type)\ \{}
+\DoxyCodeLine{00734\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ COMPOSITE:\ \textcolor{keywordflow}{return}\ CompositeGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).trim\_padding\ ();}
+\DoxyCodeLine{00735\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ SIMPLE:\ \ \ \ \textcolor{keywordflow}{return}\ SimpleGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).trim\_padding\ ();}
+\DoxyCodeLine{00736\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classbytes}{bytes}};}
+\DoxyCodeLine{00737\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00738\ \ \ \ \ \}}
+\DoxyCodeLine{00739\ }
+\DoxyCodeLine{00740\ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_hints\ ()}
+\DoxyCodeLine{00741\ \ \ \ \ \{}
+\DoxyCodeLine{00742\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (type)\ \{}
+\DoxyCodeLine{00743\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ COMPOSITE:\ CompositeGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).drop\_hints\ ();\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00744\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ SIMPLE:\ \ \ \ SimpleGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).drop\_hints\ ();\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00745\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00746\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00747\ \ \ \ \ \}}
+\DoxyCodeLine{00748\ }
+\DoxyCodeLine{00749\ \ \ \ \ \textcolor{keywordtype}{void}\ set\_overlaps\_flag\ ()}
+\DoxyCodeLine{00750\ \ \ \ \ \{}
+\DoxyCodeLine{00751\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (type)\ \{}
+\DoxyCodeLine{00752\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ COMPOSITE:\ CompositeGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).set\_overlaps\_flag\ ();\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00753\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ SIMPLE:\ \ \ \ SimpleGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).set\_overlaps\_flag\ ();\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00754\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00755\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00756\ \ \ \ \ \}}
+\DoxyCodeLine{00757\ }
+\DoxyCodeLine{00758\ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_hints\_bytes\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \&dest\_start,\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \&dest\_end)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00759\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00760\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (type)\ \{}
+\DoxyCodeLine{00761\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ COMPOSITE:\ CompositeGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).drop\_hints\_bytes\ (dest\_start);\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00762\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ SIMPLE:\ \ \ \ SimpleGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).drop\_hints\_bytes\ (dest\_start,\ dest\_end);\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00763\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00764\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00765\ \ \ \ \ \}}
+\DoxyCodeLine{00766\ }
+\DoxyCodeLine{00767\ \ \ \ \ \textcolor{comment}{/*\ Note:\ Recursively\ calls\ itself.}}
+\DoxyCodeLine{00768\ \textcolor{comment}{\ \ \ \ \ *\ all\_points\ includes\ phantom\ points}}
+\DoxyCodeLine{00769\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00770\ \ \ \ \ \textcolor{keywordtype}{bool}\ get\_points\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{accelerator\_t}}\ \&glyf\_accelerator,}
+\DoxyCodeLine{00771\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__vector__t}{contour\_point\_vector\_t}}\ \&all\_points\ \textcolor{comment}{/*\ OUT\ */},}
+\DoxyCodeLine{00772\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ phantom\_only\ =\ \textcolor{keyword}{false},}
+\DoxyCodeLine{00773\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ depth\ =\ 0)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00774\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00775\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (depth\ >\ HB\_MAX\_NESTING\_LEVEL))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00776\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__vector__t}{contour\_point\_vector\_t}}\ points;}
+\DoxyCodeLine{00777\ }
+\DoxyCodeLine{00778\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (type)\ \{}
+\DoxyCodeLine{00779\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ COMPOSITE:}
+\DoxyCodeLine{00780\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00781\ \ \ \ \ \textcolor{comment}{/*\ pseudo\ component\ points\ for\ each\ component\ in\ composite\ glyph\ */}}
+\DoxyCodeLine{00782\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ num\_points\ =\ hb\_len\ (CompositeGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).get\_iterator\ ());}
+\DoxyCodeLine{00783\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!points.resize\ (num\_points)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00784\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ points.length;\ i++)}
+\DoxyCodeLine{00785\ \ \ \ \ \ \ points[i].init\ ();}
+\DoxyCodeLine{00786\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00787\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00788\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ SIMPLE:}
+\DoxyCodeLine{00789\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!SimpleGlyph\ (*header,\ \mbox{\hyperlink{classbytes}{bytes}}).get\_contour\_points\ (points,\ phantom\_only)))}
+\DoxyCodeLine{00790\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00791\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00792\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00793\ }
+\DoxyCodeLine{00794\ \ \ \ \ \ \ \textcolor{comment}{/*\ Init\ phantom\ points\ */}}
+\DoxyCodeLine{00795\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!points.resize\ (points.length\ +\ PHANTOM\_COUNT)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00796\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<contour\_point\_t>}}\ phantoms\ =\ points.sub\_array\ (points.length\ -\/\ PHANTOM\_COUNT,\ PHANTOM\_COUNT);}
+\DoxyCodeLine{00797\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00798\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ PHANTOM\_COUNT;\ ++i)\ phantoms[i].init\ ();}
+\DoxyCodeLine{00799\ \ \ \ \ \textcolor{keywordtype}{int}\ h\_delta\ =\ (int)\ header-\/>xMin\ -\/}
+\DoxyCodeLine{00800\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ glyf\_accelerator.hmtx-\/>get\_side\_bearing\ (gid);}
+\DoxyCodeLine{00801\ \ \ \ \ \textcolor{keywordtype}{int}\ v\_orig\ \ =\ (int)\ header-\/>yMax\ +}
+\DoxyCodeLine{00802\ \#ifndef\ HB\_NO\_VERTICAL}
+\DoxyCodeLine{00803\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ glyf\_accelerator.vmtx-\/>get\_side\_bearing\ (gid)}
+\DoxyCodeLine{00804\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00805\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0}
+\DoxyCodeLine{00806\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00807\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{00808\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ h\_adv\ =\ glyf\_accelerator.hmtx-\/>get\_advance\ (gid);}
+\DoxyCodeLine{00809\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ v\_adv\ =}
+\DoxyCodeLine{00810\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VERTICAL}}
+\DoxyCodeLine{00811\ \ \ \ \ \ \ \ \ \ \ \ \ \ glyf\_accelerator.vmtx-\/>get\_advance\ (gid)}
+\DoxyCodeLine{00812\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00813\ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ font-\/>face-\/>get\_upem\ ()}
+\DoxyCodeLine{00814\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00815\ \ \ \ \ \ \ \ \ \ \ \ \ \ ;}
+\DoxyCodeLine{00816\ \ \ \ \ phantoms[PHANTOM\_LEFT].x\ =\ h\_delta;}
+\DoxyCodeLine{00817\ \ \ \ \ phantoms[PHANTOM\_RIGHT].x\ =\ h\_adv\ +\ h\_delta;}
+\DoxyCodeLine{00818\ \ \ \ \ phantoms[PHANTOM\_TOP].y\ =\ v\_orig;}
+\DoxyCodeLine{00819\ \ \ \ \ phantoms[PHANTOM\_BOTTOM].y\ =\ v\_orig\ -\/\ (int)\ v\_adv;}
+\DoxyCodeLine{00820\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00821\ }
+\DoxyCodeLine{00822\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VAR}}
+\DoxyCodeLine{00823\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!glyf\_accelerator.gvar-\/>apply\_deltas\_to\_points\ (gid,\ font,\ points.as\_array\ ())))}
+\DoxyCodeLine{00824\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00825\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00826\ }
+\DoxyCodeLine{00827\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (type)\ \{}
+\DoxyCodeLine{00828\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ SIMPLE:}
+\DoxyCodeLine{00829\ \ \ \ \ all\_points.extend\ (points.as\_array\ ());}
+\DoxyCodeLine{00830\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00831\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ COMPOSITE:}
+\DoxyCodeLine{00832\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00833\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ comp\_index\ =\ 0;}
+\DoxyCodeLine{00834\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \&item\ :\ get\_composite\_iterator\ ())}
+\DoxyCodeLine{00835\ \ \ \ \ \{}
+\DoxyCodeLine{00836\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__vector__t}{contour\_point\_vector\_t}}\ comp\_points;}
+\DoxyCodeLine{00837\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!glyf\_accelerator.glyph\_for\_gid\ (item.get\_glyph\_index\ ())}
+\DoxyCodeLine{00838\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .get\_points\ (font,\ glyf\_accelerator,\ comp\_points,}
+\DoxyCodeLine{00839\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ phantom\_only,\ depth\ +\ 1)}
+\DoxyCodeLine{00840\ \ \ \ \ \ \ \ \ \ \ \ \ ||\ comp\_points.length\ <\ PHANTOM\_COUNT))}
+\DoxyCodeLine{00841\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00842\ }
+\DoxyCodeLine{00843\ \ \ \ \ \ \ \textcolor{comment}{/*\ Copy\ phantom\ points\ from\ component\ if\ USE\_MY\_METRICS\ flag\ set\ */}}
+\DoxyCodeLine{00844\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (item.is\_use\_my\_metrics\ ())}
+\DoxyCodeLine{00845\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ PHANTOM\_COUNT;\ i++)}
+\DoxyCodeLine{00846\ \ \ \ \ \ \ \ \ \ \ phantoms[i]\ =\ comp\_points[comp\_points.length\ -\/\ PHANTOM\_COUNT\ +\ i];}
+\DoxyCodeLine{00847\ }
+\DoxyCodeLine{00848\ \ \ \ \ \ \ \textcolor{comment}{/*\ Apply\ component\ transformation\ \&\ translation\ */}}
+\DoxyCodeLine{00849\ \ \ \ \ \ \ item.transform\_points\ (comp\_points);}
+\DoxyCodeLine{00850\ }
+\DoxyCodeLine{00851\ \ \ \ \ \ \ \textcolor{comment}{/*\ Apply\ translation\ from\ gvar\ */}}
+\DoxyCodeLine{00852\ \ \ \ \ \ \ comp\_points.translate\ (points[comp\_index]);}
+\DoxyCodeLine{00853\ }
+\DoxyCodeLine{00854\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (item.is\_anchored\ ())}
+\DoxyCodeLine{00855\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00856\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ p1,\ p2;}
+\DoxyCodeLine{00857\ \ \ \ \ \ \ \ \ item.get\_anchor\_points\ (p1,\ p2);}
+\DoxyCodeLine{00858\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (p1\ <\ all\_points.length\ \&\&\ p2\ <\ comp\_points.length))}
+\DoxyCodeLine{00859\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00860\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ delta;}
+\DoxyCodeLine{00861\ \ \ \ \ \ \ \ \ \ \ delta.init\ (all\_points[p1].x\ -\/\ comp\_points[p2].x,}
+\DoxyCodeLine{00862\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ all\_points[p1].y\ -\/\ comp\_points[p2].y);}
+\DoxyCodeLine{00863\ }
+\DoxyCodeLine{00864\ \ \ \ \ \ \ \ \ \ \ comp\_points.translate\ (delta);}
+\DoxyCodeLine{00865\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00866\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00867\ }
+\DoxyCodeLine{00868\ \ \ \ \ \ \ all\_points.extend\ (comp\_points.sub\_array\ (0,\ comp\_points.length\ -\/\ PHANTOM\_COUNT));}
+\DoxyCodeLine{00869\ }
+\DoxyCodeLine{00870\ \ \ \ \ \ \ comp\_index++;}
+\DoxyCodeLine{00871\ \ \ \ \ \}}
+\DoxyCodeLine{00872\ }
+\DoxyCodeLine{00873\ \ \ \ \ all\_points.extend\ (phantoms);}
+\DoxyCodeLine{00874\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00875\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00876\ \ \ \ \ all\_points.extend\ (phantoms);}
+\DoxyCodeLine{00877\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00878\ }
+\DoxyCodeLine{00879\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (depth\ ==\ 0)\ \textcolor{comment}{/*\ Apply\ at\ top\ level\ */}}
+\DoxyCodeLine{00880\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00881\ \ \ \ \ \textcolor{comment}{/*\ Undocumented\ rasterizer\ behavior:}}
+\DoxyCodeLine{00882\ \textcolor{comment}{\ \ \ \ \ *\ Shift\ points\ horizontally\ by\ the\ updated\ left\ side\ bearing}}
+\DoxyCodeLine{00883\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00884\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ delta;}
+\DoxyCodeLine{00885\ \ \ \ \ delta.init\ (-\/phantoms[PHANTOM\_LEFT].x,\ 0.f);}
+\DoxyCodeLine{00886\ \ \ \ \ \textcolor{keywordflow}{if}\ (delta.x)\ all\_points.translate\ (delta);}
+\DoxyCodeLine{00887\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00888\ }
+\DoxyCodeLine{00889\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00890\ \ \ \ \ \}}
+\DoxyCodeLine{00891\ }
+\DoxyCodeLine{00892\ \ \ \ \ \textcolor{keywordtype}{bool}\ get\_extents\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{accelerator\_t}}\ \&glyf\_accelerator,}
+\DoxyCodeLine{00893\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ *extents)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00894\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00895\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (type\ ==\ EMPTY)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \textcolor{comment}{/*\ Empty\ glyph;\ zero\ extents.\ */}}
+\DoxyCodeLine{00896\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ header-\/>get\_extents\ (font,\ glyf\_accelerator,\ gid,\ extents);}
+\DoxyCodeLine{00897\ \ \ \ \ \}}
+\DoxyCodeLine{00898\ }
+\DoxyCodeLine{00899\ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ get\_bytes\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classbytes}{bytes}};\ \}}
+\DoxyCodeLine{00900\ }
+\DoxyCodeLine{00901\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ bytes\_\ =\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ (),}
+\DoxyCodeLine{00902\ \ \ \ \ \ \ \ hb\_codepoint\_t\ gid\_\ =\ (hb\_codepoint\_t)\ -\/1)\ :\ \mbox{\hyperlink{classbytes}{bytes}}\ (bytes\_),\ gid\ (gid\_),}
+\DoxyCodeLine{00903\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ header\ (\mbox{\hyperlink{classbytes}{bytes}}.as<GlyphHeader>\ ())}
+\DoxyCodeLine{00904\ \ \ \ \ \{}
+\DoxyCodeLine{00905\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ num\_contours\ =\ header-\/>numberOfContours;}
+\DoxyCodeLine{00906\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (num\_contours\ ==\ 0))\ type\ =\ EMPTY;}
+\DoxyCodeLine{00907\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (num\_contours\ >\ 0)\ type\ =\ SIMPLE;}
+\DoxyCodeLine{00908\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ type\ =\ COMPOSITE;\ \textcolor{comment}{/*\ negative\ numbers\ */}}
+\DoxyCodeLine{00909\ \ \ \ \ \}}
+\DoxyCodeLine{00910\ }
+\DoxyCodeLine{00911\ \ \ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00912\ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ \mbox{\hyperlink{classbytes}{bytes}};}
+\DoxyCodeLine{00913\ \ \ \ \ hb\_codepoint\_t\ gid;}
+\DoxyCodeLine{00914\ \ \ \ \ \textcolor{keyword}{const}\ GlyphHeader\ *header;}
+\DoxyCodeLine{00915\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ type;}
+\DoxyCodeLine{00916\ \ \ \};}
+\DoxyCodeLine{00917\ }
+\DoxyCodeLine{00918\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{accelerator\_t}}}
+\DoxyCodeLine{00919\ \ \ \{}
+\DoxyCodeLine{00920\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{accelerator\_t}}\ (\mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ *face)}
+\DoxyCodeLine{00921\ \ \ \ \ \{}
+\DoxyCodeLine{00922\ \ \ \ \ \ \ short\_offset\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00923\ \ \ \ \ \ \ num\_glyphs\ =\ 0;}
+\DoxyCodeLine{00924\ \ \ \ \ \ \ loca\_table\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00925\ \ \ \ \ \ \ glyf\_table\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00926\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VAR}}
+\DoxyCodeLine{00927\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1gvar}{gvar}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00928\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00929\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1hmtx}{hmtx}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00930\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VERTICAL}}
+\DoxyCodeLine{00931\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1vmtx}{vmtx}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00932\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00933\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1head}{OT::head}}\ \&\mbox{\hyperlink{struct_o_t_1_1head}{head}}\ =\ *face-\/>table.head;}
+\DoxyCodeLine{00934\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{struct_o_t_1_1head}{head}}.indexToLocFormat\ >\ 1\ ||\ \mbox{\hyperlink{struct_o_t_1_1head}{head}}.glyphDataFormat\ >\ 0)}
+\DoxyCodeLine{00935\ \ \ \ \ \textcolor{comment}{/*\ Unknown\ format.\ \ Leave\ num\_glyphs=0,\ that\ takes\ care\ of\ disabling\ us.\ */}}
+\DoxyCodeLine{00936\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00937\ \ \ \ \ \ \ short\_offset\ =\ 0\ ==\ \mbox{\hyperlink{struct_o_t_1_1head}{head}}.indexToLocFormat;}
+\DoxyCodeLine{00938\ }
+\DoxyCodeLine{00939\ \ \ \ \ \ \ loca\_table\ =\ face-\/>table.loca.get\_blob\ ();\ \textcolor{comment}{//\ Needs\ no\ destruct!}}
+\DoxyCodeLine{00940\ \ \ \ \ \ \ glyf\_table\ =\ \mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ ().reference\_table<\mbox{\hyperlink{struct_o_t_1_1glyf}{glyf}}>\ (face);}
+\DoxyCodeLine{00941\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VAR}}
+\DoxyCodeLine{00942\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1gvar}{gvar}}\ =\ face-\/>table.gvar;}
+\DoxyCodeLine{00943\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00944\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1hmtx}{hmtx}}\ =\ face-\/>table.hmtx;}
+\DoxyCodeLine{00945\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VERTICAL}}
+\DoxyCodeLine{00946\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1vmtx}{vmtx}}\ =\ face-\/>table.vmtx;}
+\DoxyCodeLine{00947\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00948\ }
+\DoxyCodeLine{00949\ \ \ \ \ \ \ num\_glyphs\ =\ hb\_max\ (1u,\ loca\_table.get\_length\ ()\ /\ (short\_offset\ ?\ 2\ :\ 4))\ -\/\ 1;}
+\DoxyCodeLine{00950\ \ \ \ \ \ \ num\_glyphs\ =\ hb\_min\ (num\_glyphs,\ face-\/>get\_num\_glyphs\ ());}
+\DoxyCodeLine{00951\ \ \ \ \ \}}
+\DoxyCodeLine{00952\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{\string~accelerator\_t}}\ ()}
+\DoxyCodeLine{00953\ \ \ \ \ \{}
+\DoxyCodeLine{00954\ \ \ \ \ \ \ glyf\_table.destroy\ ();}
+\DoxyCodeLine{00955\ \ \ \ \ \}}
+\DoxyCodeLine{00956\ }
+\DoxyCodeLine{00957\ \ \ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00958\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00959\ \ \ \ \ \textcolor{keywordtype}{bool}\ get\_points\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ hb\_codepoint\_t\ gid,\ T\ consumer)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00960\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00961\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gid\ >=\ num\_glyphs)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00962\ }
+\DoxyCodeLine{00963\ \ \ \ \ \ \ \textcolor{comment}{/*\ Making\ this\ allocfree\ is\ not\ that\ easy}}
+\DoxyCodeLine{00964\ \textcolor{comment}{\ \ \ \ \ https://github.com/harfbuzz/harfbuzz/issues/2095}}
+\DoxyCodeLine{00965\ \textcolor{comment}{\ \ \ \ \ mostly\ because\ of\ gvar\ handling\ in\ VF\ fonts,}}
+\DoxyCodeLine{00966\ \textcolor{comment}{\ \ \ \ \ perhaps\ a\ separate\ path\ for\ non-\/VF\ fonts\ can\ be\ considered\ */}}
+\DoxyCodeLine{00967\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__vector__t}{contour\_point\_vector\_t}}\ all\_points;}
+\DoxyCodeLine{00968\ }
+\DoxyCodeLine{00969\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ phantom\_only\ =\ !consumer.is\_consuming\_contour\_points\ ();}
+\DoxyCodeLine{00970\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!glyph\_for\_gid\ (gid).get\_points\ (font,\ *\textcolor{keyword}{this},\ all\_points,\ phantom\_only)))}
+\DoxyCodeLine{00971\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00972\ }
+\DoxyCodeLine{00973\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (consumer.is\_consuming\_contour\_points\ ())}
+\DoxyCodeLine{00974\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00975\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ point\_index\ =\ 0;\ point\_index\ +\ 4\ <\ all\_points.length;\ ++point\_index)}
+\DoxyCodeLine{00976\ \ \ \ \ \ \ consumer.consume\_point\ (all\_points[point\_index]);}
+\DoxyCodeLine{00977\ \ \ \ \ consumer.points\_end\ ();}
+\DoxyCodeLine{00978\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00979\ }
+\DoxyCodeLine{00980\ \ \ \ \ \ \ \textcolor{comment}{/*\ Where\ to\ write\ phantoms,\ nullptr\ if\ not\ requested\ */}}
+\DoxyCodeLine{00981\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ *phantoms\ =\ consumer.get\_phantoms\_sink\ ();}
+\DoxyCodeLine{00982\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (phantoms)}
+\DoxyCodeLine{00983\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ PHANTOM\_COUNT;\ ++i)}
+\DoxyCodeLine{00984\ \ \ \ \ \ \ phantoms[i]\ =\ all\_points[all\_points.length\ -\/\ PHANTOM\_COUNT\ +\ i];}
+\DoxyCodeLine{00985\ }
+\DoxyCodeLine{00986\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00987\ \ \ \ \ \}}
+\DoxyCodeLine{00988\ }
+\DoxyCodeLine{00989\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VAR}}
+\DoxyCodeLine{00990\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1points__aggregator__t}{points\_aggregator\_t}}}
+\DoxyCodeLine{00991\ \ \ \ \ \{}
+\DoxyCodeLine{00992\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font;}
+\DoxyCodeLine{00993\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ *extents;}
+\DoxyCodeLine{00994\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ *phantoms;}
+\DoxyCodeLine{00995\ }
+\DoxyCodeLine{00996\ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1points__aggregator__t_1_1contour__bounds__t}{contour\_bounds\_t}}}
+\DoxyCodeLine{00997\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00998\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1points__aggregator__t_1_1contour__bounds__t}{contour\_bounds\_t}}\ ()\ \{\ min\_x\ =\ min\_y\ =\ FLT\_MAX;\ max\_x\ =\ max\_y\ =\ -\/FLT\_MAX;\ \}}
+\DoxyCodeLine{00999\ }
+\DoxyCodeLine{01000\ \ \ \ \ \textcolor{keywordtype}{void}\ add\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ \&p)}
+\DoxyCodeLine{01001\ \ \ \ \ \{}
+\DoxyCodeLine{01002\ \ \ \ \ \ \ min\_x\ =\ hb\_min\ (min\_x,\ p.x);}
+\DoxyCodeLine{01003\ \ \ \ \ \ \ min\_y\ =\ hb\_min\ (min\_y,\ p.y);}
+\DoxyCodeLine{01004\ \ \ \ \ \ \ max\_x\ =\ hb\_max\ (max\_x,\ p.x);}
+\DoxyCodeLine{01005\ \ \ \ \ \ \ max\_y\ =\ hb\_max\ (max\_y,\ p.y);}
+\DoxyCodeLine{01006\ \ \ \ \ \}}
+\DoxyCodeLine{01007\ }
+\DoxyCodeLine{01008\ \ \ \ \ \textcolor{keywordtype}{bool}\ empty\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (min\_x\ >=\ max\_x)\ ||\ (min\_y\ >=\ max\_y);\ \}}
+\DoxyCodeLine{01009\ }
+\DoxyCodeLine{01010\ \ \ \ \ \textcolor{keywordtype}{void}\ get\_extents\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ *extents)}
+\DoxyCodeLine{01011\ \ \ \ \ \{}
+\DoxyCodeLine{01012\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (empty\ ()))}
+\DoxyCodeLine{01013\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01014\ \ \ \ \ \ \ \ \ extents-\/>width\ =\ 0;}
+\DoxyCodeLine{01015\ \ \ \ \ \ \ \ \ extents-\/>x\_bearing\ =\ 0;}
+\DoxyCodeLine{01016\ \ \ \ \ \ \ \ \ extents-\/>height\ =\ 0;}
+\DoxyCodeLine{01017\ \ \ \ \ \ \ \ \ extents-\/>y\_bearing\ =\ 0;}
+\DoxyCodeLine{01018\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01019\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01020\ \ \ \ \ \ \ extents-\/>x\_bearing\ =\ font-\/>em\_scalef\_x\ (min\_x);}
+\DoxyCodeLine{01021\ \ \ \ \ \ \ extents-\/>width\ =\ font-\/>em\_scalef\_x\ (max\_x)\ -\/\ extents-\/>x\_bearing;}
+\DoxyCodeLine{01022\ \ \ \ \ \ \ extents-\/>y\_bearing\ =\ font-\/>em\_scalef\_y\ (max\_y);}
+\DoxyCodeLine{01023\ \ \ \ \ \ \ extents-\/>height\ =\ font-\/>em\_scalef\_y\ (min\_y)\ -\/\ extents-\/>y\_bearing;}
+\DoxyCodeLine{01024\ \ \ \ \ \}}
+\DoxyCodeLine{01025\ }
+\DoxyCodeLine{01026\ \ \ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{01027\ \ \ \ \ \textcolor{keywordtype}{float}\ min\_x,\ min\_y,\ max\_x,\ max\_y;}
+\DoxyCodeLine{01028\ \ \ \ \ \ \ \}\ bounds;}
+\DoxyCodeLine{01029\ }
+\DoxyCodeLine{01030\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1points__aggregator__t}{points\_aggregator\_t}}\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font\_,\ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ *extents\_,\ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ *phantoms\_)}
+\DoxyCodeLine{01031\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01032\ \ \ \ \ font\ =\ font\_;}
+\DoxyCodeLine{01033\ \ \ \ \ extents\ =\ extents\_;}
+\DoxyCodeLine{01034\ \ \ \ \ phantoms\ =\ phantoms\_;}
+\DoxyCodeLine{01035\ \ \ \ \ \textcolor{keywordflow}{if}\ (extents)\ bounds\ =\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1points__aggregator__t_1_1contour__bounds__t}{contour\_bounds\_t}}\ ();}
+\DoxyCodeLine{01036\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01037\ }
+\DoxyCodeLine{01038\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ consume\_point\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ \&\mbox{\hyperlink{structpoint}{point}})\ \{\ bounds.add\ (\mbox{\hyperlink{structpoint}{point}});\ \}}
+\DoxyCodeLine{01039\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ points\_end\ ()\ \{\ bounds.get\_extents\ (font,\ extents);\ \}}
+\DoxyCodeLine{01040\ }
+\DoxyCodeLine{01041\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_consuming\_contour\_points\ ()\ \{\ \textcolor{keywordflow}{return}\ extents;\ \}}
+\DoxyCodeLine{01042\ \ \ \ \ \ \ contour\_point\_t\ *get\_phantoms\_sink\ ()\ \{\ \textcolor{keywordflow}{return}\ phantoms;\ \}}
+\DoxyCodeLine{01043\ \ \ \ \ \};}
+\DoxyCodeLine{01044\ }
+\DoxyCodeLine{01045\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01046\ \ \ \ \ \textcolor{keywordtype}{unsigned}}
+\DoxyCodeLine{01047\ \ \ \ \ get\_advance\_var\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ hb\_codepoint\_t\ gid,\ \textcolor{keywordtype}{bool}\ is\_vertical)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01048\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{01049\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (gid\ >=\ num\_glyphs))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{01050\ }
+\DoxyCodeLine{01051\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ success\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01052\ }
+\DoxyCodeLine{01053\ \ \ \ \ \ \ contour\_point\_t\ phantoms[PHANTOM\_COUNT];}
+\DoxyCodeLine{01054\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (font-\/>num\_coords\ ==\ gvar-\/>get\_axis\_count\ ()))}
+\DoxyCodeLine{01055\ \ \ \ \ success\ =\ get\_points\ (font,\ gid,\ points\_aggregator\_t\ (font,\ \textcolor{keyword}{nullptr},\ phantoms));}
+\DoxyCodeLine{01056\ }
+\DoxyCodeLine{01057\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!success))}
+\DoxyCodeLine{01058\ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{01059\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VERTICAL}}
+\DoxyCodeLine{01060\ \ \ \ \ \ \ is\_vertical\ ?\ vmtx-\/>get\_advance\ (gid)\ :}
+\DoxyCodeLine{01061\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01062\ \ \ \ \ \ \ hmtx-\/>get\_advance\ (gid);}
+\DoxyCodeLine{01063\ }
+\DoxyCodeLine{01064\ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ result\ =\ is\_vertical}
+\DoxyCodeLine{01065\ \ \ \ \ \ \ \ \ \ \ \ ?\ phantoms[PHANTOM\_TOP].y\ -\/\ phantoms[PHANTOM\_BOTTOM].y}
+\DoxyCodeLine{01066\ \ \ \ \ \ \ \ \ \ \ \ :\ phantoms[PHANTOM\_RIGHT].x\ -\/\ phantoms[PHANTOM\_LEFT].x;}
+\DoxyCodeLine{01067\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ hb\_clamp\ (roundf\ (result),\ 0.f,\ (\textcolor{keywordtype}{float})\ UINT\_MAX\ /\ 2);}
+\DoxyCodeLine{01068\ \ \ \ \ \}}
+\DoxyCodeLine{01069\ }
+\DoxyCodeLine{01070\ \ \ \ \ \textcolor{keywordtype}{int}\ get\_side\_bearing\_var\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ hb\_codepoint\_t\ gid,\ \textcolor{keywordtype}{bool}\ is\_vertical)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01071\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{01072\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (gid\ >=\ num\_glyphs))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{01073\ }
+\DoxyCodeLine{01074\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ extents;}
+\DoxyCodeLine{01075\ }
+\DoxyCodeLine{01076\ \ \ \ \ \ \ contour\_point\_t\ phantoms[PHANTOM\_COUNT];}
+\DoxyCodeLine{01077\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!get\_points\ (font,\ gid,\ points\_aggregator\_t\ (font,\ \&extents,\ phantoms))))}
+\DoxyCodeLine{01078\ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{01079\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VERTICAL}}
+\DoxyCodeLine{01080\ \ \ \ \ \ \ is\_vertical\ ?\ vmtx-\/>get\_side\_bearing\ (gid)\ :}
+\DoxyCodeLine{01081\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01082\ \ \ \ \ \ \ hmtx-\/>get\_side\_bearing\ (gid);}
+\DoxyCodeLine{01083\ }
+\DoxyCodeLine{01084\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ is\_vertical}
+\DoxyCodeLine{01085\ \ \ \ \ \ \ \ ?\ ceilf\ (phantoms[PHANTOM\_TOP].y)\ -\/\ extents.y\_bearing}
+\DoxyCodeLine{01086\ \ \ \ \ \ \ \ :\ floorf\ (phantoms[PHANTOM\_LEFT].x);}
+\DoxyCodeLine{01087\ \ \ \ \ \}}
+\DoxyCodeLine{01088\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01089\ }
+\DoxyCodeLine{01090\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01091\ \ \ \ \ \textcolor{keywordtype}{bool}\ get\_extents\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ hb\_codepoint\_t\ gid,\ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ *extents)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01092\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{01093\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (gid\ >=\ num\_glyphs))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01094\ }
+\DoxyCodeLine{01095\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VAR}}
+\DoxyCodeLine{01096\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (font-\/>num\_coords\ \&\&\ font-\/>num\_coords\ ==\ gvar-\/>get\_axis\_count\ ())}
+\DoxyCodeLine{01097\ \ \ \ \ \textcolor{keywordflow}{return}\ get\_points\ (font,\ gid,\ points\_aggregator\_t\ (font,\ extents,\ \textcolor{keyword}{nullptr}));}
+\DoxyCodeLine{01098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01099\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ glyph\_for\_gid\ (gid).get\_extents\ (font,\ *\textcolor{keyword}{this},\ extents);}
+\DoxyCodeLine{01100\ \ \ \ \ \}}
+\DoxyCodeLine{01101\ }
+\DoxyCodeLine{01102\ \ \ \ \ \textcolor{keyword}{const}\ Glyph}
+\DoxyCodeLine{01103\ \ \ \ \ glyph\_for\_gid\ (hb\_codepoint\_t\ gid,\ \textcolor{keywordtype}{bool}\ needs\_padding\_removal\ =\ \textcolor{keyword}{false})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01104\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{01105\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (gid\ >=\ num\_glyphs))\ \textcolor{keywordflow}{return}\ Glyph\ ();}
+\DoxyCodeLine{01106\ }
+\DoxyCodeLine{01107\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\_offset,\ end\_offset;}
+\DoxyCodeLine{01108\ }
+\DoxyCodeLine{01109\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (short\_offset)}
+\DoxyCodeLine{01110\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01111\ \ \ \ \ \textcolor{keyword}{const}\ HBUINT16\ *offsets\ =\ (\textcolor{keyword}{const}\ HBUINT16\ *)\ loca\_table-\/>dataZ.arrayZ;}
+\DoxyCodeLine{01112\ \ \ \ \ start\_offset\ =\ 2\ *\ offsets[gid];}
+\DoxyCodeLine{01113\ \ \ \ \ end\_offset\ \ \ =\ 2\ *\ offsets[gid\ +\ 1];}
+\DoxyCodeLine{01114\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01115\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01116\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01117\ \ \ \ \ \textcolor{keyword}{const}\ HBUINT32\ *offsets\ =\ (\textcolor{keyword}{const}\ HBUINT32\ *)\ loca\_table-\/>dataZ.arrayZ;}
+\DoxyCodeLine{01118\ \ \ \ \ start\_offset\ =\ offsets[gid];}
+\DoxyCodeLine{01119\ \ \ \ \ end\_offset\ \ \ =\ offsets[gid\ +\ 1];}
+\DoxyCodeLine{01120\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01121\ }
+\DoxyCodeLine{01122\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (start\_offset\ >\ end\_offset\ ||\ end\_offset\ >\ glyf\_table.get\_length\ ()))}
+\DoxyCodeLine{01123\ \ \ \ \ \textcolor{keywordflow}{return}\ Glyph\ ();}
+\DoxyCodeLine{01124\ }
+\DoxyCodeLine{01125\ \ \ \ \ \ \ Glyph\ glyph\ (\mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ ((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ this-\/>glyf\_table\ +\ start\_offset,}
+\DoxyCodeLine{01126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ end\_offset\ -\/\ start\_offset),\ gid);}
+\DoxyCodeLine{01127\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ needs\_padding\_removal\ ?\ glyph.trim\_padding\ ()\ :\ glyph;}
+\DoxyCodeLine{01128\ \ \ \ \ \}}
+\DoxyCodeLine{01129\ }
+\DoxyCodeLine{01130\ \ \ \ \ \textcolor{keywordtype}{unsigned}}
+\DoxyCodeLine{01131\ \ \ \ \ add\_gid\_and\_children\ (hb\_codepoint\_t\ gid,}
+\DoxyCodeLine{01132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ *gids\_to\_retain,}
+\DoxyCodeLine{01133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ depth\ =\ 0,}
+\DoxyCodeLine{01134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ operation\_count\ =\ 0)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01135\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{01136\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (depth++\ >\ HB\_MAX\_NESTING\_LEVEL))\ \textcolor{keywordflow}{return}\ operation\_count;}
+\DoxyCodeLine{01137\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (operation\_count++\ >\ HB\_MAX\_COMPOSITE\_OPERATIONS))\ \textcolor{keywordflow}{return}\ operation\_count;}
+\DoxyCodeLine{01138\ \ \ \ \ \ \ \textcolor{comment}{/*\ Check\ if\ is\ already\ visited\ */}}
+\DoxyCodeLine{01139\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (gids\_to\_retain-\/>has\ (gid))\ \textcolor{keywordflow}{return}\ operation\_count;}
+\DoxyCodeLine{01140\ }
+\DoxyCodeLine{01141\ \ \ \ \ \ \ gids\_to\_retain-\/>add\ (gid);}
+\DoxyCodeLine{01142\ }
+\DoxyCodeLine{01143\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ it\ =\ glyph\_for\_gid\ (gid).get\_composite\_iterator\ ();}
+\DoxyCodeLine{01144\ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (it)}
+\DoxyCodeLine{01145\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01146\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ item\ =\ *(it++);}
+\DoxyCodeLine{01147\ \ \ \ \ \ \ \ \ operation\_count\ =}
+\DoxyCodeLine{01148\ \ \ \ \ \ \ \ \ \ \ \ \ add\_gid\_and\_children\ (item.get\_glyph\_index\ (),\ gids\_to\_retain,\ depth,\ operation\_count);}
+\DoxyCodeLine{01149\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01150\ }
+\DoxyCodeLine{01151\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ operation\_count;}
+\DoxyCodeLine{01152\ \ \ \ \ \}}
+\DoxyCodeLine{01153\ }
+\DoxyCodeLine{01154\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t}{path\_builder\_t}}}
+\DoxyCodeLine{01155\ \ \ \ \ \{}
+\DoxyCodeLine{01156\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font;}
+\DoxyCodeLine{01157\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__draw__session__t}{hb\_draw\_session\_t}}\ *draw\_session;}
+\DoxyCodeLine{01158\ }
+\DoxyCodeLine{01159\ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t_1_1optional__point__t}{optional\_point\_t}}}
+\DoxyCodeLine{01160\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01161\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t_1_1optional__point__t}{optional\_point\_t}}\ ()\ \{\ has\_data\ =\ \textcolor{keyword}{false};\ \}}
+\DoxyCodeLine{01162\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t_1_1optional__point__t}{optional\_point\_t}}\ (\textcolor{keywordtype}{float}\ x\_,\ \textcolor{keywordtype}{float}\ y\_)\ \{\ x\ =\ x\_;\ y\ =\ y\_;\ has\_data\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{01163\ }
+\DoxyCodeLine{01164\ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_data;}
+\DoxyCodeLine{01165\ \ \ \ \ \textcolor{keywordtype}{float}\ x;}
+\DoxyCodeLine{01166\ \ \ \ \ \textcolor{keywordtype}{float}\ y;}
+\DoxyCodeLine{01167\ }
+\DoxyCodeLine{01168\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t_1_1optional__point__t}{optional\_point\_t}}\ lerp\ (\mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t_1_1optional__point__t}{optional\_point\_t}}\ p,\ \textcolor{keywordtype}{float}\ t)}
+\DoxyCodeLine{01169\ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t_1_1optional__point__t}{optional\_point\_t}}\ (x\ +\ t\ *\ (p.x\ -\/\ x),\ y\ +\ t\ *\ (p.y\ -\/\ y));\ \}}
+\DoxyCodeLine{01170\ \ \ \ \ \ \ \}\ first\_oncurve,\ first\_offcurve,\ last\_offcurve;}
+\DoxyCodeLine{01171\ }
+\DoxyCodeLine{01172\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t}{path\_builder\_t}}\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font\_,\ \mbox{\hyperlink{structhb__draw__session__t}{hb\_draw\_session\_t}}\ \&draw\_session\_)}
+\DoxyCodeLine{01173\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01174\ \ \ \ \ font\ =\ font\_;}
+\DoxyCodeLine{01175\ \ \ \ \ draw\_session\ =\ \&draw\_session\_;}
+\DoxyCodeLine{01176\ \ \ \ \ first\_oncurve\ =\ first\_offcurve\ =\ last\_offcurve\ =\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t_1_1path__builder__t_1_1optional__point__t}{optional\_point\_t}}\ ();}
+\DoxyCodeLine{01177\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01178\ }
+\DoxyCodeLine{01179\ \ \ \ \ \ \ \textcolor{comment}{/*\ based\ on\ https://github.com/RazrFalcon/ttf-\/parser/blob/4f32821/src/glyf.rs\#L287}}
+\DoxyCodeLine{01180\ \textcolor{comment}{\ \ \ \ \ See\ also:}}
+\DoxyCodeLine{01181\ \textcolor{comment}{\ \ \ \ \ *\ https://developer.apple.com/fonts/TrueType-\/Reference-\/Manual/RM01/Chap1.html}}
+\DoxyCodeLine{01182\ \textcolor{comment}{\ \ \ \ \ *\ https://stackoverflow.com/a/20772557\ */}}
+\DoxyCodeLine{01183\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ consume\_point\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1contour__point__t}{contour\_point\_t}}\ \&\mbox{\hyperlink{structpoint}{point}})}
+\DoxyCodeLine{01184\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01185\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_on\_curve\ =\ \mbox{\hyperlink{structpoint}{point}}.flag\ \&\ Glyph::FLAG\_ON\_CURVE;}
+\DoxyCodeLine{01186\ \ \ \ \ optional\_point\_t\ p\ (\mbox{\hyperlink{structpoint}{point}}.x,\ \mbox{\hyperlink{structpoint}{point}}.y);}
+\DoxyCodeLine{01187\ \ \ \ \ \textcolor{keywordflow}{if}\ (!first\_oncurve.has\_data)}
+\DoxyCodeLine{01188\ \ \ \ \ \{}
+\DoxyCodeLine{01189\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_on\_curve)}
+\DoxyCodeLine{01190\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01191\ \ \ \ \ \ \ \ \ first\_oncurve\ =\ p;}
+\DoxyCodeLine{01192\ \ \ \ \ \ \ \ \ draw\_session-\/>move\_to\ (font-\/>em\_fscalef\_x\ (p.x),\ font-\/>em\_fscalef\_y\ (p.y));}
+\DoxyCodeLine{01193\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01194\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01195\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01196\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (first\_offcurve.has\_data)}
+\DoxyCodeLine{01197\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01198\ \ \ \ \ \ \ \ \ \ \ optional\_point\_t\ mid\ =\ first\_offcurve.lerp\ (p,\ .5f);}
+\DoxyCodeLine{01199\ \ \ \ \ \ \ \ \ \ \ first\_oncurve\ =\ mid;}
+\DoxyCodeLine{01200\ \ \ \ \ \ \ \ \ \ \ last\_offcurve\ =\ p;}
+\DoxyCodeLine{01201\ \ \ \ \ \ \ \ \ \ \ draw\_session-\/>move\_to\ (font-\/>em\_fscalef\_x\ (mid.x),\ font-\/>em\_fscalef\_y\ (mid.y));}
+\DoxyCodeLine{01202\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01203\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01204\ \ \ \ \ \ \ \ \ \ \ first\_offcurve\ =\ p;}
+\DoxyCodeLine{01205\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01206\ \ \ \ \ \}}
+\DoxyCodeLine{01207\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01208\ \ \ \ \ \{}
+\DoxyCodeLine{01209\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (last\_offcurve.has\_data)}
+\DoxyCodeLine{01210\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01211\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_on\_curve)}
+\DoxyCodeLine{01212\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01213\ \ \ \ \ \ \ \ \ \ \ draw\_session-\/>quadratic\_to\ (font-\/>em\_fscalef\_x\ (last\_offcurve.x),\ font-\/>em\_fscalef\_y\ (last\_offcurve.y),}
+\DoxyCodeLine{01214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font-\/>em\_fscalef\_x\ (p.x),\ font-\/>em\_fscalef\_y\ (p.y));}
+\DoxyCodeLine{01215\ \ \ \ \ \ \ \ \ \ \ last\_offcurve\ =\ optional\_point\_t\ ();}
+\DoxyCodeLine{01216\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01218\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01219\ \ \ \ \ \ \ \ \ \ \ optional\_point\_t\ mid\ =\ last\_offcurve.lerp\ (p,\ .5f);}
+\DoxyCodeLine{01220\ \ \ \ \ \ \ \ \ \ \ draw\_session-\/>quadratic\_to\ (font-\/>em\_fscalef\_x\ (last\_offcurve.x),\ font-\/>em\_fscalef\_y\ (last\_offcurve.y),}
+\DoxyCodeLine{01221\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font-\/>em\_fscalef\_x\ (mid.x),\ font-\/>em\_fscalef\_y\ (mid.y));}
+\DoxyCodeLine{01222\ \ \ \ \ \ \ \ \ \ \ last\_offcurve\ =\ p;}
+\DoxyCodeLine{01223\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01224\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01225\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01226\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01227\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_on\_curve)}
+\DoxyCodeLine{01228\ \ \ \ \ \ \ \ \ \ \ draw\_session-\/>line\_to\ (font-\/>em\_fscalef\_x\ (p.x),\ font-\/>em\_fscalef\_y\ (p.y));}
+\DoxyCodeLine{01229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01230\ \ \ \ \ \ \ \ \ \ \ last\_offcurve\ =\ p;}
+\DoxyCodeLine{01231\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01232\ \ \ \ \ \}}
+\DoxyCodeLine{01233\ }
+\DoxyCodeLine{01234\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structpoint}{point}}.is\_end\_point)}
+\DoxyCodeLine{01235\ \ \ \ \ \{}
+\DoxyCodeLine{01236\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (first\_offcurve.has\_data\ \&\&\ last\_offcurve.has\_data)}
+\DoxyCodeLine{01237\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01238\ \ \ \ \ \ \ \ \ optional\_point\_t\ mid\ =\ last\_offcurve.lerp\ (first\_offcurve,\ .5f);}
+\DoxyCodeLine{01239\ \ \ \ \ \ \ \ \ draw\_session-\/>quadratic\_to\ (font-\/>em\_fscalef\_x\ (last\_offcurve.x),\ font-\/>em\_fscalef\_y\ (last\_offcurve.y),}
+\DoxyCodeLine{01240\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font-\/>em\_fscalef\_x\ (mid.x),\ font-\/>em\_fscalef\_y\ (mid.y));}
+\DoxyCodeLine{01241\ \ \ \ \ \ \ \ \ last\_offcurve\ =\ optional\_point\_t\ ();}
+\DoxyCodeLine{01242\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ now\ check\ the\ rest\ */}}
+\DoxyCodeLine{01243\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01244\ }
+\DoxyCodeLine{01245\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (first\_offcurve.has\_data\ \&\&\ first\_oncurve.has\_data)}
+\DoxyCodeLine{01246\ \ \ \ \ \ \ \ \ draw\_session-\/>quadratic\_to\ (font-\/>em\_fscalef\_x\ (first\_offcurve.x),\ font-\/>em\_fscalef\_y\ (first\_offcurve.y),}
+\DoxyCodeLine{01247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font-\/>em\_fscalef\_x\ (first\_oncurve.x),\ font-\/>em\_fscalef\_y\ (first\_oncurve.y));}
+\DoxyCodeLine{01248\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (last\_offcurve.has\_data\ \&\&\ first\_oncurve.has\_data)}
+\DoxyCodeLine{01249\ \ \ \ \ \ \ \ \ draw\_session-\/>quadratic\_to\ (font-\/>em\_fscalef\_x\ (last\_offcurve.x),\ font-\/>em\_fscalef\_y\ (last\_offcurve.y),}
+\DoxyCodeLine{01250\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font-\/>em\_fscalef\_x\ (first\_oncurve.x),\ font-\/>em\_fscalef\_y\ (first\_oncurve.y));}
+\DoxyCodeLine{01251\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (first\_oncurve.has\_data)}
+\DoxyCodeLine{01252\ \ \ \ \ \ \ \ \ draw\_session-\/>line\_to\ (font-\/>em\_fscalef\_x\ (first\_oncurve.x),\ font-\/>em\_fscalef\_y\ (first\_oncurve.y));}
+\DoxyCodeLine{01253\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (first\_offcurve.has\_data)}
+\DoxyCodeLine{01254\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01255\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ x\ =\ font-\/>em\_fscalef\_x\ (first\_offcurve.x),\ y\ =\ font-\/>em\_fscalef\_x\ (first\_offcurve.y);}
+\DoxyCodeLine{01256\ \ \ \ \ \ \ \ \ draw\_session-\/>move\_to\ (x,\ y);}
+\DoxyCodeLine{01257\ \ \ \ \ \ \ \ \ draw\_session-\/>quadratic\_to\ (x,\ y,\ x,\ y);}
+\DoxyCodeLine{01258\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01259\ }
+\DoxyCodeLine{01260\ \ \ \ \ \ \ \textcolor{comment}{/*\ Getting\ ready\ for\ the\ next\ contour\ */}}
+\DoxyCodeLine{01261\ \ \ \ \ \ \ first\_oncurve\ =\ first\_offcurve\ =\ last\_offcurve\ =\ optional\_point\_t\ ();}
+\DoxyCodeLine{01262\ \ \ \ \ \ \ draw\_session-\/>close\_path\ ();}
+\DoxyCodeLine{01263\ \ \ \ \ \}}
+\DoxyCodeLine{01264\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01265\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ points\_end\ ()\ \{\}}
+\DoxyCodeLine{01266\ }
+\DoxyCodeLine{01267\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_consuming\_contour\_points\ ()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{01268\ \ \ \ \ \ \ contour\_point\_t\ *get\_phantoms\_sink\ ()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};\ \}}
+\DoxyCodeLine{01269\ \ \ \ \ \};}
+\DoxyCodeLine{01270\ }
+\DoxyCodeLine{01271\ \ \ \ \ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{01272\ \ \ \ \ get\_path\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ hb\_codepoint\_t\ gid,\ \mbox{\hyperlink{structhb__draw__session__t}{hb\_draw\_session\_t}}\ \&draw\_session)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01273\ \textcolor{keyword}{\ \ \ \ }\{\ \textcolor{keywordflow}{return}\ get\_points\ (font,\ gid,\ path\_builder\_t\ (font,\ draw\_session));\ \}}
+\DoxyCodeLine{01274\ }
+\DoxyCodeLine{01275\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VAR}}
+\DoxyCodeLine{01276\ \ \ \ \ \textcolor{keyword}{const}\ gvar\_accelerator\_t\ *gvar;}
+\DoxyCodeLine{01277\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01278\ \ \ \ \ \textcolor{keyword}{const}\ hmtx\_accelerator\_t\ *hmtx;}
+\DoxyCodeLine{01279\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_VERTICAL}}
+\DoxyCodeLine{01280\ \ \ \ \ \textcolor{keyword}{const}\ vmtx\_accelerator\_t\ *vmtx;}
+\DoxyCodeLine{01281\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01282\ }
+\DoxyCodeLine{01283\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{01284\ \ \ \ \ \textcolor{keywordtype}{bool}\ short\_offset;}
+\DoxyCodeLine{01285\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_glyphs;}
+\DoxyCodeLine{01286\ \ \ \ \ \mbox{\hyperlink{structhb__blob__ptr__t}{hb\_blob\_ptr\_t<loca>}}\ loca\_table;}
+\DoxyCodeLine{01287\ \ \ \ \ \mbox{\hyperlink{structhb__blob__ptr__t}{hb\_blob\_ptr\_t<glyf>}}\ glyf\_table;}
+\DoxyCodeLine{01288\ \ \ \};}
+\DoxyCodeLine{01289\ }
+\DoxyCodeLine{01290\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf_1_1_subset_glyph}{SubsetGlyph}}}
+\DoxyCodeLine{01291\ \ \ \{}
+\DoxyCodeLine{01292\ \ \ \ \ hb\_codepoint\_t\ new\_gid;}
+\DoxyCodeLine{01293\ \ \ \ \ hb\_codepoint\_t\ old\_gid;}
+\DoxyCodeLine{01294\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ source\_glyph;}
+\DoxyCodeLine{01295\ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ dest\_start;\ \ \textcolor{comment}{/*\ region\ of\ source\_glyph\ to\ copy\ first\ */}}
+\DoxyCodeLine{01296\ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ dest\_end;\ \ \ \ \textcolor{comment}{/*\ region\ of\ source\_glyph\ to\ copy\ second\ */}}
+\DoxyCodeLine{01297\ }
+\DoxyCodeLine{01298\ \ \ \ \ \textcolor{keywordtype}{bool}\ serialize\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{01299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ use\_short\_loca,}
+\DoxyCodeLine{01300\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01301\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{01302\ \ \ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{01303\ }
+\DoxyCodeLine{01304\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ dest\_glyph\ =\ dest\_start.copy\ (c);}
+\DoxyCodeLine{01305\ \ \ \ \ \ \ dest\_glyph\ =\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ (\&dest\_glyph,\ dest\_glyph.length\ +\ dest\_end.copy\ (c).length);}
+\DoxyCodeLine{01306\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pad\_length\ =\ use\_short\_loca\ ?\ padding\ ()\ :\ 0;}
+\DoxyCodeLine{01307\ \ \ \ \ \ \ DEBUG\_MSG\ (SUBSET,\ \textcolor{keyword}{nullptr},\ \textcolor{stringliteral}{"{}serialize\ \%d\ byte\ glyph,\ width\ \%d\ pad\ \%d"{}},\ dest\_glyph.length,\ dest\_glyph.length\ +\ pad\_length,\ pad\_length);}
+\DoxyCodeLine{01308\ }
+\DoxyCodeLine{01309\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ pad;}
+\DoxyCodeLine{01310\ \ \ \ \ \ \ pad\ =\ 0;}
+\DoxyCodeLine{01311\ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (pad\_length\ >\ 0)}
+\DoxyCodeLine{01312\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01313\ \ \ \ \ c-\/>embed\ (pad);}
+\DoxyCodeLine{01314\ \ \ \ \ pad\_length-\/-\/;}
+\DoxyCodeLine{01315\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01316\ }
+\DoxyCodeLine{01317\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!dest\_glyph.length))\ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{01318\ }
+\DoxyCodeLine{01319\ \ \ \ \ \ \ \textcolor{comment}{/*\ update\ components\ gids\ */}}
+\DoxyCodeLine{01320\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \&\_\ :\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ (dest\_glyph).get\_composite\_iterator\ ())}
+\DoxyCodeLine{01321\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{01322\ \ \ \ \ hb\_codepoint\_t\ new\_gid;}
+\DoxyCodeLine{01323\ \ \ \ \ \textcolor{keywordflow}{if}\ (plan-\/>new\_gid\_for\_old\_gid\ (\_.get\_glyph\_index\ (),\ \&new\_gid))}
+\DoxyCodeLine{01324\ \ \ \ \ \ \ \textcolor{keyword}{const\_cast<}\mbox{\hyperlink{struct_o_t_1_1glyf_1_1_composite_glyph_chain}{CompositeGlyphChain}}\ \&\textcolor{keyword}{>}\ (\_).set\_glyph\_index\ (new\_gid);}
+\DoxyCodeLine{01325\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01326\ }
+\DoxyCodeLine{01327\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NO\_HINTING)}
+\DoxyCodeLine{01328\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ (dest\_glyph).drop\_hints\ ();}
+\DoxyCodeLine{01329\ }
+\DoxyCodeLine{01330\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_SET\_OVERLAPS\_FLAG)}
+\DoxyCodeLine{01331\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1_glyph}{Glyph}}\ (dest\_glyph).set\_overlaps\_flag\ ();}
+\DoxyCodeLine{01332\ }
+\DoxyCodeLine{01333\ \ \ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{01334\ \ \ \ \ \}}
+\DoxyCodeLine{01335\ }
+\DoxyCodeLine{01336\ \ \ \ \ \textcolor{keywordtype}{void}\ drop\_hints\_bytes\ ()}
+\DoxyCodeLine{01337\ \ \ \ \ \{\ source\_glyph.drop\_hints\_bytes\ (dest\_start,\ dest\_end);\ \}}
+\DoxyCodeLine{01338\ }
+\DoxyCodeLine{01339\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ length\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ dest\_start.length\ +\ dest\_end.length;\ \}}
+\DoxyCodeLine{01340\ \ \ \ \ \textcolor{comment}{/*\ pad\ to\ 2\ to\ ensure\ 2-\/byte\ loca\ will\ be\ ok\ */}}
+\DoxyCodeLine{01341\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ padding\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ length\ ()\ \%\ 2;\ \}}
+\DoxyCodeLine{01342\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ padded\_size\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ length\ ()\ +\ padding\ ();\ \}}
+\DoxyCodeLine{01343\ \ \ \};}
+\DoxyCodeLine{01344\ }
+\DoxyCodeLine{01345\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{01346\ \ \ \mbox{\hyperlink{struct_o_t_1_1_unsized_array_of}{UnsizedArrayOf<HBUINT8>}}}
+\DoxyCodeLine{01347\ \ \ \ \ \ \ \ \ dataZ;\ \ \textcolor{comment}{/*\ Glyphs\ data.\ */}}
+\DoxyCodeLine{01348\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01349\ \ \ DEFINE\_SIZE\_MIN\ (0);\ \ \textcolor{comment}{/*\ In\ reality,\ this\ is\ UNBOUNDED()\ type;\ but\ since\ we\ always}}
+\DoxyCodeLine{01350\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ check\ the\ size\ externally,\ allow\ Null()\ object\ of\ it\ by}}
+\DoxyCodeLine{01351\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ defining\ it\ \_MIN\ instead.\ */}}
+\DoxyCodeLine{01352\ \};}
+\DoxyCodeLine{01353\ }
+\DoxyCodeLine{01354\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1glyf__accelerator__t}{glyf\_accelerator\_t}}\ :\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{glyf::accelerator\_t}}\ \{}
+\DoxyCodeLine{01355\ \ \ \mbox{\hyperlink{struct_o_t_1_1glyf__accelerator__t}{glyf\_accelerator\_t}}\ (\mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ *face)\ :\ \mbox{\hyperlink{struct_o_t_1_1glyf_1_1accelerator__t}{glyf::accelerator\_t}}\ (face)\ \{\}}
+\DoxyCodeLine{01356\ \};}
+\DoxyCodeLine{01357\ }
+\DoxyCodeLine{01358\ }
+\DoxyCodeLine{01359\ \}\ \textcolor{comment}{/*\ namespace\ OT\ */}}
+\DoxyCodeLine{01360\ }
+\DoxyCodeLine{01361\ }
+\DoxyCodeLine{01362\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_OT\_GLYF\_TABLE\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

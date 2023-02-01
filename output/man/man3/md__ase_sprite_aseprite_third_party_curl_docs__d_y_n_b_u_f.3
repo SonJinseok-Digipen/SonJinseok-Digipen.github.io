@@ -1,0 +1,110 @@
+.TH "md__ase_sprite_aseprite_third_party_curl_docs__d_y_n_b_u_f" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_curl_docs__d_y_n_b_u_f \- dynbuf 
+.PP
+This is the internal module for creating and handling 'dynamic buffers'\&. This means buffers that can be appended to, dynamically and grow in size to adapt\&.
+.PP
+There will always be a terminating zero put at the end of the dynamic buffer\&.
+.PP
+The \fCstruct dynbuf\fP is used to hold data for each instance of a dynamic buffer\&. The members of that struct \fBMUST NOT\fP be accessed or modified without using the dedicated dynbuf API\&.
+.SH "init"
+.PP
+.PP
+.nf
+void Curl_dyn_init(struct dynbuf *s, size_t toobig);
+.fi
+.PP
+.PP
+This inits a struct to use for dynbuf and it can't fail\&. The \fCtoobig\fP value \fBmust\fP be set to the maximum size we allow this buffer instance to grow to\&. The functions below will return \fCCURLE_OUT_OF_MEMORY\fP when hitting this limit\&.
+.SH "free"
+.PP
+.PP
+.nf
+void Curl_dyn_free(struct dynbuf *s);
+.fi
+.PP
+.PP
+Free the associated memory and clean up\&. After a free, the \fCdynbuf\fP struct can be re-used to start appending new data to\&.
+.SH "addn"
+.PP
+.PP
+.nf
+CURLcode Curl_dyn_addn(struct dynbuf *s, const void *mem, size_t len);
+.fi
+.PP
+.PP
+Append arbitrary data of a given length to the end of the buffer\&.
+.SH "add"
+.PP
+.PP
+.nf
+CURLcode Curl_dyn_add(struct dynbuf *s, const char *str);
+.fi
+.PP
+.PP
+Append a C string to the end of the buffer\&.
+.SH "addf"
+.PP
+.PP
+.nf
+CURLcode Curl_dyn_addf(struct dynbuf *s, const char *fmt, \&.\&.\&.);
+.fi
+.PP
+.PP
+Append a \fCprintf()\fP-style string to the end of the buffer\&.
+.SH "vaddf"
+.PP
+.PP
+.nf
+CURLcode Curl_dyn_vaddf(struct dynbuf *s, const char *fmt, va_list ap);
+.fi
+.PP
+.PP
+Append a \fCvprintf()\fP-style string to the end of the buffer\&.
+.SH "reset"
+.PP
+.PP
+.nf
+void Curl_dyn_reset(struct dynbuf *s);
+.fi
+.PP
+.PP
+Reset the buffer length, but leave the allocation\&.
+.SH "tail"
+.PP
+.PP
+.nf
+CURLcode Curl_dyn_tail(struct dynbuf *s, size_t length);
+.fi
+.PP
+.PP
+Keep \fClength\fP bytes of the buffer tail (the last \fClength\fP bytes of the buffer)\&. The rest of the buffer is dropped\&. The specified \fClength\fP must not be larger than the buffer length\&.
+.SH "ptr"
+.PP
+.PP
+.nf
+char *Curl_dyn_ptr(const struct dynbuf *s);
+.fi
+.PP
+.PP
+Returns a \fCchar *\fP to the buffer if it has a length, otherwise a NULL\&. Since the buffer may be reallocated, this pointer should not be trusted or used anymore after the next buffer manipulation call\&.
+.SH "uptr"
+.PP
+.PP
+.nf
+unsigned char *Curl_dyn_uptr(const struct dynbuf *s);
+.fi
+.PP
+.PP
+Returns an \fCunsigned char *\fP to the buffer if it has a length, otherwise a NULL\&. Since the buffer may be reallocated, this pointer should not be trusted or used anymore after the next buffer manipulation call\&.
+.SH "len"
+.PP
+.PP
+.nf
+size_t Curl_dyn_len(const struct dynbuf *s);
+.fi
+.PP
+.PP
+Returns the length of the buffer in bytes\&. Does not include the terminating zero byte\&. 

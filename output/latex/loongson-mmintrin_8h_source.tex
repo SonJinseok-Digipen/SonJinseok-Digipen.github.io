@@ -1,0 +1,418 @@
+\hypertarget{loongson-mmintrin_8h_source}{}\doxysection{loongson-\/mmintrin.h}
+\label{loongson-mmintrin_8h_source}\index{AseSprite/aseprite/third\_party/pixman/pixman/loongson-\/mmintrin.h@{AseSprite/aseprite/third\_party/pixman/pixman/loongson-\/mmintrin.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*\ The\ gcc-\/provided\ loongson\ intrinsic\ functions\ are\ way\ too\ fucking\ broken}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ to\ be\ of\ any\ use,\ otherwise\ I'd\ use\ them.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ -\/\ The\ hardware\ instructions\ are\ very\ similar\ to\ MMX\ or\ iwMMXt.\ Certainly}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ close\ enough\ that\ they\ could\ have\ implemented\ the\ \_mm\_*-\/style\ intrinsic}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ interface\ and\ had\ a\ ton\ of\ optimized\ code\ available\ to\ them.\ Instead\ they}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ implemented\ something\ much,\ much\ worse.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ -\/\ pshuf\ takes\ a\ dead\ first\ argument,\ causing\ extra\ instructions\ to\ be}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ \ \ generated.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ -\/\ There\ are\ no\ 64-\/bit\ shift\ or\ logical\ intrinsics,\ which\ means\ you\ have}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ \ \ to\ implement\ them\ with\ inline\ assembly,\ but\ this\ is\ a\ nightmare\ because}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ \ \ gcc\ doesn't\ understand\ that\ the\ integer\ vector\ datatypes\ are\ actually\ in}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ \ \ floating-\/point\ registers,\ so\ you\ end\ up\ with\ braindead\ code\ like}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ \ punpcklwd\ \ \ \$f9,\$f9,\$f5}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ \ \ \ \ \ dmtc1\ \ \ v0,\$f8}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ \ punpcklwd\ \ \ \$f19,\$f19,\$f5}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ \ \ \ \ \ dmfc1\ \ \ t9,\$f9}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ \ \ \ \ \ dmtc1\ \ \ v0,\$f9}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ \ \ \ \ \ dmtc1\ \ \ t9,\$f20}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ \ \ \ \ \ dmfc1\ \ \ s0,\$f19}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ \ punpcklbh\ \ \ \$f20,\$f20,\$f2}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ \ \ where\ crap\ just\ gets\ copied\ back\ and\ forth\ between\ integer\ and\ floating-\/}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ \ \ point\ registers\ ad\ nauseum.}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ Instead\ of\ trying\ to\ workaround\ the\ problems\ from\ these\ crap\ intrinsics,\ I}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *\ just\ implement\ the\ \_mm\_*\ intrinsics\ needed\ for\ pixman-\/mmx.c\ using\ inline}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ assembly.}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{/*\ vectors\ are\ stored\ in\ 64-\/bit\ floating-\/point\ registers\ */}}
+\DoxyCodeLine{00037\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{double}\ \_\_m64;}
+\DoxyCodeLine{00038\ \textcolor{comment}{/*\ having\ a\ 32-\/bit\ datatype\ allows\ us\ to\ use\ 32-\/bit\ loads\ in\ places\ like\ load8888\ */}}
+\DoxyCodeLine{00039\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{float}\ \ \_\_m32;}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00042\ \_mm\_setzero\_si64\ (\textcolor{keywordtype}{void})}
+\DoxyCodeLine{00043\ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordflow}{return}\ 0.0;}
+\DoxyCodeLine{00045\ \}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00048\ \_mm\_add\_pi16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00049\ \{}
+\DoxyCodeLine{00050\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}paddh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00054\ \ \ \ \ );}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00056\ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00059\ \_mm\_add\_pi32\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00060\ \{}
+\DoxyCodeLine{00061\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}paddw\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00065\ \ \ \ \ );}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00067\ \}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00070\ \_mm\_adds\_pu16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00071\ \{}
+\DoxyCodeLine{00072\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}paddush\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00076\ \ \ \ \ );}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00078\ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00081\ \_mm\_adds\_pu8\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00082\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}paddusb\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00087\ \ \ \ \ );}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00089\ \}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00092\ \_mm\_and\_si64\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00093\ \{}
+\DoxyCodeLine{00094\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}and\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00098\ \ \ \ \ );}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00100\ \}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00103\ \_mm\_cmpeq\_pi32\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00104\ \{}
+\DoxyCodeLine{00105\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pcmpeqw\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00109\ \ \ \ \ );}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00111\ \}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \textcolor{keyword}{extern}\ \_\_inline\ \textcolor{keywordtype}{void}\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00114\ \_mm\_empty\ (\textcolor{keywordtype}{void})}
+\DoxyCodeLine{00115\ \{}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00120\ \_mm\_madd\_pi16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00121\ \{}
+\DoxyCodeLine{00122\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pmaddhw\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00126\ \ \ \ \ );}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00128\ \}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00131\ \_mm\_mulhi\_pu16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00132\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pmulhuh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00137\ \ \ \ \ );}
+\DoxyCodeLine{00138\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00139\ \}}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00142\ \_mm\_mullo\_pi16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00143\ \{}
+\DoxyCodeLine{00144\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pmullh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00148\ \ \ \ \ );}
+\DoxyCodeLine{00149\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00150\ \}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00153\ \_mm\_or\_si64\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00154\ \{}
+\DoxyCodeLine{00155\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}or\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00159\ \ \ \ \ );}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00161\ \}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00164\ \_mm\_packs\_pu16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00165\ \{}
+\DoxyCodeLine{00166\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}packushb\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00170\ \ \ \ \ );}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00172\ \}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00175\ \_mm\_packs\_pi32\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00176\ \{}
+\DoxyCodeLine{00177\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}packsswh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00181\ \ \ \ \ );}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00183\ \}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#define\ \_MM\_SHUFFLE(fp3,fp2,fp1,fp0)\ \(\backslash\)}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\ (((fp3)\ <<\ 6)\ |\ ((fp2)\ <<\ 4)\ |\ ((fp1)\ <<\ 2)\ |\ (fp0))}}
+\DoxyCodeLine{00187\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00188\ \_mm\_set\_pi16\ (uint16\_t\ \_\_w3,\ uint16\_t\ \_\_w2,\ uint16\_t\ \_\_w1,\ uint16\_t\ \_\_w0)}
+\DoxyCodeLine{00189\ \{}
+\DoxyCodeLine{00190\ \ \ \ \ \textcolor{keywordflow}{if}\ (\_\_builtin\_constant\_p\ (\_\_w3)\ \&\&}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \_\_builtin\_constant\_p\ (\_\_w2)\ \&\&}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \_\_builtin\_constant\_p\ (\_\_w1)\ \&\&}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \_\_builtin\_constant\_p\ (\_\_w0))}
+\DoxyCodeLine{00194\ \ \ \ \ \{}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \ \ uint64\_t\ val\ =\ ((uint64\_t)\_\_w3\ <<\ 48)}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_w2\ <<\ 32)}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_w1\ <<\ 16)}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_w0\ <<\ \ 0);}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *(\_\_m64\ *)\&val;}
+\DoxyCodeLine{00200\ \ \ \ \ \}}
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (\_\_w3\ ==\ \_\_w2\ \&\&\ \_\_w2\ ==\ \_\_w1\ \&\&\ \_\_w1\ ==\ \_\_w0)}
+\DoxyCodeLine{00202\ \ \ \ \ \{}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TODO:\ handle\ other\ cases\ */}}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ uint64\_t\ val\ =\ \_\_w3;}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ uint64\_t\ imm\ =\ \_MM\_SHUFFLE\ (0,\ 0,\ 0,\ 0);}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pshufh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&val),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&imm)}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00212\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ uint64\_t\ val\ =\ ((uint64\_t)\_\_w3\ <<\ 48)}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_w2\ <<\ 32)}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_w1\ <<\ 16)}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_w0\ <<\ \ 0);}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *(\_\_m64\ *)\&val;}
+\DoxyCodeLine{00218\ \ \ \ \ \}}
+\DoxyCodeLine{00219\ \}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00222\ \_mm\_set\_pi32\ (\textcolor{keywordtype}{unsigned}\ \_\_i1,\ \textcolor{keywordtype}{unsigned}\ \_\_i0)}
+\DoxyCodeLine{00223\ \{}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keywordflow}{if}\ (\_\_builtin\_constant\_p\ (\_\_i1)\ \&\&}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \_\_builtin\_constant\_p\ (\_\_i0))}
+\DoxyCodeLine{00226\ \ \ \ \ \{}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ uint64\_t\ val\ =\ ((uint64\_t)\_\_i1\ <<\ 32)}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_i0\ <<\ \ 0);}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *(\_\_m64\ *)\&val;}
+\DoxyCodeLine{00230\ \ \ \ \ \}}
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (\_\_i1\ ==\ \_\_i0)}
+\DoxyCodeLine{00232\ \ \ \ \ \{}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ uint64\_t\ imm\ =\ \_MM\_SHUFFLE\ (1,\ 0,\ 1,\ 0);}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pshufh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m32\ *)\&\_\_i1),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&imm)}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ );}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00240\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ uint64\_t\ val\ =\ ((uint64\_t)\_\_i1\ <<\ 32)}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ ((uint64\_t)\_\_i0\ <<\ \ 0);}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *(\_\_m64\ *)\&val;}
+\DoxyCodeLine{00244\ \ \ \ \ \}}
+\DoxyCodeLine{00245\ \}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\#undef\ \_MM\_SHUFFLE}}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00249\ \_mm\_shuffle\_pi16\ (\_\_m64\ \_\_m,\ int64\_t\ \_\_n)}
+\DoxyCodeLine{00250\ \{}
+\DoxyCodeLine{00251\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pshufh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&\_\_n)}
+\DoxyCodeLine{00255\ \ \ \ \ );}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00257\ \}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00260\ \_mm\_slli\_pi16\ (\_\_m64\ \_\_m,\ int64\_t\ \_\_count)}
+\DoxyCodeLine{00261\ \{}
+\DoxyCodeLine{00262\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00263\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}psllh\ \ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&\_\_count)}
+\DoxyCodeLine{00266\ \ \ \ \ );}
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00268\ \}}
+\DoxyCodeLine{00269\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00270\ \_mm\_slli\_si64\ (\_\_m64\ \_\_m,\ int64\_t\ \_\_count)}
+\DoxyCodeLine{00271\ \{}
+\DoxyCodeLine{00272\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00273\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}dsll\ \ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&\_\_count)}
+\DoxyCodeLine{00276\ \ \ \ \ );}
+\DoxyCodeLine{00277\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00278\ \}}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00281\ \_mm\_srli\_pi16\ (\_\_m64\ \_\_m,\ int64\_t\ \_\_count)}
+\DoxyCodeLine{00282\ \{}
+\DoxyCodeLine{00283\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00284\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}psrlh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&\_\_count)}
+\DoxyCodeLine{00287\ \ \ \ \ );}
+\DoxyCodeLine{00288\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00289\ \}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00292\ \_mm\_srli\_pi32\ (\_\_m64\ \_\_m,\ int64\_t\ \_\_count)}
+\DoxyCodeLine{00293\ \{}
+\DoxyCodeLine{00294\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00295\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}psrlw\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&\_\_count)}
+\DoxyCodeLine{00298\ \ \ \ \ );}
+\DoxyCodeLine{00299\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00300\ \}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00303\ \_mm\_srli\_si64\ (\_\_m64\ \_\_m,\ int64\_t\ \_\_count)}
+\DoxyCodeLine{00304\ \{}
+\DoxyCodeLine{00305\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}dsrl\ \ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&\_\_count)}
+\DoxyCodeLine{00309\ \ \ \ \ );}
+\DoxyCodeLine{00310\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00311\ \}}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00314\ \_mm\_sub\_pi16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00315\ \{}
+\DoxyCodeLine{00316\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00317\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}psubh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00320\ \ \ \ \ );}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00322\ \}}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00325\ \_mm\_unpackhi\_pi8\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00326\ \{}
+\DoxyCodeLine{00327\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00328\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}punpckhbh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00331\ \ \ \ \ );}
+\DoxyCodeLine{00332\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00333\ \}}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00336\ \_mm\_unpackhi\_pi16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00337\ \{}
+\DoxyCodeLine{00338\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00339\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}punpckhhw\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00341\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00342\ \ \ \ \ );}
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00344\ \}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00347\ \_mm\_unpacklo\_pi8\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00348\ \{}
+\DoxyCodeLine{00349\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00350\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}punpcklbh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00353\ \ \ \ \ );}
+\DoxyCodeLine{00354\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00355\ \}}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ \textcolor{comment}{/*\ Since\ punpcklbh\ doesn't\ care\ about\ the\ high\ 32-\/bits,\ we\ use\ the\ \_\_m32\ datatype\ which}}
+\DoxyCodeLine{00358\ \textcolor{comment}{\ *\ allows\ load8888\ to\ use\ 32-\/bit\ loads\ */}}
+\DoxyCodeLine{00359\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00360\ \_mm\_unpacklo\_pi8\_f\ (\_\_m32\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00361\ \{}
+\DoxyCodeLine{00362\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}punpcklbh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00366\ \ \ \ \ );}
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00368\ \}}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00371\ \_mm\_unpacklo\_pi16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00372\ \{}
+\DoxyCodeLine{00373\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00374\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}punpcklhw\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00375\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00377\ \ \ \ \ );}
+\DoxyCodeLine{00378\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00379\ \}}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00382\ \_mm\_xor\_si64\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2)}
+\DoxyCodeLine{00383\ \{}
+\DoxyCodeLine{00384\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00385\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}xor\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00387\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2)}
+\DoxyCodeLine{00388\ \ \ \ \ );}
+\DoxyCodeLine{00389\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00390\ \}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00393\ loongson\_extract\_pi16\ (\_\_m64\ \_\_m,\ int64\_t\ \_\_pos)}
+\DoxyCodeLine{00394\ \{}
+\DoxyCodeLine{00395\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00396\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pextrh\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m),\ \textcolor{stringliteral}{"{}f"{}}\ (*(\_\_m64\ *)\&\_\_pos)}
+\DoxyCodeLine{00399\ \ \ \ \ );}
+\DoxyCodeLine{00400\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00401\ \}}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \textcolor{keyword}{extern}\ \_\_inline\ \_\_m64\ \_\_attribute\_\_((\_\_gnu\_inline\_\_,\ \_\_always\_inline\_\_,\ \_\_artificial\_\_))}
+\DoxyCodeLine{00404\ loongson\_insert\_pi16\ (\_\_m64\ \_\_m1,\ \_\_m64\ \_\_m2,\ int64\_t\ \_\_pos)}
+\DoxyCodeLine{00405\ \{}
+\DoxyCodeLine{00406\ \ \ \ \ \_\_m64\ ret;}
+\DoxyCodeLine{00407\ \ \ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}pinsrh\_\%3\ \%0,\ \%1,\ \%2\(\backslash\)n\(\backslash\)t"{}}}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}=f"{}}\ (ret)}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ :\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m1),\ \textcolor{stringliteral}{"{}f"{}}\ (\_\_m2),\ \textcolor{stringliteral}{"{}i"{}}\ (\_\_pos)}
+\DoxyCodeLine{00410\ \ \ \ \ );}
+\DoxyCodeLine{00411\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00412\ \}}
+
+\end{DoxyCode}

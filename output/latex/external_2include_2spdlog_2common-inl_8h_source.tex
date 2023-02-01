@@ -1,0 +1,88 @@
+\hypertarget{external_2include_2spdlog_2common-inl_8h_source}{}\doxysection{common-\/inl.h}
+\label{external_2include_2spdlog_2common-inl_8h_source}\index{Tengu/external/include/spdlog/common-\/inl.h@{Tengu/external/include/spdlog/common-\/inl.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#ifndef\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#\ \ \ \ include\ <spdlog/common.h>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <iterator>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00014\ \textcolor{keyword}{namespace\ }level\ \{}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#if\ \_\_cplusplus\ >=\ 201703L}}
+\DoxyCodeLine{00017\ \textcolor{keyword}{constexpr}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keyword}{static}\ string\_view\_t\ level\_string\_views[]\ SPDLOG\_LEVEL\_NAMES;}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *short\_level\_names[]\ SPDLOG\_SHORT\_LEVEL\_NAMES;}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ SPDLOG\_INLINE\ \textcolor{keyword}{const}\ string\_view\_t\ \&to\_string\_view(spdlog::level::level\_enum\ l)\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00024\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordflow}{return}\ level\_string\_views[l];}
+\DoxyCodeLine{00026\ \}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ SPDLOG\_INLINE\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *to\_short\_c\_str(spdlog::level::level\_enum\ l)\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00029\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordflow}{return}\ short\_level\_names[l];}
+\DoxyCodeLine{00031\ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ SPDLOG\_INLINE\ spdlog::level::level\_enum\ from\_str(\textcolor{keyword}{const}\ std::string\ \&name)\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00034\ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{auto}\ it\ =\ std::find(std::begin(level\_string\_views),\ std::end(level\_string\_views),\ name);}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ !=\ std::end(level\_string\_views))}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}level::level\_enum\textcolor{keyword}{>}(std::distance(std::begin(level\_string\_views),\ it));}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{comment}{//\ check\ also\ for\ "{}warn"{}\ and\ "{}err"{}\ before\ giving\ up..}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordflow}{if}\ (name\ ==\ \textcolor{stringliteral}{"{}warn"{}})}
+\DoxyCodeLine{00041\ \ \ \ \ \{}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ level::warn;}
+\DoxyCodeLine{00043\ \ \ \ \ \}}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordflow}{if}\ (name\ ==\ \textcolor{stringliteral}{"{}err"{}})}
+\DoxyCodeLine{00045\ \ \ \ \ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ level::err;}
+\DoxyCodeLine{00047\ \ \ \ \ \}}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordflow}{return}\ level::off;}
+\DoxyCodeLine{00049\ \}}
+\DoxyCodeLine{00050\ \}\ \textcolor{comment}{//\ namespace\ level}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ SPDLOG\_INLINE\ spdlog\_ex::spdlog\_ex(std::string\ msg)}
+\DoxyCodeLine{00053\ \ \ \ \ :\ msg\_(std::move(msg))}
+\DoxyCodeLine{00054\ \{\}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ SPDLOG\_INLINE\ spdlog\_ex::spdlog\_ex(\textcolor{keyword}{const}\ std::string\ \&msg,\ \textcolor{keywordtype}{int}\ last\_errno)}
+\DoxyCodeLine{00057\ \{}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_USE\_STD\_FORMAT}}
+\DoxyCodeLine{00059\ \ \ \ \ msg\_\ =\ std::system\_error(std::error\_code(last\_errno,\ std::generic\_category()),\ msg).what();}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00061\ \ \ \ \ memory\_buf\_t\ outbuf;}
+\DoxyCodeLine{00062\ \ \ \ \ fmt::format\_system\_error(outbuf,\ last\_errno,\ msg.c\_str());}
+\DoxyCodeLine{00063\ \ \ \ \ msg\_\ =\ fmt::to\_string(outbuf);}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00065\ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ SPDLOG\_INLINE\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *spdlog\_ex::what()\ const\ SPDLOG\_NOEXCEPT}
+\DoxyCodeLine{00068\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keywordflow}{return}\ msg\_.c\_str();}
+\DoxyCodeLine{00070\ \}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ throw\_spdlog\_ex(\textcolor{keyword}{const}\ std::string\ \&msg,\ \textcolor{keywordtype}{int}\ last\_errno)}
+\DoxyCodeLine{00073\ \{}
+\DoxyCodeLine{00074\ \ \ \ \ SPDLOG\_THROW(spdlog\_ex(msg,\ last\_errno));}
+\DoxyCodeLine{00075\ \}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ SPDLOG\_INLINE\ \textcolor{keywordtype}{void}\ throw\_spdlog\_ex(std::string\ msg)}
+\DoxyCodeLine{00078\ \{}
+\DoxyCodeLine{00079\ \ \ \ \ SPDLOG\_THROW(spdlog\_ex(std::move(msg)));}
+\DoxyCodeLine{00080\ \}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

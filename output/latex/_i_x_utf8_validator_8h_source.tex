@@ -1,0 +1,156 @@
+\hypertarget{_i_x_utf8_validator_8h_source}{}\doxysection{IXUtf8\+Validator.\+h}
+\label{_i_x_utf8_validator_8h_source}\index{AseSprite/aseprite/third\_party/IXWebSocket/ixwebsocket/IXUtf8Validator.h@{AseSprite/aseprite/third\_party/IXWebSocket/ixwebsocket/IXUtf8Validator.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ The\ following\ code\ is\ adapted\ from\ code\ originally\ written\ by\ Bjoern}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Hoehrmann\ <bjoern@hoehrmann.de>.\ See}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ http://bjoern.hoehrmann.de/utf-\/8/decoder/dfa/\ for\ details.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ The\ original\ license:}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Copyright\ (c)\ 2008-\/2009\ Bjoern\ Hoehrmann\ <bjoern@hoehrmann.de>}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ free\ of\ charge,\ to\ any\ person\ obtaining\ a\ copy}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ of\ this\ software\ and\ associated\ documentation\ files\ (the\ "{}Software"{}),\ to\ deal}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ in\ the\ Software\ without\ restriction,\ including\ without\ limitation\ the\ rights}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute,\ sublicense,\ and/or\ sell}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ to\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ subject\ to\ the\ following\ conditions:}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ The\ above\ copyright\ notice\ and\ this\ permission\ notice\ shall\ be\ included\ in}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ all\ copies\ or\ substantial\ portions\ of\ the\ Software.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ THE\ SOFTWARE\ IS\ PROVIDED\ "{}AS\ IS"{},\ WITHOUT\ WARRANTY\ OF\ ANY\ KIND,\ EXPRESS\ OR}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ IMPLIED,\ INCLUDING\ BUT\ NOT\ LIMITED\ TO\ THE\ WARRANTIES\ OF\ MERCHANTABILITY,}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ AND\ NONINFRINGEMENT.\ IN\ NO\ EVENT\ SHALL\ THE}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ AUTHORS\ OR\ COPYRIGHT\ HOLDERS\ BE\ LIABLE\ FOR\ ANY\ CLAIM,\ DAMAGES\ OR\ OTHER}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ LIABILITY,\ WHETHER\ IN\ AN\ ACTION\ OF\ CONTRACT,\ TORT\ OR\ OTHERWISE,\ ARISING\ FROM,}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ OUT\ OF\ OR\ IN\ CONNECTION\ WITH\ THE\ SOFTWARE\ OR\ THE\ USE\ OR\ OTHER\ DEALINGS\ IN\ THE}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ SOFTWARE.}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *\ \ IXUtf8Validator.h}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ \ Author:\ Benjamin\ Sergeant}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ \ Copyright\ (c)\ 2019\ Machine\ Zone,\ Inc.\ All\ rights\ reserved.}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ \ From\ websocketpp.\ Tiny\ modifications\ made\ for\ code\ style,\ function\ names\ etc...}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{namespace\ }\mbox{\hyperlink{namespaceix}{ix}}}
+\DoxyCodeLine{00043\ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \textcolor{keyword}{const}\ utf8\_accept\ =\ 0;}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \textcolor{keyword}{const}\ utf8\_reject\ =\ 1;}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{static}\ uint8\_t\ \textcolor{keyword}{const}\ utf8d[]\ =\ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \textcolor{comment}{//\ 00..1f}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \textcolor{comment}{//\ 20..3f}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \textcolor{comment}{//\ 40..5f}}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \ \ 0,\ \textcolor{comment}{//\ 60..7f}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \ \ 9,\ \textcolor{comment}{//\ 80..9f}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \ \ 7,\ \textcolor{comment}{//\ a0..bf}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ 8,\ \ \ 8,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ 2,\ \ \ \textcolor{comment}{//\ c0..df}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ 0xa,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x3,\ 0x4,\ 0x3,\ 0x3,\ \textcolor{comment}{//\ e0..ef}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ 0xb,\ 0x6,\ 0x6,\ 0x6,\ 0x5,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ 0x8,\ \textcolor{comment}{//\ f0..ff}}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ 0x0,\ 0x1,\ 0x2,\ 0x3,\ 0x5,\ 0x8,\ 0x7,\ 0x1,\ 0x1,\ 0x1,\ 0x4,\ 0x6,\ 0x1,\ 0x1,\ 0x1,\ 0x1,\ \textcolor{comment}{//\ s0..s0}}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ 1,\ \ \ 0,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 0,\ \ \ 1,\ \ \ 0,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \textcolor{comment}{//\ s1..s2}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ 1,\ \ \ 2,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 2,\ \ \ 1,\ \ \ 2,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 2,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \textcolor{comment}{//\ s3..s4}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ 1,\ \ \ 2,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 2,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 3,\ \ \ 1,\ \ \ 3,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \textcolor{comment}{//\ s5..s6}}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ 1,\ \ \ 3,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 3,\ \ \ 1,\ \ \ 3,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ 1,\ \ \ 3,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \ \ 1,\ \textcolor{comment}{//\ s7..s8}}
+\DoxyCodeLine{00076\ \ \ \ \ \};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{inline}\ uint32\_t\ \mbox{\hyperlink{namespaceix_af1c933c48220aa5fac5e24e47b830507}{decodeNextByte}}(uint32\_t*\ \mbox{\hyperlink{structstate}{state}},\ uint32\_t*\ codep,\ uint8\_t\ \textcolor{keywordtype}{byte})}
+\DoxyCodeLine{00086\ \ \ \ \ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ uint32\_t\ type\ =\ utf8d[byte];}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ *codep\ =\ (*\mbox{\hyperlink{structstate}{state}}\ !=\ utf8\_accept)\ ?\ (\textcolor{keywordtype}{byte}\ \&\ 0x3fu)\ |\ (*codep\ <<\ 6)\ :\ (0xff\ >>\ type)\ \&\ (byte);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{structstate}{state}}\ =\ utf8d[256\ +\ *\mbox{\hyperlink{structstate}{state}}\ *\ 16\ +\ type];}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\mbox{\hyperlink{structstate}{state}};}
+\DoxyCodeLine{00093\ \ \ \ \ \}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classix_1_1_utf8_validator}{Utf8Validator}}}
+\DoxyCodeLine{00097\ \ \ \ \ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classix_1_1_utf8_validator_a1331b449e6bf576baf573db9ed9a9695}{Utf8Validator}}()}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ :\ m\_state(utf8\_accept)}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ ,\ m\_codepoint(0)}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classix_1_1_utf8_validator_a16c8debfb1a486e6b0a46eca1b766fbb}{consume}}(uint8\_t\ \textcolor{keywordtype}{byte})}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{namespaceix_af1c933c48220aa5fac5e24e47b830507}{decodeNextByte}}(\&m\_state,\ \&m\_codepoint,\ \textcolor{keywordtype}{byte})\ ==\ utf8\_reject)}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ iterator\_type>}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classix_1_1_utf8_validator_a998efaa784623a1afc35ea2dc6c19edb}{decode}}(iterator\_type\ begin,\ iterator\_type\ end)}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (iterator\_type\ it\ =\ begin;\ it\ !=\ end;\ ++it)}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ result\ =}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{namespaceix_af1c933c48220aa5fac5e24e47b830507}{decodeNextByte}}(\&m\_state,\ \&m\_codepoint,\ \textcolor{keyword}{static\_cast<}uint8\_t\textcolor{keyword}{>}(*it));}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (result\ ==\ utf8\_reject)}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classix_1_1_utf8_validator_a55ff2229cef84ec8f2535c6d75940d54}{complete}}()}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_state\ ==\ utf8\_accept;}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \mbox{\hyperlink{classix_1_1_utf8_validator_aa3eebaa909405ca913911bf87dac40f4}{reset}}()}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ m\_state\ =\ utf8\_accept;}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ m\_codepoint\ =\ 0;}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ uint32\_t\ m\_state;}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ uint32\_t\ m\_codepoint;}
+\DoxyCodeLine{00161\ \ \ \ \ \};}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{namespaceix_a09cf617adc637a78311bf5cfe8d3fac5}{validateUtf8}}(std::string\ \textcolor{keyword}{const}\&\ s)}
+\DoxyCodeLine{00169\ \ \ \ \ \{}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classix_1_1_utf8_validator}{Utf8Validator}}\ v;}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!v.decode(s.begin(),\ s.end()))}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ v.\mbox{\hyperlink{classix_1_1_utf8_validator_a55ff2229cef84ec8f2535c6d75940d54}{complete}}();}
+\DoxyCodeLine{00176\ \ \ \ \ \}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \}\ \textcolor{comment}{//\ namespace\ ix}}
+
+\end{DoxyCode}

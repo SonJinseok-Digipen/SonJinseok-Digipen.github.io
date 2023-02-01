@@ -1,0 +1,23 @@
+.TH "md__ase_sprite_aseprite_src_desktop__r_e_a_d_m_e" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_src_desktop__r_e_a_d_m_e \- Desktop Integration 
+.PP
+\fC\fP
+.SH "Windows"
+.PP
+On Windows we have to create a COM server in a DLL to provide thumbnails\&. The DLL must provide an \fCIThumbnailProvider\fP implementation\&. Our implementation is in \fCdesktop::ThumbnailHandler\fP class, the most interesting member function is \fCThumbnailHandler::GetThumbnail()\fP, which should return a \fCHBITMAP\fP of the thumbnail\&.
+.SS "Registering the DLL"
+If you distribute your app in an installer remember to use \fCregsvr32\&.exe\fP to register your DLL which will call your DLL's \fCDllRegisterServer()\fP, a function that must create registry keys to associate your file type extension with your thumbnail handler\&.
+.PP
+More information \fCin the MSDN\fP\&.
+.SH "macOS"
+.PP
+On macOS we have to create a QuickLook plugin/extension to display thumbnails and previews\&. The plugin is a \fC\&.qlgenerator\fP bundle which can be installed in the \fC~/Library/QuickLook\fP, \fC/System/Library/QuickLook\fP, or \fC/Library/QuickLook\fP directories, or included the in the same app bundle\&.
+.PP
+\fCmacOS pre-10\&.15\fP, has a COM-like functionality to load QuickLook plugins: the QuickLook daemon will use the information in our bundle \fCInfo\&.plist\fP to know which function to load and call from our library to create the plugin object\&. (The function generally is called \fCQuickLookGeneratorPluginFactory\fP but can has any name, the name is specified in a child element of \fCCFPlugInFactories\fP inside the \fCInfo\&.plist\fP file\&.) Then the created object is used abstractly as a \fCIUnknown\fP, and the \fCQLGeneratorInterface\fP interface is queried to generate then thumbnails and previews\&.
+.PP
+We can test our \fC\&.qlgenerator\fP without installing it using the \fC\fCqlmanage\fP utility\fP\&.
+.PP
+We target to macOS 10\&.9, but \fCwe should migrate\fP to the new macOS 10\&.15 API in a near future (or provide both)\&. 

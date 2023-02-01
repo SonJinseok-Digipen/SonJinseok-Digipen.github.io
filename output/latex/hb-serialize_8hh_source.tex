@@ -1,0 +1,689 @@
+\hypertarget{hb-serialize_8hh_source}{}\doxysection{hb-\/serialize.hh}
+\label{hb-serialize_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/serialize.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/serialize.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2007,2008,2009,2010\ \ Red\ Hat,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012,2018\ \ Google,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Copyright\ ©\ 2019\ \ Facebook,\ Inc.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Red\ Hat\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *\ Facebook\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#ifndef\ HB\_SERIALIZE\_HH}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ HB\_SERIALIZE\_HH}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ "{}hb-\/blob.hh"{}}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ "{}hb-\/map.hh"{}}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ "{}hb-\/pool.hh"{}}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ Serialize}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{enum}\ hb\_serialize\_error\_t\ \{}
+\DoxyCodeLine{00045\ \ \ HB\_SERIALIZE\_ERROR\_NONE\ =\ \ \ \ \ \ \ \ \ \ \ \ 0x00000000u,}
+\DoxyCodeLine{00046\ \ \ HB\_SERIALIZE\_ERROR\_OTHER\ =\ \ \ \ \ \ \ \ \ \ \ 0x00000001u,}
+\DoxyCodeLine{00047\ \ \ HB\_SERIALIZE\_ERROR\_OFFSET\_OVERFLOW\ =\ 0x00000002u,}
+\DoxyCodeLine{00048\ \ \ HB\_SERIALIZE\_ERROR\_OUT\_OF\_ROOM\ =\ \ \ \ \ 0x00000004u,}
+\DoxyCodeLine{00049\ \ \ HB\_SERIALIZE\_ERROR\_INT\_OVERFLOW\ =\ \ \ \ 0x00000008u,}
+\DoxyCodeLine{00050\ \ \ HB\_SERIALIZE\_ERROR\_ARRAY\_OVERFLOW\ =\ \ 0x00000010u}
+\DoxyCodeLine{00051\ \};}
+\DoxyCodeLine{00052\ HB\_MARK\_AS\_FLAG\_T\ (hb\_serialize\_error\_t);}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}}
+\DoxyCodeLine{00055\ \{}
+\DoxyCodeLine{00056\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ objidx\_t;}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \textcolor{keyword}{enum}\ whence\_t\ \{}
+\DoxyCodeLine{00059\ \ \ \ \ \ Head,\ \ \textcolor{comment}{/*\ Relative\ to\ the\ current\ object\ head\ (default).\ */}}
+\DoxyCodeLine{00060\ \ \ \ \ \ Tail,\ \ \textcolor{comment}{/*\ Relative\ to\ the\ current\ object\ tail\ after\ packed.\ */}}
+\DoxyCodeLine{00061\ \ \ \ \ \ Absolute\ \ \ \textcolor{comment}{/*\ Absolute:\ from\ the\ start\ of\ the\ serialize\ buffer.\ */}}
+\DoxyCodeLine{00062\ \ \ \ \};}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__serialize__context__t_1_1object__t}{object\_t}}}
+\DoxyCodeLine{00067\ \ \ \{}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{void}\ fini\ ()\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ real\_links.fini\ ();}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ virtual\_links.fini\ ();}
+\DoxyCodeLine{00071\ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator\ ==\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t}{object\_t}}\ \&o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00074\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{comment}{//\ Virtual\ links\ aren't\ considered\ for\ equality\ since\ they\ don't\ affect\ the\ functionality}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \textcolor{comment}{//\ of\ the\ object.}}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (tail\ -\/\ head\ ==\ o.tail\ -\/\ o.head)}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \&\&\ (real\_links.length\ ==\ o.real\_links.length)}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \&\&\ 0\ ==\ hb\_memcmp\ (head,\ o.head,\ tail\ -\/\ head)}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \&\&\ real\_links.as\_bytes\ ()\ ==\ o.real\_links.as\_bytes\ ();}
+\DoxyCodeLine{00081\ \ \ \ \ \}}
+\DoxyCodeLine{00082\ \ \ \ \ uint32\_t\ hash\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00083\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \textcolor{comment}{//\ Virtual\ links\ aren't\ considered\ for\ equality\ since\ they\ don't\ affect\ the\ functionality}}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \textcolor{comment}{//\ of\ the\ object.}}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ (head,\ tail\ -\/\ head).hash\ ()\ \string^}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ real\_links.as\_bytes\ ().hash\ ();}
+\DoxyCodeLine{00088\ \ \ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__serialize__context__t_1_1object__t_1_1link__t}{link\_t}}}
+\DoxyCodeLine{00091\ \ \ \ \ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ width:\ 3;}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_signed:\ 1;}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ whence:\ 2;}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ position:\ 28;}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ bias;}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ objidx\_t\ objidx;}
+\DoxyCodeLine{00098\ \ \ \ \ \};}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{char}\ *head;}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordtype}{char}\ *tail;}
+\DoxyCodeLine{00102\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<link\_t>}}\ real\_links;}
+\DoxyCodeLine{00103\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<link\_t>}}\ virtual\_links;}
+\DoxyCodeLine{00104\ \ \ \ \ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t}{object\_t}}\ *next;}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keyword}{auto}\ all\_links\ ()\ const\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ ((\ hb\_concat\ (this-\/>real\_links,\ this-\/>virtual\_links)\ ));}
+\DoxyCodeLine{00108\ \ \ \ \ auto\ all\_links\_writer\ ()\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ ((\ hb\_concat\ (this-\/>real\_links.writer\ (),\ this-\/>virtual\_links.writer\ ())\ ));}
+\DoxyCodeLine{00110\ \ \ \};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ struct\ \mbox{\hyperlink{structhb__serialize__context__t_1_1snapshot__t}{snapshot\_t}}}
+\DoxyCodeLine{00113\ \ \ \{}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordtype}{char}\ *head;}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordtype}{char}\ *tail;}
+\DoxyCodeLine{00116\ \ \ \ \ \mbox{\hyperlink{structhb__serialize__context__t_1_1object__t}{object\_t}}\ *current;\ \textcolor{comment}{//\ Just\ for\ sanity\ check}}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ num\_real\_links;}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ num\_virtual\_links;}
+\DoxyCodeLine{00119\ \ \ \ \ hb\_serialize\_error\_t\ errors;}
+\DoxyCodeLine{00120\ \ \ \};}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \mbox{\hyperlink{structhb__serialize__context__t_1_1snapshot__t}{snapshot\_t}}\ snapshot\ ()}
+\DoxyCodeLine{00123\ \ \ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__serialize__context__t_1_1snapshot__t}{snapshot\_t}}\ \{}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ head,\ tail,\ current,\ current-\/>real\_links.length,\ current-\/>virtual\_links.length,\ errors\ \};\ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ (\textcolor{keywordtype}{void}\ *start\_,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size)\ :}
+\DoxyCodeLine{00127\ \ \ \ \ start\ ((char\ *)\ start\_),}
+\DoxyCodeLine{00128\ \ \ \ \ end\ (start\ +\ size),}
+\DoxyCodeLine{00129\ \ \ \ \ current\ (nullptr)}
+\DoxyCodeLine{00130\ \ \ \{\ reset\ ();\ \}}
+\DoxyCodeLine{00131\ \ \ \mbox{\hyperlink{structhb__serialize__context__t}{\string~hb\_serialize\_context\_t}}\ ()\ \{\ fini\ ();\ \}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \textcolor{keywordtype}{void}\ fini\ ()}
+\DoxyCodeLine{00134\ \ \ \{}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordflow}{for}\ (\mbox{\hyperlink{structobject__t}{object\_t}}\ *\_\ :\ ++hb\_iter\ (packed))\ \_-\/>fini\ ();}
+\DoxyCodeLine{00136\ \ \ \ \ packed.fini\ ();}
+\DoxyCodeLine{00137\ \ \ \ \ this-\/>packed\_map.fini\ ();}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordflow}{while}\ (current)}
+\DoxyCodeLine{00140\ \ \ \ \ \{}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ *\_\ =\ current;}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ current\ =\ current-\/>next;}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \_-\/>fini\ ();}
+\DoxyCodeLine{00144\ \ \ \ \ \}}
+\DoxyCodeLine{00145\ \ \ \ \ object\_pool.fini\ ();}
+\DoxyCodeLine{00146\ \ \ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \textcolor{keywordtype}{bool}\ in\_error\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bool\ (errors);\ \}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \textcolor{keywordtype}{bool}\ successful\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !bool\ (errors);\ \}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ ran\_out\_of\_room\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ errors\ \&\ HB\_SERIALIZE\_ERROR\_OUT\_OF\_ROOM;\ \}}
+\DoxyCodeLine{00153\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ offset\_overflow\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ errors\ \&\ HB\_SERIALIZE\_ERROR\_OFFSET\_OVERFLOW;\ \}}
+\DoxyCodeLine{00154\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ only\_offset\_overflow\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ errors\ ==\ HB\_SERIALIZE\_ERROR\_OFFSET\_OVERFLOW;\ \}}
+\DoxyCodeLine{00155\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ only\_overflow\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00156\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordflow}{return}\ errors\ ==\ HB\_SERIALIZE\_ERROR\_OFFSET\_OVERFLOW}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ ||\ errors\ ==\ HB\_SERIALIZE\_ERROR\_INT\_OVERFLOW}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ ||\ errors\ ==\ HB\_SERIALIZE\_ERROR\_ARRAY\_OVERFLOW;}
+\DoxyCodeLine{00160\ \ \ \}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \textcolor{keywordtype}{void}\ reset\ (\textcolor{keywordtype}{void}\ *start\_,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size)}
+\DoxyCodeLine{00163\ \ \ \{}
+\DoxyCodeLine{00164\ \ \ \ \ start\ =\ (\textcolor{keywordtype}{char}*)\ start\_;}
+\DoxyCodeLine{00165\ \ \ \ \ end\ =\ start\ +\ size;}
+\DoxyCodeLine{00166\ \ \ \ \ reset\ ();}
+\DoxyCodeLine{00167\ \ \ \ \ current\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00168\ \ \ \}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \textcolor{keywordtype}{void}\ reset\ ()}
+\DoxyCodeLine{00171\ \ \ \{}
+\DoxyCodeLine{00172\ \ \ \ \ this-\/>errors\ =\ HB\_SERIALIZE\_ERROR\_NONE;}
+\DoxyCodeLine{00173\ \ \ \ \ this-\/>head\ =\ this-\/>start;}
+\DoxyCodeLine{00174\ \ \ \ \ this-\/>tail\ =\ this-\/>end;}
+\DoxyCodeLine{00175\ \ \ \ \ this-\/>debug\_depth\ =\ 0;}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \ \ fini\ ();}
+\DoxyCodeLine{00178\ \ \ \ \ this-\/>packed.push\ (\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00179\ \ \ \ \ this-\/>packed\_map.init\ ();}
+\DoxyCodeLine{00180\ \ \ \}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \textcolor{keywordtype}{bool}\ check\_success\ (\textcolor{keywordtype}{bool}\ success,}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_serialize\_error\_t\ err\_type\ =\ HB\_SERIALIZE\_ERROR\_OTHER)}
+\DoxyCodeLine{00184\ \ \ \{}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{return}\ successful\ ()}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \&\&\ (success\ ||\ err\ (err\_type));}
+\DoxyCodeLine{00187\ \ \ \}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ T2>}
+\DoxyCodeLine{00190\ \ \ \textcolor{keywordtype}{bool}\ check\_equal\ (T1\ \&\&v1,\ T2\ \&\&v2,\ hb\_serialize\_error\_t\ err\_type)}
+\DoxyCodeLine{00191\ \ \ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordflow}{if}\ ((\textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long})\ v1\ !=\ (\textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long})\ v2)}
+\DoxyCodeLine{00193\ \ \ \ \ \{}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ err\ (err\_type);}
+\DoxyCodeLine{00195\ \ \ \ \ \}}
+\DoxyCodeLine{00196\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00197\ \ \ \}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ T2>}
+\DoxyCodeLine{00200\ \ \ \textcolor{keywordtype}{bool}\ check\_assign\ (T1\ \&v1,\ T2\ \&\&v2,\ hb\_serialize\_error\_t\ err\_type)}
+\DoxyCodeLine{00201\ \ \ \{\ \textcolor{keywordflow}{return}\ check\_equal\ (v1\ =\ v2,\ v2,\ err\_type);\ \}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keywordtype}{bool}\ propagate\_error\ (T\ \&\&obj)}
+\DoxyCodeLine{00204\ \ \ \{\ \textcolor{keywordflow}{return}\ check\_success\ (!hb\_deref\ (obj).in\_error\ ());\ \}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}...\ Ts>\ \textcolor{keywordtype}{bool}\ propagate\_error\ (T1\ \&\&o1,\ Ts\&\&...\ os)}
+\DoxyCodeLine{00207\ \ \ \{\ \textcolor{keywordflow}{return}\ propagate\_error\ (std::forward<T1>\ (o1))\ \&\&}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ propagate\_error\ (std::forward<Ts>\ (os)...);\ \}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \textcolor{comment}{/*\ To\ be\ called\ around\ main\ operation.\ */}}
+\DoxyCodeLine{00211\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00212\ \ \ Type\ *start\_serialize\ ()}
+\DoxyCodeLine{00213\ \ \ \{}
+\DoxyCodeLine{00214\ \ \ \ \ DEBUG\_MSG\_LEVEL\ (SERIALIZE,\ this-\/>start,\ 0,\ +1,}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}start\ [\%p..\%p]\ (\%lu\ bytes)"{}},}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>start,\ this-\/>end,}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long})\ (this-\/>end\ -\/\ this-\/>start));}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ assert\ (!current);}
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordflow}{return}\ push<Type>\ ();}
+\DoxyCodeLine{00221\ \ \ \}}
+\DoxyCodeLine{00222\ \ \ \textcolor{keywordtype}{void}\ end\_serialize\ ()}
+\DoxyCodeLine{00223\ \ \ \{}
+\DoxyCodeLine{00224\ \ \ \ \ DEBUG\_MSG\_LEVEL\ (SERIALIZE,\ this-\/>start,\ 0,\ -\/1,}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}end\ [\%p..\%p]\ serialized\ \%u\ bytes;\ \%s"{}},}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>start,\ this-\/>end,}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{unsigned})\ (this-\/>head\ -\/\ this-\/>start),}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ successful\ ()\ ?\ \textcolor{stringliteral}{"{}successful"{}}\ :\ \textcolor{stringliteral}{"{}UNSUCCESSFUL"{}});}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \ \ propagate\_error\ (packed,\ packed\_map);}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!current))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error()))}
+\DoxyCodeLine{00234\ \ \ \ \ \{}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \textcolor{comment}{//\ Offset\ overflows\ that\ occur\ before\ link\ resolution\ cannot\ be\ handled}}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \textcolor{comment}{//\ by\ repacking,\ so\ set\ a\ more\ general\ error.}}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (offset\_overflow\ ())\ err\ (HB\_SERIALIZE\_ERROR\_OTHER);}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00239\ \ \ \ \ \}}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ assert\ (!current-\/>next);}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{comment}{/*\ Only\ "{}pack"{}\ if\ there\ exist\ other\ objects...\ Otherwise,\ don't\ bother.}}
+\DoxyCodeLine{00244\ \textcolor{comment}{\ \ \ \ \ *\ Saves\ a\ move.\ */}}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{keywordflow}{if}\ (packed.length\ <=\ 1)}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \ \ pop\_pack\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \ \ resolve\_links\ ();}
+\DoxyCodeLine{00251\ \ \ \}}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type\ =\ \textcolor{keywordtype}{void}>}
+\DoxyCodeLine{00254\ \ \ Type\ *push\ ()}
+\DoxyCodeLine{00255\ \ \ \{}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return}\ start\_embed<Type>\ ();}
+\DoxyCodeLine{00257\ }
+\DoxyCodeLine{00258\ \ \ \ \ \mbox{\hyperlink{structobject__t}{object\_t}}\ *obj\ =\ object\_pool.alloc\ ();}
+\DoxyCodeLine{00259\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!obj))}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ check\_success\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00261\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00262\ \ \ \ \ \{}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ obj-\/>head\ =\ head;}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ obj-\/>tail\ =\ tail;}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ obj-\/>next\ =\ current;}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ current\ =\ obj;}
+\DoxyCodeLine{00267\ \ \ \ \ \}}
+\DoxyCodeLine{00268\ \ \ \ \ \textcolor{keywordflow}{return}\ start\_embed<Type>\ ();}
+\DoxyCodeLine{00269\ \ \ \}}
+\DoxyCodeLine{00270\ \ \ \textcolor{keywordtype}{void}\ pop\_discard\ ()}
+\DoxyCodeLine{00271\ \ \ \{}
+\DoxyCodeLine{00272\ \ \ \ \ \mbox{\hyperlink{structobject__t}{object\_t}}\ *obj\ =\ current;}
+\DoxyCodeLine{00273\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!obj))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00274\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error()))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \ \ \ \ current\ =\ current-\/>next;}
+\DoxyCodeLine{00277\ \ \ \ \ revert\ (obj-\/>head,\ obj-\/>tail);}
+\DoxyCodeLine{00278\ \ \ \ \ obj-\/>fini\ ();}
+\DoxyCodeLine{00279\ \ \ \ \ object\_pool.release\ (obj);}
+\DoxyCodeLine{00280\ \ \ \}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ \textcolor{comment}{/*\ Set\ share\ to\ false\ when\ an\ object\ is\ unlikely\ shareable\ with\ others}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ \ \ *\ so\ not\ worth\ an\ attempt,\ or\ a\ contiguous\ table\ is\ serialized\ as}}
+\DoxyCodeLine{00284\ \textcolor{comment}{\ \ \ *\ multiple\ consecutive\ objects\ in\ the\ reverse\ order\ so\ can't\ be\ shared.}}
+\DoxyCodeLine{00285\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00286\ \ \ objidx\_t\ pop\_pack\ (\textcolor{keywordtype}{bool}\ share=\textcolor{keyword}{true})}
+\DoxyCodeLine{00287\ \ \ \{}
+\DoxyCodeLine{00288\ \ \ \ \ \mbox{\hyperlink{structobject__t}{object\_t}}\ *obj\ =\ current;}
+\DoxyCodeLine{00289\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!obj))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00290\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error()))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \ \ \ \ current\ =\ current-\/>next;}
+\DoxyCodeLine{00293\ \ \ \ \ obj-\/>tail\ =\ head;}
+\DoxyCodeLine{00294\ \ \ \ \ obj-\/>next\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00295\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ len\ =\ obj-\/>tail\ -\/\ obj-\/>head;}
+\DoxyCodeLine{00296\ \ \ \ \ head\ =\ obj-\/>head;\ \textcolor{comment}{/*\ Rewind\ head.\ */}}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \ \ \textcolor{keywordflow}{if}\ (!len)}
+\DoxyCodeLine{00299\ \ \ \ \ \{}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ assert\ (!obj-\/>real\_links.length);}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ assert\ (!obj-\/>virtual\_links.length);}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00303\ \ \ \ \ \}}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \ \ objidx\_t\ objidx;}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keywordflow}{if}\ (share)}
+\DoxyCodeLine{00307\ \ \ \ \ \{}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ objidx\ =\ packed\_map.get\ (obj);}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (objidx)}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ merge\_virtual\_links\ (obj,\ objidx);}
+\DoxyCodeLine{00312\ \ \ \ \ obj-\/>fini\ ();}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordflow}{return}\ objidx;}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00315\ \ \ \ \ \}}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \ \ \ \ tail\ -\/=\ len;}
+\DoxyCodeLine{00318\ \ \ \ \ memmove\ (tail,\ obj-\/>head,\ len);}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \ \ \ \ obj-\/>head\ =\ tail;}
+\DoxyCodeLine{00321\ \ \ \ \ obj-\/>tail\ =\ tail\ +\ len;}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \ \ packed.push\ (obj);}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!propagate\_error\ (packed)))}
+\DoxyCodeLine{00326\ \ \ \ \ \{}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ \textcolor{comment}{/*\ Obj\ wasn't\ successfully\ added\ to\ packed,\ so\ clean\ it\ up\ otherwise\ its}}
+\DoxyCodeLine{00328\ \textcolor{comment}{\ \ \ \ \ \ \ *\ links\ will\ be\ leaked.\ When\ we\ use\ constructor/destructors\ properly,\ we}}
+\DoxyCodeLine{00329\ \textcolor{comment}{\ \ \ \ \ \ \ *\ can\ remove\ these.\ */}}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ obj-\/>fini\ ();}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00332\ \ \ \ \ \}}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \ \ \ \ objidx\ =\ packed.length\ -\/\ 1;}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ \ \ \ \ \textcolor{keywordflow}{if}\ (share)\ packed\_map.set\ (obj,\ objidx);}
+\DoxyCodeLine{00337\ \ \ \ \ propagate\_error\ (packed\_map);}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \ \ \ \ \textcolor{keywordflow}{return}\ objidx;}
+\DoxyCodeLine{00340\ \ \ \}}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \ \ \textcolor{keywordtype}{void}\ revert\ (snapshot\_t\ snap)}
+\DoxyCodeLine{00343\ \ \ \{}
+\DoxyCodeLine{00344\ \ \ \ \ \textcolor{comment}{//\ Overflows\ that\ happened\ after\ the\ snapshot\ will\ be\ erased\ by\ the\ revert.}}
+\DoxyCodeLine{00345\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()\ \&\&\ !only\_overflow\ ()))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00346\ \ \ \ \ assert\ (snap.current\ ==\ current);}
+\DoxyCodeLine{00347\ \ \ \ \ current-\/>real\_links.shrink\ (snap.num\_real\_links);}
+\DoxyCodeLine{00348\ \ \ \ \ current-\/>virtual\_links.shrink\ (snap.num\_virtual\_links);}
+\DoxyCodeLine{00349\ \ \ \ \ errors\ =\ snap.errors;}
+\DoxyCodeLine{00350\ \ \ \ \ revert\ (snap.head,\ snap.tail);}
+\DoxyCodeLine{00351\ \ \ \}}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ \textcolor{keywordtype}{void}\ revert\ (\textcolor{keywordtype}{char}\ *snap\_head,}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *snap\_tail)}
+\DoxyCodeLine{00355\ \ \ \{}
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00357\ \ \ \ \ assert\ (snap\_head\ <=\ head);}
+\DoxyCodeLine{00358\ \ \ \ \ assert\ (tail\ <=\ snap\_tail);}
+\DoxyCodeLine{00359\ \ \ \ \ head\ =\ snap\_head;}
+\DoxyCodeLine{00360\ \ \ \ \ tail\ =\ snap\_tail;}
+\DoxyCodeLine{00361\ \ \ \ \ discard\_stale\_objects\ ();}
+\DoxyCodeLine{00362\ \ \ \}}
+\DoxyCodeLine{00363\ }
+\DoxyCodeLine{00364\ \ \ \textcolor{keywordtype}{void}\ discard\_stale\_objects\ ()}
+\DoxyCodeLine{00365\ \ \ \{}
+\DoxyCodeLine{00366\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{keywordflow}{while}\ (packed.length\ >\ 1\ \&\&}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ packed.tail\ ()-\/>head\ <\ tail)}
+\DoxyCodeLine{00369\ \ \ \ \ \{}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ packed\_map.del\ (packed.tail\ ());}
+\DoxyCodeLine{00371\ \ \ \ \ \ \ assert\ (!packed.tail\ ()-\/>next);}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ packed.tail\ ()-\/>fini\ ();}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ packed.pop\ ();}
+\DoxyCodeLine{00374\ \ \ \ \ \}}
+\DoxyCodeLine{00375\ \ \ \ \ \textcolor{keywordflow}{if}\ (packed.length\ >\ 1)}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ assert\ (packed.tail\ ()-\/>head\ ==\ tail);}
+\DoxyCodeLine{00377\ \ \ \}}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \ \ \textcolor{comment}{//\ Adds\ a\ virtual\ link\ from\ the\ current\ object\ to\ objidx.\ A\ virtual\ link\ is\ not\ associated\ with}}
+\DoxyCodeLine{00380\ \ \ \textcolor{comment}{//\ an\ actual\ offset\ field.\ They\ are\ solely\ used\ to\ enforce\ ordering\ constraints\ between\ objects.}}
+\DoxyCodeLine{00381\ \ \ \textcolor{comment}{//\ Adding\ a\ virtual\ link\ from\ object\ a\ to\ object\ b\ will\ ensure\ that\ object\ b\ is\ always\ packed\ after}}
+\DoxyCodeLine{00382\ \ \ \textcolor{comment}{//\ object\ a\ in\ the\ final\ serialized\ order.}}
+\DoxyCodeLine{00383\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00384\ \ \ \textcolor{comment}{//\ This\ is\ useful\ in\ certain\ situations\ where\ there\ needs\ to\ be\ a\ specific\ ordering\ in\ the}}
+\DoxyCodeLine{00385\ \ \ \textcolor{comment}{//\ final\ serialization.\ Such\ as\ when\ platform\ bugs\ require\ certain\ orderings,\ or\ to\ provide}}
+\DoxyCodeLine{00386\ \ \ \textcolor{comment}{//\ \ guidance\ to\ the\ repacker\ for\ better\ offset\ overflow\ resolution.}}
+\DoxyCodeLine{00387\ \ \ \textcolor{keywordtype}{void}\ add\_virtual\_link\ (objidx\_t\ objidx)}
+\DoxyCodeLine{00388\ \ \ \{}
+\DoxyCodeLine{00389\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \ \ \ \ \textcolor{keywordflow}{if}\ (!objidx)}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \ \ \ \ assert\ (current);}
+\DoxyCodeLine{00395\ }
+\DoxyCodeLine{00396\ \ \ \ \ \textcolor{keyword}{auto}\&\ link\ =\ *current-\/>virtual\_links.push\ ();}
+\DoxyCodeLine{00397\ \ \ \ \ \textcolor{keywordflow}{if}\ (current-\/>virtual\_links.in\_error\ ())}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ err\ (HB\_SERIALIZE\_ERROR\_OTHER);}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ \ \ \ \ link.width\ =\ 0;}
+\DoxyCodeLine{00401\ \ \ \ \ link.objidx\ =\ objidx;}
+\DoxyCodeLine{00402\ \ \ \ \ link.is\_signed\ =\ 0;}
+\DoxyCodeLine{00403\ \ \ \ \ link.whence\ =\ 0;}
+\DoxyCodeLine{00404\ \ \ \ \ link.position\ =\ 0;}
+\DoxyCodeLine{00405\ \ \ \ \ link.bias\ =\ 0;}
+\DoxyCodeLine{00406\ \ \ \}}
+\DoxyCodeLine{00407\ }
+\DoxyCodeLine{00408\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00409\ \ \ \textcolor{keywordtype}{void}\ add\_link\ (T\ \&ofs,\ objidx\_t\ objidx,}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ whence\_t\ whence\ =\ Head,}
+\DoxyCodeLine{00411\ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ bias\ =\ 0)}
+\DoxyCodeLine{00412\ \ \ \{}
+\DoxyCodeLine{00413\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00414\ }
+\DoxyCodeLine{00415\ \ \ \ \ \textcolor{keywordflow}{if}\ (!objidx)}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00417\ }
+\DoxyCodeLine{00418\ \ \ \ \ assert\ (current);}
+\DoxyCodeLine{00419\ \ \ \ \ assert\ (current-\/>head\ <=\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ \&ofs);}
+\DoxyCodeLine{00420\ }
+\DoxyCodeLine{00421\ \ \ \ \ \textcolor{keyword}{auto}\&\ link\ =\ *current-\/>real\_links.push\ ();}
+\DoxyCodeLine{00422\ \ \ \ \ \textcolor{keywordflow}{if}\ (current-\/>real\_links.in\_error\ ())}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ err\ (HB\_SERIALIZE\_ERROR\_OTHER);}
+\DoxyCodeLine{00424\ }
+\DoxyCodeLine{00425\ \ \ \ \ link.width\ =\ \textcolor{keyword}{sizeof}\ (T);}
+\DoxyCodeLine{00426\ \ \ \ \ link.objidx\ =\ objidx;}
+\DoxyCodeLine{00427\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!\textcolor{keyword}{sizeof}\ (T)))}
+\DoxyCodeLine{00428\ \ \ \ \ \{}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \textcolor{comment}{//\ This\ link\ is\ not\ associated\ with\ an\ actual\ offset\ and\ exists\ merely\ to\ enforce}}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \textcolor{comment}{//\ an\ ordering\ constraint.}}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ link.is\_signed\ =\ 0;}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ link.whence\ =\ 0;}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ link.position\ =\ 0;}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ link.bias\ =\ 0;}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00436\ \ \ \ \ \}}
+\DoxyCodeLine{00437\ }
+\DoxyCodeLine{00438\ \ \ \ \ link.is\_signed\ =\ std::is\_signed<\mbox{\hyperlink{struct__hb__unwrap__type}{hb\_unwrap\_type}}\ (T)>\mbox{\hyperlink{classvalue}{::value}};}
+\DoxyCodeLine{00439\ \ \ \ \ link.whence\ =\ (unsigned)\ whence;}
+\DoxyCodeLine{00440\ \ \ \ \ link.position\ =\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ \&ofs\ -\/\ current-\/>head;}
+\DoxyCodeLine{00441\ \ \ \ \ link.bias\ =\ bias;}
+\DoxyCodeLine{00442\ \ \ \}}
+\DoxyCodeLine{00443\ }
+\DoxyCodeLine{00444\ \ \ \textcolor{keywordtype}{unsigned}\ to\_bias\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *base)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00445\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00446\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00447\ \ \ \ \ \textcolor{keywordflow}{if}\ (!base)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00448\ \ \ \ \ assert\ (current);}
+\DoxyCodeLine{00449\ \ \ \ \ assert\ (current-\/>head\ <=\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ base);}
+\DoxyCodeLine{00450\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ base\ -\/\ current-\/>head;}
+\DoxyCodeLine{00451\ \ \ \}}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \ \ \textcolor{keywordtype}{void}\ resolve\_links\ ()}
+\DoxyCodeLine{00454\ \ \ \{}
+\DoxyCodeLine{00455\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ \ \ \ \ assert\ (!current);}
+\DoxyCodeLine{00458\ \ \ \ \ assert\ (packed.length\ >\ 1);}
+\DoxyCodeLine{00459\ }
+\DoxyCodeLine{00460\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structobject__t}{object\_t}}*\ parent\ :\ ++hb\_iter\ (packed))}
+\DoxyCodeLine{00461\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ object\_t::link\_t\ \&link\ :\ parent-\/>real\_links)}
+\DoxyCodeLine{00462\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00463\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structobject__t}{object\_t}}*\ child\ =\ packed[link.objidx];}
+\DoxyCodeLine{00464\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!child))\ \{\ err\ (HB\_SERIALIZE\_ERROR\_OTHER);\ \textcolor{keywordflow}{return};\ \}}
+\DoxyCodeLine{00465\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ offset\ =\ 0;}
+\DoxyCodeLine{00466\ \ \ \ \ \textcolor{keywordflow}{switch}\ ((whence\_t)\ link.whence)\ \{}
+\DoxyCodeLine{00467\ \ \ \ \ \textcolor{keywordflow}{case}\ Head:\ \ \ \ \ offset\ =\ child-\/>head\ -\/\ parent-\/>head;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00468\ \ \ \ \ \textcolor{keywordflow}{case}\ Tail:\ \ \ \ \ offset\ =\ child-\/>head\ -\/\ parent-\/>tail;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00469\ \ \ \ \ \textcolor{keywordflow}{case}\ Absolute:\ offset\ =\ (head\ -\/\ start)\ +\ (child-\/>head\ -\/\ tail);\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00470\ \ \ \ \ \}}
+\DoxyCodeLine{00471\ }
+\DoxyCodeLine{00472\ \ \ \ \ assert\ (offset\ >=\ link.bias);}
+\DoxyCodeLine{00473\ \ \ \ \ offset\ -\/=\ link.bias;}
+\DoxyCodeLine{00474\ \ \ \ \ \textcolor{keywordflow}{if}\ (link.is\_signed)}
+\DoxyCodeLine{00475\ \ \ \ \ \{}
+\DoxyCodeLine{00476\ \ \ \ \ \ \ assert\ (link.width\ ==\ 2\ ||\ link.width\ ==\ 4);}
+\DoxyCodeLine{00477\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (link.width\ ==\ 4)}
+\DoxyCodeLine{00478\ \ \ \ \ \ \ \ \ assign\_offset<int32\_t>\ (parent,\ link,\ offset);}
+\DoxyCodeLine{00479\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00480\ \ \ \ \ \ \ \ \ assign\_offset<int16\_t>\ (parent,\ link,\ offset);}
+\DoxyCodeLine{00481\ \ \ \ \ \}}
+\DoxyCodeLine{00482\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00483\ \ \ \ \ \{}
+\DoxyCodeLine{00484\ \ \ \ \ \ \ assert\ (link.width\ ==\ 2\ ||\ link.width\ ==\ 3\ ||\ link.width\ ==\ 4);}
+\DoxyCodeLine{00485\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (link.width\ ==\ 4)}
+\DoxyCodeLine{00486\ \ \ \ \ \ \ \ \ assign\_offset<uint32\_t>\ (parent,\ link,\ offset);}
+\DoxyCodeLine{00487\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (link.width\ ==\ 3)}
+\DoxyCodeLine{00488\ \ \ \ \ \ \ \ \ assign\_offset<uint32\_t,\ 3>\ (parent,\ link,\ offset);}
+\DoxyCodeLine{00489\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ \ \ assign\_offset<uint16\_t>\ (parent,\ link,\ offset);}
+\DoxyCodeLine{00491\ \ \ \ \ \}}
+\DoxyCodeLine{00492\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00493\ \ \ \}}
+\DoxyCodeLine{00494\ }
+\DoxyCodeLine{00495\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ length\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00496\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00497\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!current))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00498\ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>head\ -\/\ current-\/>head;}
+\DoxyCodeLine{00499\ \ \ \}}
+\DoxyCodeLine{00500\ }
+\DoxyCodeLine{00501\ \ \ \textcolor{keywordtype}{void}\ align\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ alignment)}
+\DoxyCodeLine{00502\ \ \ \{}
+\DoxyCodeLine{00503\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ l\ =\ length\ ()\ \%\ alignment;}
+\DoxyCodeLine{00504\ \ \ \ \ \textcolor{keywordflow}{if}\ (l)}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ allocate\_size<void>\ (alignment\ -\/\ l);}
+\DoxyCodeLine{00506\ \ \ \}}
+\DoxyCodeLine{00507\ }
+\DoxyCodeLine{00508\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type\ =\ \textcolor{keywordtype}{void}>}
+\DoxyCodeLine{00509\ \ \ Type\ *start\_embed\ (\textcolor{keyword}{const}\ Type\ *obj\ HB\_UNUSED\ =\ \textcolor{keyword}{nullptr})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00510\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}Type\ *\textcolor{keyword}{>}\ (this-\/>head);\ \}}
+\DoxyCodeLine{00511\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00512\ \ \ Type\ *start\_embed\ (\textcolor{keyword}{const}\ Type\ \&obj)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00513\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ start\_embed\ (std::addressof\ (obj));\ \}}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \ \ \textcolor{keywordtype}{bool}\ err\ (hb\_serialize\_error\_t\ err\_type)}
+\DoxyCodeLine{00516\ \ \ \{}
+\DoxyCodeLine{00517\ \ \ \ \ \textcolor{keywordflow}{return}\ !bool\ ((errors\ =\ (errors\ |\ err\_type)));}
+\DoxyCodeLine{00518\ \ \ \}}
+\DoxyCodeLine{00519\ }
+\DoxyCodeLine{00520\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00521\ \ \ Type\ *allocate\_size\ (\textcolor{keywordtype}{size\_t}\ size)}
+\DoxyCodeLine{00522\ \ \ \{}
+\DoxyCodeLine{00523\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00524\ }
+\DoxyCodeLine{00525\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (size\ >\ INT\_MAX\ ||\ this-\/>tail\ -\/\ this-\/>head\ <\ ptrdiff\_t\ (size)))}
+\DoxyCodeLine{00526\ \ \ \ \ \{}
+\DoxyCodeLine{00527\ \ \ \ \ \ \ err\ (HB\_SERIALIZE\_ERROR\_OUT\_OF\_ROOM);}
+\DoxyCodeLine{00528\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00529\ \ \ \ \ \}}
+\DoxyCodeLine{00530\ \ \ \ \ hb\_memset\ (this-\/>head,\ 0,\ size);}
+\DoxyCodeLine{00531\ \ \ \ \ \textcolor{keywordtype}{char}\ *ret\ =\ this-\/>head;}
+\DoxyCodeLine{00532\ \ \ \ \ this-\/>head\ +=\ size;}
+\DoxyCodeLine{00533\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}Type\ *\textcolor{keyword}{>}\ (ret);}
+\DoxyCodeLine{00534\ \ \ \}}
+\DoxyCodeLine{00535\ }
+\DoxyCodeLine{00536\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00537\ \ \ Type\ *allocate\_min\ ()}
+\DoxyCodeLine{00538\ \ \ \{\ \textcolor{keywordflow}{return}\ this-\/>allocate\_size<Type>\ (Type::min\_size);\ \}}
+\DoxyCodeLine{00539\ }
+\DoxyCodeLine{00540\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00541\ \ \ Type\ *embed\ (\textcolor{keyword}{const}\ Type\ *obj)}
+\DoxyCodeLine{00542\ \ \ \{}
+\DoxyCodeLine{00543\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size\ =\ obj-\/>get\_size\ ();}
+\DoxyCodeLine{00544\ \ \ \ \ Type\ *ret\ =\ this-\/>allocate\_size<Type>\ (size);}
+\DoxyCodeLine{00545\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!ret))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00546\ \ \ \ \ memcpy\ (ret,\ obj,\ size);}
+\DoxyCodeLine{00547\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00548\ \ \ \}}
+\DoxyCodeLine{00549\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00550\ \ \ Type\ *embed\ (\textcolor{keyword}{const}\ Type\ \&obj)}
+\DoxyCodeLine{00551\ \ \ \{\ \textcolor{keywordflow}{return}\ embed\ (std::addressof\ (obj));\ \}}
+\DoxyCodeLine{00552\ }
+\DoxyCodeLine{00553\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ ...Ts>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00554\ \ \ \_copy\ (\textcolor{keyword}{const}\ Type\ \&src,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<1>}},\ Ts\&\&...\ ds)\ HB\_RETURN}
+\DoxyCodeLine{00555\ \ \ (Type\ *,\ src.copy\ (\textcolor{keyword}{this},\ std::forward<Ts>\ (ds)...))}
+\DoxyCodeLine{00556\ }
+\DoxyCodeLine{00557\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00558\ \ \ \_copy\ (\textcolor{keyword}{const}\ Type\ \&src,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<0>}})\ -\/>\ \textcolor{keyword}{decltype}\ (\&(hb\_declval<Type>\ ()\ =\ src))}
+\DoxyCodeLine{00559\ \ \ \{}
+\DoxyCodeLine{00560\ \ \ \ \ Type\ *ret\ =\ this-\/>allocate\_size<Type>\ (\textcolor{keyword}{sizeof}\ (Type));}
+\DoxyCodeLine{00561\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!ret))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00562\ \ \ \ \ *ret\ =\ src;}
+\DoxyCodeLine{00563\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00564\ \ \ \}}
+\DoxyCodeLine{00565\ }
+\DoxyCodeLine{00566\ \ \ \textcolor{comment}{/*\ Like\ embed,\ but\ active:\ calls\ obj.operator=()\ or\ obj.copy()\ to\ transfer\ data}}
+\DoxyCodeLine{00567\ \textcolor{comment}{\ \ \ *\ instead\ of\ memcpy().\ */}}
+\DoxyCodeLine{00568\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00569\ \ \ Type\ *copy\ (\textcolor{keyword}{const}\ Type\ \&src,\ Ts\&\&...\ ds)}
+\DoxyCodeLine{00570\ \ \ \{\ \textcolor{keywordflow}{return}\ \_copy\ (src,\ hb\_prioritize,\ std::forward<Ts>\ (ds)...);\ \}}
+\DoxyCodeLine{00571\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00572\ \ \ Type\ *copy\ (\textcolor{keyword}{const}\ Type\ *src,\ Ts\&\&...\ ds)}
+\DoxyCodeLine{00573\ \ \ \{\ \textcolor{keywordflow}{return}\ copy\ (*src,\ std::forward<Ts>\ (ds)...);\ \}}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Iterator,}
+\DoxyCodeLine{00576\ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iterator)),}
+\DoxyCodeLine{00577\ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00578\ \ \ \textcolor{keywordtype}{void}\ copy\_all\ (Iterator\ it,\ Ts\&\&...\ ds)}
+\DoxyCodeLine{00579\ \ \ \{\ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{decltype}\ (*it)\ \_\ :\ it)\ copy\ (\_,\ std::forward<Ts>\ (ds)...);\ \}}
+\DoxyCodeLine{00580\ }
+\DoxyCodeLine{00581\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00582\ \ \ \mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\&\ operator\ <<\ (\textcolor{keyword}{const}\ Type\ \&obj)\ \&\ \{\ embed\ (obj);\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00583\ }
+\DoxyCodeLine{00584\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00585\ \ \ Type\ *extend\_size\ (Type\ *obj,\ \textcolor{keywordtype}{size\_t}\ size)}
+\DoxyCodeLine{00586\ \ \ \{}
+\DoxyCodeLine{00587\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (in\_error\ ()))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00588\ }
+\DoxyCodeLine{00589\ \ \ \ \ assert\ (this-\/>start\ <=\ (\textcolor{keywordtype}{char}\ *)\ obj);}
+\DoxyCodeLine{00590\ \ \ \ \ assert\ ((\textcolor{keywordtype}{char}\ *)\ obj\ <=\ this-\/>head);}
+\DoxyCodeLine{00591\ \ \ \ \ assert\ ((\textcolor{keywordtype}{size\_t})\ (this-\/>head\ -\/\ (\textcolor{keywordtype}{char}\ *)\ obj)\ <=\ size);}
+\DoxyCodeLine{00592\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (((\textcolor{keywordtype}{char}\ *)\ obj\ +\ size\ <\ (\textcolor{keywordtype}{char}\ *)\ obj)\ ||}
+\DoxyCodeLine{00593\ \ \ \ \ \ \ \ \ \ \ !this-\/>allocate\_size<Type>\ (((\textcolor{keywordtype}{char}\ *)\ obj)\ +\ size\ -\/\ this-\/>head)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00594\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}Type\ *\textcolor{keyword}{>}\ (obj);}
+\DoxyCodeLine{00595\ \ \ \}}
+\DoxyCodeLine{00596\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00597\ \ \ Type\ *extend\_size\ (Type\ \&obj,\ \textcolor{keywordtype}{size\_t}\ size)}
+\DoxyCodeLine{00598\ \ \ \{\ \textcolor{keywordflow}{return}\ extend\_size\ (std::addressof\ (obj),\ size);\ \}}
+\DoxyCodeLine{00599\ }
+\DoxyCodeLine{00600\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00601\ \ \ Type\ *extend\_min\ (Type\ *obj)\ \{\ \textcolor{keywordflow}{return}\ extend\_size\ (obj,\ obj-\/>min\_size);\ \}}
+\DoxyCodeLine{00602\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00603\ \ \ Type\ *extend\_min\ (Type\ \&obj)\ \{\ \textcolor{keywordflow}{return}\ extend\_min\ (std::addressof\ (obj));\ \}}
+\DoxyCodeLine{00604\ }
+\DoxyCodeLine{00605\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00606\ \ \ Type\ *extend\ (Type\ *obj,\ Ts\&\&...\ ds)}
+\DoxyCodeLine{00607\ \ \ \{\ \textcolor{keywordflow}{return}\ extend\_size\ (obj,\ obj-\/>get\_size\ (std::forward<Ts>\ (ds)...));\ \}}
+\DoxyCodeLine{00608\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00609\ \ \ Type\ *extend\ (Type\ \&obj,\ Ts\&\&...\ ds)}
+\DoxyCodeLine{00610\ \ \ \{\ \textcolor{keywordflow}{return}\ extend\ (std::addressof\ (obj),\ std::forward<Ts>\ (ds)...);\ \}}
+\DoxyCodeLine{00611\ }
+\DoxyCodeLine{00612\ \ \ \textcolor{comment}{/*\ Output\ routines.\ */}}
+\DoxyCodeLine{00613\ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ copy\_bytes\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00614\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00615\ \ \ \ \ assert\ (successful\ ());}
+\DoxyCodeLine{00616\ \ \ \ \ \textcolor{comment}{/*\ Copy\ both\ items\ from\ head\ side\ and\ tail\ side...\ */}}
+\DoxyCodeLine{00617\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len\ =\ (this-\/>head\ -\/\ this-\/>start)}
+\DoxyCodeLine{00618\ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (this-\/>end\ \ -\/\ this-\/>tail);}
+\DoxyCodeLine{00619\ }
+\DoxyCodeLine{00620\ \ \ \ \ \textcolor{comment}{//\ If\ len\ is\ zero\ don't\ hb\_malloc\ as\ the\ memory\ won't\ get\ properly}}
+\DoxyCodeLine{00621\ \ \ \ \ \textcolor{comment}{//\ cleaned\ up\ later.}}
+\DoxyCodeLine{00622\ \ \ \ \ \textcolor{keywordflow}{if}\ (!len)\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ ();}
+\DoxyCodeLine{00623\ }
+\DoxyCodeLine{00624\ \ \ \ \ \textcolor{keywordtype}{char}\ *p\ =\ (\textcolor{keywordtype}{char}\ *)\ hb\_malloc\ (len);}
+\DoxyCodeLine{00625\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!p))\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ ();}
+\DoxyCodeLine{00626\ }
+\DoxyCodeLine{00627\ \ \ \ \ memcpy\ (p,\ this-\/>start,\ this-\/>head\ -\/\ this-\/>start);}
+\DoxyCodeLine{00628\ \ \ \ \ memcpy\ (p\ +\ (this-\/>head\ -\/\ this-\/>start),\ this-\/>tail,\ this-\/>end\ -\/\ this-\/>tail);}
+\DoxyCodeLine{00629\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ (p,\ len);}
+\DoxyCodeLine{00630\ \ \ \}}
+\DoxyCodeLine{00631\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00632\ \ \ Type\ *copy\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00633\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{reinterpret\_cast<}Type\ *\textcolor{keyword}{>}\ ((\textcolor{keywordtype}{char}\ *)\ copy\_bytes\ ().arrayZ);\ \}}
+\DoxyCodeLine{00634\ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *copy\_blob\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00635\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00636\ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_bytes\_t}}\ b\ =\ copy\_bytes\ ();}
+\DoxyCodeLine{00637\ \ \ \ \ \textcolor{keywordflow}{return}\ hb\_blob\_create\ (b.arrayZ,\ b.length,}
+\DoxyCodeLine{00638\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HB\_MEMORY\_MODE\_WRITABLE,}
+\DoxyCodeLine{00639\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{char}\ *)\ b.arrayZ,\ hb\_free);}
+\DoxyCodeLine{00640\ \ \ \}}
+\DoxyCodeLine{00641\ }
+\DoxyCodeLine{00642\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<object\_t\ *>}}\&\ object\_graph()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00643\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ packed;\ \}}
+\DoxyCodeLine{00644\ }
+\DoxyCodeLine{00645\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00646\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keywordtype}{unsigned}\ Size\ =\ sizeof\ (T)>}
+\DoxyCodeLine{00647\ \ \ \textcolor{keywordtype}{void}\ assign\_offset\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structobject__t}{object\_t}}*\ parent,\ \textcolor{keyword}{const}\ object\_t::link\_t\ \&link,\ \textcolor{keywordtype}{unsigned}\ offset)}
+\DoxyCodeLine{00648\ \ \ \{}
+\DoxyCodeLine{00649\ \ \ \ \ \textcolor{keyword}{auto}\ \&off\ =\ *\ ((\mbox{\hyperlink{struct_b_e_int}{BEInt<T,\ Size>}}\ *)\ (parent-\/>head\ +\ link.position));}
+\DoxyCodeLine{00650\ \ \ \ \ assert\ (0\ ==\ off);}
+\DoxyCodeLine{00651\ \ \ \ \ check\_assign\ (off,\ offset,\ HB\_SERIALIZE\_ERROR\_OFFSET\_OVERFLOW);}
+\DoxyCodeLine{00652\ \ \ \}}
+\DoxyCodeLine{00653\ }
+\DoxyCodeLine{00654\ \ \ \textcolor{keyword}{public}:\ \textcolor{comment}{/*\ TODO\ Make\ private.\ */}}
+\DoxyCodeLine{00655\ \ \ \textcolor{keywordtype}{char}\ *start,\ *head,\ *tail,\ *end;}
+\DoxyCodeLine{00656\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ debug\_depth;}
+\DoxyCodeLine{00657\ \ \ hb\_serialize\_error\_t\ errors;}
+\DoxyCodeLine{00658\ }
+\DoxyCodeLine{00659\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00660\ }
+\DoxyCodeLine{00661\ \ \ \textcolor{keywordtype}{void}\ merge\_virtual\_links\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structobject__t}{object\_t}}*\ from,\ objidx\_t\ to\_idx)\ \{}
+\DoxyCodeLine{00662\ \ \ \ \ \mbox{\hyperlink{structobject__t}{object\_t}}*\ to\ =\ packed[to\_idx];}
+\DoxyCodeLine{00663\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{const}\ \textcolor{keyword}{auto}\&\ l\ :\ from-\/>virtual\_links)\ \{}
+\DoxyCodeLine{00664\ \ \ \ \ \ \ to-\/>virtual\_links.push\ (l);}
+\DoxyCodeLine{00665\ \ \ \ \ \}}
+\DoxyCodeLine{00666\ \ \ \}}
+\DoxyCodeLine{00667\ }
+\DoxyCodeLine{00668\ \ \ \textcolor{comment}{/*\ Object\ memory\ pool.\ */}}
+\DoxyCodeLine{00669\ \ \ \mbox{\hyperlink{structhb__pool__t}{hb\_pool\_t<object\_t>}}\ object\_pool;}
+\DoxyCodeLine{00670\ }
+\DoxyCodeLine{00671\ \ \ \textcolor{comment}{/*\ Stack\ of\ currently\ under\ construction\ objects.\ */}}
+\DoxyCodeLine{00672\ \ \ \mbox{\hyperlink{structobject__t}{object\_t}}\ *current;}
+\DoxyCodeLine{00673\ }
+\DoxyCodeLine{00674\ \ \ \textcolor{comment}{/*\ Stack\ of\ packed\ objects.\ \ Object\ 0\ is\ always\ nil\ object.\ */}}
+\DoxyCodeLine{00675\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<object\_t\ *>}}\ packed;}
+\DoxyCodeLine{00676\ }
+\DoxyCodeLine{00677\ \ \ \textcolor{comment}{/*\ Map\ view\ of\ packed\ objects.\ */}}
+\DoxyCodeLine{00678\ \ \ \mbox{\hyperlink{structhb__hashmap__t}{hb\_hashmap\_t}}<\textcolor{keyword}{const}\ \mbox{\hyperlink{structobject__t}{object\_t}}\ *,\ objidx\_t,}
+\DoxyCodeLine{00679\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structobject__t}{object\_t}}\ *,\ objidx\_t,}
+\DoxyCodeLine{00680\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ 0>\ packed\_map;}
+\DoxyCodeLine{00681\ \};}
+\DoxyCodeLine{00682\ }
+\DoxyCodeLine{00683\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_SERIALIZE\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

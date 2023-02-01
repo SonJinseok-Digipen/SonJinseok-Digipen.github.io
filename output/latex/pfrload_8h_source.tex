@@ -1,0 +1,129 @@
+\hypertarget{pfrload_8h_source}{}\doxysection{pfrload.\+h}
+\label{pfrload_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/pfr/pfrload.h@{AseSprite/aseprite/third\_party/freetype2/src/pfr/pfrload.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ pfrload.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ FreeType\ PFR\ loader\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2002-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ PFRLOAD\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ PFRLOAD\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}pfrobjs.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <freetype/internal/ftstream.h>}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \textcolor{comment}{/*\ some\ size\ checks\ should\ be\ always\ done\ (mainly\ to\ prevent\ */}}
+\DoxyCodeLine{00029\ \ \ \textcolor{comment}{/*\ excessive\ allocation\ for\ malformed\ data),\ ...\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ PFR\_CHECK\_SIZE(\ x\ )\ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ if\ (\ p\ +\ (x)\ >\ limit\ )\ \(\backslash\)}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ goto\ Too\_Short;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}\ while\ (\ 0\ )}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \textcolor{comment}{/*\ ...\ and\ some\ only\ if\ intensive\ checking\ is\ explicitly\ requested\ */}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#ifdef\ PFR\_CONFIG\_NO\_CHECKS}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ PFR\_CHECK(\ x\ )\ \ do\ \{\ \}\ while\ (\ 0\ )}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ PFR\_CHECK\ \ PFR\_CHECK\_SIZE}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ PFR\_NEXT\_BYTE(\ p\ )\ \ \ \ FT\_NEXT\_BYTE(\ p\ )}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ PFR\_NEXT\_INT8(\ p\ )\ \ \ \ FT\_NEXT\_CHAR(\ p\ )}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ PFR\_NEXT\_SHORT(\ p\ )\ \ \ FT\_NEXT\_SHORT(\ p\ )}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ PFR\_NEXT\_USHORT(\ p\ )\ \ FT\_NEXT\_USHORT(\ p\ )}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ PFR\_NEXT\_LONG(\ p\ )\ \ \ \ FT\_NEXT\_OFF3(\ p\ )}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ PFR\_NEXT\_ULONG(\ p\ )\ \ \ FT\_NEXT\_UOFF3(\ p\ )}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \textcolor{comment}{/*\ handling\ extra\ items\ */}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00054\ \ \ (*PFR\_ExtraItem\_ParseFunc)(\ FT\_Byte*\ \ \ \ p,}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ limit,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \mbox{\hyperlink{structdata}{data}}\ );}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_f_r___extra_item_rec__}{PFR\_ExtraItemRec\_}}}
+\DoxyCodeLine{00059\ \ \ \{}
+\DoxyCodeLine{00060\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ type;}
+\DoxyCodeLine{00061\ \ \ \ \ PFR\_ExtraItem\_ParseFunc\ \ parser;}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \}\ \mbox{\hyperlink{struct_p_f_r___extra_item_rec__}{PFR\_ExtraItemRec}};}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_f_r___extra_item_rec__}{PFR\_ExtraItemRec\_}}*\ \ \mbox{\hyperlink{struct_p_f_r___extra_item_rec__}{PFR\_ExtraItem}};}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00069\ \ \ pfr\_extra\_items\_skip(\ FT\_Byte*\ \ *pp,}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ limit\ );}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00073\ \ \ pfr\_extra\_items\_parse(\ FT\_Byte*\ \ \ \ \ \ *pp,}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ \ \ \ limit,}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_p_f_r___extra_item_rec__}{PFR\_ExtraItem}}\ \ item\_list,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \ \ item\_data\ );}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \textcolor{comment}{/*\ load\ a\ PFR\ header\ */}}
+\DoxyCodeLine{00080\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00081\ \ \ pfr\_header\_load(\ PFR\_Header\ \ header,}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ stream\ );}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \textcolor{comment}{/*\ check\ a\ PFR\ header\ */}}
+\DoxyCodeLine{00085\ \ \ FT\_LOCAL(\ FT\_Bool\ )}
+\DoxyCodeLine{00086\ \ \ pfr\_header\_check(\ PFR\_Header\ \ header\ );}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \textcolor{comment}{/*\ return\ number\ of\ logical\ fonts\ in\ this\ file\ */}}
+\DoxyCodeLine{00090\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00091\ \ \ pfr\_log\_font\_count(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ stream,}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt32\ \ \ log\_section\_offset,}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ \ \ *acount\ );}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \textcolor{comment}{/*\ load\ a\ pfr\ logical\ font\ entry\ */}}
+\DoxyCodeLine{00096\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00097\ \ \ pfr\_log\_font\_load(\ \mbox{\hyperlink{struct_p_f_r___log_font_rec__}{PFR\_LogFont}}\ \ log\_font,}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ stream,}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ face\_index,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt32\ \ \ \ section\_offset,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ \ size\_increment\ );}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \textcolor{comment}{/*\ load\ a\ physical\ font\ entry\ */}}
+\DoxyCodeLine{00105\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00106\ \ \ pfr\_phy\_font\_load(\ \mbox{\hyperlink{struct_p_f_r___phy_font_rec__}{PFR\_PhyFont}}\ \ phy\_font,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ stream,}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt32\ \ \ \ offset,}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt32\ \ \ \ size\ );}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \textcolor{comment}{/*\ finalize\ a\ physical\ font\ */}}
+\DoxyCodeLine{00112\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00113\ \ \ pfr\_phy\_font\_done(\ \mbox{\hyperlink{struct_p_f_r___phy_font_rec__}{PFR\_PhyFont}}\ \ phy\_font,}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \ \ \mbox{\hyperlink{structmemory}{memory}}\ );}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ FT\_END\_HEADER}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PFRLOAD\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

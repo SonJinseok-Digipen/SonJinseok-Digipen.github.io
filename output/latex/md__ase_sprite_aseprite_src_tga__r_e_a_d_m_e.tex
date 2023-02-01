@@ -1,0 +1,46 @@
+\href{https://github.com/aseprite/tga/actions/workflows/build.yml}{\texttt{ }} \href{LICENSE.txt}{\texttt{ }}
+
+Library to read/write \href{https://en.wikipedia.org/wiki/Truevision_TGA}{\texttt{ Truevision TGA/\+TARGA files}}. Tested with \href{https://github.com/aseprite/fuzz}{\texttt{ libfuzzer}}.
+
+Example\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \{c++\}}
+\DoxyCodeLine{\#include\ "{}tga/tga.h"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#include\ <cstdio>}
+\DoxyCodeLine{\#include\ <vector>}
+\DoxyCodeLine{}
+\DoxyCodeLine{int\ main(int\ argc,\ char*\ argv[])}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ if\ (argc\ <\ 2)}
+\DoxyCodeLine{\ \ \ \ return\ 1;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ FILE*\ f\ =\ std::fopen(argv[1],\ "{}rb"{});}
+\DoxyCodeLine{\ \ tga::StdioFileInterface\ file(f);}
+\DoxyCodeLine{\ \ tga::Decoder\ decoder(\&file);}
+\DoxyCodeLine{\ \ tga::Header\ header;}
+\DoxyCodeLine{\ \ if\ (!decoder.readHeader(header))}
+\DoxyCodeLine{\ \ \ \ return\ 2;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ tga::Image\ image;}
+\DoxyCodeLine{\ \ image.bytesPerPixel\ =\ header.bytesPerPixel();}
+\DoxyCodeLine{\ \ image.rowstride\ =\ header.width\ *\ header.bytesPerPixel();}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ std::vector<uint8\_t>\ buffer(image.rowstride\ *\ header.height);}
+\DoxyCodeLine{\ \ image.pixels\ =\ \&buffer[0];}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ if\ (!decoder.readImage(header,\ image,\ nullptr))}
+\DoxyCodeLine{\ \ \ \ return\ 3;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Optional\ post-\/process\ to\ fix\ the\ alpha\ channel\ in}
+\DoxyCodeLine{\ \ //\ some\ TGA\ files\ where\ alpha=0\ for\ all\ pixels\ when}
+\DoxyCodeLine{\ \ //\ it\ shouldn't.}
+\DoxyCodeLine{\ \ decoder.postProcessImage(header,\ image);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ 0;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+ 

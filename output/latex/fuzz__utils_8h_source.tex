@@ -1,0 +1,212 @@
+\hypertarget{fuzz__utils_8h_source}{}\doxysection{fuzz\+\_\+utils.\+h}
+\label{fuzz__utils_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/tests/fuzzer/fuzz\_utils.h@{AseSprite/aseprite/third\_party/libwebp/tests/fuzzer/fuzz\_utils.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2018\ Google\ Inc.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Licensed\ under\ the\ Apache\ License,\ Version\ 2.0\ (the\ "{}License"{});}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ you\ may\ not\ use\ this\ file\ except\ in\ compliance\ with\ the\ License.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ You\ may\ obtain\ a\ copy\ of\ the\ License\ at}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ \ \ \ \ \ http://www.apache.org/licenses/LICENSE-\/2.0}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//\ Unless\ required\ by\ applicable\ law\ or\ agreed\ to\ in\ writing,\ software}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ distributed\ under\ the\ License\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ BASIS,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ WITHOUT\ WARRANTIES\ OR\ CONDITIONS\ OF\ ANY\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ See\ the\ License\ for\ the\ specific\ language\ governing\ permissions\ and}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ limitations\ under\ the\ License.}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//}}
+\DoxyCodeLine{00016\ \textcolor{comment}{}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifndef\ WEBP\_TESTS\_FUZZER\_FUZZ\_UTILS\_H\_}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#define\ WEBP\_TESTS\_FUZZER\_FUZZ\_UTILS\_H\_}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}./img\_alpha.h"{}}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ "{}./img\_grid.h"{}}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}./img\_peak.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}src/dsp/dsp.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}src/webp/encode.h"{}}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ Arbitrary\ limits\ to\ prevent\ OOM,\ timeout,\ or\ slow\ execution.}}
+\DoxyCodeLine{00031\ \textcolor{comment}{//}}
+\DoxyCodeLine{00032\ \textcolor{comment}{//\ The\ decoded\ image\ size,\ and\ for\ animations\ additionally\ the\ canvas\ size.}}
+\DoxyCodeLine{00033\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ kFuzzPxLimit\ =\ 1024\ *\ 1024;}
+\DoxyCodeLine{00034\ \textcolor{comment}{//\ Demuxed\ or\ decoded\ animation\ frames.}}
+\DoxyCodeLine{00035\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ kFuzzFrameLimit\ =\ 3;}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ Reads\ and\ sums\ (up\ to)\ 128\ spread-\/out\ bytes.}}
+\DoxyCodeLine{00038\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint8\_t\ FuzzHash(\textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ size)\ \{}
+\DoxyCodeLine{00039\ \ \ uint8\_t\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0;}
+\DoxyCodeLine{00040\ \ \ \textcolor{keywordtype}{size\_t}\ incr\ =\ size\ /\ 128;}
+\DoxyCodeLine{00041\ \ \ \textcolor{keywordflow}{if}\ (!incr)\ incr\ =\ 1;}
+\DoxyCodeLine{00042\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ i\ =\ 0;\ i\ <\ size;\ i\ +=\ incr)\ \mbox{\hyperlink{classvalue}{value}}\ +=\ \mbox{\hyperlink{structdata}{data}}[i];}
+\DoxyCodeLine{00043\ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00044\ \}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00047\ \textcolor{comment}{//\ Extract\ an\ integer\ in\ [0,\ max\_value].}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ Extract(uint32\_t\ max\_value,}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t\ \mbox{\hyperlink{structdata}{data}}[],\ \textcolor{keywordtype}{size\_t}\ size,}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ bit\_pos)\ \{}
+\DoxyCodeLine{00052\ \ \ uint32\_t\ v\ =\ 0;}
+\DoxyCodeLine{00053\ \ \ uint32\_t\ range\ =\ 1;}
+\DoxyCodeLine{00054\ \ \ \textcolor{keywordflow}{while}\ (*bit\_pos\ <\ 8\ *\ size\ \&\&\ range\ <=\ max\_value)\ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t\ mask\ =\ 1u\ <<\ (*bit\_pos\ \&\ 7);}
+\DoxyCodeLine{00056\ \ \ \ \ v\ =\ (v\ <<\ 1)\ |\ !!(\mbox{\hyperlink{structdata}{data}}[*bit\_pos\ >>\ 3]\ \&\ mask);}
+\DoxyCodeLine{00057\ \ \ \ \ range\ <<=\ 1;}
+\DoxyCodeLine{00058\ \ \ \ \ ++*bit\_pos;}
+\DoxyCodeLine{00059\ \ \ \}}
+\DoxyCodeLine{00060\ \ \ \textcolor{keywordflow}{return}\ v\ \%\ (max\_value\ +\ 1);}
+\DoxyCodeLine{00061\ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00064\ \textcolor{comment}{//\ Some\ functions\ to\ override\ VP8GetCPUInfo\ and\ disable\ some\ optimizations.}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{static}\ VP8CPUInfo\ GetCPUInfo;}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ GetCPUInfoNoSSE41(CPUFeature\ feature)\ \{}
+\DoxyCodeLine{00069\ \ \ \textcolor{keywordflow}{if}\ (feature\ ==\ kSSE4\_1\ ||\ feature\ ==\ kAVX)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00070\ \ \ \textcolor{keywordflow}{return}\ GetCPUInfo(feature);}
+\DoxyCodeLine{00071\ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ GetCPUInfoNoAVX(CPUFeature\ feature)\ \{}
+\DoxyCodeLine{00074\ \ \ \textcolor{keywordflow}{if}\ (feature\ ==\ kAVX)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00075\ \ \ \textcolor{keywordflow}{return}\ GetCPUInfo(feature);}
+\DoxyCodeLine{00076\ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ GetCPUInfoForceSlowSSSE3(CPUFeature\ feature)\ \{}
+\DoxyCodeLine{00079\ \ \ \textcolor{keywordflow}{if}\ (feature\ ==\ kSlowSSSE3\ \&\&\ GetCPUInfo(kSSE3))\ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordflow}{return}\ 1;\ \ \textcolor{comment}{//\ we\ have\ SSE3\ -\/>\ force\ SlowSSSE3}}
+\DoxyCodeLine{00081\ \ \ \}}
+\DoxyCodeLine{00082\ \ \ \textcolor{keywordflow}{return}\ GetCPUInfo(feature);}
+\DoxyCodeLine{00083\ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ GetCPUInfoOnlyC(CPUFeature\ feature)\ \{}
+\DoxyCodeLine{00086\ \ \ (void)feature;}
+\DoxyCodeLine{00087\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00088\ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ ExtractAndDisableOptimizations(}
+\DoxyCodeLine{00091\ \ \ \ \ VP8CPUInfo\ default\_VP8GetCPUInfo,\ \textcolor{keyword}{const}\ uint8\_t\ \mbox{\hyperlink{structdata}{data}}[],\ \textcolor{keywordtype}{size\_t}\ size,}
+\DoxyCodeLine{00092\ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ bit\_pos)\ \{}
+\DoxyCodeLine{00093\ \ \ GetCPUInfo\ =\ default\_VP8GetCPUInfo;}
+\DoxyCodeLine{00094\ \ \ \textcolor{keyword}{const}\ VP8CPUInfo\ kVP8CPUInfos[5]\ =\ \{GetCPUInfoOnlyC,\ GetCPUInfoForceSlowSSSE3,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GetCPUInfoNoSSE41,\ GetCPUInfoNoAVX,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GetCPUInfo\};}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordtype}{int}\ VP8GetCPUInfo\_index\ =\ Extract(4,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00098\ \ \ VP8GetCPUInfo\ =\ kVP8CPUInfos[VP8GetCPUInfo\_index];}
+\DoxyCodeLine{00099\ \}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ ExtractWebPConfig(\mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structconfig__s}{config}},}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t\ \mbox{\hyperlink{structdata}{data}}[],\ \textcolor{keywordtype}{size\_t}\ size,}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ bit\_pos)\ \{}
+\DoxyCodeLine{00106\ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structconfig__s}{config}}\ ==\ NULL\ ||\ !WebPConfigInit(\mbox{\hyperlink{structconfig__s}{config}}))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00107\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>lossless\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00108\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>quality\ =\ Extract(100,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00109\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>method\ =\ Extract(6,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00110\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>image\_hint\ =}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ (WebPImageHint)Extract(WEBP\_HINT\_LAST\ -\/\ 1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00112\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>segments\ =\ 1\ +\ Extract(3,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00113\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>sns\_strength\ =\ Extract(100,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00114\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>filter\_strength\ =\ Extract(100,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00115\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>filter\_sharpness\ =\ Extract(7,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00116\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>filter\_type\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00117\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>autofilter\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00118\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>alpha\_compression\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00119\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>alpha\_filtering\ =\ Extract(2,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00120\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>alpha\_quality\ =\ Extract(100,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00121\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>pass\ =\ 1\ +\ Extract(9,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00122\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>show\_compressed\ =\ 1;}
+\DoxyCodeLine{00123\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>preprocessing\ =\ Extract(2,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00124\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>partitions\ =\ Extract(3,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00125\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>partition\_limit\ =\ 10\ *\ Extract(10,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00126\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>emulate\_jpeg\_size\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00127\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>thread\_level\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00128\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>low\_memory\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00129\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>near\_lossless\ =\ 20\ *\ Extract(5,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00130\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>exact\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00131\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>use\_delta\_palette\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00132\ \ \ \mbox{\hyperlink{structconfig__s}{config}}-\/>use\_sharp\_yuv\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00133\ \ \ \textcolor{keywordflow}{return}\ WebPValidateConfig(\mbox{\hyperlink{structconfig__s}{config}});}
+\DoxyCodeLine{00134\ \}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ ExtractSourcePicture(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ \textcolor{keyword}{const}\ pic,}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t\ \mbox{\hyperlink{structdata}{data}}[],\ \textcolor{keywordtype}{size\_t}\ size,}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ bit\_pos)\ \{}
+\DoxyCodeLine{00141\ \ \ \textcolor{keywordflow}{if}\ (pic\ ==\ NULL)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \textcolor{comment}{//\ Pick\ a\ source\ picture.}}
+\DoxyCodeLine{00144\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ kImagesData[]\ =\ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ kImgAlphaData,}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ kImgGridData,}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ kImgPeakData}
+\DoxyCodeLine{00148\ \ \ \};}
+\DoxyCodeLine{00149\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ kImagesWidth[]\ =\ \{}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ kImgAlphaWidth,}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ kImgGridWidth,}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ kImgPeakWidth}
+\DoxyCodeLine{00153\ \ \ \};}
+\DoxyCodeLine{00154\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ kImagesHeight[]\ =\ \{}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ kImgAlphaHeight,}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ kImgGridHeight,}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ kImgPeakHeight}
+\DoxyCodeLine{00158\ \ \ \};}
+\DoxyCodeLine{00159\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ kNbImages\ =\ \textcolor{keyword}{sizeof}(kImagesData)\ /\ \textcolor{keyword}{sizeof}(kImagesData[0]);}
+\DoxyCodeLine{00160\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ image\_index\ =\ Extract(kNbImages\ -\/\ 1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00161\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ image\_data\ =\ kImagesData[image\_index];}
+\DoxyCodeLine{00162\ \ \ pic-\/>width\ =\ kImagesWidth[image\_index];}
+\DoxyCodeLine{00163\ \ \ pic-\/>height\ =\ kImagesHeight[image\_index];}
+\DoxyCodeLine{00164\ \ \ pic-\/>argb\_stride\ =\ pic-\/>width\ *\ 4\ *\ \textcolor{keyword}{sizeof}(uint8\_t);}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \textcolor{comment}{//\ Read\ the\ bytes.}}
+\DoxyCodeLine{00167\ \ \ \textcolor{keywordflow}{return}\ WebPPictureImportRGBA(pic,\ image\_data,\ pic-\/>argb\_stride);}
+\DoxyCodeLine{00168\ \}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ Max(\textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{int}\ b)\ \{\ \textcolor{keywordflow}{return}\ ((\mbox{\hyperlink{structa}{a}}\ <\ b)\ ?\ b\ :\ \mbox{\hyperlink{structa}{a}});\ \}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ ExtractAndCropOrScale(\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ \textcolor{keyword}{const}\ pic,}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t\ \mbox{\hyperlink{structdata}{data}}[],\ \textcolor{keywordtype}{size\_t}\ size,}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ bit\_pos)\ \{}
+\DoxyCodeLine{00177\ \ \ \textcolor{keywordflow}{if}\ (pic\ ==\ NULL)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#if\ !defined(WEBP\_REDUCE\_SIZE)}}
+\DoxyCodeLine{00179\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ alter\_input\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00180\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ crop\_or\_scale\ =\ Extract(1,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00181\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ width\_ratio\ =\ 1\ +\ Extract(7,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00182\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ height\_ratio\ =\ 1\ +\ Extract(7,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00183\ \ \ \textcolor{keywordflow}{if}\ (alter\_input)\ \{}
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{keywordflow}{if}\ (crop\_or\_scale)\ \{}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ left\_ratio\ =\ 1\ +\ Extract(7,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ top\_ratio\ =\ 1\ +\ Extract(7,\ \mbox{\hyperlink{structdata}{data}},\ size,\ bit\_pos);}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ cropped\_width\ =\ Max(1,\ pic-\/>width\ /\ width\_ratio);}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ cropped\_height\ =\ Max(1,\ pic-\/>height\ /\ height\_ratio);}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ cropped\_left\ =\ (pic-\/>width\ -\/\ cropped\_width)\ /\ left\_ratio;}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ cropped\_top\ =\ (pic-\/>height\ -\/\ cropped\_height)\ /\ top\_ratio;}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ WebPPictureCrop(pic,\ cropped\_left,\ cropped\_top,\ cropped\_width,}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cropped\_height);}
+\DoxyCodeLine{00193\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ scaled\_width\ =\ 1\ +\ (pic-\/>width\ *\ width\_ratio)\ /\ 8;}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ scaled\_height\ =\ 1\ +\ (pic-\/>height\ *\ height\_ratio)\ /\ 8;}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ WebPPictureRescale(pic,\ scaled\_width,\ scaled\_height);}
+\DoxyCodeLine{00197\ \ \ \ \ \}}
+\DoxyCodeLine{00198\ \ \ \}}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#else\ \ \ }\textcolor{comment}{//\ defined(WEBP\_REDUCE\_SIZE)}}
+\DoxyCodeLine{00200\ \ \ (void)\mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00201\ \ \ (void)size;}
+\DoxyCodeLine{00202\ \ \ (void)bit\_pos;}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ !defined(WEBP\_REDUCE\_SIZE)}}
+\DoxyCodeLine{00204\ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00205\ \}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_TESTS\_FUZZER\_FUZZ\_UTILS\_H\_}}
+
+\end{DoxyCode}

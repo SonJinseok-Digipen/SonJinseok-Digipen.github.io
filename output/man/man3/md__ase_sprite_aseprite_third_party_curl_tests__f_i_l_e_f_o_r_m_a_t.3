@@ -1,0 +1,572 @@
+.TH "md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_curl_tests__f_i_l_e_f_o_r_m_a_t \- curl test suite file format 
+.PP
+The curl test suite's file format is very simple and extensible, closely resembling XML\&. All data for a single test case resides in a single ASCII file\&. Labels mark the beginning and the end of all sections, and each label must be written in its own line\&. Comments are either XML-style (enclosed with \fC<!--\fP and \fC-->\fP) or shell script style (beginning with \fC#\fP) and must appear on their own lines and not alongside actual test data\&. Most test data files are syntactically valid XML, although a few files are not (lack of support for character entities and the preservation of CR/LF characters at the end of lines are the biggest differences)\&.
+.PP
+Each test case source exists as a file matching the format \fCtests/data/testNUM\fP, where NUM is the unique test number, and must begin with a 'testcase' tag, which encompasses the remainder of the file\&.
+.SH "Preprocessing"
+.PP
+When a test is to be executed, the source file is first preprocessed and variables are substituted by the their respective contents and the output version of the test file is stored as \fClog/testNUM\fP\&. That version is what will be read and used by the test servers\&.
+.SS "Base64 Encoding"
+In the preprocess stage, a special instruction can be used to have runtests\&.pl base64 encode a certain section and insert in the generated output file\&. This is in particular good for test cases where the test tool is expected to pass in base64 encoded content that might use dynamic information that is unique for this particular test invocation, like the server port number\&.
+.PP
+To insert a base64 encoded string into the output, use this syntax: 
+.PP
+.nf
+%b64[ data to encode ]b64%
+
+.fi
+.PP
+ The data to encode can then use any of the existing variables mentioned below, or even percent-encoded individual bytes\&. As an example, insert the \fBHTTP\fP server's port number (in ASCII) followed by a space and the hexadecimal byte 9a: 
+.PP
+.nf
+%b64[%HTTPPORT %9a]b64%
+
+.fi
+.PP
+ 
+.SS "Hexadecimal decoding"
+In the preprocess stage, a special instruction can be used to have runtests\&.pl generate a sequence of binary bytes\&.
+.PP
+To insert a sequence of bytes from a hex encoded string, use this syntax: 
+.PP
+.nf
+%hex[ %XX-encoded data to decode ]hex%
+
+.fi
+.PP
+ For example, to insert the binary octets 0, 1 and 255 into the test file: 
+.PP
+.nf
+%hex[ %00%01%FF ]hex%
+
+.fi
+.PP
+ 
+.SS "Repeat content"
+In the preprocess stage, a special instruction can be used to have runtests\&.pl generate a repetetive sequence of bytes\&.
+.PP
+To insert a sequence of repeat bytes, use this syntax to make the \fC<string>\fP get repeated \fC<number>\fP of times\&. The number has to be 1 or large and the string may contain \fCHH\fP hexadecimal codes: 
+.PP
+.nf
+%repeat[<number> x <string>]%
+
+.fi
+.PP
+ For example, to insert the word hello a 100 times: 
+.PP
+.nf
+%repeat[100 x hello]%
+
+.fi
+.PP
+ 
+.SS "Conditional lines"
+Lines in the test file can be made to appear conditionally on a specific feature (see the 'features' section below) being set or not set\&. If the specific feature is present, the following lines will be output, otherwise it outputs nothing, until a following else or endif clause\&. Like this: 
+.PP
+.nf
+%if brotli
+Accept-Encoding
+%endif
+
+.fi
+.PP
+ It can also check for the inversed condition, so if the feature us \fInot\fP set by the use of an exclamation mark: 
+.PP
+.nf
+%if !brotli
+Accept-Encoding: not-brotli
+%endif
+
+.fi
+.PP
+ You can also make an 'else' clause to get output for the opposite condition, like: 
+.PP
+.nf
+%if brotli
+Accept-Encoding: brotli
+%else
+Accept-Encoding: nothing
+%endif
+
+.fi
+.PP
+ \fBNote\fP that there can be no nested conditions\&. You can only do one conditional at a time and you can only check for a single feature in it\&.
+.SH "Variables"
+.PP
+When the test is preprocessed, a range of 'variables' in the test file will be replaced by their content at that time\&.
+.PP
+Available substitute variables include:
+.PP
+.IP "\(bu" 2
+\fCCLIENT6IP\fP - IPv6 address of the client running curl
+.IP "\(bu" 2
+\fCCLIENTIP\fP - IPv4 address of the client running curl
+.IP "\(bu" 2
+\fCCURL\fP - Path to the curl executable
+.IP "\(bu" 2
+\fCFILE_PWD\fP - Current directory, on windows prefixed with a slash
+.IP "\(bu" 2
+\fCFTP6PORT\fP - IPv6 port number of the \fBFTP\fP server
+.IP "\(bu" 2
+\fCFTPPORT\fP - Port number of the \fBFTP\fP server
+.IP "\(bu" 2
+\fCFTPSPORT\fP - Port number of the FTPS server
+.IP "\(bu" 2
+\fCFTPTIME2\fP - Timeout in seconds that should be just sufficient to receive a response from the test \fBFTP\fP server
+.IP "\(bu" 2
+\fCFTPTIME3\fP - Even longer than FTPTIME2
+.IP "\(bu" 2
+\fCGOPHER6PORT\fP - IPv6 port number of the Gopher server
+.IP "\(bu" 2
+\fCGOPHERPORT\fP - Port number of the Gopher server
+.IP "\(bu" 2
+\fCGOPHERSPORT\fP - Port number of the Gophers server
+.IP "\(bu" 2
+\fCHOST6IP\fP - IPv6 address of the host running this test
+.IP "\(bu" 2
+\fCHOSTIP\fP - IPv4 address of the host running this test
+.IP "\(bu" 2
+\fCHTTP6PORT\fP - IPv6 port number of the \fBHTTP\fP server
+.IP "\(bu" 2
+\fCHTTPPORT\fP - Port number of the \fBHTTP\fP server
+.IP "\(bu" 2
+\fCHTTP2PORT\fP - Port number of the HTTP/2 server
+.IP "\(bu" 2
+\fCHTTPSPORT\fP - Port number of the HTTPS server
+.IP "\(bu" 2
+\fCHTTPSPROXYPORT\fP - Port number of the HTTPS-proxy
+.IP "\(bu" 2
+\fCHTTPTLS6PORT\fP - IPv6 port number of the \fBHTTP\fP TLS server
+.IP "\(bu" 2
+\fCHTTPTLSPORT\fP - Port number of the \fBHTTP\fP TLS server
+.IP "\(bu" 2
+\fCHTTPUNIXPATH\fP - Path to the Unix socket of the \fBHTTP\fP server
+.IP "\(bu" 2
+\fCIMAP6PORT\fP - IPv6 port number of the \fBIMAP\fP server
+.IP "\(bu" 2
+\fCIMAPPORT\fP - Port number of the \fBIMAP\fP server
+.IP "\(bu" 2
+\fCMQTTPORT\fP - Port number of the \fBMQTT\fP server
+.IP "\(bu" 2
+\fCTELNETPORT\fP - Port number of the telnet server
+.IP "\(bu" 2
+\fCNOLISTENPORT\fP - Port number where no service is listening
+.IP "\(bu" 2
+\fCPOP36PORT\fP - IPv6 port number of the \fBPOP3\fP server
+.IP "\(bu" 2
+\fCPOP3PORT\fP - Port number of the \fBPOP3\fP server
+.IP "\(bu" 2
+\fCPOSIX_PWD\fP - Current directory somewhat mingw friendly
+.IP "\(bu" 2
+\fCPROXYPORT\fP - Port number of the \fBHTTP\fP proxy
+.IP "\(bu" 2
+\fCPWD\fP - Current directory
+.IP "\(bu" 2
+\fCRTSP6PORT\fP - IPv6 port number of the \fBRTSP\fP server
+.IP "\(bu" 2
+\fCRTSPPORT\fP - Port number of the \fBRTSP\fP server
+.IP "\(bu" 2
+\fCSMBPORT\fP - Port number of the SMB server
+.IP "\(bu" 2
+\fCSMBSPORT\fP - Port number of the SMBS server
+.IP "\(bu" 2
+\fCSMTP6PORT\fP - IPv6 port number of the \fBSMTP\fP server
+.IP "\(bu" 2
+\fCSMTPPORT\fP - Port number of the \fBSMTP\fP server
+.IP "\(bu" 2
+\fCSOCKSPORT\fP - Port number of the SOCKS4/5 server
+.IP "\(bu" 2
+\fCSRCDIR\fP - Full path to the source dir
+.IP "\(bu" 2
+\fCSSHPORT\fP - Port number of the SCP/SFTP server
+.IP "\(bu" 2
+\fCSSHSRVMD5\fP - MD5 of SSH server's public key
+.IP "\(bu" 2
+\fCSSH_PWD\fP - Current directory friendly for the SSH server
+.IP "\(bu" 2
+\fCTESTNUMBER\fP - Number of the test case
+.IP "\(bu" 2
+\fCTFTP6PORT\fP - IPv6 port number of the TFTP server
+.IP "\(bu" 2
+\fCTFTPPORT\fP - Port number of the TFTP server
+.IP "\(bu" 2
+\fCUSER\fP - Login ID of the user running the test
+.IP "\(bu" 2
+\fCVERSION\fP - the full version number of the tested curl
+.PP
+.SH "<tt><testcase></tt>"
+.PP
+Each test is always specified entirely within the testcase tag\&. Each test case is split up in four main sections: \fCinfo\fP, \fCreply\fP, \fCclient\fP and \fCverify\fP\&.
+.PP
+.IP "\(bu" 2
+\fBinfo\fP provides information about the test case
+.IP "\(bu" 2
+\fBreply\fP is used for the server to know what to send as a reply for the requests curl sends
+.IP "\(bu" 2
+\fBclient\fP defines how the client should behave
+.IP "\(bu" 2
+\fBverify\fP defines how to verify that the data stored after a command has been run ended up correctly
+.PP
+.PP
+Each main section has a number of available subsections that can be specified, that will be checked/used if specified\&.
+.SS "<tt><info></tt>"
+.SS "<tt><keywords></tt>"
+\fBA\fP newline-separated list of keywords describing what this test case uses and tests\&. Try to use already used keywords\&. These keywords will be used for statistical/informational purposes and for choosing or skipping classes of tests\&. 'Keywords' must begin with an alphabetic character, '-', '[' or '{' and may actually consist of multiple words separated by spaces which are treated together as a single identifier\&.
+.PP
+When using curl built with Hyper, the keywords must include \fBHTTP\fP or HTTPS for 'hyper mode' to kick in and make line ending checks work for tests\&. 
+.SS "<tt><reply></tt>"
+.SS "<tt><data [nocheck='yes'] [sendzero='yes'] [base64='yes'] [hex='yes']></tt>"
+data to be sent to the client on its request and later verified that it arrived safely\&. Set \fCnocheck='yes'\fP to prevent the test script from verifying the arrival of this data\&.
+.PP
+If the data contains \fCswsclose\fP anywhere within the start and end tag, and this is a \fBHTTP\fP test, then the connection will be closed by the server after this response is sent\&. If not, the connection will be kept persistent\&.
+.PP
+If the data contains \fCswsbounce\fP anywhere within the start and end tag, the \fBHTTP\fP server will detect if this is a second request using the same test and part number and will then increase the part number with one\&. This is useful for auth tests and similar\&.
+.PP
+\fCsendzero=yes\fP means that the (\fBFTP\fP) server will 'send' the data even if the size is zero bytes\&. Used to verify curl's behavior on zero bytes transfers\&.
+.PP
+\fCbase64=yes\fP means that the data provided in the test-file is a chunk of data encoded with base64\&. It is the only way a test case can contain binary data\&. (This attribute can in fact be used on any section, but it doesn't make much sense for other sections than 'data')\&.
+.PP
+\fChex=yes\fP means that the data is a sequence of hex pairs\&. It will get decoded and used as 'raw' data\&.
+.PP
+For \fBFTP\fP file listings, the \fC<data>\fP section will be used \fIonly\fP if you make sure that there has been a CWD done first to a directory named \fCtest-[num]\fP where [num] is the test case number\&. Otherwise the ftp server can't know from which test file to load the list content\&.
+.SS "<tt><dataNUM></tt>"
+Send back this contents instead of the <data> one\&. The num is set by:
+.PP
+.IP "\(bu" 2
+The test number in the request line is >10000 and this is the remainder of [test case number]%10000\&.
+.IP "\(bu" 2
+The request was \fBHTTP\fP and included digest details, which adds 1000 to NUM
+.IP "\(bu" 2
+If a \fBHTTP\fP request is NTLM type-1, it adds 1001 to num
+.IP "\(bu" 2
+If a \fBHTTP\fP request is NTLM type-3, it adds 1002 to num
+.IP "\(bu" 2
+If a \fBHTTP\fP request is Basic and num is already >=1000, it adds 1 to num
+.IP "\(bu" 2
+If a \fBHTTP\fP request is Negotiate, num gets incremented by one for each request with Negotiate authorization header on the same test case\&.
+.PP
+.PP
+Dynamically changing num in this way allows the test harness to be used to test authentication negotiation where several different requests must be sent to complete a transfer\&. The response to each request is found in its own data section\&. Validating the entire negotiation sequence can be done by specifying a datacheck section\&.
+.SS "<tt><connect></tt>"
+The connect section is used instead of the 'data' for all CONNECT requests\&. The remainder of the rules for the data section then apply but with a connect prefix\&.
+.SS "<tt><datacheck [mode='text'] [nonewline='yes']></tt>"
+if the data is sent but this is what should be checked afterwards\&. If \fCnonewline=yes\fP is set, runtests will cut off the trailing newline from the data before comparing with the one actually received by the client\&.
+.PP
+Use the \fCmode='text'\fP attribute if the output is in text mode on platforms that have a text/binary difference\&.
+.SS "<tt><datacheckNUM [nonewline='yes'] [mode='text']></tt>"
+The contents of numbered datacheck sections are appended to the non-numbered one\&.
+.SS "<tt><size></tt>"
+number to return on a ftp SIZE command (set to -1 to make this command fail)
+.SS "<tt><mdtm></tt>"
+what to send back if the client sends a (\fBFTP\fP) MDTM command, set to -1 to have it return that the file doesn't exist
+.SS "<tt><postcmd></tt>"
+special purpose server-command to control its behavior \fIafter\fP the reply is sent For HTTP/HTTPS, these are supported:
+.PP
+\fCwait [secs]\fP - Pause for the given time
+.SS "<tt><servercmd></tt>"
+Special-commands for the server\&.
+.PP
+The first line of this file will always be set to \fCTestnum [number]\fP by the test script, to allow servers to read that to know what test the client is about to issue\&.
+.SS "For FTP/SMTP/POP/IMAP"
+.IP "\(bu" 2
+\fCREPLY [command] [return value] [response string]\fP - Changes how the server responds to the [command]\&. [response string] is evaluated as a perl string, so it can contain embedded \\r
+.br
+, for example\&. There's a special [command] named 'welcome' (without quotes) which is the string sent immediately on connect as a welcome\&.
+.IP "\(bu" 2
+\fCREPLYLF\fP (like above but sends the response terminated with LF-only and not CRLF)
+.IP "\(bu" 2
+\fCCOUNT [command] [num]\fP - Do the \fCREPLY\fP change for \fC[command]\fP only \fC[num]\fP times and then go back to the built-in approach
+.IP "\(bu" 2
+\fCDELAY [command] [secs]\fP - Delay responding to this command for the given time
+.IP "\(bu" 2
+\fCRETRWEIRDO\fP - Enable the 'weirdo' RETR case when multiple response lines appear at once when a file is transferred
+.IP "\(bu" 2
+\fCRETRNOSIZE\fP - Make sure the RETR response doesn't contain the size of the file
+.IP "\(bu" 2
+\fCNOSAVE\fP - Don't actually save what is received
+.IP "\(bu" 2
+\fCSLOWDOWN\fP - Send \fBFTP\fP responses with 0\&.01 sec delay between each byte
+.IP "\(bu" 2
+\fCPASVBADIP\fP - makes PASV send back an illegal IP in its 227 response
+.IP "\(bu" 2
+\fCCAPA [capabilities]\fP - Enables support for and specifies a list of space separated capabilities to return to the client for the \fBIMAP\fP \fCCAPABILITY\fP, \fBPOP3\fP \fCCAPA\fP and \fBSMTP\fP \fCEHLO\fP commands
+.IP "\(bu" 2
+\fCAUTH [mechanisms]\fP - Enables support for \fBSASL\fP authentication and specifies a list of space separated mechanisms for \fBIMAP\fP, \fBPOP3\fP and \fBSMTP\fP
+.IP "\(bu" 2
+\fCSTOR [msg]\fP respond with this instead of default after \fCSTOR\fP
+.PP
+.SS "For HTTP/HTTPS"
+.IP "\(bu" 2
+\fCauth_required\fP if this is set and a POST/PUT is made without auth, the server will NOT wait for the full request body to get sent
+.IP "\(bu" 2
+\fCidle\fP - do nothing after receiving the request, just 'sit idle'
+.IP "\(bu" 2
+\fCstream\fP - continuously send data to the client, never-ending
+.IP "\(bu" 2
+\fCwritedelay: [secs]\fP delay this amount between reply packets
+.IP "\(bu" 2
+\fCskip: [num]\fP - instructs the server to ignore reading this many bytes from a PUT or POST request
+.IP "\(bu" 2
+\fCrtp: part [num] channel [num] size [num]\fP - stream a fake RTP packet for the given part on a chosen channel with the given payload size
+.IP "\(bu" 2
+\fCconnection-monitor\fP - When used, this will log \fC[DISCONNECT]\fP to the \fCserver\&.input\fP log when the connection is disconnected\&.
+.IP "\(bu" 2
+\fCupgrade\fP - when an \fBHTTP\fP upgrade header is found, the server will upgrade to http2
+.IP "\(bu" 2
+\fCswsclose\fP - instruct server to close connection after response
+.IP "\(bu" 2
+\fCno-expect\fP - don't read the request body if Expect: is present
+.PP
+.SS "For TFTP"
+\fCwritedelay: [secs]\fP delay this amount between reply packets (each packet being 512 bytes payload)
+.SS "<tt><client></tt>"
+.SS "<tt><server></tt>"
+What server(s) this test case requires/uses\&. Available servers:
+.PP
+.IP "\(bu" 2
+\fCfile\fP
+.IP "\(bu" 2
+\fCftp-ipv6\fP
+.IP "\(bu" 2
+\fCftp\fP
+.IP "\(bu" 2
+\fCftps\fP
+.IP "\(bu" 2
+\fCgopher\fP
+.IP "\(bu" 2
+\fCgophers\fP
+.IP "\(bu" 2
+\fChttp-ipv6\fP
+.IP "\(bu" 2
+\fChttp-proxy\fP
+.IP "\(bu" 2
+\fChttp-unix\fP
+.IP "\(bu" 2
+\fChttp/2\fP
+.IP "\(bu" 2
+\fChttp\fP
+.IP "\(bu" 2
+\fChttps\fP
+.IP "\(bu" 2
+\fChttptls+srp-ipv6\fP
+.IP "\(bu" 2
+\fChttptls+srp\fP
+.IP "\(bu" 2
+\fCimap\fP
+.IP "\(bu" 2
+\fCmqtt\fP
+.IP "\(bu" 2
+\fCnone\fP
+.IP "\(bu" 2
+\fCpop3\fP
+.IP "\(bu" 2
+\fCrtsp-ipv6\fP
+.IP "\(bu" 2
+\fCrtsp\fP
+.IP "\(bu" 2
+\fCscp\fP
+.IP "\(bu" 2
+\fCsftp\fP
+.IP "\(bu" 2
+\fCsmtp\fP
+.IP "\(bu" 2
+\fCsocks4\fP
+.IP "\(bu" 2
+\fCsocks5\fP
+.PP
+.PP
+Give only one per line\&. This subsection is mandatory\&.
+.SS "<tt><features></tt>"
+\fBA\fP list of features that MUST be present in the client/library for this test to be able to run\&. If a required feature is not present then the test will be SKIPPED\&.
+.PP
+Alternatively a feature can be prefixed with an exclamation mark to indicate a feature is NOT required\&. If the feature is present then the test will be SKIPPED\&.
+.PP
+Features testable here are:
+.PP
+.IP "\(bu" 2
+\fCalt-svc\fP
+.IP "\(bu" 2
+\fCc-ares\fP
+.IP "\(bu" 2
+\fCcookies\fP
+.IP "\(bu" 2
+\fCcrypto\fP
+.IP "\(bu" 2
+\fCdebug\fP
+.IP "\(bu" 2
+\fCDoH\fP
+.IP "\(bu" 2
+\fCgetrlimit\fP
+.IP "\(bu" 2
+\fCGnuTLS\fP
+.IP "\(bu" 2
+\fCGSS-API\fP
+.IP "\(bu" 2
+\fCHSTS\fP
+.IP "\(bu" 2
+\fCHTTP-auth\fP
+.IP "\(bu" 2
+\fChttp/2\fP
+.IP "\(bu" 2
+\fChyper\fP
+.IP "\(bu" 2
+\fCidn\fP
+.IP "\(bu" 2
+\fCipv6\fP
+.IP "\(bu" 2
+\fCKerberos\fP
+.IP "\(bu" 2
+\fClarge_file\fP
+.IP "\(bu" 2
+\fCld_preload\fP
+.IP "\(bu" 2
+\fClibz\fP
+.IP "\(bu" 2
+\fCmanual\fP
+.IP "\(bu" 2
+\fCMime\fP
+.IP "\(bu" 2
+\fCnetrc\fP
+.IP "\(bu" 2
+\fCNSS\fP
+.IP "\(bu" 2
+\fCNTLM\fP
+.IP "\(bu" 2
+\fCOpenSSL\fP
+.IP "\(bu" 2
+\fCparsedate\fP
+.IP "\(bu" 2
+\fCproxy\fP
+.IP "\(bu" 2
+\fCPSL\fP
+.IP "\(bu" 2
+\fCSchannel\fP
+.IP "\(bu" 2
+\fCsectransp\fP
+.IP "\(bu" 2
+\fCshuffle-dns\fP
+.IP "\(bu" 2
+\fCsocks\fP
+.IP "\(bu" 2
+\fCSPNEGO\fP
+.IP "\(bu" 2
+\fCSSL\fP
+.IP "\(bu" 2
+\fCSSLpinning\fP
+.IP "\(bu" 2
+\fCSSPI\fP
+.IP "\(bu" 2
+\fCthreaded-resolver\fP
+.IP "\(bu" 2
+\fCTLS-SRP\fP
+.IP "\(bu" 2
+\fCTrackMemory\fP
+.IP "\(bu" 2
+\fCtypecheck\fP
+.IP "\(bu" 2
+\fCUnicode\fP
+.IP "\(bu" 2
+\fCunittest\fP
+.IP "\(bu" 2
+\fCunix-sockets\fP
+.IP "\(bu" 2
+\fCverbose-strings\fP
+.IP "\(bu" 2
+\fCwakeup\fP
+.IP "\(bu" 2
+\fCwin32\fP
+.PP
+.PP
+as well as each protocol that curl supports\&. \fBA\fP protocol only needs to be specified if it is different from the server (useful when the server is \fCnone\fP)\&.
+.SS "<tt><killserver></tt>"
+Using the same syntax as in \fC<server>\fP but when mentioned here these servers are explicitly KILLED when this test case is completed\&. Only use this if there is no other alternatives\&. Using this of course requires subsequent tests to restart servers\&.
+.SS "<tt><precheck></tt>"
+\fBA\fP command line that if set gets run by the test script before the test\&. If an output is displayed by the command or if the return code is non-zero, the test will be skipped and the (single-line) output will be displayed as reason for not running the test\&.
+.SS "<tt><postcheck></tt>"
+\fBA\fP command line that if set gets run by the test script after the test\&. If the command exists with a non-zero status code, the test will be considered to have failed\&.
+.SS "<tt><tool></tt>"
+Name of tool to invoke instead of 'curl'\&. This tool must be built and exist either in the libtest/ directory (if the tool name starts with 'lib') or in the unit/ directory (if the tool name starts with 'unit')\&.
+.SS "<tt><name></tt>"
+Brief test case description, shown when the test runs\&.
+.SS "<tt><setenv></tt>"
+variable1=contents1 variable2=contents2
+.PP
+Set the given environment variables to the specified value before the actual command is run\&. They are cleared again after the command has been run\&.
+.SS "<tt><command [option='no-output/no-include/force-output/binary-trace'] [timeout='secs'][delay='secs'][type='perl/shell']></tt>"
+Command line to run\&.
+.PP
+Note that the URL that gets passed to the server actually controls what data that is returned\&. The last slash in the URL must be followed by a number\&. That number (N) will be used by the test-server to load test case N and return the data that is defined within the \fC<reply><data></data></reply>\fP section\&.
+.PP
+If there's no test number found above, the \fBHTTP\fP test server will use the number following the last dot in the given hostname (made so that a CONNECT can still pass on test number) so that 'foo\&.bar\&.123' gets treated as test case
+.IP "123." 4
+Alternatively, if an IPv6 address is provided to CONNECT, the last hexadecimal group in the address will be used as the test number! For example the address '[1234::ff]' would be treated as test case 255\&.
+.PP
+.PP
+Set \fCtype='perl'\fP to write the test case as a perl script\&. It implies that there's no memory debugging and valgrind gets shut off for this test\&.
+.PP
+Set \fCtype='shell'\fP to write the test case as a shell script\&. It implies that there's no memory debugging and valgrind gets shut off for this test\&.
+.PP
+Set \fCoption='no-output'\fP to prevent the test script to slap on the \fC--output\fP argument that directs the output to a file\&. The \fC--output\fP is also not added if the verify/stdout section is used\&.
+.PP
+Set \fCoption='force-output'\fP to make use of \fC--output\fP even when the test is otherwise written to verify stdout\&.
+.PP
+Set \fCoption='no-include'\fP to prevent the test script to slap on the \fC--include\fP argument\&.
+.PP
+Set \fCoption='binary-trace'\fP to use \fC--trace\fP instead of \fC--trace-ascii\fP for tracing\&. Suitable for binary-oriented protocols such as \fBMQTT\fP\&.
+.PP
+Set \fCtimeout='secs'\fP to override default server logs advisor read lock timeout\&. This timeout is used by the test harness, once that the command has completed execution, to wait for the test server to write out server side log files and remove the lock that advised not to read them\&. The 'secs' parameter is the not negative integer number of seconds for the timeout\&. This \fCtimeout\fP attribute is documented for completeness sake, but is deep test harness stuff and only needed for very singular and specific test cases\&. Avoid using it\&.
+.PP
+Set \fCdelay='secs'\fP to introduce a time delay once that the command has completed execution and before the \fC<postcheck>\fP section runs\&. The 'secs' parameter is the not negative integer number of seconds for the delay\&. This 'delay' attribute is intended for very specific test cases, and normally not needed\&.
+.SS "<tt><file name='log/filename' [nonewline='yes']></tt>"
+This creates the named file with this content before the test case is run, which is useful if the test case needs a file to act on\&.
+.PP
+If 'nonewline='yes'` is used, the created file will have the final newline stripped off\&.
+.SS "<tt><stdin [nonewline='yes']></tt>"
+Pass this given data on stdin to the tool\&.
+.PP
+If 'nonewline' is set, we will cut off the trailing newline of this given data before comparing with the one actually received by the client
+.SS "<tt><verify></tt>"
+.SS "<tt><errorcode></tt>"
+numerical error code curl is supposed to return\&. Specify a list of accepted error codes by separating multiple numbers with comma\&. See test 237 for an example\&.
+.SS "<tt><strip></tt>"
+One regex per line that is removed from the protocol dumps before the comparison is made\&. This is very useful to remove dependencies on dynamically changing protocol data such as port numbers or user-agent strings\&.
+.SS "<tt><strippart></tt>"
+One perl op per line that operates on the protocol dump\&. This is pretty advanced\&. Example: \fCs/^EPRT \&.*/EPRT stripped/\fP\&.
+.SS "<tt><protocol [nonewline='yes']></tt>"
+the protocol dump curl should transmit, if 'nonewline' is set, we will cut off the trailing newline of this given data before comparing with the one actually sent by the client The \fC<strip>\fP and \fC<strippart>\fP rules are applied before comparisons are made\&.
+.SS "<tt><proxy [nonewline='yes']></tt>"
+The protocol dump curl should transmit to a \fBHTTP\fP proxy (when the http-proxy server is used), if 'nonewline' is set, we will cut off the trailing newline of this given data before comparing with the one actually sent by the client The \fC<strip>\fP and \fC<strippart>\fP rules are applied before comparisons are made\&.
+.SS "<tt><stderr [mode='text'] [nonewline='yes']></tt>"
+This verifies that this data was passed to stderr\&.
+.PP
+Use the mode='text' attribute if the output is in text mode on platforms that have a text/binary difference\&.
+.PP
+If 'nonewline' is set, we will cut off the trailing newline of this given data before comparing with the one actually received by the client
+.SS "<tt><stdout [mode='text'] [nonewline='yes']></tt>"
+This verifies that this data was passed to stdout\&.
+.PP
+Use the mode='text' attribute if the output is in text mode on platforms that have a text/binary difference\&.
+.PP
+If 'nonewline' is set, we will cut off the trailing newline of this given data before comparing with the one actually received by the client
+.SS "<tt><file name='log/filename' [mode='text']></tt>"
+The file's contents must be identical to this after the test is complete\&. Use the mode='text' attribute if the output is in text mode on platforms that have a text/binary difference\&.
+.SS "<tt><file1></tt>"
+1 to 4 can be appended to 'file' to compare more files\&.
+.SS "<tt><file2></tt>"
+.SS "<tt><file3></tt>"
+.SS "<tt><file4></tt>"
+.SS "<tt><stripfile></tt>"
+One perl op per line that operates on the output file or stdout before being compared with what is stored in the test file\&. This is pretty advanced\&. Example: 's/^EPRT \&.*/EPRT stripped/'
+.SS "<tt><stripfile1></tt>"
+1 to 4 can be appended to 'stripfile' to strip the corresponding <fileN> content
+.SS "<tt><stripfile2></tt>"
+.SS "<tt><stripfile3></tt>"
+.SS "<tt><stripfile4></tt>"
+.SS "<tt><upload></tt>"
+the contents of the upload data curl should have sent
+.SS "<tt><valgrind></tt>"
+disable - disables the valgrind log check for this test 

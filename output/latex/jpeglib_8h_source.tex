@@ -1,0 +1,1109 @@
+\hypertarget{jpeglib_8h_source}{}\doxysection{jpeglib.\+h}
+\label{jpeglib_8h_source}\index{AseSprite/aseprite/third\_party/jpeg/jpeglib.h@{AseSprite/aseprite/third\_party/jpeg/jpeglib.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ jpeglib.h}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1991-\/1998,\ Thomas\ G.\ Lane.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ Independent\ JPEG\ Group's\ software.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ For\ conditions\ of\ distribution\ and\ use,\ see\ the\ accompanying\ README\ file.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ This\ file\ defines\ the\ application\ interface\ for\ the\ JPEG\ library.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ Most\ applications\ using\ the\ library\ need\ only\ include\ this\ file,}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ and\ perhaps\ jerror.h\ if\ they\ want\ to\ know\ the\ exact\ error\ codes.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#ifndef\ JPEGLIB\_H}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ JPEGLIB\_H}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00017\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ First\ we\ include\ the\ configuration\ files\ that\ record\ how\ this}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ installation\ of\ the\ JPEG\ library\ is\ set\ up.\ \ jconfig.h\ can\ be}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ generated\ automatically\ for\ many\ systems.\ \ jmorecfg.h\ contains}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ manual\ configuration\ options\ that\ most\ people\ need\ not\ worry\ about.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ JCONFIG\_INCLUDED\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ in\ case\ jinclude.h\ already\ did\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ "{}jconfig.h"{}}\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ widely\ used\ configuration\ options\ */}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}jmorecfg.h"{}}\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ seldom\ changed\ options\ */}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{comment}{/*\ Version\ ID\ for\ the\ JPEG\ library.}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ Might\ be\ useful\ for\ tests\ like\ "{}\#if\ JPEG\_LIB\_VERSION\ >=\ 60"{}.}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ JPEG\_LIB\_VERSION\ \ 62\ \ \ \ }\textcolor{comment}{/*\ Version\ 6b\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{comment}{/*\ Various\ constants\ determining\ the\ sizes\ of\ things.}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ All\ of\ these\ are\ specified\ by\ the\ JPEG\ standard,\ so\ don't\ change\ them}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ if\ you\ want\ to\ be\ compatible.}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ DCTSIZE\ \ \ \ \ \ \ \ \ \ \ \ \ 8\ \ \ }\textcolor{comment}{/*\ The\ basic\ DCT\ block\ is\ 8x8\ samples\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ DCTSIZE2\ \ \ \ \ \ \ \ \ \ \ \ 64\ \ }\textcolor{comment}{/*\ DCTSIZE\ squared;\ \#\ of\ elements\ in\ a\ block\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ NUM\_QUANT\_TBLS\ \ \ \ \ \ 4\ \ \ }\textcolor{comment}{/*\ Quantization\ tables\ are\ numbered\ 0..3\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ NUM\_HUFF\_TBLS\ \ \ \ \ \ \ 4\ \ \ }\textcolor{comment}{/*\ Huffman\ tables\ are\ numbered\ 0..3\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ NUM\_ARITH\_TBLS\ \ \ \ \ \ 16\ \ }\textcolor{comment}{/*\ Arith-\/coding\ tables\ are\ numbered\ 0..15\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ MAX\_COMPS\_IN\_SCAN\ \ \ 4\ \ \ }\textcolor{comment}{/*\ JPEG\ limit\ on\ \#\ of\ components\ in\ one\ scan\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#define\ MAX\_SAMP\_FACTOR\ \ \ \ \ 4\ \ \ }\textcolor{comment}{/*\ JPEG\ limit\ on\ sampling\ factors\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00051\ \textcolor{comment}{/*\ Unfortunately,\ some\ bozo\ at\ Adobe\ saw\ no\ reason\ to\ be\ bound\ by\ the\ standard;}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ the\ PostScript\ DCT\ filter\ can\ emit\ files\ with\ many\ more\ than\ 10\ blocks/MCU.}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ If\ you\ happen\ to\ run\ across\ such\ a\ file,\ you\ can\ up\ D\_MAX\_BLOCKS\_IN\_MCU}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *\ to\ handle\ it.\ \ We\ even\ let\ you\ do\ this\ from\ the\ jconfig.h\ file.\ \ However,}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *\ we\ strongly\ discourage\ changing\ C\_MAX\_BLOCKS\_IN\_MCU;\ just\ because\ Adobe}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *\ sometimes\ emits\ noncompliant\ files\ doesn't\ mean\ you\ should\ too.}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ C\_MAX\_BLOCKS\_IN\_MCU\ \ \ 10\ }\textcolor{comment}{/*\ compressor's\ limit\ on\ blocks\ per\ MCU\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#ifndef\ D\_MAX\_BLOCKS\_IN\_MCU}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#define\ D\_MAX\_BLOCKS\_IN\_MCU\ \ \ 10\ }\textcolor{comment}{/*\ decompressor's\ limit\ on\ blocks\ per\ MCU\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{comment}{/*\ Data\ structures\ for\ images\ (arrays\ of\ samples\ and\ of\ DCT\ coefficients).}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ *\ On\ 80x86\ machines,\ the\ image\ arrays\ are\ too\ big\ for\ near\ pointers,}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ *\ but\ the\ pointer\ arrays\ can\ fit\ in\ near\ memory.}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{typedef}\ JSAMPLE\ FAR\ *JSAMPROW;\ \ \textcolor{comment}{/*\ ptr\ to\ one\ image\ row\ of\ pixel\ samples.\ */}}
+\DoxyCodeLine{00070\ \textcolor{keyword}{typedef}\ JSAMPROW\ *JSAMPARRAY;\ \ \ \textcolor{comment}{/*\ ptr\ to\ some\ rows\ (a\ 2-\/D\ sample\ array)\ */}}
+\DoxyCodeLine{00071\ \textcolor{keyword}{typedef}\ JSAMPARRAY\ *JSAMPIMAGE;\ \textcolor{comment}{/*\ a\ 3-\/D\ sample\ array:\ top\ index\ is\ color\ */}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{typedef}\ JCOEF\ JBLOCK[DCTSIZE2];\ \textcolor{comment}{/*\ one\ block\ of\ coefficients\ */}}
+\DoxyCodeLine{00074\ \textcolor{keyword}{typedef}\ JBLOCK\ FAR\ *JBLOCKROW;\ \ \textcolor{comment}{/*\ pointer\ to\ one\ row\ of\ coefficient\ blocks\ */}}
+\DoxyCodeLine{00075\ \textcolor{keyword}{typedef}\ JBLOCKROW\ *JBLOCKARRAY;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ a\ 2-\/D\ array\ of\ coefficient\ blocks\ */}}
+\DoxyCodeLine{00076\ \textcolor{keyword}{typedef}\ JBLOCKARRAY\ *JBLOCKIMAGE;\ \ \ \ \ \ \ \textcolor{comment}{/*\ a\ 3-\/D\ array\ of\ coefficient\ blocks\ */}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{keyword}{typedef}\ JCOEF\ FAR\ *JCOEFPTR;\ \ \ \ \textcolor{comment}{/*\ useful\ in\ a\ couple\ of\ places\ */}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{comment}{/*\ Types\ for\ JPEG\ compression\ parameters\ and\ working\ tables.\ */}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{/*\ DCT\ coefficient\ quantization\ tables.\ */}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00087\ \ \ \textcolor{comment}{/*\ This\ array\ gives\ the\ coefficient\ quantizers\ in\ natural\ array\ order}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *\ (not\ the\ zigzag\ order\ in\ which\ they\ are\ stored\ in\ a\ JPEG\ DQT\ marker).}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ *\ CAUTION:\ IJG\ versions\ prior\ to\ v6a\ kept\ this\ array\ in\ zigzag\ order.}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00091\ \ \ UINT16\ quantval[DCTSIZE2];\ \ \ \ \textcolor{comment}{/*\ quantization\ step\ for\ each\ coefficient\ */}}
+\DoxyCodeLine{00092\ \ \ \textcolor{comment}{/*\ This\ field\ is\ used\ only\ during\ compression.\ \ It's\ initialized\ FALSE\ when}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ \ *\ the\ table\ is\ created,\ and\ set\ TRUE\ when\ it's\ been\ output\ to\ the\ file.}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ *\ You\ could\ suppress\ output\ of\ a\ table\ by\ setting\ this\ to\ TRUE.}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *\ (See\ jpeg\_suppress\_tables\ for\ an\ example.)}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordtype}{boolean}\ sent\_table;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ when\ table\ has\ been\ output\ */}}
+\DoxyCodeLine{00098\ \}\ \mbox{\hyperlink{struct_j_q_u_a_n_t___t_b_l}{JQUANT\_TBL}};}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{comment}{/*\ Huffman\ coding\ tables.\ */}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00104\ \ \ \textcolor{comment}{/*\ These\ two\ fields\ directly\ represent\ the\ contents\ of\ a\ JPEG\ DHT\ marker\ */}}
+\DoxyCodeLine{00105\ \ \ UINT8\ bits[17];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bits[k]\ =\ \#\ of\ symbols\ with\ codes\ of\ */}}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ length\ k\ bits;\ bits[0]\ is\ unused\ */}}
+\DoxyCodeLine{00107\ \ \ UINT8\ huffval[256];\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ symbols,\ in\ order\ of\ incr\ code\ length\ */}}
+\DoxyCodeLine{00108\ \ \ \textcolor{comment}{/*\ This\ field\ is\ used\ only\ during\ compression.\ \ It's\ initialized\ FALSE\ when}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ *\ the\ table\ is\ created,\ and\ set\ TRUE\ when\ it's\ been\ output\ to\ the\ file.}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *\ You\ could\ suppress\ output\ of\ a\ table\ by\ setting\ this\ to\ TRUE.}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ (See\ jpeg\_suppress\_tables\ for\ an\ example.)}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordtype}{boolean}\ sent\_table;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ when\ table\ has\ been\ output\ */}}
+\DoxyCodeLine{00114\ \}\ \mbox{\hyperlink{struct_j_h_u_f_f___t_b_l}{JHUFF\_TBL}};}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{comment}{/*\ Basic\ info\ about\ one\ component\ (color\ channel).\ */}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00120\ \ \ \textcolor{comment}{/*\ These\ values\ are\ fixed\ over\ the\ whole\ image.\ */}}
+\DoxyCodeLine{00121\ \ \ \textcolor{comment}{/*\ For\ compression,\ they\ must\ be\ supplied\ by\ parameter\ setup;\ */}}
+\DoxyCodeLine{00122\ \ \ \textcolor{comment}{/*\ for\ decompression,\ they\ are\ read\ from\ the\ SOF\ marker.\ */}}
+\DoxyCodeLine{00123\ \ \ \textcolor{keywordtype}{int}\ component\_id;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ identifier\ for\ this\ component\ (0..255)\ */}}
+\DoxyCodeLine{00124\ \ \ \textcolor{keywordtype}{int}\ component\_index;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ its\ index\ in\ SOF\ or\ cinfo-\/>comp\_info[]\ */}}
+\DoxyCodeLine{00125\ \ \ \textcolor{keywordtype}{int}\ h\_samp\_factor;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ horizontal\ sampling\ factor\ (1..4)\ */}}
+\DoxyCodeLine{00126\ \ \ \textcolor{keywordtype}{int}\ v\_samp\_factor;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ vertical\ sampling\ factor\ (1..4)\ */}}
+\DoxyCodeLine{00127\ \ \ \textcolor{keywordtype}{int}\ quant\_tbl\_no;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ quantization\ table\ selector\ (0..3)\ */}}
+\DoxyCodeLine{00128\ \ \ \textcolor{comment}{/*\ These\ values\ may\ vary\ between\ scans.\ */}}
+\DoxyCodeLine{00129\ \ \ \textcolor{comment}{/*\ For\ compression,\ they\ must\ be\ supplied\ by\ parameter\ setup;\ */}}
+\DoxyCodeLine{00130\ \ \ \textcolor{comment}{/*\ for\ decompression,\ they\ are\ read\ from\ the\ SOS\ marker.\ */}}
+\DoxyCodeLine{00131\ \ \ \textcolor{comment}{/*\ The\ decompressor\ output\ side\ may\ not\ use\ these\ variables.\ */}}
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordtype}{int}\ dc\_tbl\_no;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ DC\ entropy\ table\ selector\ (0..3)\ */}}
+\DoxyCodeLine{00133\ \ \ \textcolor{keywordtype}{int}\ ac\_tbl\_no;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ AC\ entropy\ table\ selector\ (0..3)\ */}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \textcolor{comment}{/*\ Remaining\ fields\ should\ be\ treated\ as\ private\ by\ applications.\ */}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \textcolor{comment}{/*\ These\ values\ are\ computed\ during\ compression\ or\ decompression\ startup:\ */}}
+\DoxyCodeLine{00138\ \ \ \textcolor{comment}{/*\ Component's\ size\ in\ DCT\ blocks.}}
+\DoxyCodeLine{00139\ \textcolor{comment}{\ \ \ *\ Any\ dummy\ blocks\ added\ to\ complete\ an\ MCU\ are\ not\ counted;\ therefore}}
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ \ *\ these\ values\ do\ not\ depend\ on\ whether\ a\ scan\ is\ interleaved\ or\ not.}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00142\ \ \ JDIMENSION\ width\_in\_blocks;}
+\DoxyCodeLine{00143\ \ \ JDIMENSION\ height\_in\_blocks;}
+\DoxyCodeLine{00144\ \ \ \textcolor{comment}{/*\ Size\ of\ a\ DCT\ block\ in\ samples.\ \ Always\ DCTSIZE\ for\ compression.}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ *\ For\ decompression\ this\ is\ the\ size\ of\ the\ output\ from\ one\ DCT\ block,}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ *\ reflecting\ any\ scaling\ we\ choose\ to\ apply\ during\ the\ IDCT\ step.}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ *\ Values\ of\ 1,2,4,8\ are\ likely\ to\ be\ supported.\ \ Note\ that\ different}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ *\ components\ may\ receive\ different\ IDCT\ scalings.}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00150\ \ \ \textcolor{keywordtype}{int}\ DCT\_scaled\_size;}
+\DoxyCodeLine{00151\ \ \ \textcolor{comment}{/*\ The\ downsampled\ dimensions\ are\ the\ component's\ actual,\ unpadded\ number}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ *\ of\ samples\ at\ the\ main\ buffer\ (preprocessing/compression\ interface),\ thus}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ *\ downsampled\_width\ =\ ceil(image\_width\ *\ Hi/Hmax)}}
+\DoxyCodeLine{00154\ \textcolor{comment}{\ \ \ *\ and\ similarly\ for\ height.\ \ For\ decompression,\ IDCT\ scaling\ is\ included,\ so}}
+\DoxyCodeLine{00155\ \textcolor{comment}{\ \ \ *\ downsampled\_width\ =\ ceil(image\_width\ *\ Hi/Hmax\ *\ DCT\_scaled\_size/DCTSIZE)}}
+\DoxyCodeLine{00156\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00157\ \ \ JDIMENSION\ downsampled\_width;\ \ \textcolor{comment}{/*\ actual\ width\ in\ samples\ */}}
+\DoxyCodeLine{00158\ \ \ JDIMENSION\ downsampled\_height;\ \textcolor{comment}{/*\ actual\ height\ in\ samples\ */}}
+\DoxyCodeLine{00159\ \ \ \textcolor{comment}{/*\ This\ flag\ is\ used\ only\ for\ decompression.\ \ In\ cases\ where\ some\ of\ the}}
+\DoxyCodeLine{00160\ \textcolor{comment}{\ \ \ *\ components\ will\ be\ ignored\ (eg\ grayscale\ output\ from\ YCbCr\ image),}}
+\DoxyCodeLine{00161\ \textcolor{comment}{\ \ \ *\ we\ can\ skip\ most\ computations\ for\ the\ unused\ components.}}
+\DoxyCodeLine{00162\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00163\ \ \ \textcolor{keywordtype}{boolean}\ component\_needed;\ \ \ \ \ \textcolor{comment}{/*\ do\ we\ need\ the\ value\ of\ this\ component?\ */}}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \textcolor{comment}{/*\ These\ values\ are\ computed\ before\ starting\ a\ scan\ of\ the\ component.\ */}}
+\DoxyCodeLine{00166\ \ \ \textcolor{comment}{/*\ The\ decompressor\ output\ side\ may\ not\ use\ these\ variables.\ */}}
+\DoxyCodeLine{00167\ \ \ \textcolor{keywordtype}{int}\ MCU\_width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ blocks\ per\ MCU,\ horizontally\ */}}
+\DoxyCodeLine{00168\ \ \ \textcolor{keywordtype}{int}\ MCU\_height;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ blocks\ per\ MCU,\ vertically\ */}}
+\DoxyCodeLine{00169\ \ \ \textcolor{keywordtype}{int}\ MCU\_blocks;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ MCU\_width\ *\ MCU\_height\ */}}
+\DoxyCodeLine{00170\ \ \ \textcolor{keywordtype}{int}\ MCU\_sample\_width;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ MCU\ width\ in\ samples,\ MCU\_width*DCT\_scaled\_size\ */}}
+\DoxyCodeLine{00171\ \ \ \textcolor{keywordtype}{int}\ last\_col\_width;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ non-\/dummy\ blocks\ across\ in\ last\ MCU\ */}}
+\DoxyCodeLine{00172\ \ \ \textcolor{keywordtype}{int}\ last\_row\_height;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ non-\/dummy\ blocks\ down\ in\ last\ MCU\ */}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ \textcolor{comment}{/*\ Saved\ quantization\ table\ for\ component;\ NULL\ if\ none\ yet\ saved.}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ *\ See\ jdinput.c\ comments\ about\ the\ need\ for\ this\ information.}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ *\ This\ field\ is\ currently\ used\ only\ for\ decompression.}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00178\ \ \ \mbox{\hyperlink{struct_j_q_u_a_n_t___t_b_l}{JQUANT\_TBL}}\ *\ quant\_table;}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \textcolor{comment}{/*\ Private\ per-\/component\ storage\ for\ DCT\ or\ IDCT\ subsystem.\ */}}
+\DoxyCodeLine{00181\ \ \ \textcolor{keywordtype}{void}\ *\ dct\_table;}
+\DoxyCodeLine{00182\ \}\ \mbox{\hyperlink{structjpeg__component__info}{jpeg\_component\_info}};}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{comment}{/*\ The\ script\ for\ encoding\ a\ multiple-\/scan\ file\ is\ an\ array\ of\ these:\ */}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00188\ \ \ \textcolor{keywordtype}{int}\ comps\_in\_scan;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ components\ encoded\ in\ this\ scan\ */}}
+\DoxyCodeLine{00189\ \ \ \textcolor{keywordtype}{int}\ component\_index[MAX\_COMPS\_IN\_SCAN];\ \textcolor{comment}{/*\ their\ SOF/comp\_info[]\ indexes\ */}}
+\DoxyCodeLine{00190\ \ \ \textcolor{keywordtype}{int}\ Ss,\ Se;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ progressive\ JPEG\ spectral\ selection\ parms\ */}}
+\DoxyCodeLine{00191\ \ \ \textcolor{keywordtype}{int}\ Ah,\ Al;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ progressive\ JPEG\ successive\ approx.\ parms\ */}}
+\DoxyCodeLine{00192\ \}\ \mbox{\hyperlink{structjpeg__scan__info}{jpeg\_scan\_info}};}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \textcolor{comment}{/*\ The\ decompressor\ can\ save\ APPn\ and\ COM\ markers\ in\ a\ list\ of\ these:\ */}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__marker__struct}{jpeg\_marker\_struct}}\ FAR\ *\ jpeg\_saved\_marker\_ptr;}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__marker__struct}{jpeg\_marker\_struct}}\ \{}
+\DoxyCodeLine{00199\ \ \ jpeg\_saved\_marker\_ptr\ next;\ \ \ \textcolor{comment}{/*\ next\ in\ list,\ or\ NULL\ */}}
+\DoxyCodeLine{00200\ \ \ UINT8\ marker;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ marker\ code:\ JPEG\_COM,\ or\ JPEG\_APP0+n\ */}}
+\DoxyCodeLine{00201\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ original\_length;\ \textcolor{comment}{/*\ \#\ bytes\ of\ data\ in\ the\ file\ */}}
+\DoxyCodeLine{00202\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ data\_length;\ \ \ \ \ \textcolor{comment}{/*\ \#\ bytes\ of\ data\ saved\ at\ data[]\ */}}
+\DoxyCodeLine{00203\ \ \ JOCTET\ FAR\ *\ \mbox{\hyperlink{structdata}{data}};\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ the\ data\ contained\ in\ the\ marker\ */}}
+\DoxyCodeLine{00204\ \ \ \textcolor{comment}{/*\ the\ marker\ length\ word\ is\ not\ counted\ in\ data\_length\ or\ original\_length\ */}}
+\DoxyCodeLine{00205\ \};}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{comment}{/*\ Known\ color\ spaces.\ */}}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ JCS\_UNKNOWN,\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ error/unspecified\ */}}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ JCS\_GRAYSCALE,\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ monochrome\ */}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ JCS\_RGB,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ red/green/blue\ */}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ JCS\_YCbCr,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Y/Cb/Cr\ (also\ known\ as\ YUV)\ */}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ JCS\_CMYK,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ C/M/Y/K\ */}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ JCS\_YCCK\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Y/Cb/Cr/K\ */}}
+\DoxyCodeLine{00216\ \}\ J\_COLOR\_SPACE;}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{comment}{/*\ DCT/IDCT\ algorithm\ options.\ */}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ JDCT\_ISLOW,\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ slow\ but\ accurate\ integer\ algorithm\ */}}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ JDCT\_IFAST,\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ faster,\ less\ accurate\ integer\ method\ */}}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ JDCT\_FLOAT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ floating-\/point:\ accurate,\ fast\ on\ fast\ HW\ */}}
+\DoxyCodeLine{00224\ \}\ J\_DCT\_METHOD;}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\#ifndef\ JDCT\_DEFAULT\ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ may\ be\ overridden\ in\ jconfig.h\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#define\ JDCT\_DEFAULT\ \ JDCT\_ISLOW}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#ifndef\ JDCT\_FASTEST\ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ may\ be\ overridden\ in\ jconfig.h\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#define\ JDCT\_FASTEST\ \ JDCT\_IFAST}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \textcolor{comment}{/*\ Dithering\ options\ for\ decompression.\ */}}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ JDITHER\_NONE,\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ no\ dithering\ */}}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ JDITHER\_ORDERED,\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ simple\ ordered\ dither\ */}}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ JDITHER\_FS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Floyd-\/Steinberg\ error\ diffusion\ dither\ */}}
+\DoxyCodeLine{00239\ \}\ J\_DITHER\_MODE;}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \textcolor{comment}{/*\ Common\ fields\ between\ JPEG\ compression\ and\ decompression\ master\ structs.\ */}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\#define\ jpeg\_common\_fields\ \(\backslash\)}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\ \ struct\ jpeg\_error\_mgr\ *\ err;\ \ }\textcolor{comment}{/*\ Error\ handler\ module\ */}\textcolor{preprocessor}{\(\backslash\)}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\ \ struct\ jpeg\_memory\_mgr\ *\ mem;\ }\textcolor{comment}{/*\ Memory\ manager\ module\ */}\textcolor{preprocessor}{\(\backslash\)}}
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\ \ struct\ jpeg\_progress\_mgr\ *\ progress;\ }\textcolor{comment}{/*\ Progress\ monitor,\ or\ NULL\ if\ none\ */}\textcolor{preprocessor}{\(\backslash\)}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ void\ *\ client\_data;\ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ Available\ for\ use\ by\ application\ */}\textcolor{preprocessor}{\(\backslash\)}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\ \ boolean\ is\_decompressor;\ \ \ \ \ \ }\textcolor{comment}{/*\ So\ common\ code\ can\ tell\ which\ is\ which\ */}\textcolor{preprocessor}{\(\backslash\)}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\ \ int\ global\_state\ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ For\ checking\ call\ sequence\ validity\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \textcolor{comment}{/*\ Routines\ that\ are\ to\ be\ used\ by\ both\ halves\ of\ the\ library\ are\ declared}}
+\DoxyCodeLine{00253\ \textcolor{comment}{\ *\ to\ receive\ a\ pointer\ to\ this\ structure.\ \ There\ are\ no\ actual\ instances\ of}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ *\ jpeg\_common\_struct,\ only\ of\ jpeg\_compress\_struct\ and\ jpeg\_decompress\_struct.}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00256\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__common__struct}{jpeg\_common\_struct}}\ \{}
+\DoxyCodeLine{00257\ \ \ jpeg\_common\_fields;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Fields\ common\ to\ both\ master\ struct\ types\ */}}
+\DoxyCodeLine{00258\ \ \ \textcolor{comment}{/*\ Additional\ fields\ follow\ in\ an\ actual\ jpeg\_compress\_struct\ or}}
+\DoxyCodeLine{00259\ \textcolor{comment}{\ \ \ *\ jpeg\_decompress\_struct.\ \ All\ three\ structs\ must\ agree\ on\ these}}
+\DoxyCodeLine{00260\ \textcolor{comment}{\ \ \ *\ initial\ fields!\ \ (This\ would\ be\ a\ lot\ cleaner\ in\ C++.)}}
+\DoxyCodeLine{00261\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00262\ \};}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__common__struct}{jpeg\_common\_struct}}\ *\ \mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}};}
+\DoxyCodeLine{00265\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__compress__struct}{jpeg\_compress\_struct}}\ *\ \mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}};}
+\DoxyCodeLine{00266\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__decompress__struct}{jpeg\_decompress\_struct}}\ *\ \mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}};}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \textcolor{comment}{/*\ Master\ record\ for\ a\ compression\ instance\ */}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__compress__struct}{jpeg\_compress\_struct}}\ \{}
+\DoxyCodeLine{00272\ \ \ jpeg\_common\_fields;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Fields\ shared\ with\ jpeg\_decompress\_struct\ */}}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \ \ \textcolor{comment}{/*\ Destination\ for\ compressed\ data\ */}}
+\DoxyCodeLine{00275\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__destination__mgr}{jpeg\_destination\_mgr}}\ *\ dest;}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \textcolor{comment}{/*\ Description\ of\ source\ image\ -\/-\/-\/\ these\ fields\ must\ be\ filled\ in\ by}}
+\DoxyCodeLine{00278\ \textcolor{comment}{\ \ \ *\ outer\ application\ before\ starting\ compression.\ \ in\_color\_space\ must}}
+\DoxyCodeLine{00279\ \textcolor{comment}{\ \ \ *\ be\ correct\ before\ you\ can\ even\ call\ jpeg\_set\_defaults().}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ JDIMENSION\ image\_width;\ \ \ \ \ \ \ \textcolor{comment}{/*\ input\ image\ width\ */}}
+\DoxyCodeLine{00283\ \ \ JDIMENSION\ image\_height;\ \ \ \ \ \ \textcolor{comment}{/*\ input\ image\ height\ */}}
+\DoxyCodeLine{00284\ \ \ \textcolor{keywordtype}{int}\ input\_components;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ color\ components\ in\ input\ image\ */}}
+\DoxyCodeLine{00285\ \ \ J\_COLOR\_SPACE\ in\_color\_space;\ \textcolor{comment}{/*\ colorspace\ of\ input\ image\ */}}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \ \ \textcolor{keywordtype}{double}\ input\_gamma;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ image\ gamma\ of\ input\ image\ */}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \ \ \textcolor{comment}{/*\ Compression\ parameters\ -\/-\/-\/\ these\ fields\ must\ be\ set\ before\ calling}}
+\DoxyCodeLine{00290\ \textcolor{comment}{\ \ \ *\ jpeg\_start\_compress().\ \ We\ recommend\ calling\ jpeg\_set\_defaults()\ to}}
+\DoxyCodeLine{00291\ \textcolor{comment}{\ \ \ *\ initialize\ everything\ to\ reasonable\ defaults,\ then\ changing\ anything}}
+\DoxyCodeLine{00292\ \textcolor{comment}{\ \ \ *\ the\ application\ specifically\ wants\ to\ change.\ \ That\ way\ you\ won't\ get}}
+\DoxyCodeLine{00293\ \textcolor{comment}{\ \ \ *\ burnt\ when\ new\ parameters\ are\ added.\ \ Also\ note\ that\ there\ are\ several}}
+\DoxyCodeLine{00294\ \textcolor{comment}{\ \ \ *\ helper\ routines\ to\ simplify\ changing\ parameters.}}
+\DoxyCodeLine{00295\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00296\ }
+\DoxyCodeLine{00297\ \ \ \textcolor{keywordtype}{int}\ data\_precision;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bits\ of\ precision\ in\ image\ data\ */}}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \ \ \textcolor{keywordtype}{int}\ num\_components;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ color\ components\ in\ JPEG\ image\ */}}
+\DoxyCodeLine{00300\ \ \ J\_COLOR\_SPACE\ jpeg\_color\_space;\ \textcolor{comment}{/*\ colorspace\ of\ JPEG\ image\ */}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \ \ \mbox{\hyperlink{structjpeg__component__info}{jpeg\_component\_info}}\ *\ comp\_info;}
+\DoxyCodeLine{00303\ \ \ \textcolor{comment}{/*\ comp\_info[i]\ describes\ component\ that\ appears\ i'th\ in\ SOF\ */}}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \mbox{\hyperlink{struct_j_q_u_a_n_t___t_b_l}{JQUANT\_TBL}}\ *\ quant\_tbl\_ptrs[NUM\_QUANT\_TBLS];}
+\DoxyCodeLine{00306\ \ \ \textcolor{comment}{/*\ ptrs\ to\ coefficient\ quantization\ tables,\ or\ NULL\ if\ not\ defined\ */}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \ \ \mbox{\hyperlink{struct_j_h_u_f_f___t_b_l}{JHUFF\_TBL}}\ *\ dc\_huff\_tbl\_ptrs[NUM\_HUFF\_TBLS];}
+\DoxyCodeLine{00309\ \ \ \mbox{\hyperlink{struct_j_h_u_f_f___t_b_l}{JHUFF\_TBL}}\ *\ ac\_huff\_tbl\_ptrs[NUM\_HUFF\_TBLS];}
+\DoxyCodeLine{00310\ \ \ \textcolor{comment}{/*\ ptrs\ to\ Huffman\ coding\ tables,\ or\ NULL\ if\ not\ defined\ */}}
+\DoxyCodeLine{00311\ }
+\DoxyCodeLine{00312\ \ \ UINT8\ arith\_dc\_L[NUM\_ARITH\_TBLS];\ \textcolor{comment}{/*\ L\ values\ for\ DC\ arith-\/coding\ tables\ */}}
+\DoxyCodeLine{00313\ \ \ UINT8\ arith\_dc\_U[NUM\_ARITH\_TBLS];\ \textcolor{comment}{/*\ U\ values\ for\ DC\ arith-\/coding\ tables\ */}}
+\DoxyCodeLine{00314\ \ \ UINT8\ arith\_ac\_K[NUM\_ARITH\_TBLS];\ \textcolor{comment}{/*\ Kx\ values\ for\ AC\ arith-\/coding\ tables\ */}}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \ \ \textcolor{keywordtype}{int}\ num\_scans;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ entries\ in\ scan\_info\ array\ */}}
+\DoxyCodeLine{00317\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structjpeg__scan__info}{jpeg\_scan\_info}}\ *\ scan\_info;\ \textcolor{comment}{/*\ script\ for\ multi-\/scan\ file,\ or\ NULL\ */}}
+\DoxyCodeLine{00318\ \ \ \textcolor{comment}{/*\ The\ default\ value\ of\ scan\_info\ is\ NULL,\ which\ causes\ a\ single-\/scan}}
+\DoxyCodeLine{00319\ \textcolor{comment}{\ \ \ *\ sequential\ JPEG\ file\ to\ be\ emitted.\ \ To\ create\ a\ multi-\/scan\ file,}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ \ \ *\ set\ num\_scans\ and\ scan\_info\ to\ point\ to\ an\ array\ of\ scan\ definitions.}}
+\DoxyCodeLine{00321\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \textcolor{keywordtype}{boolean}\ raw\_data\_in;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE=caller\ supplies\ downsampled\ data\ */}}
+\DoxyCodeLine{00324\ \ \ \textcolor{keywordtype}{boolean}\ arith\_code;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE=arithmetic\ coding,\ FALSE=Huffman\ */}}
+\DoxyCodeLine{00325\ \ \ \textcolor{keywordtype}{boolean}\ optimize\_coding;\ \ \ \ \ \ \textcolor{comment}{/*\ TRUE=optimize\ entropy\ encoding\ parms\ */}}
+\DoxyCodeLine{00326\ \ \ \textcolor{keywordtype}{boolean}\ CCIR601\_sampling;\ \ \ \ \ \textcolor{comment}{/*\ TRUE=first\ samples\ are\ cosited\ */}}
+\DoxyCodeLine{00327\ \ \ \textcolor{keywordtype}{int}\ smoothing\_factor;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ 1..100,\ or\ 0\ for\ no\ input\ smoothing\ */}}
+\DoxyCodeLine{00328\ \ \ J\_DCT\_METHOD\ dct\_method;\ \ \ \ \ \ \textcolor{comment}{/*\ DCT\ algorithm\ selector\ */}}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ \ \ \textcolor{comment}{/*\ The\ restart\ interval\ can\ be\ specified\ in\ absolute\ MCUs\ by\ setting}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ \ \ *\ restart\_interval,\ or\ in\ MCU\ rows\ by\ setting\ restart\_in\_rows}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ \ \ *\ (in\ which\ case\ the\ correct\ restart\_interval\ will\ be\ figured}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ \ \ *\ for\ each\ scan).}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00335\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ restart\_interval;\ \textcolor{comment}{/*\ MCUs\ per\ restart,\ or\ 0\ for\ no\ restart\ */}}
+\DoxyCodeLine{00336\ \ \ \textcolor{keywordtype}{int}\ restart\_in\_rows;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ if\ >\ 0,\ MCU\ rows\ per\ restart\ interval\ */}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \ \ \textcolor{comment}{/*\ Parameters\ controlling\ emission\ of\ special\ markers.\ */}}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \ \ \textcolor{keywordtype}{boolean}\ write\_JFIF\_header;\ \ \ \ \textcolor{comment}{/*\ should\ a\ JFIF\ marker\ be\ written?\ */}}
+\DoxyCodeLine{00341\ \ \ UINT8\ JFIF\_major\_version;\ \ \ \ \ \textcolor{comment}{/*\ What\ to\ write\ for\ the\ JFIF\ version\ number\ */}}
+\DoxyCodeLine{00342\ \ \ UINT8\ JFIF\_minor\_version;}
+\DoxyCodeLine{00343\ \ \ \textcolor{comment}{/*\ These\ three\ values\ are\ not\ used\ by\ the\ JPEG\ code,\ merely\ copied\ */}}
+\DoxyCodeLine{00344\ \ \ \textcolor{comment}{/*\ into\ the\ JFIF\ APP0\ marker.\ \ density\_unit\ can\ be\ 0\ for\ unknown,\ */}}
+\DoxyCodeLine{00345\ \ \ \textcolor{comment}{/*\ 1\ for\ dots/inch,\ or\ 2\ for\ dots/cm.\ \ Note\ that\ the\ pixel\ aspect\ */}}
+\DoxyCodeLine{00346\ \ \ \textcolor{comment}{/*\ ratio\ is\ defined\ by\ X\_density/Y\_density\ even\ when\ density\_unit=0.\ */}}
+\DoxyCodeLine{00347\ \ \ UINT8\ density\_unit;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ JFIF\ code\ for\ pixel\ size\ units\ */}}
+\DoxyCodeLine{00348\ \ \ UINT16\ X\_density;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Horizontal\ pixel\ density\ */}}
+\DoxyCodeLine{00349\ \ \ UINT16\ Y\_density;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Vertical\ pixel\ density\ */}}
+\DoxyCodeLine{00350\ \ \ \textcolor{keywordtype}{boolean}\ write\_Adobe\_marker;\ \ \ \textcolor{comment}{/*\ should\ an\ Adobe\ marker\ be\ written?\ */}}
+\DoxyCodeLine{00351\ }
+\DoxyCodeLine{00352\ \ \ \textcolor{comment}{/*\ State\ variable:\ index\ of\ next\ scanline\ to\ be\ written\ to}}
+\DoxyCodeLine{00353\ \textcolor{comment}{\ \ \ *\ jpeg\_write\_scanlines().\ \ Application\ may\ use\ this\ to\ control\ its}}
+\DoxyCodeLine{00354\ \textcolor{comment}{\ \ \ *\ processing\ loop,\ e.g.,\ "{}while\ (next\_scanline\ <\ image\_height)"{}.}}
+\DoxyCodeLine{00355\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ \ \ JDIMENSION\ next\_scanline;\ \ \ \ \ \textcolor{comment}{/*\ 0\ ..\ image\_height-\/1\ \ */}}
+\DoxyCodeLine{00358\ }
+\DoxyCodeLine{00359\ \ \ \textcolor{comment}{/*\ Remaining\ fields\ are\ known\ throughout\ compressor,\ but\ generally}}
+\DoxyCodeLine{00360\ \textcolor{comment}{\ \ \ *\ should\ not\ be\ touched\ by\ a\ surrounding\ application.}}
+\DoxyCodeLine{00361\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00364\ \textcolor{comment}{\ \ \ *\ These\ fields\ are\ computed\ during\ compression\ startup}}
+\DoxyCodeLine{00365\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00366\ \ \ \textcolor{keywordtype}{boolean}\ progressive\_mode;\ \ \ \ \ \textcolor{comment}{/*\ TRUE\ if\ scan\ script\ uses\ progressive\ mode\ */}}
+\DoxyCodeLine{00367\ \ \ \textcolor{keywordtype}{int}\ max\_h\_samp\_factor;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ largest\ h\_samp\_factor\ */}}
+\DoxyCodeLine{00368\ \ \ \textcolor{keywordtype}{int}\ max\_v\_samp\_factor;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ largest\ v\_samp\_factor\ */}}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ JDIMENSION\ total\_iMCU\_rows;\ \ \ \textcolor{comment}{/*\ \#\ of\ iMCU\ rows\ to\ be\ input\ to\ coef\ ctlr\ */}}
+\DoxyCodeLine{00371\ \ \ \textcolor{comment}{/*\ The\ coefficient\ controller\ receives\ data\ in\ units\ of\ MCU\ rows\ as\ defined}}
+\DoxyCodeLine{00372\ \textcolor{comment}{\ \ \ *\ for\ fully\ interleaved\ scans\ (whether\ the\ JPEG\ file\ is\ interleaved\ or\ not).}}
+\DoxyCodeLine{00373\ \textcolor{comment}{\ \ \ *\ There\ are\ v\_samp\_factor\ *\ DCTSIZE\ sample\ rows\ of\ each\ component\ in\ an}}
+\DoxyCodeLine{00374\ \textcolor{comment}{\ \ \ *\ "{}iMCU"{}\ (interleaved\ MCU)\ row.}}
+\DoxyCodeLine{00375\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00378\ \textcolor{comment}{\ \ \ *\ These\ fields\ are\ valid\ during\ any\ one\ scan.}}
+\DoxyCodeLine{00379\ \textcolor{comment}{\ \ \ *\ They\ describe\ the\ components\ and\ MCUs\ actually\ appearing\ in\ the\ scan.}}
+\DoxyCodeLine{00380\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00381\ \ \ \textcolor{keywordtype}{int}\ comps\_in\_scan;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ JPEG\ components\ in\ this\ scan\ */}}
+\DoxyCodeLine{00382\ \ \ \mbox{\hyperlink{structjpeg__component__info}{jpeg\_component\_info}}\ *\ cur\_comp\_info[MAX\_COMPS\_IN\_SCAN];}
+\DoxyCodeLine{00383\ \ \ \textcolor{comment}{/*\ *cur\_comp\_info[i]\ describes\ component\ that\ appears\ i'th\ in\ SOS\ */}}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \ \ JDIMENSION\ MCUs\_per\_row;\ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ MCUs\ across\ the\ image\ */}}
+\DoxyCodeLine{00386\ \ \ JDIMENSION\ MCU\_rows\_in\_scan;\ \ \textcolor{comment}{/*\ \#\ of\ MCU\ rows\ in\ the\ image\ */}}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \ \ \textcolor{keywordtype}{int}\ blocks\_in\_MCU;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ DCT\ blocks\ per\ MCU\ */}}
+\DoxyCodeLine{00389\ \ \ \textcolor{keywordtype}{int}\ MCU\_membership[C\_MAX\_BLOCKS\_IN\_MCU];}
+\DoxyCodeLine{00390\ \ \ \textcolor{comment}{/*\ MCU\_membership[i]\ is\ index\ in\ cur\_comp\_info\ of\ component\ owning\ */}}
+\DoxyCodeLine{00391\ \ \ \textcolor{comment}{/*\ i'th\ block\ in\ an\ MCU\ */}}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \ \ \textcolor{keywordtype}{int}\ Ss,\ Se,\ Ah,\ Al;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ progressive\ JPEG\ parameters\ for\ scan\ */}}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00396\ \textcolor{comment}{\ \ \ *\ Links\ to\ compression\ subobjects\ (methods\ and\ private\ variables\ of\ modules)}}
+\DoxyCodeLine{00397\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00398\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__comp__master}{jpeg\_comp\_master}}\ *\ master;}
+\DoxyCodeLine{00399\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__c__main__controller}{jpeg\_c\_main\_controller}}\ *\ main;}
+\DoxyCodeLine{00400\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__c__prep__controller}{jpeg\_c\_prep\_controller}}\ *\ prep;}
+\DoxyCodeLine{00401\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__c__coef__controller}{jpeg\_c\_coef\_controller}}\ *\ coef;}
+\DoxyCodeLine{00402\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__marker__writer}{jpeg\_marker\_writer}}\ *\ marker;}
+\DoxyCodeLine{00403\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__color__converter}{jpeg\_color\_converter}}\ *\ cconvert;}
+\DoxyCodeLine{00404\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__downsampler}{jpeg\_downsampler}}\ *\ downsample;}
+\DoxyCodeLine{00405\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__forward__dct}{jpeg\_forward\_dct}}\ *\ fdct;}
+\DoxyCodeLine{00406\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__entropy__encoder}{jpeg\_entropy\_encoder}}\ *\ entropy;}
+\DoxyCodeLine{00407\ \ \ \mbox{\hyperlink{structjpeg__scan__info}{jpeg\_scan\_info}}\ *\ script\_space;\ \textcolor{comment}{/*\ workspace\ for\ jpeg\_simple\_progression\ */}}
+\DoxyCodeLine{00408\ \ \ \textcolor{keywordtype}{int}\ script\_space\_size;}
+\DoxyCodeLine{00409\ \};}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ }
+\DoxyCodeLine{00412\ \textcolor{comment}{/*\ Master\ record\ for\ a\ decompression\ instance\ */}}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__decompress__struct}{jpeg\_decompress\_struct}}\ \{}
+\DoxyCodeLine{00415\ \ \ jpeg\_common\_fields;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Fields\ shared\ with\ jpeg\_compress\_struct\ */}}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \ \ \textcolor{comment}{/*\ Source\ of\ compressed\ data\ */}}
+\DoxyCodeLine{00418\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__source__mgr}{jpeg\_source\_mgr}}\ *\ src;}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \ \ \textcolor{comment}{/*\ Basic\ description\ of\ image\ -\/-\/-\/\ filled\ in\ by\ jpeg\_read\_header().\ */}}
+\DoxyCodeLine{00421\ \ \ \textcolor{comment}{/*\ Application\ may\ inspect\ these\ values\ to\ decide\ how\ to\ process\ image.\ */}}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \ \ JDIMENSION\ image\_width;\ \ \ \ \ \ \ \textcolor{comment}{/*\ nominal\ image\ width\ (from\ SOF\ marker)\ */}}
+\DoxyCodeLine{00424\ \ \ JDIMENSION\ image\_height;\ \ \ \ \ \ \textcolor{comment}{/*\ nominal\ image\ height\ */}}
+\DoxyCodeLine{00425\ \ \ \textcolor{keywordtype}{int}\ num\_components;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ color\ components\ in\ JPEG\ image\ */}}
+\DoxyCodeLine{00426\ \ \ J\_COLOR\_SPACE\ jpeg\_color\_space;\ \textcolor{comment}{/*\ colorspace\ of\ JPEG\ image\ */}}
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \ \ \textcolor{comment}{/*\ Decompression\ processing\ parameters\ -\/-\/-\/\ these\ fields\ must\ be\ set\ before}}
+\DoxyCodeLine{00429\ \textcolor{comment}{\ \ \ *\ calling\ jpeg\_start\_decompress().\ \ Note\ that\ jpeg\_read\_header()\ initializes}}
+\DoxyCodeLine{00430\ \textcolor{comment}{\ \ \ *\ them\ to\ default\ values.}}
+\DoxyCodeLine{00431\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00432\ }
+\DoxyCodeLine{00433\ \ \ J\_COLOR\_SPACE\ out\_color\_space;\ \textcolor{comment}{/*\ colorspace\ for\ output\ */}}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ scale\_num,\ scale\_denom;\ \textcolor{comment}{/*\ fraction\ by\ which\ to\ scale\ image\ */}}
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ \ \ \textcolor{keywordtype}{double}\ output\_gamma;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ image\ gamma\ wanted\ in\ output\ */}}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \ \ \textcolor{keywordtype}{boolean}\ buffered\_image;\ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE=multiple\ output\ passes\ */}}
+\DoxyCodeLine{00440\ \ \ \textcolor{keywordtype}{boolean}\ raw\_data\_out;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE=downsampled\ data\ wanted\ */}}
+\DoxyCodeLine{00441\ }
+\DoxyCodeLine{00442\ \ \ J\_DCT\_METHOD\ dct\_method;\ \ \ \ \ \ \textcolor{comment}{/*\ IDCT\ algorithm\ selector\ */}}
+\DoxyCodeLine{00443\ \ \ \textcolor{keywordtype}{boolean}\ do\_fancy\_upsampling;\ \ \textcolor{comment}{/*\ TRUE=apply\ fancy\ upsampling\ */}}
+\DoxyCodeLine{00444\ \ \ \textcolor{keywordtype}{boolean}\ do\_block\_smoothing;\ \ \ \textcolor{comment}{/*\ TRUE=apply\ interblock\ smoothing\ */}}
+\DoxyCodeLine{00445\ }
+\DoxyCodeLine{00446\ \ \ \textcolor{keywordtype}{boolean}\ quantize\_colors;\ \ \ \ \ \ \textcolor{comment}{/*\ TRUE=colormapped\ output\ wanted\ */}}
+\DoxyCodeLine{00447\ \ \ \textcolor{comment}{/*\ the\ following\ are\ ignored\ if\ not\ quantize\_colors:\ */}}
+\DoxyCodeLine{00448\ \ \ J\_DITHER\_MODE\ dither\_mode;\ \ \ \ \textcolor{comment}{/*\ type\ of\ color\ dithering\ to\ use\ */}}
+\DoxyCodeLine{00449\ \ \ \textcolor{keywordtype}{boolean}\ two\_pass\_quantize;\ \ \ \ \textcolor{comment}{/*\ TRUE=use\ two-\/pass\ color\ quantization\ */}}
+\DoxyCodeLine{00450\ \ \ \textcolor{keywordtype}{int}\ desired\_number\_of\_colors;\ \textcolor{comment}{/*\ max\ \#\ colors\ to\ use\ in\ created\ colormap\ */}}
+\DoxyCodeLine{00451\ \ \ \textcolor{comment}{/*\ these\ are\ significant\ only\ in\ buffered-\/image\ mode:\ */}}
+\DoxyCodeLine{00452\ \ \ \textcolor{keywordtype}{boolean}\ enable\_1pass\_quant;\ \ \ \textcolor{comment}{/*\ enable\ future\ use\ of\ 1-\/pass\ quantizer\ */}}
+\DoxyCodeLine{00453\ \ \ \textcolor{keywordtype}{boolean}\ enable\_external\_quant;\textcolor{comment}{/*\ enable\ future\ use\ of\ external\ colormap\ */}}
+\DoxyCodeLine{00454\ \ \ \textcolor{keywordtype}{boolean}\ enable\_2pass\_quant;\ \ \ \textcolor{comment}{/*\ enable\ future\ use\ of\ 2-\/pass\ quantizer\ */}}
+\DoxyCodeLine{00455\ }
+\DoxyCodeLine{00456\ \ \ \textcolor{comment}{/*\ Description\ of\ actual\ output\ image\ that\ will\ be\ returned\ to\ application.}}
+\DoxyCodeLine{00457\ \textcolor{comment}{\ \ \ *\ These\ fields\ are\ computed\ by\ jpeg\_start\_decompress().}}
+\DoxyCodeLine{00458\ \textcolor{comment}{\ \ \ *\ You\ can\ also\ use\ jpeg\_calc\_output\_dimensions()\ to\ determine\ these\ values}}
+\DoxyCodeLine{00459\ \textcolor{comment}{\ \ \ *\ in\ advance\ of\ calling\ jpeg\_start\_decompress().}}
+\DoxyCodeLine{00460\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \ \ JDIMENSION\ output\_width;\ \ \ \ \ \ \textcolor{comment}{/*\ scaled\ image\ width\ */}}
+\DoxyCodeLine{00463\ \ \ JDIMENSION\ output\_height;\ \ \ \ \ \textcolor{comment}{/*\ scaled\ image\ height\ */}}
+\DoxyCodeLine{00464\ \ \ \textcolor{keywordtype}{int}\ out\_color\_components;\ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ color\ components\ in\ out\_color\_space\ */}}
+\DoxyCodeLine{00465\ \ \ \textcolor{keywordtype}{int}\ output\_components;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ color\ components\ returned\ */}}
+\DoxyCodeLine{00466\ \ \ \textcolor{comment}{/*\ output\_components\ is\ 1\ (a\ colormap\ index)\ when\ quantizing\ colors;}}
+\DoxyCodeLine{00467\ \textcolor{comment}{\ \ \ *\ otherwise\ it\ equals\ out\_color\_components.}}
+\DoxyCodeLine{00468\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00469\ \ \ \textcolor{keywordtype}{int}\ rec\_outbuf\_height;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ min\ recommended\ height\ of\ scanline\ buffer\ */}}
+\DoxyCodeLine{00470\ \ \ \textcolor{comment}{/*\ If\ the\ buffer\ passed\ to\ jpeg\_read\_scanlines()\ is\ less\ than\ this\ many\ rows}}
+\DoxyCodeLine{00471\ \textcolor{comment}{\ \ \ *\ high,\ space\ and\ time\ will\ be\ wasted\ due\ to\ unnecessary\ data\ copying.}}
+\DoxyCodeLine{00472\ \textcolor{comment}{\ \ \ *\ Usually\ rec\_outbuf\_height\ will\ be\ 1\ or\ 2,\ at\ most\ 4.}}
+\DoxyCodeLine{00473\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \ \ \textcolor{comment}{/*\ When\ quantizing\ colors,\ the\ output\ colormap\ is\ described\ by\ these\ fields.}}
+\DoxyCodeLine{00476\ \textcolor{comment}{\ \ \ *\ The\ application\ can\ supply\ a\ colormap\ by\ setting\ colormap\ non-\/NULL\ before}}
+\DoxyCodeLine{00477\ \textcolor{comment}{\ \ \ *\ calling\ jpeg\_start\_decompress;\ otherwise\ a\ colormap\ is\ created\ during}}
+\DoxyCodeLine{00478\ \textcolor{comment}{\ \ \ *\ jpeg\_start\_decompress\ or\ jpeg\_start\_output.}}
+\DoxyCodeLine{00479\ \textcolor{comment}{\ \ \ *\ The\ map\ has\ out\_color\_components\ rows\ and\ actual\_number\_of\_colors\ columns.}}
+\DoxyCodeLine{00480\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00481\ \ \ \textcolor{keywordtype}{int}\ actual\_number\_of\_colors;\ \ \textcolor{comment}{/*\ number\ of\ entries\ in\ use\ */}}
+\DoxyCodeLine{00482\ \ \ JSAMPARRAY\ colormap;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ The\ color\ map\ as\ a\ 2-\/D\ pixel\ array\ */}}
+\DoxyCodeLine{00483\ }
+\DoxyCodeLine{00484\ \ \ \textcolor{comment}{/*\ State\ variables:\ these\ variables\ indicate\ the\ progress\ of\ decompression.}}
+\DoxyCodeLine{00485\ \textcolor{comment}{\ \ \ *\ The\ application\ may\ examine\ these\ but\ must\ not\ modify\ them.}}
+\DoxyCodeLine{00486\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00487\ }
+\DoxyCodeLine{00488\ \ \ \textcolor{comment}{/*\ Row\ index\ of\ next\ scanline\ to\ be\ read\ from\ jpeg\_read\_scanlines().}}
+\DoxyCodeLine{00489\ \textcolor{comment}{\ \ \ *\ Application\ may\ use\ this\ to\ control\ its\ processing\ loop,\ e.g.,}}
+\DoxyCodeLine{00490\ \textcolor{comment}{\ \ \ *\ "{}while\ (output\_scanline\ <\ output\_height)"{}.}}
+\DoxyCodeLine{00491\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00492\ \ \ JDIMENSION\ output\_scanline;\ \ \ \textcolor{comment}{/*\ 0\ ..\ output\_height-\/1\ \ */}}
+\DoxyCodeLine{00493\ }
+\DoxyCodeLine{00494\ \ \ \textcolor{comment}{/*\ Current\ input\ scan\ number\ and\ number\ of\ iMCU\ rows\ completed\ in\ scan.}}
+\DoxyCodeLine{00495\ \textcolor{comment}{\ \ \ *\ These\ indicate\ the\ progress\ of\ the\ decompressor\ input\ side.}}
+\DoxyCodeLine{00496\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00497\ \ \ \textcolor{keywordtype}{int}\ input\_scan\_number;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ SOS\ markers\ seen\ so\ far\ */}}
+\DoxyCodeLine{00498\ \ \ JDIMENSION\ input\_iMCU\_row;\ \ \ \ \textcolor{comment}{/*\ Number\ of\ iMCU\ rows\ completed\ */}}
+\DoxyCodeLine{00499\ }
+\DoxyCodeLine{00500\ \ \ \textcolor{comment}{/*\ The\ "{}output\ scan\ number"{}\ is\ the\ notional\ scan\ being\ displayed\ by\ the}}
+\DoxyCodeLine{00501\ \textcolor{comment}{\ \ \ *\ output\ side.\ \ The\ decompressor\ will\ not\ allow\ output\ scan/row\ number}}
+\DoxyCodeLine{00502\ \textcolor{comment}{\ \ \ *\ to\ get\ ahead\ of\ input\ scan/row,\ but\ it\ can\ fall\ arbitrarily\ far\ behind.}}
+\DoxyCodeLine{00503\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00504\ \ \ \textcolor{keywordtype}{int}\ output\_scan\_number;\ \ \ \ \ \ \ \textcolor{comment}{/*\ Nominal\ scan\ number\ being\ displayed\ */}}
+\DoxyCodeLine{00505\ \ \ JDIMENSION\ output\_iMCU\_row;\ \ \ \textcolor{comment}{/*\ Number\ of\ iMCU\ rows\ read\ */}}
+\DoxyCodeLine{00506\ }
+\DoxyCodeLine{00507\ \ \ \textcolor{comment}{/*\ Current\ progression\ status.\ \ coef\_bits[c][i]\ indicates\ the\ precision}}
+\DoxyCodeLine{00508\ \textcolor{comment}{\ \ \ *\ with\ which\ component\ c's\ DCT\ coefficient\ i\ (in\ zigzag\ order)\ is\ known.}}
+\DoxyCodeLine{00509\ \textcolor{comment}{\ \ \ *\ It\ is\ -\/1\ when\ no\ data\ has\ yet\ been\ received,\ otherwise\ it\ is\ the\ point}}
+\DoxyCodeLine{00510\ \textcolor{comment}{\ \ \ *\ transform\ (shift)\ value\ for\ the\ most\ recent\ scan\ of\ the\ coefficient}}
+\DoxyCodeLine{00511\ \textcolor{comment}{\ \ \ *\ (thus,\ 0\ at\ completion\ of\ the\ progression).}}
+\DoxyCodeLine{00512\ \textcolor{comment}{\ \ \ *\ This\ pointer\ is\ NULL\ when\ reading\ a\ non-\/progressive\ file.}}
+\DoxyCodeLine{00513\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00514\ \ \ int\ (*coef\_bits)[DCTSIZE2];\ \ \ \textcolor{comment}{/*\ -\/1\ or\ current\ Al\ value\ for\ each\ coef\ */}}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \ \ \textcolor{comment}{/*\ Internal\ JPEG\ parameters\ -\/-\/-\/\ the\ application\ usually\ need\ not\ look\ at}}
+\DoxyCodeLine{00517\ \textcolor{comment}{\ \ \ *\ these\ fields.\ \ Note\ that\ the\ decompressor\ output\ side\ may\ not\ use}}
+\DoxyCodeLine{00518\ \textcolor{comment}{\ \ \ *\ any\ parameters\ that\ can\ change\ between\ scans.}}
+\DoxyCodeLine{00519\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00520\ }
+\DoxyCodeLine{00521\ \ \ \textcolor{comment}{/*\ Quantization\ and\ Huffman\ tables\ are\ carried\ forward\ across\ input}}
+\DoxyCodeLine{00522\ \textcolor{comment}{\ \ \ *\ datastreams\ when\ processing\ abbreviated\ JPEG\ datastreams.}}
+\DoxyCodeLine{00523\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00524\ }
+\DoxyCodeLine{00525\ \ \ \mbox{\hyperlink{struct_j_q_u_a_n_t___t_b_l}{JQUANT\_TBL}}\ *\ quant\_tbl\_ptrs[NUM\_QUANT\_TBLS];}
+\DoxyCodeLine{00526\ \ \ \textcolor{comment}{/*\ ptrs\ to\ coefficient\ quantization\ tables,\ or\ NULL\ if\ not\ defined\ */}}
+\DoxyCodeLine{00527\ }
+\DoxyCodeLine{00528\ \ \ \mbox{\hyperlink{struct_j_h_u_f_f___t_b_l}{JHUFF\_TBL}}\ *\ dc\_huff\_tbl\_ptrs[NUM\_HUFF\_TBLS];}
+\DoxyCodeLine{00529\ \ \ \mbox{\hyperlink{struct_j_h_u_f_f___t_b_l}{JHUFF\_TBL}}\ *\ ac\_huff\_tbl\_ptrs[NUM\_HUFF\_TBLS];}
+\DoxyCodeLine{00530\ \ \ \textcolor{comment}{/*\ ptrs\ to\ Huffman\ coding\ tables,\ or\ NULL\ if\ not\ defined\ */}}
+\DoxyCodeLine{00531\ }
+\DoxyCodeLine{00532\ \ \ \textcolor{comment}{/*\ These\ parameters\ are\ never\ carried\ across\ datastreams,\ since\ they}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ \ \ *\ are\ given\ in\ SOF/SOS\ markers\ or\ defined\ to\ be\ reset\ by\ SOI.}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00535\ }
+\DoxyCodeLine{00536\ \ \ \textcolor{keywordtype}{int}\ data\_precision;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ bits\ of\ precision\ in\ image\ data\ */}}
+\DoxyCodeLine{00537\ }
+\DoxyCodeLine{00538\ \ \ \mbox{\hyperlink{structjpeg__component__info}{jpeg\_component\_info}}\ *\ comp\_info;}
+\DoxyCodeLine{00539\ \ \ \textcolor{comment}{/*\ comp\_info[i]\ describes\ component\ that\ appears\ i'th\ in\ SOF\ */}}
+\DoxyCodeLine{00540\ }
+\DoxyCodeLine{00541\ \ \ \textcolor{keywordtype}{boolean}\ progressive\_mode;\ \ \ \ \ \textcolor{comment}{/*\ TRUE\ if\ SOFn\ specifies\ progressive\ mode\ */}}
+\DoxyCodeLine{00542\ \ \ \textcolor{keywordtype}{boolean}\ arith\_code;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ TRUE=arithmetic\ coding,\ FALSE=Huffman\ */}}
+\DoxyCodeLine{00543\ }
+\DoxyCodeLine{00544\ \ \ UINT8\ arith\_dc\_L[NUM\_ARITH\_TBLS];\ \textcolor{comment}{/*\ L\ values\ for\ DC\ arith-\/coding\ tables\ */}}
+\DoxyCodeLine{00545\ \ \ UINT8\ arith\_dc\_U[NUM\_ARITH\_TBLS];\ \textcolor{comment}{/*\ U\ values\ for\ DC\ arith-\/coding\ tables\ */}}
+\DoxyCodeLine{00546\ \ \ UINT8\ arith\_ac\_K[NUM\_ARITH\_TBLS];\ \textcolor{comment}{/*\ Kx\ values\ for\ AC\ arith-\/coding\ tables\ */}}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ restart\_interval;\ \textcolor{comment}{/*\ MCUs\ per\ restart\ interval,\ or\ 0\ for\ no\ restart\ */}}
+\DoxyCodeLine{00549\ }
+\DoxyCodeLine{00550\ \ \ \textcolor{comment}{/*\ These\ fields\ record\ data\ obtained\ from\ optional\ markers\ recognized\ by}}
+\DoxyCodeLine{00551\ \textcolor{comment}{\ \ \ *\ the\ JPEG\ library.}}
+\DoxyCodeLine{00552\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00553\ \ \ \textcolor{keywordtype}{boolean}\ saw\_JFIF\_marker;\ \ \ \ \ \ \textcolor{comment}{/*\ TRUE\ iff\ a\ JFIF\ APP0\ marker\ was\ found\ */}}
+\DoxyCodeLine{00554\ \ \ \textcolor{comment}{/*\ Data\ copied\ from\ JFIF\ marker;\ only\ valid\ if\ saw\_JFIF\_marker\ is\ TRUE:\ */}}
+\DoxyCodeLine{00555\ \ \ UINT8\ JFIF\_major\_version;\ \ \ \ \ \textcolor{comment}{/*\ JFIF\ version\ number\ */}}
+\DoxyCodeLine{00556\ \ \ UINT8\ JFIF\_minor\_version;}
+\DoxyCodeLine{00557\ \ \ UINT8\ density\_unit;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ JFIF\ code\ for\ pixel\ size\ units\ */}}
+\DoxyCodeLine{00558\ \ \ UINT16\ X\_density;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Horizontal\ pixel\ density\ */}}
+\DoxyCodeLine{00559\ \ \ UINT16\ Y\_density;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Vertical\ pixel\ density\ */}}
+\DoxyCodeLine{00560\ \ \ \textcolor{keywordtype}{boolean}\ saw\_Adobe\_marker;\ \ \ \ \ \textcolor{comment}{/*\ TRUE\ iff\ an\ Adobe\ APP14\ marker\ was\ found\ */}}
+\DoxyCodeLine{00561\ \ \ UINT8\ Adobe\_transform;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Color\ transform\ code\ from\ Adobe\ marker\ */}}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \textcolor{keywordtype}{boolean}\ CCIR601\_sampling;\ \ \ \ \ \textcolor{comment}{/*\ TRUE=first\ samples\ are\ cosited\ */}}
+\DoxyCodeLine{00564\ }
+\DoxyCodeLine{00565\ \ \ \textcolor{comment}{/*\ Aside\ from\ the\ specific\ data\ retained\ from\ APPn\ markers\ known\ to\ the}}
+\DoxyCodeLine{00566\ \textcolor{comment}{\ \ \ *\ library,\ the\ uninterpreted\ contents\ of\ any\ or\ all\ APPn\ and\ COM\ markers}}
+\DoxyCodeLine{00567\ \textcolor{comment}{\ \ \ *\ can\ be\ saved\ in\ a\ list\ for\ examination\ by\ the\ application.}}
+\DoxyCodeLine{00568\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00569\ \ \ jpeg\_saved\_marker\_ptr\ marker\_list;\ \textcolor{comment}{/*\ Head\ of\ list\ of\ saved\ markers\ */}}
+\DoxyCodeLine{00570\ }
+\DoxyCodeLine{00571\ \ \ \textcolor{comment}{/*\ Remaining\ fields\ are\ known\ throughout\ decompressor,\ but\ generally}}
+\DoxyCodeLine{00572\ \textcolor{comment}{\ \ \ *\ should\ not\ be\ touched\ by\ a\ surrounding\ application.}}
+\DoxyCodeLine{00573\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00576\ \textcolor{comment}{\ \ \ *\ These\ fields\ are\ computed\ during\ decompression\ startup}}
+\DoxyCodeLine{00577\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00578\ \ \ \textcolor{keywordtype}{int}\ max\_h\_samp\_factor;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ largest\ h\_samp\_factor\ */}}
+\DoxyCodeLine{00579\ \ \ \textcolor{keywordtype}{int}\ max\_v\_samp\_factor;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ largest\ v\_samp\_factor\ */}}
+\DoxyCodeLine{00580\ }
+\DoxyCodeLine{00581\ \ \ \textcolor{keywordtype}{int}\ min\_DCT\_scaled\_size;\ \ \ \ \ \ \textcolor{comment}{/*\ smallest\ DCT\_scaled\_size\ of\ any\ component\ */}}
+\DoxyCodeLine{00582\ }
+\DoxyCodeLine{00583\ \ \ JDIMENSION\ total\_iMCU\_rows;\ \ \ \textcolor{comment}{/*\ \#\ of\ iMCU\ rows\ in\ image\ */}}
+\DoxyCodeLine{00584\ \ \ \textcolor{comment}{/*\ The\ coefficient\ controller's\ input\ and\ output\ progress\ is\ measured\ in}}
+\DoxyCodeLine{00585\ \textcolor{comment}{\ \ \ *\ units\ of\ "{}iMCU"{}\ (interleaved\ MCU)\ rows.\ \ These\ are\ the\ same\ as\ MCU\ rows}}
+\DoxyCodeLine{00586\ \textcolor{comment}{\ \ \ *\ in\ fully\ interleaved\ JPEG\ scans,\ but\ are\ used\ whether\ the\ scan\ is}}
+\DoxyCodeLine{00587\ \textcolor{comment}{\ \ \ *\ interleaved\ or\ not.\ \ We\ define\ an\ iMCU\ row\ as\ v\_samp\_factor\ DCT\ block}}
+\DoxyCodeLine{00588\ \textcolor{comment}{\ \ \ *\ rows\ of\ each\ component.\ \ Therefore,\ the\ IDCT\ output\ contains}}
+\DoxyCodeLine{00589\ \textcolor{comment}{\ \ \ *\ v\_samp\_factor*DCT\_scaled\_size\ sample\ rows\ of\ a\ component\ per\ iMCU\ row.}}
+\DoxyCodeLine{00590\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00591\ }
+\DoxyCodeLine{00592\ \ \ JSAMPLE\ *\ sample\_range\_limit;\ \textcolor{comment}{/*\ table\ for\ fast\ range-\/limiting\ */}}
+\DoxyCodeLine{00593\ }
+\DoxyCodeLine{00594\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00595\ \textcolor{comment}{\ \ \ *\ These\ fields\ are\ valid\ during\ any\ one\ scan.}}
+\DoxyCodeLine{00596\ \textcolor{comment}{\ \ \ *\ They\ describe\ the\ components\ and\ MCUs\ actually\ appearing\ in\ the\ scan.}}
+\DoxyCodeLine{00597\ \textcolor{comment}{\ \ \ *\ Note\ that\ the\ decompressor\ output\ side\ must\ not\ use\ these\ fields.}}
+\DoxyCodeLine{00598\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00599\ \ \ \textcolor{keywordtype}{int}\ comps\_in\_scan;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ JPEG\ components\ in\ this\ scan\ */}}
+\DoxyCodeLine{00600\ \ \ \mbox{\hyperlink{structjpeg__component__info}{jpeg\_component\_info}}\ *\ cur\_comp\_info[MAX\_COMPS\_IN\_SCAN];}
+\DoxyCodeLine{00601\ \ \ \textcolor{comment}{/*\ *cur\_comp\_info[i]\ describes\ component\ that\ appears\ i'th\ in\ SOS\ */}}
+\DoxyCodeLine{00602\ }
+\DoxyCodeLine{00603\ \ \ JDIMENSION\ MCUs\_per\_row;\ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ MCUs\ across\ the\ image\ */}}
+\DoxyCodeLine{00604\ \ \ JDIMENSION\ MCU\_rows\_in\_scan;\ \ \textcolor{comment}{/*\ \#\ of\ MCU\ rows\ in\ the\ image\ */}}
+\DoxyCodeLine{00605\ }
+\DoxyCodeLine{00606\ \ \ \textcolor{keywordtype}{int}\ blocks\_in\_MCU;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ DCT\ blocks\ per\ MCU\ */}}
+\DoxyCodeLine{00607\ \ \ \textcolor{keywordtype}{int}\ MCU\_membership[D\_MAX\_BLOCKS\_IN\_MCU];}
+\DoxyCodeLine{00608\ \ \ \textcolor{comment}{/*\ MCU\_membership[i]\ is\ index\ in\ cur\_comp\_info\ of\ component\ owning\ */}}
+\DoxyCodeLine{00609\ \ \ \textcolor{comment}{/*\ i'th\ block\ in\ an\ MCU\ */}}
+\DoxyCodeLine{00610\ }
+\DoxyCodeLine{00611\ \ \ \textcolor{keywordtype}{int}\ Ss,\ Se,\ Ah,\ Al;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ progressive\ JPEG\ parameters\ for\ scan\ */}}
+\DoxyCodeLine{00612\ }
+\DoxyCodeLine{00613\ \ \ \textcolor{comment}{/*\ This\ field\ is\ shared\ between\ entropy\ decoder\ and\ marker\ parser.}}
+\DoxyCodeLine{00614\ \textcolor{comment}{\ \ \ *\ It\ is\ either\ zero\ or\ the\ code\ of\ a\ JPEG\ marker\ that\ has\ been}}
+\DoxyCodeLine{00615\ \textcolor{comment}{\ \ \ *\ read\ from\ the\ data\ source,\ but\ has\ not\ yet\ been\ processed.}}
+\DoxyCodeLine{00616\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00617\ \ \ \textcolor{keywordtype}{int}\ unread\_marker;}
+\DoxyCodeLine{00618\ }
+\DoxyCodeLine{00619\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00620\ \textcolor{comment}{\ \ \ *\ Links\ to\ decompression\ subobjects\ (methods,\ private\ variables\ of\ modules)}}
+\DoxyCodeLine{00621\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00622\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__decomp__master}{jpeg\_decomp\_master}}\ *\ master;}
+\DoxyCodeLine{00623\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__d__main__controller}{jpeg\_d\_main\_controller}}\ *\ main;}
+\DoxyCodeLine{00624\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__d__coef__controller}{jpeg\_d\_coef\_controller}}\ *\ coef;}
+\DoxyCodeLine{00625\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__d__post__controller}{jpeg\_d\_post\_controller}}\ *\ post;}
+\DoxyCodeLine{00626\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__input__controller}{jpeg\_input\_controller}}\ *\ inputctl;}
+\DoxyCodeLine{00627\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__marker__reader}{jpeg\_marker\_reader}}\ *\ marker;}
+\DoxyCodeLine{00628\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__entropy__decoder}{jpeg\_entropy\_decoder}}\ *\ entropy;}
+\DoxyCodeLine{00629\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__inverse__dct}{jpeg\_inverse\_dct}}\ *\ idct;}
+\DoxyCodeLine{00630\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__upsampler}{jpeg\_upsampler}}\ *\ upsample;}
+\DoxyCodeLine{00631\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__color__deconverter}{jpeg\_color\_deconverter}}\ *\ cconvert;}
+\DoxyCodeLine{00632\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__color__quantizer}{jpeg\_color\_quantizer}}\ *\ cquantize;}
+\DoxyCodeLine{00633\ \};}
+\DoxyCodeLine{00634\ }
+\DoxyCodeLine{00635\ }
+\DoxyCodeLine{00636\ \textcolor{comment}{/*\ "{}Object"{}\ declarations\ for\ JPEG\ modules\ that\ may\ be\ supplied\ or\ called}}
+\DoxyCodeLine{00637\ \textcolor{comment}{\ *\ directly\ by\ the\ surrounding\ application.}}
+\DoxyCodeLine{00638\ \textcolor{comment}{\ *\ As\ with\ all\ objects\ in\ the\ JPEG\ library,\ these\ structs\ only\ define\ the}}
+\DoxyCodeLine{00639\ \textcolor{comment}{\ *\ publicly\ visible\ methods\ and\ state\ variables\ of\ a\ module.\ \ Additional}}
+\DoxyCodeLine{00640\ \textcolor{comment}{\ *\ private\ fields\ may\ exist\ after\ the\ public\ ones.}}
+\DoxyCodeLine{00641\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00642\ }
+\DoxyCodeLine{00643\ }
+\DoxyCodeLine{00644\ \textcolor{comment}{/*\ Error\ handler\ object\ */}}
+\DoxyCodeLine{00645\ }
+\DoxyCodeLine{00646\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__error__mgr}{jpeg\_error\_mgr}}\ \{}
+\DoxyCodeLine{00647\ \ \ \textcolor{comment}{/*\ Error\ exit\ handler:\ does\ not\ return\ to\ caller\ */}}
+\DoxyCodeLine{00648\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ error\_exit,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00649\ \ \ \textcolor{comment}{/*\ Conditionally\ emit\ a\ trace\ or\ warning\ message\ */}}
+\DoxyCodeLine{00650\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ emit\_message,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ msg\_level));}
+\DoxyCodeLine{00651\ \ \ \textcolor{comment}{/*\ Routine\ that\ actually\ outputs\ a\ trace\ or\ error\ message\ */}}
+\DoxyCodeLine{00652\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ output\_message,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00653\ \ \ \textcolor{comment}{/*\ Format\ a\ message\ string\ for\ the\ most\ recent\ JPEG\ error\ or\ message\ */}}
+\DoxyCodeLine{00654\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ format\_message,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,\ \textcolor{keywordtype}{char}\ *\ \mbox{\hyperlink{classbuffer}{buffer}}));}
+\DoxyCodeLine{00655\ \textcolor{preprocessor}{\#define\ JMSG\_LENGTH\_MAX\ \ 200\ \ \ \ }\textcolor{comment}{/*\ recommended\ size\ of\ format\_message\ buffer\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00656\ \ \ \textcolor{comment}{/*\ Reset\ error\ state\ variables\ at\ start\ of\ a\ new\ image\ */}}
+\DoxyCodeLine{00657\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ reset\_error\_mgr,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00658\ }
+\DoxyCodeLine{00659\ \ \ \textcolor{comment}{/*\ The\ message\ ID\ code\ and\ any\ parameters\ are\ saved\ here.}}
+\DoxyCodeLine{00660\ \textcolor{comment}{\ \ \ *\ A\ message\ can\ have\ one\ string\ parameter\ or\ up\ to\ 8\ int\ parameters.}}
+\DoxyCodeLine{00661\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00662\ \ \ \textcolor{keywordtype}{int}\ msg\_code;}
+\DoxyCodeLine{00663\ \textcolor{preprocessor}{\#define\ JMSG\_STR\_PARM\_MAX\ \ 80}}
+\DoxyCodeLine{00664\ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00665\ \ \ \ \ \textcolor{keywordtype}{int}\ i[8];}
+\DoxyCodeLine{00666\ \ \ \ \ \textcolor{keywordtype}{char}\ s[JMSG\_STR\_PARM\_MAX];}
+\DoxyCodeLine{00667\ \ \ \}\ msg\_parm;}
+\DoxyCodeLine{00668\ }
+\DoxyCodeLine{00669\ \ \ \textcolor{comment}{/*\ Standard\ state\ variables\ for\ error\ facility\ */}}
+\DoxyCodeLine{00670\ }
+\DoxyCodeLine{00671\ \ \ \textcolor{keywordtype}{int}\ trace\_level;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ max\ msg\_level\ that\ will\ be\ displayed\ */}}
+\DoxyCodeLine{00672\ }
+\DoxyCodeLine{00673\ \ \ \textcolor{comment}{/*\ For\ recoverable\ corrupt-\/data\ errors,\ we\ emit\ a\ warning\ message,}}
+\DoxyCodeLine{00674\ \textcolor{comment}{\ \ \ *\ but\ keep\ going\ unless\ emit\_message\ chooses\ to\ abort.\ \ emit\_message}}
+\DoxyCodeLine{00675\ \textcolor{comment}{\ \ \ *\ should\ count\ warnings\ in\ num\_warnings.\ \ The\ surrounding\ application}}
+\DoxyCodeLine{00676\ \textcolor{comment}{\ \ \ *\ can\ check\ for\ bad\ data\ by\ seeing\ if\ num\_warnings\ is\ nonzero\ at\ the}}
+\DoxyCodeLine{00677\ \textcolor{comment}{\ \ \ *\ end\ of\ processing.}}
+\DoxyCodeLine{00678\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00679\ \ \ \textcolor{keywordtype}{long}\ num\_warnings;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ number\ of\ corrupt-\/data\ warnings\ */}}
+\DoxyCodeLine{00680\ }
+\DoxyCodeLine{00681\ \ \ \textcolor{comment}{/*\ These\ fields\ point\ to\ the\ table(s)\ of\ error\ message\ strings.}}
+\DoxyCodeLine{00682\ \textcolor{comment}{\ \ \ *\ An\ application\ can\ change\ the\ table\ pointer\ to\ switch\ to\ a\ different}}
+\DoxyCodeLine{00683\ \textcolor{comment}{\ \ \ *\ message\ list\ (typically,\ to\ change\ the\ language\ in\ which\ errors\ are}}
+\DoxyCodeLine{00684\ \textcolor{comment}{\ \ \ *\ reported).\ \ Some\ applications\ may\ wish\ to\ add\ additional\ error\ codes}}
+\DoxyCodeLine{00685\ \textcolor{comment}{\ \ \ *\ that\ will\ be\ handled\ by\ the\ JPEG\ library\ error\ mechanism;\ the\ second}}
+\DoxyCodeLine{00686\ \textcolor{comment}{\ \ \ *\ table\ pointer\ is\ used\ for\ this\ purpose.}}
+\DoxyCodeLine{00687\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00688\ \textcolor{comment}{\ \ \ *\ First\ table\ includes\ all\ errors\ generated\ by\ JPEG\ library\ itself.}}
+\DoxyCodeLine{00689\ \textcolor{comment}{\ \ \ *\ Error\ code\ 0\ is\ reserved\ for\ a\ "{}no\ such\ error\ string"{}\ message.}}
+\DoxyCodeLine{00690\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00691\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \textcolor{keyword}{const}\ *\ jpeg\_message\_table;\ \textcolor{comment}{/*\ Library\ errors\ */}}
+\DoxyCodeLine{00692\ \ \ \textcolor{keywordtype}{int}\ last\_jpeg\_message;\ \ \ \ \textcolor{comment}{/*\ Table\ contains\ strings\ 0..last\_jpeg\_message\ */}}
+\DoxyCodeLine{00693\ \ \ \textcolor{comment}{/*\ Second\ table\ can\ be\ added\ by\ application\ (see\ cjpeg/djpeg\ for\ example).}}
+\DoxyCodeLine{00694\ \textcolor{comment}{\ \ \ *\ It\ contains\ strings\ numbered\ first\_addon\_message..last\_addon\_message.}}
+\DoxyCodeLine{00695\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00696\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \textcolor{keyword}{const}\ *\ addon\_message\_table;\ \textcolor{comment}{/*\ Non-\/library\ errors\ */}}
+\DoxyCodeLine{00697\ \ \ \textcolor{keywordtype}{int}\ first\_addon\_message;\ \ \ \ \ \ \textcolor{comment}{/*\ code\ for\ first\ string\ in\ addon\ table\ */}}
+\DoxyCodeLine{00698\ \ \ \textcolor{keywordtype}{int}\ last\_addon\_message;\ \ \ \ \ \ \ \textcolor{comment}{/*\ code\ for\ last\ string\ in\ addon\ table\ */}}
+\DoxyCodeLine{00699\ \};}
+\DoxyCodeLine{00700\ }
+\DoxyCodeLine{00701\ }
+\DoxyCodeLine{00702\ \textcolor{comment}{/*\ Progress\ monitor\ object\ */}}
+\DoxyCodeLine{00703\ }
+\DoxyCodeLine{00704\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__progress__mgr}{jpeg\_progress\_mgr}}\ \{}
+\DoxyCodeLine{00705\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ progress\_monitor,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00706\ }
+\DoxyCodeLine{00707\ \ \ \textcolor{keywordtype}{long}\ pass\_counter;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ work\ units\ completed\ in\ this\ pass\ */}}
+\DoxyCodeLine{00708\ \ \ \textcolor{keywordtype}{long}\ pass\_limit;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ total\ number\ of\ work\ units\ in\ this\ pass\ */}}
+\DoxyCodeLine{00709\ \ \ \textcolor{keywordtype}{int}\ completed\_passes;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ passes\ completed\ so\ far\ */}}
+\DoxyCodeLine{00710\ \ \ \textcolor{keywordtype}{int}\ total\_passes;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ total\ number\ of\ passes\ expected\ */}}
+\DoxyCodeLine{00711\ \};}
+\DoxyCodeLine{00712\ }
+\DoxyCodeLine{00713\ }
+\DoxyCodeLine{00714\ \textcolor{comment}{/*\ Data\ destination\ object\ for\ compression\ */}}
+\DoxyCodeLine{00715\ }
+\DoxyCodeLine{00716\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__destination__mgr}{jpeg\_destination\_mgr}}\ \{}
+\DoxyCodeLine{00717\ \ \ JOCTET\ *\ next\_output\_byte;\ \ \ \ \textcolor{comment}{/*\ =>\ next\ byte\ to\ write\ in\ buffer\ */}}
+\DoxyCodeLine{00718\ \ \ \textcolor{keywordtype}{size\_t}\ free\_in\_buffer;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ byte\ spaces\ remaining\ in\ buffer\ */}}
+\DoxyCodeLine{00719\ }
+\DoxyCodeLine{00720\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ init\_destination,\ (\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00721\ \ \ JMETHOD(\textcolor{keywordtype}{boolean},\ empty\_output\_buffer,\ (\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00722\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ term\_destination,\ (\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00723\ \};}
+\DoxyCodeLine{00724\ }
+\DoxyCodeLine{00725\ }
+\DoxyCodeLine{00726\ \textcolor{comment}{/*\ Data\ source\ object\ for\ decompression\ */}}
+\DoxyCodeLine{00727\ }
+\DoxyCodeLine{00728\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__source__mgr}{jpeg\_source\_mgr}}\ \{}
+\DoxyCodeLine{00729\ \ \ \textcolor{keyword}{const}\ JOCTET\ *\ next\_input\_byte;\ \textcolor{comment}{/*\ =>\ next\ byte\ to\ read\ from\ buffer\ */}}
+\DoxyCodeLine{00730\ \ \ \textcolor{keywordtype}{size\_t}\ bytes\_in\_buffer;\ \ \ \ \ \ \ \textcolor{comment}{/*\ \#\ of\ bytes\ remaining\ in\ buffer\ */}}
+\DoxyCodeLine{00731\ }
+\DoxyCodeLine{00732\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ init\_source,\ (\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00733\ \ \ JMETHOD(\textcolor{keywordtype}{boolean},\ fill\_input\_buffer,\ (\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00734\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ skip\_input\_data,\ (\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{long}\ num\_bytes));}
+\DoxyCodeLine{00735\ \ \ JMETHOD(\textcolor{keywordtype}{boolean},\ resync\_to\_restart,\ (\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ desired));}
+\DoxyCodeLine{00736\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ term\_source,\ (\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00737\ \};}
+\DoxyCodeLine{00738\ }
+\DoxyCodeLine{00739\ }
+\DoxyCodeLine{00740\ \textcolor{comment}{/*\ Memory\ manager\ object.}}
+\DoxyCodeLine{00741\ \textcolor{comment}{\ *\ Allocates\ "{}small"{}\ objects\ (a\ few\ K\ total),\ "{}large"{}\ objects\ (tens\ of\ K),}}
+\DoxyCodeLine{00742\ \textcolor{comment}{\ *\ and\ "{}really\ big"{}\ objects\ (virtual\ arrays\ with\ backing\ store\ if\ needed).}}
+\DoxyCodeLine{00743\ \textcolor{comment}{\ *\ The\ memory\ manager\ does\ not\ allow\ individual\ objects\ to\ be\ freed;\ rather,}}
+\DoxyCodeLine{00744\ \textcolor{comment}{\ *\ each\ created\ object\ is\ assigned\ to\ a\ pool,\ and\ whole\ pools\ can\ be\ freed}}
+\DoxyCodeLine{00745\ \textcolor{comment}{\ *\ at\ once.\ \ This\ is\ faster\ and\ more\ convenient\ than\ remembering\ exactly\ what}}
+\DoxyCodeLine{00746\ \textcolor{comment}{\ *\ to\ free,\ especially\ where\ malloc()/free()\ are\ not\ too\ speedy.}}
+\DoxyCodeLine{00747\ \textcolor{comment}{\ *\ NB:\ alloc\ routines\ never\ return\ NULL.\ \ They\ exit\ to\ error\_exit\ if\ not}}
+\DoxyCodeLine{00748\ \textcolor{comment}{\ *\ successful.}}
+\DoxyCodeLine{00749\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00750\ }
+\DoxyCodeLine{00751\ \textcolor{preprocessor}{\#define\ JPOOL\_PERMANENT\ 0\ \ \ \ \ \ \ }\textcolor{comment}{/*\ lasts\ until\ master\ record\ is\ destroyed\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00752\ \textcolor{preprocessor}{\#define\ JPOOL\_IMAGE\ \ \ \ \ 1\ \ \ \ \ \ \ }\textcolor{comment}{/*\ lasts\ until\ done\ with\ image/datastream\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00753\ \textcolor{preprocessor}{\#define\ JPOOL\_NUMPOOLS\ \ 2}}
+\DoxyCodeLine{00754\ }
+\DoxyCodeLine{00755\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjvirt__sarray__control}{jvirt\_sarray\_control}}\ *\ \mbox{\hyperlink{structjvirt__sarray__control}{jvirt\_sarray\_ptr}};}
+\DoxyCodeLine{00756\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjvirt__barray__control}{jvirt\_barray\_control}}\ *\ \mbox{\hyperlink{structjvirt__barray__control}{jvirt\_barray\_ptr}};}
+\DoxyCodeLine{00757\ }
+\DoxyCodeLine{00758\ }
+\DoxyCodeLine{00759\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__memory__mgr}{jpeg\_memory\_mgr}}\ \{}
+\DoxyCodeLine{00760\ \ \ \textcolor{comment}{/*\ Method\ pointers\ */}}
+\DoxyCodeLine{00761\ \ \ JMETHOD(\textcolor{keywordtype}{void}\ *,\ alloc\_small,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ pool\_id,}
+\DoxyCodeLine{00762\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ sizeofobject));}
+\DoxyCodeLine{00763\ \ \ JMETHOD(\textcolor{keywordtype}{void}\ FAR\ *,\ alloc\_large,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ pool\_id,}
+\DoxyCodeLine{00764\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ sizeofobject));}
+\DoxyCodeLine{00765\ \ \ JMETHOD(JSAMPARRAY,\ alloc\_sarray,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ pool\_id,}
+\DoxyCodeLine{00766\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ samplesperrow,}
+\DoxyCodeLine{00767\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ numrows));}
+\DoxyCodeLine{00768\ \ \ JMETHOD(JBLOCKARRAY,\ alloc\_barray,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ pool\_id,}
+\DoxyCodeLine{00769\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ blocksperrow,}
+\DoxyCodeLine{00770\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ numrows));}
+\DoxyCodeLine{00771\ \ \ JMETHOD(\mbox{\hyperlink{structjvirt__sarray__control}{jvirt\_sarray\_ptr}},\ request\_virt\_sarray,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,}
+\DoxyCodeLine{00772\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ pool\_id,}
+\DoxyCodeLine{00773\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ pre\_zero,}
+\DoxyCodeLine{00774\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ samplesperrow,}
+\DoxyCodeLine{00775\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ numrows,}
+\DoxyCodeLine{00776\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ maxaccess));}
+\DoxyCodeLine{00777\ \ \ JMETHOD(\mbox{\hyperlink{structjvirt__barray__control}{jvirt\_barray\_ptr}},\ request\_virt\_barray,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,}
+\DoxyCodeLine{00778\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ pool\_id,}
+\DoxyCodeLine{00779\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ pre\_zero,}
+\DoxyCodeLine{00780\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ blocksperrow,}
+\DoxyCodeLine{00781\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ numrows,}
+\DoxyCodeLine{00782\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ maxaccess));}
+\DoxyCodeLine{00783\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ realize\_virt\_arrays,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00784\ \ \ JMETHOD(JSAMPARRAY,\ access\_virt\_sarray,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,}
+\DoxyCodeLine{00785\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structjvirt__sarray__control}{jvirt\_sarray\_ptr}}\ ptr,}
+\DoxyCodeLine{00786\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ start\_row,}
+\DoxyCodeLine{00787\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ num\_rows,}
+\DoxyCodeLine{00788\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ writable));}
+\DoxyCodeLine{00789\ \ \ JMETHOD(JBLOCKARRAY,\ access\_virt\_barray,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,}
+\DoxyCodeLine{00790\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structjvirt__barray__control}{jvirt\_barray\_ptr}}\ ptr,}
+\DoxyCodeLine{00791\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ start\_row,}
+\DoxyCodeLine{00792\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ num\_rows,}
+\DoxyCodeLine{00793\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ writable));}
+\DoxyCodeLine{00794\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ free\_pool,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ pool\_id));}
+\DoxyCodeLine{00795\ \ \ JMETHOD(\textcolor{keywordtype}{void},\ self\_destruct,\ (\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00796\ }
+\DoxyCodeLine{00797\ \ \ \textcolor{comment}{/*\ Limit\ on\ memory\ allocation\ for\ this\ JPEG\ object.\ \ (Note\ that\ this\ is}}
+\DoxyCodeLine{00798\ \textcolor{comment}{\ \ \ *\ merely\ advisory,\ not\ a\ guaranteed\ maximum;\ it\ only\ affects\ the\ space}}
+\DoxyCodeLine{00799\ \textcolor{comment}{\ \ \ *\ used\ for\ virtual-\/array\ buffers.)\ \ May\ be\ changed\ by\ outer\ application}}
+\DoxyCodeLine{00800\ \textcolor{comment}{\ \ \ *\ after\ creating\ the\ JPEG\ object.}}
+\DoxyCodeLine{00801\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00802\ \ \ \textcolor{keywordtype}{long}\ max\_memory\_to\_use;}
+\DoxyCodeLine{00803\ }
+\DoxyCodeLine{00804\ \ \ \textcolor{comment}{/*\ Maximum\ allocation\ request\ accepted\ by\ alloc\_large.\ */}}
+\DoxyCodeLine{00805\ \ \ \textcolor{keywordtype}{long}\ max\_alloc\_chunk;}
+\DoxyCodeLine{00806\ \};}
+\DoxyCodeLine{00807\ }
+\DoxyCodeLine{00808\ }
+\DoxyCodeLine{00809\ \textcolor{comment}{/*\ Routine\ signature\ for\ application-\/supplied\ marker\ processing\ methods.}}
+\DoxyCodeLine{00810\ \textcolor{comment}{\ *\ Need\ not\ pass\ marker\ code\ since\ it\ is\ stored\ in\ cinfo-\/>unread\_marker.}}
+\DoxyCodeLine{00811\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00812\ \textcolor{keyword}{typedef}\ JMETHOD(\textcolor{keywordtype}{boolean},\ jpeg\_marker\_parser\_method,\ (\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00813\ }
+\DoxyCodeLine{00814\ }
+\DoxyCodeLine{00815\ \textcolor{comment}{/*\ Declarations\ for\ routines\ called\ by\ application.}}
+\DoxyCodeLine{00816\ \textcolor{comment}{\ *\ The\ JPP\ macro\ hides\ prototype\ parameters\ from\ compilers\ that\ can't\ cope.}}
+\DoxyCodeLine{00817\ \textcolor{comment}{\ *\ Note\ JPP\ requires\ double\ parentheses.}}
+\DoxyCodeLine{00818\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00819\ }
+\DoxyCodeLine{00820\ \textcolor{preprocessor}{\#ifdef\ HAVE\_PROTOTYPES}}
+\DoxyCodeLine{00821\ \textcolor{preprocessor}{\#define\ JPP(arglist)\ \ \ \ arglist}}
+\DoxyCodeLine{00822\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00823\ \textcolor{preprocessor}{\#define\ JPP(arglist)\ \ \ \ ()}}
+\DoxyCodeLine{00824\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00825\ }
+\DoxyCodeLine{00826\ }
+\DoxyCodeLine{00827\ \textcolor{comment}{/*\ Short\ forms\ of\ external\ names\ for\ systems\ with\ brain-\/damaged\ linkers.}}
+\DoxyCodeLine{00828\ \textcolor{comment}{\ *\ We\ shorten\ external\ names\ to\ be\ unique\ in\ the\ first\ six\ letters,\ which}}
+\DoxyCodeLine{00829\ \textcolor{comment}{\ *\ is\ good\ enough\ for\ all\ known\ systems.}}
+\DoxyCodeLine{00830\ \textcolor{comment}{\ *\ (If\ your\ compiler\ itself\ needs\ names\ to\ be\ unique\ in\ less\ than\ 15}}
+\DoxyCodeLine{00831\ \textcolor{comment}{\ *\ characters,\ you\ are\ out\ of\ luck.\ \ Get\ a\ better\ compiler.)}}
+\DoxyCodeLine{00832\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00833\ }
+\DoxyCodeLine{00834\ \textcolor{preprocessor}{\#ifdef\ NEED\_SHORT\_EXTERNAL\_NAMES}}
+\DoxyCodeLine{00835\ \textcolor{preprocessor}{\#define\ jpeg\_std\_error\ \ \ \ \ \ \ \ \ \ jStdError}}
+\DoxyCodeLine{00836\ \textcolor{preprocessor}{\#define\ jpeg\_CreateCompress\ \ \ \ \ jCreaCompress}}
+\DoxyCodeLine{00837\ \textcolor{preprocessor}{\#define\ jpeg\_CreateDecompress\ \ \ jCreaDecompress}}
+\DoxyCodeLine{00838\ \textcolor{preprocessor}{\#define\ jpeg\_destroy\_compress\ \ \ jDestCompress}}
+\DoxyCodeLine{00839\ \textcolor{preprocessor}{\#define\ jpeg\_destroy\_decompress\ jDestDecompress}}
+\DoxyCodeLine{00840\ \textcolor{preprocessor}{\#define\ jpeg\_stdio\_dest\ \ \ \ \ \ \ \ \ jStdDest}}
+\DoxyCodeLine{00841\ \textcolor{preprocessor}{\#define\ jpeg\_stdio\_src\ \ \ \ \ \ \ \ \ \ jStdSrc}}
+\DoxyCodeLine{00842\ \textcolor{preprocessor}{\#define\ jpeg\_set\_defaults\ \ \ \ \ \ \ jSetDefaults}}
+\DoxyCodeLine{00843\ \textcolor{preprocessor}{\#define\ jpeg\_set\_colorspace\ \ \ \ \ jSetColorspace}}
+\DoxyCodeLine{00844\ \textcolor{preprocessor}{\#define\ jpeg\_default\_colorspace\ jDefColorspace}}
+\DoxyCodeLine{00845\ \textcolor{preprocessor}{\#define\ jpeg\_set\_quality\ \ \ \ \ \ \ \ jSetQuality}}
+\DoxyCodeLine{00846\ \textcolor{preprocessor}{\#define\ jpeg\_set\_linear\_quality\ jSetLQuality}}
+\DoxyCodeLine{00847\ \textcolor{preprocessor}{\#define\ jpeg\_add\_quant\_table\ \ \ \ jAddQuantTable}}
+\DoxyCodeLine{00848\ \textcolor{preprocessor}{\#define\ jpeg\_quality\_scaling\ \ \ \ jQualityScaling}}
+\DoxyCodeLine{00849\ \textcolor{preprocessor}{\#define\ jpeg\_simple\_progression\ jSimProgress}}
+\DoxyCodeLine{00850\ \textcolor{preprocessor}{\#define\ jpeg\_suppress\_tables\ \ \ \ jSuppressTables}}
+\DoxyCodeLine{00851\ \textcolor{preprocessor}{\#define\ jpeg\_alloc\_quant\_table\ \ jAlcQTable}}
+\DoxyCodeLine{00852\ \textcolor{preprocessor}{\#define\ jpeg\_alloc\_huff\_table\ \ \ jAlcHTable}}
+\DoxyCodeLine{00853\ \textcolor{preprocessor}{\#define\ jpeg\_start\_compress\ \ \ \ \ jStrtCompress}}
+\DoxyCodeLine{00854\ \textcolor{preprocessor}{\#define\ jpeg\_write\_scanlines\ \ \ \ jWrtScanlines}}
+\DoxyCodeLine{00855\ \textcolor{preprocessor}{\#define\ jpeg\_finish\_compress\ \ \ \ jFinCompress}}
+\DoxyCodeLine{00856\ \textcolor{preprocessor}{\#define\ jpeg\_write\_raw\_data\ \ \ \ \ jWrtRawData}}
+\DoxyCodeLine{00857\ \textcolor{preprocessor}{\#define\ jpeg\_write\_marker\ \ \ \ \ \ \ jWrtMarker}}
+\DoxyCodeLine{00858\ \textcolor{preprocessor}{\#define\ jpeg\_write\_m\_header\ \ \ \ \ jWrtMHeader}}
+\DoxyCodeLine{00859\ \textcolor{preprocessor}{\#define\ jpeg\_write\_m\_byte\ \ \ \ \ \ \ jWrtMByte}}
+\DoxyCodeLine{00860\ \textcolor{preprocessor}{\#define\ jpeg\_write\_tables\ \ \ \ \ \ \ jWrtTables}}
+\DoxyCodeLine{00861\ \textcolor{preprocessor}{\#define\ jpeg\_read\_header\ \ \ \ \ \ \ \ jReadHeader}}
+\DoxyCodeLine{00862\ \textcolor{preprocessor}{\#define\ jpeg\_start\_decompress\ \ \ jStrtDecompress}}
+\DoxyCodeLine{00863\ \textcolor{preprocessor}{\#define\ jpeg\_read\_scanlines\ \ \ \ \ jReadScanlines}}
+\DoxyCodeLine{00864\ \textcolor{preprocessor}{\#define\ jpeg\_finish\_decompress\ \ jFinDecompress}}
+\DoxyCodeLine{00865\ \textcolor{preprocessor}{\#define\ jpeg\_read\_raw\_data\ \ \ \ \ \ jReadRawData}}
+\DoxyCodeLine{00866\ \textcolor{preprocessor}{\#define\ jpeg\_has\_multiple\_scans\ jHasMultScn}}
+\DoxyCodeLine{00867\ \textcolor{preprocessor}{\#define\ jpeg\_start\_output\ \ \ \ \ \ \ jStrtOutput}}
+\DoxyCodeLine{00868\ \textcolor{preprocessor}{\#define\ jpeg\_finish\_output\ \ \ \ \ \ jFinOutput}}
+\DoxyCodeLine{00869\ \textcolor{preprocessor}{\#define\ jpeg\_input\_complete\ \ \ \ \ jInComplete}}
+\DoxyCodeLine{00870\ \textcolor{preprocessor}{\#define\ jpeg\_new\_colormap\ \ \ \ \ \ \ jNewCMap}}
+\DoxyCodeLine{00871\ \textcolor{preprocessor}{\#define\ jpeg\_consume\_input\ \ \ \ \ \ jConsumeInput}}
+\DoxyCodeLine{00872\ \textcolor{preprocessor}{\#define\ jpeg\_calc\_output\_dimensions\ \ \ \ \ jCalcDimensions}}
+\DoxyCodeLine{00873\ \textcolor{preprocessor}{\#define\ jpeg\_save\_markers\ \ \ \ \ \ \ jSaveMarkers}}
+\DoxyCodeLine{00874\ \textcolor{preprocessor}{\#define\ jpeg\_set\_marker\_processor\ \ \ \ \ \ \ jSetMarker}}
+\DoxyCodeLine{00875\ \textcolor{preprocessor}{\#define\ jpeg\_read\_coefficients\ \ jReadCoefs}}
+\DoxyCodeLine{00876\ \textcolor{preprocessor}{\#define\ jpeg\_write\_coefficients\ jWrtCoefs}}
+\DoxyCodeLine{00877\ \textcolor{preprocessor}{\#define\ jpeg\_copy\_critical\_parameters\ \ \ jCopyCrit}}
+\DoxyCodeLine{00878\ \textcolor{preprocessor}{\#define\ jpeg\_abort\_compress\ \ \ \ \ jAbrtCompress}}
+\DoxyCodeLine{00879\ \textcolor{preprocessor}{\#define\ jpeg\_abort\_decompress\ \ \ jAbrtDecompress}}
+\DoxyCodeLine{00880\ \textcolor{preprocessor}{\#define\ jpeg\_abort\ \ \ \ \ \ \ \ \ \ \ \ \ \ jAbort}}
+\DoxyCodeLine{00881\ \textcolor{preprocessor}{\#define\ jpeg\_destroy\ \ \ \ \ \ \ \ \ \ \ \ jDestroy}}
+\DoxyCodeLine{00882\ \textcolor{preprocessor}{\#define\ jpeg\_resync\_to\_restart\ \ jResyncRestart}}
+\DoxyCodeLine{00883\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ NEED\_SHORT\_EXTERNAL\_NAMES\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00884\ }
+\DoxyCodeLine{00885\ }
+\DoxyCodeLine{00886\ \textcolor{comment}{/*\ Default\ error-\/management\ setup\ */}}
+\DoxyCodeLine{00887\ EXTERN(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structjpeg__error__mgr}{jpeg\_error\_mgr}}\ *)\ jpeg\_std\_error}
+\DoxyCodeLine{00888\ \ \ \ \ \ \ \ \ JPP((\textcolor{keyword}{struct}\ \mbox{\hyperlink{structjpeg__error__mgr}{jpeg\_error\_mgr}}\ *\ err));}
+\DoxyCodeLine{00889\ }
+\DoxyCodeLine{00890\ \textcolor{comment}{/*\ Initialization\ of\ JPEG\ compression\ objects.}}
+\DoxyCodeLine{00891\ \textcolor{comment}{\ *\ jpeg\_create\_compress()\ and\ jpeg\_create\_decompress()\ are\ the\ exported}}
+\DoxyCodeLine{00892\ \textcolor{comment}{\ *\ names\ that\ applications\ should\ call.\ \ These\ expand\ to\ calls\ on}}
+\DoxyCodeLine{00893\ \textcolor{comment}{\ *\ jpeg\_CreateCompress\ and\ jpeg\_CreateDecompress\ with\ additional\ information}}
+\DoxyCodeLine{00894\ \textcolor{comment}{\ *\ passed\ for\ version\ mismatch\ checking.}}
+\DoxyCodeLine{00895\ \textcolor{comment}{\ *\ NB:\ you\ must\ set\ up\ the\ error-\/manager\ BEFORE\ calling\ jpeg\_create\_xxx.}}
+\DoxyCodeLine{00896\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00897\ \textcolor{preprocessor}{\#define\ jpeg\_create\_compress(cinfo)\ \(\backslash\)}}
+\DoxyCodeLine{00898\ \textcolor{preprocessor}{\ \ \ \ jpeg\_CreateCompress((cinfo),\ JPEG\_LIB\_VERSION,\ \(\backslash\)}}
+\DoxyCodeLine{00899\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (size\_t)\ sizeof(struct\ jpeg\_compress\_struct))}}
+\DoxyCodeLine{00900\ \textcolor{preprocessor}{\#define\ jpeg\_create\_decompress(cinfo)\ \(\backslash\)}}
+\DoxyCodeLine{00901\ \textcolor{preprocessor}{\ \ \ \ jpeg\_CreateDecompress((cinfo),\ JPEG\_LIB\_VERSION,\ \(\backslash\)}}
+\DoxyCodeLine{00902\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (size\_t)\ sizeof(struct\ jpeg\_decompress\_struct))}}
+\DoxyCodeLine{00903\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_CreateCompress\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00904\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ version,\ \textcolor{keywordtype}{size\_t}\ structsize));}
+\DoxyCodeLine{00905\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_CreateDecompress\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00906\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ version,\ \textcolor{keywordtype}{size\_t}\ structsize));}
+\DoxyCodeLine{00907\ \textcolor{comment}{/*\ Destruction\ of\ JPEG\ compression\ objects\ */}}
+\DoxyCodeLine{00908\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_destroy\_compress\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00909\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_destroy\_decompress\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00910\ }
+\DoxyCodeLine{00911\ \textcolor{comment}{/*\ Standard\ data\ source\ and\ destination\ managers:\ stdio\ streams.\ */}}
+\DoxyCodeLine{00912\ \textcolor{comment}{/*\ Caller\ is\ responsible\ for\ opening\ the\ file\ before\ and\ closing\ after.\ */}}
+\DoxyCodeLine{00913\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_stdio\_dest\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,\ FILE\ *\ outfile));}
+\DoxyCodeLine{00914\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_stdio\_src\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,\ FILE\ *\ infile));}
+\DoxyCodeLine{00915\ }
+\DoxyCodeLine{00916\ \textcolor{comment}{/*\ Default\ parameter\ setup\ for\ compression\ */}}
+\DoxyCodeLine{00917\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_set\_defaults\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00918\ \textcolor{comment}{/*\ Compression\ parameter\ setup\ aids\ */}}
+\DoxyCodeLine{00919\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_set\_colorspace\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00920\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ J\_COLOR\_SPACE\ colorspace));}
+\DoxyCodeLine{00921\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_default\_colorspace\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00922\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_set\_quality\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ quality,}
+\DoxyCodeLine{00923\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ force\_baseline));}
+\DoxyCodeLine{00924\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_set\_linear\_quality\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00925\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ scale\_factor,}
+\DoxyCodeLine{00926\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ force\_baseline));}
+\DoxyCodeLine{00927\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_add\_quant\_table\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ which\_tbl,}
+\DoxyCodeLine{00928\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *basic\_table,}
+\DoxyCodeLine{00929\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ scale\_factor,}
+\DoxyCodeLine{00930\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ force\_baseline));}
+\DoxyCodeLine{00931\ EXTERN(\textcolor{keywordtype}{int})\ jpeg\_quality\_scaling\ JPP((\textcolor{keywordtype}{int}\ quality));}
+\DoxyCodeLine{00932\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_simple\_progression\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00933\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_suppress\_tables\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00934\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ suppress));}
+\DoxyCodeLine{00935\ EXTERN(\mbox{\hyperlink{struct_j_q_u_a_n_t___t_b_l}{JQUANT\_TBL}}\ *)\ jpeg\_alloc\_quant\_table\ JPP((\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00936\ EXTERN(\mbox{\hyperlink{struct_j_h_u_f_f___t_b_l}{JHUFF\_TBL}}\ *)\ jpeg\_alloc\_huff\_table\ JPP((\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{00937\ }
+\DoxyCodeLine{00938\ \textcolor{comment}{/*\ Main\ entry\ points\ for\ compression\ */}}
+\DoxyCodeLine{00939\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_start\_compress\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00940\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ write\_all\_tables));}
+\DoxyCodeLine{00941\ EXTERN(JDIMENSION)\ jpeg\_write\_scanlines\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00942\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JSAMPARRAY\ scanlines,}
+\DoxyCodeLine{00943\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ num\_lines));}
+\DoxyCodeLine{00944\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_finish\_compress\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00945\ }
+\DoxyCodeLine{00946\ \textcolor{comment}{/*\ Replaces\ jpeg\_write\_scanlines\ when\ writing\ raw\ downsampled\ data.\ */}}
+\DoxyCodeLine{00947\ EXTERN(JDIMENSION)\ jpeg\_write\_raw\_data\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00948\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JSAMPIMAGE\ \mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00949\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ num\_lines));}
+\DoxyCodeLine{00950\ }
+\DoxyCodeLine{00951\ \textcolor{comment}{/*\ Write\ a\ special\ marker.\ \ See\ libjpeg.doc\ concerning\ safe\ usage.\ */}}
+\DoxyCodeLine{00952\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_write\_marker}
+\DoxyCodeLine{00953\ \ \ \ \ \ \ \ \ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ marker,}
+\DoxyCodeLine{00954\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ JOCTET\ *\ dataptr,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ datalen));}
+\DoxyCodeLine{00955\ \textcolor{comment}{/*\ Same,\ but\ piecemeal.\ */}}
+\DoxyCodeLine{00956\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_write\_m\_header}
+\DoxyCodeLine{00957\ \ \ \ \ \ \ \ \ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ marker,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ datalen));}
+\DoxyCodeLine{00958\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_write\_m\_byte}
+\DoxyCodeLine{00959\ \ \ \ \ \ \ \ \ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ val));}
+\DoxyCodeLine{00960\ }
+\DoxyCodeLine{00961\ \textcolor{comment}{/*\ Alternate\ compression\ function:\ just\ write\ an\ abbreviated\ table\ file\ */}}
+\DoxyCodeLine{00962\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_write\_tables\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00963\ }
+\DoxyCodeLine{00964\ \textcolor{comment}{/*\ Decompression\ startup:\ read\ start\ of\ JPEG\ datastream\ to\ see\ what's\ there\ */}}
+\DoxyCodeLine{00965\ EXTERN(\textcolor{keywordtype}{int})\ jpeg\_read\_header\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00966\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{boolean}\ require\_image));}
+\DoxyCodeLine{00967\ \textcolor{comment}{/*\ Return\ value\ is\ one\ of:\ */}}
+\DoxyCodeLine{00968\ \textcolor{preprocessor}{\#define\ JPEG\_SUSPENDED\ \ \ \ \ \ \ \ \ \ 0\ }\textcolor{comment}{/*\ Suspended\ due\ to\ lack\ of\ input\ data\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00969\ \textcolor{preprocessor}{\#define\ JPEG\_HEADER\_OK\ \ \ \ \ \ \ \ \ \ 1\ }\textcolor{comment}{/*\ Found\ valid\ image\ datastream\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00970\ \textcolor{preprocessor}{\#define\ JPEG\_HEADER\_TABLES\_ONLY\ 2\ }\textcolor{comment}{/*\ Found\ valid\ table-\/specs-\/only\ datastream\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00971\ \textcolor{comment}{/*\ If\ you\ pass\ require\_image\ =\ TRUE\ (normal\ case),\ you\ need\ not\ check\ for}}
+\DoxyCodeLine{00972\ \textcolor{comment}{\ *\ a\ TABLES\_ONLY\ return\ code;\ an\ abbreviated\ file\ will\ cause\ an\ error\ exit.}}
+\DoxyCodeLine{00973\ \textcolor{comment}{\ *\ JPEG\_SUSPENDED\ is\ only\ possible\ if\ you\ use\ a\ data\ source\ module\ that\ can}}
+\DoxyCodeLine{00974\ \textcolor{comment}{\ *\ give\ a\ suspension\ return\ (the\ stdio\ source\ module\ doesn't).}}
+\DoxyCodeLine{00975\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00976\ }
+\DoxyCodeLine{00977\ \textcolor{comment}{/*\ Main\ entry\ points\ for\ decompression\ */}}
+\DoxyCodeLine{00978\ EXTERN(\textcolor{keywordtype}{boolean})\ jpeg\_start\_decompress\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00979\ EXTERN(JDIMENSION)\ jpeg\_read\_scanlines\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00980\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JSAMPARRAY\ scanlines,}
+\DoxyCodeLine{00981\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ max\_lines));}
+\DoxyCodeLine{00982\ EXTERN(\textcolor{keywordtype}{boolean})\ jpeg\_finish\_decompress\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00983\ }
+\DoxyCodeLine{00984\ \textcolor{comment}{/*\ Replaces\ jpeg\_read\_scanlines\ when\ reading\ raw\ downsampled\ data.\ */}}
+\DoxyCodeLine{00985\ EXTERN(JDIMENSION)\ jpeg\_read\_raw\_data\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00986\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JSAMPIMAGE\ \mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00987\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ JDIMENSION\ max\_lines));}
+\DoxyCodeLine{00988\ }
+\DoxyCodeLine{00989\ \textcolor{comment}{/*\ Additional\ entry\ points\ for\ buffered-\/image\ mode.\ */}}
+\DoxyCodeLine{00990\ EXTERN(\textcolor{keywordtype}{boolean})\ jpeg\_has\_multiple\_scans\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00991\ EXTERN(\textcolor{keywordtype}{boolean})\ jpeg\_start\_output\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,}
+\DoxyCodeLine{00992\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ scan\_number));}
+\DoxyCodeLine{00993\ EXTERN(\textcolor{keywordtype}{boolean})\ jpeg\_finish\_output\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00994\ EXTERN(\textcolor{keywordtype}{boolean})\ jpeg\_input\_complete\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00995\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_new\_colormap\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00996\ EXTERN(\textcolor{keywordtype}{int})\ jpeg\_consume\_input\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{00997\ \textcolor{comment}{/*\ Return\ value\ is\ one\ of:\ */}}
+\DoxyCodeLine{00998\ \textcolor{comment}{/*\ \#define\ JPEG\_SUSPENDED\ \ \ \ \ \ \ 0\ \ \ \ Suspended\ due\ to\ lack\ of\ input\ data\ */}}
+\DoxyCodeLine{00999\ \textcolor{preprocessor}{\#define\ JPEG\_REACHED\_SOS\ \ \ \ \ \ \ \ 1\ }\textcolor{comment}{/*\ Reached\ start\ of\ new\ scan\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01000\ \textcolor{preprocessor}{\#define\ JPEG\_REACHED\_EOI\ \ \ \ \ \ \ \ 2\ }\textcolor{comment}{/*\ Reached\ end\ of\ image\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01001\ \textcolor{preprocessor}{\#define\ JPEG\_ROW\_COMPLETED\ \ \ \ \ \ 3\ }\textcolor{comment}{/*\ Completed\ one\ iMCU\ row\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01002\ \textcolor{preprocessor}{\#define\ JPEG\_SCAN\_COMPLETED\ \ \ \ \ 4\ }\textcolor{comment}{/*\ Completed\ last\ iMCU\ row\ of\ a\ scan\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01003\ }
+\DoxyCodeLine{01004\ \textcolor{comment}{/*\ Precalculate\ output\ dimensions\ for\ current\ decompression\ parameters.\ */}}
+\DoxyCodeLine{01005\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_calc\_output\_dimensions\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{01006\ }
+\DoxyCodeLine{01007\ \textcolor{comment}{/*\ Control\ saving\ of\ COM\ and\ APPn\ markers\ into\ marker\_list.\ */}}
+\DoxyCodeLine{01008\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_save\_markers}
+\DoxyCodeLine{01009\ \ \ \ \ \ \ \ \ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ marker\_code,}
+\DoxyCodeLine{01010\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ length\_limit));}
+\DoxyCodeLine{01011\ }
+\DoxyCodeLine{01012\ \textcolor{comment}{/*\ Install\ a\ special\ processing\ method\ for\ COM\ or\ APPn\ markers.\ */}}
+\DoxyCodeLine{01013\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_set\_marker\_processor}
+\DoxyCodeLine{01014\ \ \ \ \ \ \ \ \ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,\ \textcolor{keywordtype}{int}\ marker\_code,}
+\DoxyCodeLine{01015\ \ \ \ \ \ \ \ \ \ \ \ \ \ jpeg\_marker\_parser\_method\ routine));}
+\DoxyCodeLine{01016\ }
+\DoxyCodeLine{01017\ \textcolor{comment}{/*\ Read\ or\ write\ raw\ DCT\ coefficients\ -\/-\/-\/\ useful\ for\ lossless\ transcoding.\ */}}
+\DoxyCodeLine{01018\ EXTERN(\mbox{\hyperlink{structjvirt__barray__control}{jvirt\_barray\_ptr}}\ *)\ jpeg\_read\_coefficients\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{01019\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_write\_coefficients\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo,}
+\DoxyCodeLine{01020\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structjvirt__barray__control}{jvirt\_barray\_ptr}}\ *\ coef\_arrays));}
+\DoxyCodeLine{01021\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_copy\_critical\_parameters\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ srcinfo,}
+\DoxyCodeLine{01022\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ dstinfo));}
+\DoxyCodeLine{01023\ }
+\DoxyCodeLine{01024\ \textcolor{comment}{/*\ If\ you\ choose\ to\ abort\ compression\ or\ decompression\ before\ completing}}
+\DoxyCodeLine{01025\ \textcolor{comment}{\ *\ jpeg\_finish\_(de)compress,\ then\ you\ need\ to\ clean\ up\ to\ release\ memory,}}
+\DoxyCodeLine{01026\ \textcolor{comment}{\ *\ temporary\ files,\ etc.\ \ You\ can\ just\ call\ jpeg\_destroy\_(de)compress}}
+\DoxyCodeLine{01027\ \textcolor{comment}{\ *\ if\ you're\ done\ with\ the\ JPEG\ object,\ but\ if\ you\ want\ to\ clean\ it\ up\ and}}
+\DoxyCodeLine{01028\ \textcolor{comment}{\ *\ reuse\ it,\ call\ this:}}
+\DoxyCodeLine{01029\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01030\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_abort\_compress\ JPP((\mbox{\hyperlink{structjpeg__compress__struct}{j\_compress\_ptr}}\ cinfo));}
+\DoxyCodeLine{01031\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_abort\_decompress\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo));}
+\DoxyCodeLine{01032\ }
+\DoxyCodeLine{01033\ \textcolor{comment}{/*\ Generic\ versions\ of\ jpeg\_abort\ and\ jpeg\_destroy\ that\ work\ on\ either}}
+\DoxyCodeLine{01034\ \textcolor{comment}{\ *\ flavor\ of\ JPEG\ object.\ \ These\ may\ be\ more\ convenient\ in\ some\ places.}}
+\DoxyCodeLine{01035\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01036\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_abort\ JPP((\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{01037\ EXTERN(\textcolor{keywordtype}{void})\ jpeg\_destroy\ JPP((\mbox{\hyperlink{structjpeg__common__struct}{j\_common\_ptr}}\ cinfo));}
+\DoxyCodeLine{01038\ }
+\DoxyCodeLine{01039\ \textcolor{comment}{/*\ Default\ restart-\/marker-\/resync\ procedure\ for\ use\ by\ data\ source\ modules\ */}}
+\DoxyCodeLine{01040\ EXTERN(\textcolor{keywordtype}{boolean})\ jpeg\_resync\_to\_restart\ JPP((\mbox{\hyperlink{structjpeg__decompress__struct}{j\_decompress\_ptr}}\ cinfo,}
+\DoxyCodeLine{01041\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ desired));}
+\DoxyCodeLine{01042\ }
+\DoxyCodeLine{01043\ }
+\DoxyCodeLine{01044\ \textcolor{comment}{/*\ These\ marker\ codes\ are\ exported\ since\ applications\ and\ data\ source\ modules}}
+\DoxyCodeLine{01045\ \textcolor{comment}{\ *\ are\ likely\ to\ want\ to\ use\ them.}}
+\DoxyCodeLine{01046\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01047\ }
+\DoxyCodeLine{01048\ \textcolor{preprocessor}{\#define\ JPEG\_RST0\ \ \ \ \ \ \ 0xD0\ \ \ \ }\textcolor{comment}{/*\ RST0\ marker\ code\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01049\ \textcolor{preprocessor}{\#define\ JPEG\_EOI\ \ \ \ \ \ \ \ 0xD9\ \ \ \ }\textcolor{comment}{/*\ EOI\ marker\ code\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01050\ \textcolor{preprocessor}{\#define\ JPEG\_APP0\ \ \ \ \ \ \ 0xE0\ \ \ \ }\textcolor{comment}{/*\ APP0\ marker\ code\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01051\ \textcolor{preprocessor}{\#define\ JPEG\_COM\ \ \ \ \ \ \ \ 0xFE\ \ \ \ }\textcolor{comment}{/*\ COM\ marker\ code\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01052\ }
+\DoxyCodeLine{01053\ }
+\DoxyCodeLine{01054\ \textcolor{comment}{/*\ If\ we\ have\ a\ brain-\/damaged\ compiler\ that\ emits\ warnings\ (or\ worse,\ errors)}}
+\DoxyCodeLine{01055\ \textcolor{comment}{\ *\ for\ structure\ definitions\ that\ are\ never\ filled\ in,\ keep\ it\ quiet\ by}}
+\DoxyCodeLine{01056\ \textcolor{comment}{\ *\ supplying\ dummy\ definitions\ for\ the\ various\ substructures.}}
+\DoxyCodeLine{01057\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01058\ }
+\DoxyCodeLine{01059\ \textcolor{preprocessor}{\#ifdef\ INCOMPLETE\_TYPES\_BROKEN}}
+\DoxyCodeLine{01060\ \textcolor{preprocessor}{\#ifndef\ JPEG\_INTERNALS\ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ will\ be\ defined\ in\ jpegint.h\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01061\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjvirt__sarray__control}{jvirt\_sarray\_control}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01062\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjvirt__barray__control}{jvirt\_barray\_control}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01063\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__comp__master}{jpeg\_comp\_master}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01064\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__c__main__controller}{jpeg\_c\_main\_controller}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01065\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__c__prep__controller}{jpeg\_c\_prep\_controller}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01066\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__c__coef__controller}{jpeg\_c\_coef\_controller}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01067\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__marker__writer}{jpeg\_marker\_writer}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01068\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__color__converter}{jpeg\_color\_converter}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01069\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__downsampler}{jpeg\_downsampler}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01070\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__forward__dct}{jpeg\_forward\_dct}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01071\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__entropy__encoder}{jpeg\_entropy\_encoder}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01072\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__decomp__master}{jpeg\_decomp\_master}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01073\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__d__main__controller}{jpeg\_d\_main\_controller}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01074\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__d__coef__controller}{jpeg\_d\_coef\_controller}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01075\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__d__post__controller}{jpeg\_d\_post\_controller}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01076\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__input__controller}{jpeg\_input\_controller}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01077\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__marker__reader}{jpeg\_marker\_reader}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01078\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__entropy__decoder}{jpeg\_entropy\_decoder}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01079\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__inverse__dct}{jpeg\_inverse\_dct}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01080\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__upsampler}{jpeg\_upsampler}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01081\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__color__deconverter}{jpeg\_color\_deconverter}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01082\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structjpeg__color__quantizer}{jpeg\_color\_quantizer}}\ \{\ \textcolor{keywordtype}{long}\ dummy;\ \};}
+\DoxyCodeLine{01083\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ JPEG\_INTERNALS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01084\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ INCOMPLETE\_TYPES\_BROKEN\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01085\ }
+\DoxyCodeLine{01086\ }
+\DoxyCodeLine{01087\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01088\ \textcolor{comment}{\ *\ The\ JPEG\ library\ modules\ define\ JPEG\_INTERNALS\ before\ including\ this\ file.}}
+\DoxyCodeLine{01089\ \textcolor{comment}{\ *\ The\ internal\ structure\ declarations\ are\ read\ only\ when\ that\ is\ true.}}
+\DoxyCodeLine{01090\ \textcolor{comment}{\ *\ Applications\ using\ the\ library\ should\ not\ include\ jpegint.h,\ but\ may\ wish}}
+\DoxyCodeLine{01091\ \textcolor{comment}{\ *\ to\ include\ jerror.h.}}
+\DoxyCodeLine{01092\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01093\ }
+\DoxyCodeLine{01094\ \textcolor{preprocessor}{\#ifdef\ JPEG\_INTERNALS}}
+\DoxyCodeLine{01095\ \textcolor{preprocessor}{\#include\ "{}jpegint.h"{}}\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ fetch\ private\ declarations\ */}}
+\DoxyCodeLine{01096\ \textcolor{preprocessor}{\#include\ "{}jerror.h"{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ fetch\ error\ codes\ too\ */}}
+\DoxyCodeLine{01097\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01098\ }
+\DoxyCodeLine{01099\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{01100\ \}}
+\DoxyCodeLine{01101\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01102\ }
+\DoxyCodeLine{01103\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ JPEGLIB\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

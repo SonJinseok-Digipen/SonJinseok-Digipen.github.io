@@ -1,0 +1,196 @@
+.TH "md__ase_sprite_aseprite_docs__c_o_d_i_n_g__s_t_y_l_e" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_docs__c_o_d_i_n_g__s_t_y_l_e \- Code Style Guidelines 
+.PP
+
+.SH "Basics"
+.PP
+Basic statements:
+.PP
+.PP
+.nf
+ {c++}
+void global_function(int arg1,
+                     const int arg2, // You can use "const" preferably
+                     const int arg3, \&.\&.\&.)
+{
+  int value;
+  const int constValue = 0;
+
+  // We prefer to use "var = (condition ? \&.\&.\&.: \&.\&.\&.)" instead of
+  // "var = condition ? \&.\&.\&.: \&.\&.\&.;" to make clear about the
+  // ternary operator limits\&.
+  int conditionalValue1 = (condition ? 1: 2);
+  int conditionalValue2 = (condition ? longVarName:
+                                       otherLongVarName);
+
+  // If a condition will return, we prefer the "return"
+  // statement in its own line to avoid missing the "return"
+  // keyword when we read code\&.
+  if (condition)
+    return;
+
+  // You can use braces {} if the condition has multiple lines
+  // or the if\-body has multiple lines\&.
+  if (condition1 ||
+      condition2) {
+    return;
+  }
+
+  if (condition) {
+    \&.\&.\&.
+    \&.\&.\&.
+    \&.\&.\&.
+  }
+
+  // We prefer to avoid whitespaces between "var=initial_value"
+  // or "var<limit" to see better the "; " separation\&. Anyway it
+  // can depend on the specific condition/case, etc\&.
+  for (int i=0; i<10; ++i) {
+    \&.\&.\&.
+    // Same case as in if\-return\&.
+    if (condition)
+      break;
+    \&.\&.\&.
+  }
+
+  while (condition) {
+    \&.\&.\&.
+  }
+
+  do {
+    \&.\&.\&.
+  } while (condition);
+
+  switch (condition) {
+    case 1:
+      \&.\&.\&.
+      break;
+    case 2: {
+      int varInsideCase;
+      \&.\&.\&.
+      break;
+    }
+    default:
+      break;
+  }
+}
+.fi
+.PP
+.SH "Namespaces"
+.PP
+Define namespaces with lower case:
+.PP
+.PP
+.nf
+ {c++}
+namespace app {
+
+  \&.\&.\&.
+
+} // namespace app
+.fi
+.PP
+.SH "Classes"
+.PP
+Define classes with \fCCapitalCase\fP and member functions with \fCcamelCase\fP:
+.PP
+.PP
+.nf
+ {c++}
+class ClassName {
+public:
+  ClassName()
+    : m_memberVarA(1),
+      m_memberVarB(2),
+      m_memberVarC(3) {
+    \&.\&.\&.
+  }
+
+  virtual ~ClassName();
+
+  // We can return in the same line for getter\-like functions
+  int memberVar() const { return m_memberVar; }
+  void setMemberVar();
+
+protected:
+  virtual void onEvent1() { } // Do nothing functions can be defined as "{ }"
+  virtual void onEvent2() = 0;
+
+private:
+  int m_memberVarA;
+  int m_memberVarB;
+  int m_memberVarC;
+  int m_memberVarD = 4; // We can initialize variables here too
+};
+
+class Special : public ClassName {
+public:
+  Special();
+
+protected:
+  void onEvent2() override {
+    \&.\&.\&.
+  }
+};
+.fi
+.PP
+.SH "Const"
+.PP
+.IP "\(bu" 2
+\fCNL\&.26: Use conventional const notation\fP
+.PP
+.SH "C++17"
+.PP
+We are using C++17 standard\&. Some things cannot be used because we're targetting macOS 10\&.9, some notes are added about this:
+.PP
+.IP "\(bu" 2
+Use \fCnullptr\fP instead of \fCNULL\fP macro
+.IP "\(bu" 2
+Use \fCauto\fP for complex types, iterators, or when the variable type is obvious (e\&.g\&. \fCauto s = new Sprite;\fP)
+.IP "\(bu" 2
+Use range-based for loops (\fCfor (const auto& item : values) { \&.\&.\&. }\fP)
+.IP "\(bu" 2
+Use template alias (\fCtemplate<typename T> alias = orig<T>;\fP)
+.IP "\(bu" 2
+Use generic lambda functions
+.IP "\(bu" 2
+Use \fCstd::shared_ptr\fP, \fCstd::unique_ptr\fP, or \fC\fBbase::Ref\fP\fP
+.IP "\(bu" 2
+Use \fCstd::clamp\fP
+.IP "\(bu" 2
+Use \fCstd::optional\fP but taking care of some limitations from macOS 10\&.9:
+.IP "  \(bu" 4
+Use \fCstd::optional::has_value()\fP instead of \fCstd::optional::operator bool()\fP (\fCexample\fP)
+.IP "  \(bu" 4
+Use \fCstd::optional::operator*()\fP instead of \fCstd::optional::value()\fP (\fCexample\fP)
+.PP
+
+.IP "\(bu" 2
+Use \fCstd::variant\fP but taking care of some limitations from macOS 10\&.9:
+.IP "  \(bu" 4
+Use \fCT* p = std::get_if<T>(&value)\fP instead of \fCT v = std::get<T>(value)\fP or create an auxiliary \fCget_value()\fP using \fCstd::get_if\fP function (\fCexample\fP)
+.IP "  \(bu" 4
+Don't use \fCstd::visit()\fP, use some alternative with switch-case and the \fCstd::variant::index()\fP (\fCexample\fP)
+.PP
+
+.IP "\(bu" 2
+Use \fCstd::any\fP but taking care of some limitations from macOS 10\&.9:
+.IP "  \(bu" 4
+Use \fCT* p = std::any_cast<T>(&value)\fP instead of \fCT v = std::any_cast<T>(value)\fP (\fCexample\fP)
+.PP
+
+.IP "\(bu" 2
+Use \fCstatic constexpr T v = \&.\&.\&.;\fP
+.IP "\(bu" 2
+You can use \fC<atomic>\fP, \fC<thread>\fP, \fC<mutex>\fP, and \fC<condition_variable>\fP
+.IP "\(bu" 2
+Prefer \fCusing T = \&.\&.\&.;\fP instead of \fCtypedef \&.\&.\&. T\fP
+.IP "\(bu" 2
+Use \fC[[fallthrough]]\fP if needed
+.IP "\(bu" 2
+We use gcc 9\&.2 or clang 9\&.0 on Linux, so check the features available in https://en.cppreference.com/w/cpp/compiler_support 
+.PP
+

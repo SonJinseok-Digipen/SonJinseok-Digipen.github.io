@@ -1,0 +1,114 @@
+\hypertarget{utf8__decode_8h_source}{}\doxysection{utf8\+\_\+decode.\+h}
+\label{utf8__decode_8h_source}\index{AseSprite/aseprite/laf/base/utf8\_decode.h@{AseSprite/aseprite/laf/base/utf8\_decode.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ Base\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2022\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ BASE\_UTF8\_DECODE\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ BASE\_UTF8\_DECODE\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{namespace\ }base\ \{}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbase_1_1utf8__decode}{utf8\_decode}}\ \{}
+\DoxyCodeLine{00016\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keyword}{using\ }string\ =\ std::string;}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{using\ }string\_ref\ =\ \textcolor{keyword}{const}\ std::string\&;}
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keyword}{using\ }iterator\ =\ std::string::const\_iterator;}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \ \ \mbox{\hyperlink{classbase_1_1utf8__decode}{utf8\_decode}}()\ \{\ \}}
+\DoxyCodeLine{00022\ \ \ \ \ \mbox{\hyperlink{classbase_1_1utf8__decode}{utf8\_decode}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1utf8__decode}{utf8\_decode}}\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00023\ \ \ \ \ \mbox{\hyperlink{classbase_1_1utf8__decode}{utf8\_decode}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1utf8__decode}{utf8\_decode}}\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classbase_1_1utf8__decode}{utf8\_decode}}(string\_ref\ str)}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ :\ m\_it(str.begin())}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ ,\ m\_end(str.end())\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ iterator\ pos()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_it;}
+\DoxyCodeLine{00032\ \ \ \ \ \}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_end()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_it\ ==\ m\_end;}
+\DoxyCodeLine{00036\ \ \ \ \ \}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_valid()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_valid;}
+\DoxyCodeLine{00040\ \ \ \ \ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{int}\ next()\ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_it\ ==\ m\_end)}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ c\ =\ *m\_it;}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ ++m\_it;}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \textcolor{comment}{//\ UTF-\/8\ escape\ bit\ 0x80\ to\ encode\ larger\ code\ points}}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ \&\ 0b1000'0000)\ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Get\ the\ number\ of\ bits\ following\ the\ first\ one\ 0b1xxx'xxxx,}}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ which\ indicates\ the\ number\ of\ extra\ bytes\ in\ the\ input}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ string\ following\ this\ one,\ and\ that\ will\ be\ part\ of\ the}}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ final\ Unicode\ code\ point.}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ This\ is\ like\ "{}number\ of\ leading\ ones"{},\ similar\ to\ a}}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ \_\_builtin\_clz(\string~x)-\/24\ (for\ 8\ bits),\ anyway\ doing\ some\ tests,}}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ the\ CLZ\ intrinsic\ is\ not\ faster\ than\ this\ code\ in\ x86\_64.}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ n\ =\ 0;}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ f\ =\ 0b0100'0000;}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (c\ \&\ f)\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ ++n;}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ f\ >>=\ 1;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ ==\ 0)\ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Invalid\ UTF-\/8:\ 0b10xx'xxxx\ alone,\ i.e.\ not\ inside\ a}}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ escaped\ sequence\ (e.g.\ after\ 0b110xx'xxx}}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ m\_valid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Keep\ only\ the\ few\ initial\ data\ bits\ from\ the\ first\ byte\ (6}}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ first\ bits\ if\ we\ have\ only\ one\ extra\ char,\ then\ for\ each}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ extra\ char\ we\ have\ less\ useful\ data\ in\ this\ first\ byte).}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ c\ \&=\ (0b0001'1111\ >>\ (n-\/1));}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (n-\/-\/)\ \{}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_it\ ==\ m\_end)\ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Invalid\ UTF-\/8:\ missing\ 0b10xx'xxxx\ bytes}}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ m\_valid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ chr\ =\ *m\_it;}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ ++m\_it;}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((chr\ \&\ 0b1100'0000)\ !=\ 0b1000'0000)\ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Invalid\ UTF-\/8:\ Extra\ byte\ doesn't\ contain\ 0b10xx'xxxx}}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ m\_valid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Each\ extra\ byte\ in\ the\ encoded\ string\ adds\ 6\ bits\ of}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ information\ for\ the\ final\ Unicode\ code\ point.}}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ c\ =\ (c\ <<\ 6)\ |\ (chr\ \&\ 0b0011'1111);}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ c;}
+\DoxyCodeLine{00098\ \ \ \ \ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00101\ \ \ \ \ iterator\ m\_it;}
+\DoxyCodeLine{00102\ \ \ \ \ iterator\ m\_end;}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_valid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00104\ \ \ \};}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,73 @@
+\hypertarget{open__batch_8h_source}{}\doxysection{open\+\_\+batch.\+h}
+\label{open__batch_8h_source}\index{AseSprite/aseprite/src/app/util/open\_batch.h@{AseSprite/aseprite/src/app/util/open\_batch.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2020-\/2021\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ APP\_UTIL\_OPEN\_BATCH\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ APP\_UTIL\_OPEN\_BATCH\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}app/commands/cmd\_open\_file.h"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/context.h"{}}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \ \ \textcolor{comment}{//\ Helper\ class\ to\ a\ batch\ of\ files\ and\ handle\ the\ loading\ of\ image}}
+\DoxyCodeLine{00017\ \ \ \textcolor{comment}{//\ sequences\ and\ repeat\ the\ selected\ action\ of\ the\ user\ (Agree/Skip}}
+\DoxyCodeLine{00018\ \ \ \textcolor{comment}{//\ to\ open\ the\ sequence,\ and\ Repeat\ the\ action\ for\ all\ other}}
+\DoxyCodeLine{00019\ \ \ \textcolor{comment}{//\ elements)}}
+\DoxyCodeLine{00020\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_open_batch_of_files}{OpenBatchOfFiles}}\ \{}
+\DoxyCodeLine{00021\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordtype}{void}\ open(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx,}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ fn,}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ oneFrame)\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_params}{Params}}\ params;}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ params.set(\textcolor{stringliteral}{"{}filename"{}},\ fn.c\_str());}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (oneFrame)}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ params.set(\textcolor{stringliteral}{"{}oneframe"{}},\ \textcolor{stringliteral}{"{}true"{}});}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (m\_lastDecision)\ \{}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ gen::SequenceDecision::ASK:}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \ \ \ \ params.set(\textcolor{stringliteral}{"{}sequence"{}},\ \textcolor{stringliteral}{"{}ask"{}});}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ params.set(\textcolor{stringliteral}{"{}repeat\_checkbox"{}},\ \textcolor{stringliteral}{"{}true"{}});}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ gen::SequenceDecision::NO:}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \ \ \ \ params.set(\textcolor{stringliteral}{"{}sequence"{}},\ \textcolor{stringliteral}{"{}skip"{}});}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ gen::SequenceDecision::YES:}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ params.set(\textcolor{stringliteral}{"{}sequence"{}},\ \textcolor{stringliteral}{"{}agree"{}});}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (ctx-\/>isUIAvailable())}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ ctx-\/>executeCommandFromMenuOrShortcut(\&m\_cmd,\ params);}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ ctx-\/>executeCommand(\&m\_cmd,\ params);}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \textcolor{comment}{//\ Future\ decision\ for\ other\ files\ in\ the\ CLI}}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ d\ =\ m\_cmd.seqDecision();}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (d\ !=\ gen::SequenceDecision::ASK)}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ m\_lastDecision\ =\ d;}
+\DoxyCodeLine{00054\ \ \ \ \ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keyword}{const}\ base::paths\&\ usedFiles()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_cmd.usedFiles();}
+\DoxyCodeLine{00058\ \ \ \ \ \}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00061\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_open_file_command}{OpenFileCommand}}\ m\_cmd;}
+\DoxyCodeLine{00062\ \ \ \ \ gen::SequenceDecision\ m\_lastDecision\ =\ gen::SequenceDecision::ASK;}
+\DoxyCodeLine{00063\ \ \ \};}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

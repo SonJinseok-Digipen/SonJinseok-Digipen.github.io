@@ -1,0 +1,350 @@
+\hypertarget{src_2app_2file_2file_8h_source}{}\doxysection{file.\+h}
+\label{src_2app_2file_2file_8h_source}\index{AseSprite/aseprite/src/app/file/file.h@{AseSprite/aseprite/src/app/file/file.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_FILE\_FILE\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_FILE\_FILE\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/color.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/doc.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/file/file\_op\_config.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/file/format\_options.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}app/pref/preferences.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}base/paths.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/frame.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}doc/image\_ref.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}doc/pixel\_format.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}doc/selected\_frames.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}os/color\_space.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{comment}{//\ Flags\ for\ FileOp::createLoadDocumentOperation()}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ FILE\_LOAD\_SEQUENCE\_NONE\ \ \ \ \ \ \ \ \ 0x00000001}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ FILE\_LOAD\_SEQUENCE\_ASK\ \ \ \ \ \ \ \ \ \ 0x00000002}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ FILE\_LOAD\_SEQUENCE\_ASK\_CHECKBOX\ 0x00000004}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ FILE\_LOAD\_SEQUENCE\_YES\ \ \ \ \ \ \ \ \ \ 0x00000008}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#define\ FILE\_LOAD\_ONE\_FRAME\ \ \ \ \ \ \ \ \ \ \ \ \ 0x00000010}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ FILE\_LOAD\_DATA\_FILE\ \ \ \ \ \ \ \ \ \ \ \ \ 0x00000020}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ FILE\_LOAD\_CREATE\_PALETTE\ \ \ \ \ \ \ \ 0x00000040}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{class\ }Tag;}
+\DoxyCodeLine{00040\ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{class\ }Cel;}
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00045\ \ \ \textcolor{keyword}{class\ }Layer;}
+\DoxyCodeLine{00046\ \ \ \textcolor{keyword}{class\ }LayerImage;}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{class\ }Palette;}
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{class\ }Slice;}
+\DoxyCodeLine{00049\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00050\ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00055\ \ \ \textcolor{keyword}{class\ }FileFormat;}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{using\ namespace\ }doc;}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \textcolor{comment}{//\ File\ operations.}}
+\DoxyCodeLine{00060\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00061\ \ \ \ \ FileOpLoad,}
+\DoxyCodeLine{00062\ \ \ \ \ FileOpSave}
+\DoxyCodeLine{00063\ \ \ \}\ FileOpType;}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_i_file_op_progress}{IFileOpProgress}}\ \{}
+\DoxyCodeLine{00066\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_i_file_op_progress}{\string~IFileOpProgress}}()\ \{\ \}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ ackFileOpProgress(\textcolor{keywordtype}{double}\ progress)\ =\ 0;}
+\DoxyCodeLine{00069\ \ \ \};}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_file_op_r_o_i}{FileOpROI}}\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Region\ of\ interest}}
+\DoxyCodeLine{00072\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00073\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_op_r_o_i}{FileOpROI}}();}
+\DoxyCodeLine{00074\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_op_r_o_i}{FileOpROI}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc,}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ sliceName,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ tagName,}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_selected_frames}{doc::SelectedFrames}}\&\ selFrames,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ adjustByTag);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ document()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_document;\ \}}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_bounds;\ \}}
+\DoxyCodeLine{00083\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_slice}{doc::Slice}}*\ slice()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_slice;\ \}}
+\DoxyCodeLine{00084\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_tag}{doc::Tag}}*\ tag()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_tag;\ \}}
+\DoxyCodeLine{00085\ \ \ \ \ doc::frame\_t\ fromFrame()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_selFrames.firstFrame();\ \}}
+\DoxyCodeLine{00086\ \ \ \ \ doc::frame\_t\ toFrame()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_selFrames.lastFrame();\ \}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_selected_frames}{doc::SelectedFrames}}\&\ selectedFrames()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_selFrames;\ \}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ doc::frame\_t\ frames()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (doc::frame\_t)m\_selFrames.size();}
+\DoxyCodeLine{00091\ \ \ \ \ \}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_document;}
+\DoxyCodeLine{00095\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ m\_bounds;}
+\DoxyCodeLine{00096\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_slice}{doc::Slice}}*\ m\_slice;}
+\DoxyCodeLine{00097\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_tag}{doc::Tag}}*\ m\_tag;}
+\DoxyCodeLine{00098\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_selected_frames}{doc::SelectedFrames}}\ m\_selFrames;}
+\DoxyCodeLine{00099\ \ \ \};}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \textcolor{comment}{//\ Used\ by\ file\ formats\ with\ FILE\_ENCODE\_ABSTRACT\_IMAGE\ flag,\ to}}
+\DoxyCodeLine{00102\ \ \ \textcolor{comment}{//\ encode\ a\ sprite\ with\ an\ intermediate\ transformation\ on-\/the-\/fly}}
+\DoxyCodeLine{00103\ \ \ \textcolor{comment}{//\ (e.g.\ resizing).}}
+\DoxyCodeLine{00104\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_file_abstract_image}{FileAbstractImage}}\ \{}
+\DoxyCodeLine{00105\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_file_abstract_image}{\string~FileAbstractImage}}()\ \{\ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ width()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ spec().width();\ \}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ height()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ spec().height();\ \}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image_spec}{doc::ImageSpec}}\&\ spec()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ osColorSpace()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ needAlpha()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ isOpaque()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ frames()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ frameDuration(doc::frame\_t\ frame)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{doc::Palette}}*\ palette(doc::frame\_t\ frame)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keyword}{virtual}\ doc::PalettesList\ palettes()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ doc::ImageRef\ getScaledImage()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{comment}{//\ In\ case\ the\ file\ format\ can\ encode\ scanline\ by\ scanline}}
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{comment}{//\ (e.g.\ PNG\ format).}}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ uint8\_t*\ getScanline(\textcolor{keywordtype}{int}\ y)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{comment}{//\ In\ case\ that\ the\ encoder\ needs\ full\ frame\ renders\ (or\ compare}}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{comment}{//\ between\ frames),\ e.g.\ GIF\ format.}}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ renderFrame(\textcolor{keyword}{const}\ doc::frame\_t\ frame,\ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ dst)\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00130\ \ \ \};}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \textcolor{comment}{//\ Structure\ to\ load\ \&\ save\ files.}}
+\DoxyCodeLine{00133\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00134\ \ \ \textcolor{comment}{//\ TODO\ This\ class\ do\ to\ many\ things.\ There\ should\ be\ a\ previous}}
+\DoxyCodeLine{00135\ \ \ \textcolor{comment}{//\ instance\ (class)\ to\ verify\ what\ the\ user\ want\ to\ do\ with\ the}}
+\DoxyCodeLine{00136\ \ \ \textcolor{comment}{//\ sequence\ of\ files,\ and\ the\ result\ of\ that\ operation\ should\ be\ the}}
+\DoxyCodeLine{00137\ \ \ \textcolor{comment}{//\ input\ of\ this\ one.}}
+\DoxyCodeLine{00138\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_file_op}{FileOp}}\ \{}
+\DoxyCodeLine{00139\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classapp_1_1_file_op}{FileOp}}*\ createLoadDocumentOperation(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ filename,}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ flags,}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1_file_op_config}{FileOpConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}}\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classapp_1_1_file_op}{FileOp}}*\ createSaveDocumentOperation(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_file_op_r_o_i}{FileOpROI}}\&\ roi,}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ filename,}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ filenameFormat,}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ ignoreEmptyFrames);}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ checkIfFormatSupportResizeOnTheFly(\textcolor{keyword}{const}\ std::string\&\ filename);}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_op}{\string~FileOp}}();}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keywordtype}{bool}\ isSequence()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !m\_seq.filename\_list.empty();\ \}}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordtype}{bool}\ isOneFrame()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_oneframe;\ \}}
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordtype}{bool}\ preserveColorProfile()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_config.preserveColorProfile;\ \}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ filename()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_filename;\ \}}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keyword}{const}\ base::paths\&\ filenames()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_seq.filename\_list;\ \}}
+\DoxyCodeLine{00161\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_context;\ \}}
+\DoxyCodeLine{00162\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ document()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_document;\ \}}
+\DoxyCodeLine{00163\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ releaseDocument()\ \{}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc\ =\ m\_document;}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ m\_document\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ doc;}
+\DoxyCodeLine{00167\ \ \ \ \ \}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_file_op_r_o_i}{FileOpROI}}\&\ roi()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_roi;\ \}}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordtype}{void}\ createDocument(\mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ spr);}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordtype}{void}\ operate(\mbox{\hyperlink{classapp_1_1_i_file_op_progress}{IFileOpProgress}}*\ progress\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ \ \ \textcolor{keywordtype}{void}\ done();}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordtype}{void}\ stop();}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keywordtype}{bool}\ isDone()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keywordtype}{bool}\ isStop()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{comment}{//\ Does\ extra\ post-\/load\ processing\ which\ may\ require\ user\ intervention.}}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordtype}{void}\ postLoad();}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{comment}{//\ Special\ options\ specific\ to\ the\ file\ format.}}
+\DoxyCodeLine{00183\ \ \ \ \ FormatOptionsPtr\ formatOptions()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_formatOptions;}
+\DoxyCodeLine{00185\ \ \ \ \ \}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{comment}{//\ Options\ to\ save\ the\ document.\ This\ function\ doesn't\ return}}
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{comment}{//\ nullptr.}}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00190\ \ \ \ \ std::shared\_ptr<T>\ formatOptionsForSaving()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ opts\ =\ std::dynamic\_pointer\_cast<T>(m\_formatOptions);}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!opts)}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ opts\ =\ std::make\_shared<T>();}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ ASSERT(opts);}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ opts;}
+\DoxyCodeLine{00196\ \ \ \ \ \}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasFormatOptionsOfDocument()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_document-\/>formatOptions()\ !=\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00200\ \ \ \ \ \}}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{comment}{//\ Options\ from\ the\ document\ when\ it\ was\ loaded.\ This\ function}}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{comment}{//\ doesn't\ return\ nullptr.}}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00205\ \ \ \ \ std::shared\_ptr<T>\ formatOptionsOfDocument()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \textcolor{comment}{//\ We\ use\ the\ dynamic\ cast\ because\ the\ document\ format\ options}}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \textcolor{comment}{//\ could\ be\ an\ instance\ of\ another\ class\ than\ T.}}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ opts\ =\ std::dynamic\_pointer\_cast<T>(m\_document-\/>formatOptions());}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!opts)\ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ the\ document\ doesn't\ have\ format\ options\ (or\ the\ type}}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ doesn't\ matches\ T),\ we\ create\ default\ format\ options\ for}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ this\ file.}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ opts\ =\ std::make\_shared<T>();}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ ASSERT(opts);}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ opts;}
+\DoxyCodeLine{00217\ \ \ \ \ \}}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keywordtype}{void}\ setLoadedFormatOptions(\textcolor{keyword}{const}\ FormatOptionsPtr\&\ opts);}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{comment}{//\ Helpers\ for\ file\ decoder/encoder\ (FileFormat)\ with}}
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{comment}{//\ FILE\_SUPPORT\_SEQUENCES\ flag.}}
+\DoxyCodeLine{00223\ \ \ \ \ \textcolor{keywordtype}{void}\ sequenceSetNColors(\textcolor{keywordtype}{int}\ ncolors);}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keywordtype}{int}\ sequenceGetNColors()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00225\ \ \ \ \ \textcolor{keywordtype}{void}\ sequenceSetColor(\textcolor{keywordtype}{int}\ index,\ \textcolor{keywordtype}{int}\ r,\ \textcolor{keywordtype}{int}\ g,\ \textcolor{keywordtype}{int}\ b);}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordtype}{void}\ sequenceGetColor(\textcolor{keywordtype}{int}\ index,\ \textcolor{keywordtype}{int}*\ r,\ \textcolor{keywordtype}{int}*\ g,\ \textcolor{keywordtype}{int}*\ b)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keywordtype}{void}\ sequenceSetAlpha(\textcolor{keywordtype}{int}\ index,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}});}
+\DoxyCodeLine{00228\ \ \ \ \ \textcolor{keywordtype}{void}\ sequenceGetAlpha(\textcolor{keywordtype}{int}\ index,\ \textcolor{keywordtype}{int}*\ \mbox{\hyperlink{structa}{a}})\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00229\ \ \ \ \ ImageRef\ sequenceImage(PixelFormat\ pixelFormat,\ \textcolor{keywordtype}{int}\ w,\ \textcolor{keywordtype}{int}\ h);}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{keyword}{const}\ ImageRef\ sequenceImage()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_seq.image;\ \}}
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ sequenceGetPalette()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_seq.palette;\ \}}
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keywordtype}{bool}\ sequenceGetHasAlpha()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_seq.has\_alpha;}
+\DoxyCodeLine{00234\ \ \ \ \ \}}
+\DoxyCodeLine{00235\ \ \ \ \ \textcolor{keywordtype}{void}\ sequenceSetHasAlpha(\textcolor{keywordtype}{bool}\ hasAlpha)\ \{}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ m\_seq.has\_alpha\ =\ hasAlpha;}
+\DoxyCodeLine{00237\ \ \ \ \ \}}
+\DoxyCodeLine{00238\ \ \ \ \ \textcolor{keywordtype}{int}\ sequenceFlags()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_seq.flags;}
+\DoxyCodeLine{00240\ \ \ \ \ \}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \ \ \textcolor{comment}{//\ Can\ be\ used\ to\ encode\ sequences/static\ files\ (e.g.\ png\ files)}}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{comment}{//\ or\ animations\ (e.g.\ gif)\ resizing\ the\ result\ on\ the\ fly.}}
+\DoxyCodeLine{00244\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_abstract_image}{FileAbstractImage}}*\ abstractImage();}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{keywordtype}{void}\ setOnTheFlyScale(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::PointF}}\&\ scale);}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ error()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_error;\ \}}
+\DoxyCodeLine{00248\ \ \ \ \ \textcolor{keywordtype}{void}\ setError(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *error,\ ...);}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasError()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !m\_error.empty();\ \}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keywordtype}{double}\ progress()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{keywordtype}{void}\ setProgress(\textcolor{keywordtype}{double}\ progress);}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \ \ \textcolor{keywordtype}{void}\ getFilenameList(base::paths\&\ output)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keywordtype}{void}\ setEmbeddedColorProfile()\ \{\ m\_embeddedColorProfile\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasEmbeddedColorProfile()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_embeddedColorProfile;\ \}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \ \ \textcolor{keywordtype}{void}\ setEmbeddedGridBounds()\ \{\ m\_embeddedGridBounds\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasEmbeddedGridBounds()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_embeddedGridBounds;\ \}}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{keywordtype}{bool}\ newBlend()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_config.newBlend;\ \}}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00265\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_op}{FileOp}}();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Undefined}}
+\DoxyCodeLine{00266\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_op}{FileOp}}(FileOpType\ type,}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1_file_op_config}{FileOpConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}});}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \ \ \ \ FileOpType\ m\_type;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Operation\ type:\ 0=load,\ 1=save.}}
+\DoxyCodeLine{00271\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_format}{FileFormat}}*\ m\_format;}
+\DoxyCodeLine{00272\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ m\_context;}
+\DoxyCodeLine{00273\ \ \ \ \ \textcolor{comment}{//\ TODO\ this\ should\ be\ a\ shared\ pointer\ (and\ we\ should\ remove}}
+\DoxyCodeLine{00274\ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ releaseDocument()\ member\ function)}}
+\DoxyCodeLine{00275\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_document;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Loaded\ document,\ or\ document\ to\ be\ saved.}}
+\DoxyCodeLine{00276\ \ \ \ \ std::string\ m\_filename;\ \ \ \ \ \textcolor{comment}{//\ File-\/name\ to\ load/save.}}
+\DoxyCodeLine{00277\ \ \ \ \ std::string\ m\_dataFilename;\ \textcolor{comment}{//\ File-\/name\ for\ a\ special\ XML\ .aseprite-\/data\ where\ extra\ sprite\ data\ can\ be\ stored}}
+\DoxyCodeLine{00278\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_file_op_r_o_i}{FileOpROI}}\ m\_roi;}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{comment}{//\ Shared\ fields\ between\ threads.}}
+\DoxyCodeLine{00281\ \ \ \ \ \textcolor{keyword}{mutable}\ std::mutex\ m\_mutex;\ \textcolor{comment}{//\ Mutex\ to\ access\ to\ the\ next\ two\ fields.}}
+\DoxyCodeLine{00282\ \ \ \ \ \textcolor{keywordtype}{double}\ m\_progress;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Progress\ (1.0\ is\ ready).}}
+\DoxyCodeLine{00283\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_i_file_op_progress}{IFileOpProgress}}*\ m\_progressInterface;}
+\DoxyCodeLine{00284\ \ \ \ \ std::string\ m\_error;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Error\ string.}}
+\DoxyCodeLine{00285\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_done;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ True\ if\ the\ operation\ finished.}}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_stop;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Force\ the\ break\ of\ the\ operation.}}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_oneframe;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Load\ just\ one\ frame\ (in\ formats}}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ that\ support\ animation\ like}}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ GIF/FLI/ASE).}}
+\DoxyCodeLine{00290\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_createPaletteFromRgba;}
+\DoxyCodeLine{00291\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_ignoreEmpty;}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ \ \textcolor{comment}{//\ True\ if\ the\ file\ contained\ a\ color\ profile\ when\ it\ was\ loaded.}}
+\DoxyCodeLine{00294\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_embeddedColorProfile;}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{comment}{//\ True\ if\ the\ file\ contained\ a\ the\ grid\ bounds\ inside.}}
+\DoxyCodeLine{00297\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_embeddedGridBounds;}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \ \ \ \ \mbox{\hyperlink{structapp_1_1_file_op_config}{FileOpConfig}}\ m\_config;}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \ \ \ \ \textcolor{comment}{//\ Options}}
+\DoxyCodeLine{00302\ \ \ \ \ FormatOptionsPtr\ m\_formatOptions;}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{comment}{//\ Data\ for\ sequences.}}
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ base::paths\ filename\_list;\ \ \textcolor{comment}{//\ All\ file\ names\ to\ load/save.}}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ palette;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Palette\ of\ the\ sequence.}}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ ImageRef\ image;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Image\ to\ be\ saved/loaded.}}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \textcolor{comment}{//\ For\ the\ progress\ bar.}}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ progress\_offset;\ \ \ \ \ \ \textcolor{comment}{//\ Progress\ offset\ from\ the\ current\ frame.}}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ progress\_fraction;\ \ \ \ \textcolor{comment}{//\ Progress\ fraction\ for\ one\ frame.}}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \textcolor{comment}{//\ To\ load\ sequences.}}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ frame\_t\ frame;}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_alpha;}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_layer_image}{LayerImage}}*\ layer;}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_cel}{Cel}}*\ last\_cel;}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ duration;}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \textcolor{comment}{//\ Flags\ after\ the\ user\ choose\ what\ to\ do\ with\ the\ sequence.}}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ flags;}
+\DoxyCodeLine{00320\ \ \ \ \ \}\ m\_seq;}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_file_op_1_1_file_abstract_image_impl}{FileAbstractImageImpl}};}
+\DoxyCodeLine{00323\ \ \ \ \ std::unique\_ptr<FileAbstractImageImpl>\ m\_abstractImage;}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keywordtype}{void}\ prepareForSequence();}
+\DoxyCodeLine{00326\ \ \ \ \ \textcolor{keywordtype}{void}\ makeAbstractImage();}
+\DoxyCodeLine{00327\ \ \ \};}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \ \ \textcolor{comment}{//\ Available\ extensions\ for\ each\ load/save\ operation.}}
+\DoxyCodeLine{00330\ \ \ base::paths\ get\_readable\_extensions();}
+\DoxyCodeLine{00331\ \ \ base::paths\ get\_writable\_extensions(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ requiredFormatFlag\ =\ 0);}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \textcolor{comment}{//\ High-\/level\ routines\ to\ load/save\ documents.}}
+\DoxyCodeLine{00334\ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ load\_document(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,\ \textcolor{keyword}{const}\ std::string\&\ filename);}
+\DoxyCodeLine{00335\ \ \ \textcolor{keywordtype}{int}\ save\_document(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ context,\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ document);}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ given\ filename\ contains\ a\ file\ extension\ that}}
+\DoxyCodeLine{00338\ \ \ \textcolor{comment}{//\ can\ be\ used\ to\ save\ only\ static\ images\ (i.e.\ animations\ are\ saved}}
+\DoxyCodeLine{00339\ \ \ \textcolor{comment}{//\ as\ sequence\ of\ files).}}
+\DoxyCodeLine{00340\ \ \ \textcolor{keywordtype}{bool}\ is\_static\_image\_format(\textcolor{keyword}{const}\ std::string\&\ filename);}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00343\ }
+\DoxyCodeLine{00344\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

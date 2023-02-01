@@ -1,0 +1,806 @@
+\hypertarget{lobject_8h_source}{}\doxysection{lobject.\+h}
+\label{lobject_8h_source}\index{AseSprite/aseprite/third\_party/lua/lobject.h@{AseSprite/aseprite/third\_party/lua/lobject.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{**\ \$Id:\ lobject.h\ \$}}
+\DoxyCodeLine{00003\ \textcolor{comment}{**\ Type\ definitions\ for\ Lua\ objects}}
+\DoxyCodeLine{00004\ \textcolor{comment}{**\ See\ Copyright\ Notice\ in\ lua.h}}
+\DoxyCodeLine{00005\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ lobject\_h}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ lobject\_h}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <stdarg.h>}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}llimits.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}lua.h"{}}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00020\ \textcolor{comment}{**\ Extra\ types\ for\ collectable\ non-\/values}}
+\DoxyCodeLine{00021\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ LUA\_TUPVAL\ \ LUA\_NUMTYPES\ \ }\textcolor{comment}{/*\ upvalues\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ LUA\_TPROTO\ \ (LUA\_NUMTYPES+1)\ \ }\textcolor{comment}{/*\ function\ prototypes\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ LUA\_TDEADKEY\ \ \ \ (LUA\_NUMTYPES+2)\ \ }\textcolor{comment}{/*\ removed\ keys\ in\ tables\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00029\ \textcolor{comment}{**\ number\ of\ all\ possible\ types\ (including\ LUA\_TNONE\ but\ excluding\ DEADKEY)}}
+\DoxyCodeLine{00030\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ LUA\_TOTALTYPES\ \ \ \ \ \ (LUA\_TPROTO\ +\ 2)}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00035\ \textcolor{comment}{**\ tags\ for\ Tagged\ Values\ have\ the\ following\ use\ of\ bits:}}
+\DoxyCodeLine{00036\ \textcolor{comment}{**\ bits\ 0-\/3:\ actual\ tag\ (a\ LUA\_T*\ constant)}}
+\DoxyCodeLine{00037\ \textcolor{comment}{**\ bits\ 4-\/5:\ variant\ bits}}
+\DoxyCodeLine{00038\ \textcolor{comment}{**\ bit\ 6:\ whether\ value\ is\ collectable}}
+\DoxyCodeLine{00039\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{comment}{/*\ add\ variant\ bits\ to\ a\ type\ */}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ makevariant(t,v)\ \ \ \ ((t)\ |\ ((v)\ <<\ 4))}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00047\ \textcolor{comment}{**\ Union\ of\ all\ Lua\ values}}
+\DoxyCodeLine{00048\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00049\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{union\ }\mbox{\hyperlink{union_value}{Value}}\ \{}
+\DoxyCodeLine{00050\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *gc;\ \ \ \ \textcolor{comment}{/*\ collectable\ objects\ */}}
+\DoxyCodeLine{00051\ \ \ \textcolor{keywordtype}{void}\ *p;\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ light\ userdata\ */}}
+\DoxyCodeLine{00052\ \ \ lua\_CFunction\ f;\ \textcolor{comment}{/*\ light\ C\ functions\ */}}
+\DoxyCodeLine{00053\ \ \ lua\_Integer\ i;\ \ \ \textcolor{comment}{/*\ integer\ numbers\ */}}
+\DoxyCodeLine{00054\ \ \ lua\_Number\ n;\ \ \ \ \textcolor{comment}{/*\ float\ numbers\ */}}
+\DoxyCodeLine{00055\ \}\ \mbox{\hyperlink{union_value}{Value}};}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00059\ \textcolor{comment}{**\ Tagged\ Values.\ This\ is\ the\ basic\ representation\ of\ values\ in\ Lua:}}
+\DoxyCodeLine{00060\ \textcolor{comment}{**\ an\ actual\ value\ plus\ a\ tag\ with\ its\ type.}}
+\DoxyCodeLine{00061\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#define\ TValuefields\ \ \ \ Value\ value\_;\ lu\_byte\ tt\_}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t_value}{TValue}}\ \{}
+\DoxyCodeLine{00066\ \ \ TValuefields;}
+\DoxyCodeLine{00067\ \}\ \mbox{\hyperlink{struct_t_value}{TValue}};}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ val\_(o)\ \ \ \ \ ((o)-\/>value\_)}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#define\ valraw(o)\ \ \ (\&val\_(o))}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{comment}{/*\ raw\ type\ tag\ of\ a\ TValue\ */}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#define\ rawtt(o)\ \ \ \ ((o)-\/>tt\_)}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{comment}{/*\ tag\ with\ no\ variants\ (bits\ 0-\/3)\ */}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#define\ novariant(t)\ \ \ \ ((t)\ \&\ 0x0F)}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{/*\ type\ tag\ of\ a\ TValue\ (bits\ 0-\/3\ for\ tags\ +\ variant\ bits\ 4-\/5)\ */}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#define\ withvariant(t)\ \ ((t)\ \&\ 0x3F)}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#define\ ttypetag(o)\ withvariant(rawtt(o))}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{/*\ type\ of\ a\ TValue\ */}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ ttype(o)\ \ \ \ (novariant(rawtt(o)))}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{comment}{/*\ Macros\ to\ test\ type\ */}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ checktag(o,t)\ \ \ \ \ \ \ (rawtt(o)\ ==\ (t))}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#define\ checktype(o,t)\ \ \ \ \ \ (ttype(o)\ ==\ (t))}}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{comment}{/*\ Macros\ for\ internal\ tests\ */}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{comment}{/*\ collectable\ object\ has\ the\ same\ tag\ as\ the\ original\ value\ */}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#define\ righttt(obj)\ \ \ \ \ \ \ \ (ttypetag(obj)\ ==\ gcvalue(obj)-\/>tt)}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00099\ \textcolor{comment}{**\ Any\ value\ being\ manipulated\ by\ the\ program\ either\ is\ non}}
+\DoxyCodeLine{00100\ \textcolor{comment}{**\ collectable,\ or\ the\ collectable\ object\ has\ the\ right\ tag}}
+\DoxyCodeLine{00101\ \textcolor{comment}{**\ and\ it\ is\ not\ dead.\ The\ option\ 'L\ ==\ NULL'\ allows\ other}}
+\DoxyCodeLine{00102\ \textcolor{comment}{**\ macros\ using\ this\ one\ to\ be\ used\ where\ L\ is\ not\ available.}}
+\DoxyCodeLine{00103\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#define\ checkliveness(L,obj)\ \(\backslash\)}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\ \ \ \ ((void)L,\ lua\_longassert(!iscollectable(obj)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ (righttt(obj)\ \&\&\ (L\ ==\ NULL\ ||\ !isdead(G(L),gcvalue(obj))))))}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{comment}{/*\ Macros\ to\ set\ values\ */}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{comment}{/*\ set\ a\ value's\ tag\ */}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#define\ settt\_(o,t)\ ((o)-\/>tt\_=(t))}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{comment}{/*\ main\ macro\ to\ copy\ values\ (from\ 'obj1'\ to\ 'obj2')\ */}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#define\ setobj(L,obj1,obj2)\ \(\backslash\)}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\ \ \ \ \{\ TValue\ *io1=(obj1);\ const\ TValue\ *io2=(obj2);\ \(\backslash\)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ io1-\/>value\_\ =\ io2-\/>value\_;\ settt\_(io1,\ io2-\/>tt\_);\ \(\backslash\)}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\ \ \ \ \ \ checkliveness(L,io1);\ lua\_assert(!isnonstrictnil(io1));\ \}}}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00122\ \textcolor{comment}{**\ Different\ types\ of\ assignments,\ according\ to\ source\ and\ destination.}}
+\DoxyCodeLine{00123\ \textcolor{comment}{**\ (They\ are\ mostly\ equal\ now,\ but\ may\ be\ different\ in\ the\ future.)}}
+\DoxyCodeLine{00124\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{comment}{/*\ from\ stack\ to\ stack\ */}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#define\ setobjs2s(L,o1,o2)\ \ setobj(L,s2v(o1),s2v(o2))}}
+\DoxyCodeLine{00128\ \textcolor{comment}{/*\ to\ stack\ (not\ from\ same\ stack)\ */}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ setobj2s(L,o1,o2)\ \ \ setobj(L,s2v(o1),o2)}}
+\DoxyCodeLine{00130\ \textcolor{comment}{/*\ from\ table\ to\ same\ table\ */}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ setobjt2t\ \ \ setobj}}
+\DoxyCodeLine{00132\ \textcolor{comment}{/*\ to\ new\ object\ */}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ setobj2n\ \ \ \ setobj}}
+\DoxyCodeLine{00134\ \textcolor{comment}{/*\ to\ table\ */}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#define\ setobj2t\ \ \ \ setobj}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00139\ \textcolor{comment}{**\ Entries\ in\ a\ Lua\ stack.\ Field\ 'tbclist'\ forms\ a\ list\ of\ all}}
+\DoxyCodeLine{00140\ \textcolor{comment}{**\ to-\/be-\/closed\ variables\ active\ in\ this\ stack.\ Dummy\ entries\ are}}
+\DoxyCodeLine{00141\ \textcolor{comment}{**\ used\ when\ the\ distance\ between\ two\ tbc\ variables\ does\ not\ fit}}
+\DoxyCodeLine{00142\ \textcolor{comment}{**\ in\ an\ unsigned\ short.\ They\ are\ represented\ by\ delta==0,\ and}}
+\DoxyCodeLine{00143\ \textcolor{comment}{**\ their\ real\ delta\ is\ always\ the\ maximum\ value\ that\ fits\ in}}
+\DoxyCodeLine{00144\ \textcolor{comment}{**\ that\ field.}}
+\DoxyCodeLine{00145\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00146\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{union\ }\mbox{\hyperlink{union_stack_value}{StackValue}}\ \{}
+\DoxyCodeLine{00147\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ val;}
+\DoxyCodeLine{00148\ \ \ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00149\ \ \ \ \ TValuefields;}
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ delta;}
+\DoxyCodeLine{00151\ \ \ \}\ tbclist;}
+\DoxyCodeLine{00152\ \}\ \mbox{\hyperlink{union_stack_value}{StackValue}};}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \textcolor{comment}{/*\ index\ to\ stack\ elements\ */}}
+\DoxyCodeLine{00156\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{union_stack_value}{StackValue}}\ *\mbox{\hyperlink{union_stack_value}{StkId}};}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \textcolor{comment}{/*\ convert\ a\ 'StackValue'\ to\ a\ 'TValue'\ */}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#define\ s2v(o)\ \ (\&(o)-\/>val)}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00164\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00165\ \textcolor{comment}{**\ Nil}}
+\DoxyCodeLine{00166\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00167\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \textcolor{comment}{/*\ Standard\ nil\ */}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#define\ LUA\_VNIL\ \ \ \ makevariant(LUA\_TNIL,\ 0)}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{comment}{/*\ Empty\ slot\ (which\ might\ be\ different\ from\ a\ slot\ containing\ nil)\ */}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#define\ LUA\_VEMPTY\ \ makevariant(LUA\_TNIL,\ 1)}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{comment}{/*\ Value\ returned\ for\ a\ key\ not\ found\ in\ a\ table\ (absent\ key)\ */}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ LUA\_VABSTKEY\ \ \ \ makevariant(LUA\_TNIL,\ 2)}}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \textcolor{comment}{/*\ macro\ to\ test\ for\ (any\ kind\ of)\ nil\ */}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\#define\ ttisnil(v)\ \ \ \ \ \ checktype((v),\ LUA\_TNIL)}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \textcolor{comment}{/*\ macro\ to\ test\ for\ a\ standard\ nil\ */}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#define\ ttisstrictnil(o)\ \ \ \ checktag((o),\ LUA\_VNIL)}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#define\ setnilvalue(obj)\ settt\_(obj,\ LUA\_VNIL)}}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#define\ isabstkey(v)\ \ \ \ \ \ \ \ checktag((v),\ LUA\_VABSTKEY)}}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ }
+\DoxyCodeLine{00193\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00194\ \textcolor{comment}{**\ macro\ to\ detect\ non-\/standard\ nils\ (used\ only\ in\ assertions)}}
+\DoxyCodeLine{00195\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#define\ isnonstrictnil(v)\ \ \ (ttisnil(v)\ \&\&\ !ttisstrictnil(v))}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00200\ \textcolor{comment}{**\ By\ default,\ entries\ with\ any\ kind\ of\ nil\ are\ considered\ empty.}}
+\DoxyCodeLine{00201\ \textcolor{comment}{**\ (In\ any\ definition,\ values\ associated\ with\ absent\ keys\ must\ also}}
+\DoxyCodeLine{00202\ \textcolor{comment}{**\ be\ accepted\ as\ empty.)}}
+\DoxyCodeLine{00203\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\#define\ isempty(v)\ \ \ \ \ \ ttisnil(v)}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{comment}{/*\ macro\ defining\ a\ value\ corresponding\ to\ an\ absent\ key\ */}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#define\ ABSTKEYCONSTANT\ \ \ \ \ \{NULL\},\ LUA\_VABSTKEY}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \textcolor{comment}{/*\ mark\ an\ entry\ as\ empty\ */}}
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#define\ setempty(v)\ \ \ \ \ settt\_(v,\ LUA\_VEMPTY)}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00220\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00221\ \textcolor{comment}{**\ Booleans}}
+\DoxyCodeLine{00222\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00223\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\#define\ LUA\_VFALSE\ \ makevariant(LUA\_TBOOLEAN,\ 0)}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#define\ LUA\_VTRUE\ \ \ makevariant(LUA\_TBOOLEAN,\ 1)}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#define\ ttisboolean(o)\ \ \ \ \ \ checktype((o),\ LUA\_TBOOLEAN)}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#define\ ttisfalse(o)\ \ \ \ \ \ \ \ checktag((o),\ LUA\_VFALSE)}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#define\ ttistrue(o)\ \ \ \ \ checktag((o),\ LUA\_VTRUE)}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#define\ l\_isfalse(o)\ \ \ \ (ttisfalse(o)\ ||\ ttisnil(o))}}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\#define\ setbfvalue(obj)\ \ \ \ \ settt\_(obj,\ LUA\_VFALSE)}}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\#define\ setbtvalue(obj)\ \ \ \ \ settt\_(obj,\ LUA\_VTRUE)}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00244\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00245\ \textcolor{comment}{**\ Threads}}
+\DoxyCodeLine{00246\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00247\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\#define\ LUA\_VTHREAD\ \ \ \ \ makevariant(LUA\_TTHREAD,\ 0)}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \textcolor{preprocessor}{\#define\ ttisthread(o)\ \ \ \ \ \ \ checktag((o),\ ctb(LUA\_VTHREAD))}}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \textcolor{preprocessor}{\#define\ thvalue(o)\ \ check\_exp(ttisthread(o),\ gco2th(val\_(o).gc))}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \textcolor{preprocessor}{\#define\ setthvalue(L,obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io\ =\ (obj);\ lua\_State\ *x\_\ =\ (x);\ \(\backslash\)}}
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\ \ \ \ val\_(io).gc\ =\ obj2gco(x\_);\ settt\_(io,\ ctb(LUA\_VTHREAD));\ \(\backslash\)}}
+\DoxyCodeLine{00258\ \textcolor{preprocessor}{\ \ \ \ checkliveness(L,io);\ \}}}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\#define\ setthvalue2s(L,o,t)\ setthvalue(L,s2v(o),t)}}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00266\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00267\ \textcolor{comment}{**\ Collectable\ Objects}}
+\DoxyCodeLine{00268\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00269\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00272\ \textcolor{comment}{**\ Common\ Header\ for\ all\ collectable\ objects\ (in\ macro\ form,\ to\ be}}
+\DoxyCodeLine{00273\ \textcolor{comment}{**\ included\ in\ other\ objects)}}
+\DoxyCodeLine{00274\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\#define\ CommonHeader\ \ \ \ struct\ GCObject\ *next;\ lu\_byte\ tt;\ lu\_byte\ marked}}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \textcolor{comment}{/*\ Common\ type\ for\ all\ collectable\ objects\ */}}
+\DoxyCodeLine{00279\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_g_c_object}{GCObject}}\ \{}
+\DoxyCodeLine{00280\ \ \ CommonHeader;}
+\DoxyCodeLine{00281\ \}\ \mbox{\hyperlink{struct_g_c_object}{GCObject}};}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \textcolor{comment}{/*\ Bit\ mark\ for\ collectable\ types\ */}}
+\DoxyCodeLine{00285\ \textcolor{preprocessor}{\#define\ BIT\_ISCOLLECTABLE\ \ \ (1\ <<\ 6)}}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \textcolor{preprocessor}{\#define\ iscollectable(o)\ \ \ \ (rawtt(o)\ \&\ BIT\_ISCOLLECTABLE)}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \textcolor{comment}{/*\ mark\ a\ tag\ as\ collectable\ */}}
+\DoxyCodeLine{00290\ \textcolor{preprocessor}{\#define\ ctb(t)\ \ \ \ \ \ \ \ \ \ ((t)\ |\ BIT\_ISCOLLECTABLE)}}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\#define\ gcvalue(o)\ \ check\_exp(iscollectable(o),\ val\_(o).gc)}}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\#define\ gcvalueraw(v)\ \ \ ((v).gc)}}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \textcolor{preprocessor}{\#define\ setgcovalue(L,obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io\ =\ (obj);\ GCObject\ *i\_g=(x);\ \(\backslash\)}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\ \ \ \ val\_(io).gc\ =\ i\_g;\ settt\_(io,\ ctb(i\_g-\/>tt));\ \}}}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00304\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00305\ \textcolor{comment}{**\ Numbers}}
+\DoxyCodeLine{00306\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00307\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \textcolor{comment}{/*\ Variant\ tags\ for\ numbers\ */}}
+\DoxyCodeLine{00310\ \textcolor{preprocessor}{\#define\ LUA\_VNUMINT\ makevariant(LUA\_TNUMBER,\ 0)\ \ }\textcolor{comment}{/*\ integer\ numbers\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00311\ \textcolor{preprocessor}{\#define\ LUA\_VNUMFLT\ makevariant(LUA\_TNUMBER,\ 1)\ \ }\textcolor{comment}{/*\ float\ numbers\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \textcolor{preprocessor}{\#define\ ttisnumber(o)\ \ \ \ \ \ \ checktype((o),\ LUA\_TNUMBER)}}
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\#define\ ttisfloat(o)\ \ \ \ \ \ \ \ checktag((o),\ LUA\_VNUMFLT)}}
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\#define\ ttisinteger(o)\ \ \ \ \ \ checktag((o),\ LUA\_VNUMINT)}}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\#define\ nvalue(o)\ \ \ check\_exp(ttisnumber(o),\ \(\backslash\)}}
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\ \ \ \ (ttisinteger(o)\ ?\ cast\_num(ivalue(o))\ :\ fltvalue(o)))}}
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\#define\ fltvalue(o)\ check\_exp(ttisfloat(o),\ val\_(o).n)}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\#define\ ivalue(o)\ \ \ check\_exp(ttisinteger(o),\ val\_(o).i)}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \textcolor{preprocessor}{\#define\ fltvalueraw(v)\ \ ((v).n)}}
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\#define\ ivalueraw(v)\ \ \ \ ((v).i)}}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\#define\ setfltvalue(obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io=(obj);\ val\_(io).n=(x);\ settt\_(io,\ LUA\_VNUMFLT);\ \}}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#define\ chgfltvalue(obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io=(obj);\ lua\_assert(ttisfloat(io));\ val\_(io).n=(x);\ \}}}
+\DoxyCodeLine{00330\ }
+\DoxyCodeLine{00331\ \textcolor{preprocessor}{\#define\ setivalue(obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io=(obj);\ val\_(io).i=(x);\ settt\_(io,\ LUA\_VNUMINT);\ \}}}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\#define\ chgivalue(obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io=(obj);\ lua\_assert(ttisinteger(io));\ val\_(io).i=(x);\ \}}}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00341\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00342\ \textcolor{comment}{**\ Strings}}
+\DoxyCodeLine{00343\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00344\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \textcolor{comment}{/*\ Variant\ tags\ for\ strings\ */}}
+\DoxyCodeLine{00347\ \textcolor{preprocessor}{\#define\ LUA\_VSHRSTR\ makevariant(LUA\_TSTRING,\ 0)\ \ }\textcolor{comment}{/*\ short\ strings\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00348\ \textcolor{preprocessor}{\#define\ LUA\_VLNGSTR\ makevariant(LUA\_TSTRING,\ 1)\ \ }\textcolor{comment}{/*\ long\ strings\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \textcolor{preprocessor}{\#define\ ttisstring(o)\ \ \ \ \ \ \ checktype((o),\ LUA\_TSTRING)}}
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\#define\ ttisshrstring(o)\ \ \ \ checktag((o),\ ctb(LUA\_VSHRSTR))}}
+\DoxyCodeLine{00352\ \textcolor{preprocessor}{\#define\ ttislngstring(o)\ \ \ \ checktag((o),\ ctb(LUA\_VLNGSTR))}}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \textcolor{preprocessor}{\#define\ tsvalueraw(v)\ \ \ (gco2ts((v).gc))}}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \textcolor{preprocessor}{\#define\ tsvalue(o)\ \ check\_exp(ttisstring(o),\ gco2ts(val\_(o).gc))}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \textcolor{preprocessor}{\#define\ setsvalue(L,obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00359\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io\ =\ (obj);\ TString\ *x\_\ =\ (x);\ \(\backslash\)}}
+\DoxyCodeLine{00360\ \textcolor{preprocessor}{\ \ \ \ val\_(io).gc\ =\ obj2gco(x\_);\ settt\_(io,\ ctb(x\_-\/>tt));\ \(\backslash\)}}
+\DoxyCodeLine{00361\ \textcolor{preprocessor}{\ \ \ \ checkliveness(L,io);\ \}}}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \textcolor{comment}{/*\ set\ a\ string\ to\ the\ stack\ */}}
+\DoxyCodeLine{00364\ \textcolor{preprocessor}{\#define\ setsvalue2s(L,o,s)\ \ setsvalue(L,s2v(o),s)}}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{comment}{/*\ set\ a\ string\ to\ a\ new\ object\ */}}
+\DoxyCodeLine{00367\ \textcolor{preprocessor}{\#define\ setsvalue2n\ setsvalue}}
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00371\ \textcolor{comment}{**\ Header\ for\ a\ string\ value.}}
+\DoxyCodeLine{00372\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00373\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t_string}{TString}}\ \{}
+\DoxyCodeLine{00374\ \ \ CommonHeader;}
+\DoxyCodeLine{00375\ \ \ lu\_byte\ extra;\ \ \textcolor{comment}{/*\ reserved\ words\ for\ short\ strings;\ "{}has\ hash"{}\ for\ longs\ */}}
+\DoxyCodeLine{00376\ \ \ lu\_byte\ shrlen;\ \ \textcolor{comment}{/*\ length\ for\ short\ strings\ */}}
+\DoxyCodeLine{00377\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ hash;}
+\DoxyCodeLine{00378\ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00379\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ lnglen;\ \ \textcolor{comment}{/*\ length\ for\ long\ strings\ */}}
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_t_string}{TString}}\ *hnext;\ \ \textcolor{comment}{/*\ linked\ list\ for\ hash\ table\ */}}
+\DoxyCodeLine{00381\ \ \ \}\ u;}
+\DoxyCodeLine{00382\ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structcontents}{contents}}[1];}
+\DoxyCodeLine{00383\ \}\ \mbox{\hyperlink{struct_t_string}{TString}};}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ }
+\DoxyCodeLine{00387\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00388\ \textcolor{comment}{**\ Get\ the\ actual\ string\ (array\ of\ bytes)\ from\ a\ 'TString'.}}
+\DoxyCodeLine{00389\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00390\ \textcolor{preprocessor}{\#define\ getstr(ts)\ \ ((ts)-\/>contents)}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \textcolor{comment}{/*\ get\ the\ actual\ string\ (array\ of\ bytes)\ from\ a\ Lua\ value\ */}}
+\DoxyCodeLine{00394\ \textcolor{preprocessor}{\#define\ svalue(o)\ \ \ \ \ \ \ getstr(tsvalue(o))}}
+\DoxyCodeLine{00395\ }
+\DoxyCodeLine{00396\ \textcolor{comment}{/*\ get\ string\ length\ from\ 'TString\ *s'\ */}}
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\#define\ tsslen(s)\ \ \ ((s)-\/>tt\ ==\ LUA\_VSHRSTR\ ?\ (s)-\/>shrlen\ :\ (s)-\/>u.lnglen)}}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \textcolor{comment}{/*\ get\ string\ length\ from\ 'TValue\ *o'\ */}}
+\DoxyCodeLine{00400\ \textcolor{preprocessor}{\#define\ vslen(o)\ \ \ \ tsslen(tsvalue(o))}}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00403\ }
+\DoxyCodeLine{00404\ }
+\DoxyCodeLine{00405\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00406\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00407\ \textcolor{comment}{**\ Userdata}}
+\DoxyCodeLine{00408\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00409\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ }
+\DoxyCodeLine{00412\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00413\ \textcolor{comment}{**\ Light\ userdata\ should\ be\ a\ variant\ of\ userdata,\ but\ for\ compatibility}}
+\DoxyCodeLine{00414\ \textcolor{comment}{**\ reasons\ they\ are\ also\ different\ types.}}
+\DoxyCodeLine{00415\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00416\ \textcolor{preprocessor}{\#define\ LUA\_VLIGHTUSERDATA\ \ makevariant(LUA\_TLIGHTUSERDATA,\ 0)}}
+\DoxyCodeLine{00417\ }
+\DoxyCodeLine{00418\ \textcolor{preprocessor}{\#define\ LUA\_VUSERDATA\ \ \ \ \ \ \ makevariant(LUA\_TUSERDATA,\ 0)}}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \textcolor{preprocessor}{\#define\ ttislightuserdata(o)\ \ \ \ checktag((o),\ LUA\_VLIGHTUSERDATA)}}
+\DoxyCodeLine{00421\ \textcolor{preprocessor}{\#define\ ttisfulluserdata(o)\ checktag((o),\ ctb(LUA\_VUSERDATA))}}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \textcolor{preprocessor}{\#define\ pvalue(o)\ \ \ check\_exp(ttislightuserdata(o),\ val\_(o).p)}}
+\DoxyCodeLine{00424\ \textcolor{preprocessor}{\#define\ uvalue(o)\ \ \ check\_exp(ttisfulluserdata(o),\ gco2u(val\_(o).gc))}}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \textcolor{preprocessor}{\#define\ pvalueraw(v)\ \ \ \ ((v).p)}}
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \textcolor{preprocessor}{\#define\ setpvalue(obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00429\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io=(obj);\ val\_(io).p=(x);\ settt\_(io,\ LUA\_VLIGHTUSERDATA);\ \}}}
+\DoxyCodeLine{00430\ }
+\DoxyCodeLine{00431\ \textcolor{preprocessor}{\#define\ setuvalue(L,obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00432\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io\ =\ (obj);\ Udata\ *x\_\ =\ (x);\ \(\backslash\)}}
+\DoxyCodeLine{00433\ \textcolor{preprocessor}{\ \ \ \ val\_(io).gc\ =\ obj2gco(x\_);\ settt\_(io,\ ctb(LUA\_VUSERDATA));\ \(\backslash\)}}
+\DoxyCodeLine{00434\ \textcolor{preprocessor}{\ \ \ \ checkliveness(L,io);\ \}}}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ \textcolor{comment}{/*\ Ensures\ that\ addresses\ after\ this\ type\ are\ always\ fully\ aligned.\ */}}
+\DoxyCodeLine{00438\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{union\ }\mbox{\hyperlink{union_u_value}{UValue}}\ \{}
+\DoxyCodeLine{00439\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ uv;}
+\DoxyCodeLine{00440\ \ \ LUAI\_MAXALIGN;\ \ \textcolor{comment}{/*\ ensures\ maximum\ alignment\ for\ udata\ bytes\ */}}
+\DoxyCodeLine{00441\ \}\ \mbox{\hyperlink{union_u_value}{UValue}};}
+\DoxyCodeLine{00442\ }
+\DoxyCodeLine{00443\ }
+\DoxyCodeLine{00444\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00445\ \textcolor{comment}{**\ Header\ for\ userdata\ with\ user\ values;}}
+\DoxyCodeLine{00446\ \textcolor{comment}{**\ memory\ area\ follows\ the\ end\ of\ this\ structure.}}
+\DoxyCodeLine{00447\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00448\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_udata}{Udata}}\ \{}
+\DoxyCodeLine{00449\ \ \ CommonHeader;}
+\DoxyCodeLine{00450\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ nuvalue;\ \ \textcolor{comment}{/*\ number\ of\ user\ values\ */}}
+\DoxyCodeLine{00451\ \ \ \textcolor{keywordtype}{size\_t}\ len;\ \ \textcolor{comment}{/*\ number\ of\ bytes\ */}}
+\DoxyCodeLine{00452\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_table}{Table}}\ *metatable;}
+\DoxyCodeLine{00453\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *gclist;}
+\DoxyCodeLine{00454\ \ \ \mbox{\hyperlink{union_u_value}{UValue}}\ uv[1];\ \ \textcolor{comment}{/*\ user\ values\ */}}
+\DoxyCodeLine{00455\ \}\ \mbox{\hyperlink{struct_udata}{Udata}};}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ }
+\DoxyCodeLine{00458\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00459\ \textcolor{comment}{**\ Header\ for\ userdata\ with\ no\ user\ values.\ These\ userdata\ do\ not\ need}}
+\DoxyCodeLine{00460\ \textcolor{comment}{**\ to\ be\ gray\ during\ GC,\ and\ therefore\ do\ not\ need\ a\ 'gclist'\ field.}}
+\DoxyCodeLine{00461\ \textcolor{comment}{**\ To\ simplify,\ the\ code\ always\ use\ 'Udata'\ for\ both\ kinds\ of\ userdata,}}
+\DoxyCodeLine{00462\ \textcolor{comment}{**\ making\ sure\ it\ never\ accesses\ 'gclist'\ on\ userdata\ with\ no\ user\ values.}}
+\DoxyCodeLine{00463\ \textcolor{comment}{**\ This\ structure\ here\ is\ used\ only\ to\ compute\ the\ correct\ size\ for}}
+\DoxyCodeLine{00464\ \textcolor{comment}{**\ this\ representation.\ (The\ 'bindata'\ field\ in\ its\ end\ ensures\ correct}}
+\DoxyCodeLine{00465\ \textcolor{comment}{**\ alignment\ for\ binary\ data\ following\ this\ header.)}}
+\DoxyCodeLine{00466\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00467\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_udata0}{Udata0}}\ \{}
+\DoxyCodeLine{00468\ \ \ CommonHeader;}
+\DoxyCodeLine{00469\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ nuvalue;\ \ \textcolor{comment}{/*\ number\ of\ user\ values\ */}}
+\DoxyCodeLine{00470\ \ \ \textcolor{keywordtype}{size\_t}\ len;\ \ \textcolor{comment}{/*\ number\ of\ bytes\ */}}
+\DoxyCodeLine{00471\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_table}{Table}}\ *metatable;}
+\DoxyCodeLine{00472\ \ \ \textcolor{keyword}{union\ }\{LUAI\_MAXALIGN;\}\ bindata;}
+\DoxyCodeLine{00473\ \}\ \mbox{\hyperlink{struct_udata0}{Udata0}};}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ }
+\DoxyCodeLine{00476\ \textcolor{comment}{/*\ compute\ the\ offset\ of\ the\ memory\ area\ of\ a\ userdata\ */}}
+\DoxyCodeLine{00477\ \textcolor{preprocessor}{\#define\ udatamemoffset(nuv)\ \(\backslash\)}}
+\DoxyCodeLine{00478\ \textcolor{preprocessor}{\ \ \ \ ((nuv)\ ==\ 0\ ?\ offsetof(Udata0,\ bindata)\ \ \(\backslash\)}}
+\DoxyCodeLine{00479\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ offsetof(Udata,\ uv)\ +\ (sizeof(UValue)\ *\ (nuv)))}}
+\DoxyCodeLine{00480\ }
+\DoxyCodeLine{00481\ \textcolor{comment}{/*\ get\ the\ address\ of\ the\ memory\ block\ inside\ 'Udata'\ */}}
+\DoxyCodeLine{00482\ \textcolor{preprocessor}{\#define\ getudatamem(u)\ \ (cast\_charp(u)\ +\ udatamemoffset((u)-\/>nuvalue))}}
+\DoxyCodeLine{00483\ }
+\DoxyCodeLine{00484\ \textcolor{comment}{/*\ compute\ the\ size\ of\ a\ userdata\ */}}
+\DoxyCodeLine{00485\ \textcolor{preprocessor}{\#define\ sizeudata(nuv,nb)\ \ \ (udatamemoffset(nuv)\ +\ (nb))}}
+\DoxyCodeLine{00486\ }
+\DoxyCodeLine{00487\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00488\ }
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00491\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00492\ \textcolor{comment}{**\ Prototypes}}
+\DoxyCodeLine{00493\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00494\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \textcolor{preprocessor}{\#define\ LUA\_VPROTO\ \ makevariant(LUA\_TPROTO,\ 0)}}
+\DoxyCodeLine{00497\ }
+\DoxyCodeLine{00498\ }
+\DoxyCodeLine{00499\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00500\ \textcolor{comment}{**\ Description\ of\ an\ upvalue\ for\ function\ prototypes}}
+\DoxyCodeLine{00501\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00502\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_upvaldesc}{Upvaldesc}}\ \{}
+\DoxyCodeLine{00503\ \ \ \mbox{\hyperlink{struct_t_string}{TString}}\ *name;\ \ \textcolor{comment}{/*\ upvalue\ name\ (for\ debug\ information)\ */}}
+\DoxyCodeLine{00504\ \ \ lu\_byte\ instack;\ \ \textcolor{comment}{/*\ whether\ it\ is\ in\ stack\ (register)\ */}}
+\DoxyCodeLine{00505\ \ \ lu\_byte\ idx;\ \ \textcolor{comment}{/*\ index\ of\ upvalue\ (in\ stack\ or\ in\ outer\ function's\ list)\ */}}
+\DoxyCodeLine{00506\ \ \ lu\_byte\ kind;\ \ \textcolor{comment}{/*\ kind\ of\ corresponding\ variable\ */}}
+\DoxyCodeLine{00507\ \}\ \mbox{\hyperlink{struct_upvaldesc}{Upvaldesc}};}
+\DoxyCodeLine{00508\ }
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00511\ \textcolor{comment}{**\ Description\ of\ a\ local\ variable\ for\ function\ prototypes}}
+\DoxyCodeLine{00512\ \textcolor{comment}{**\ (used\ for\ debug\ information)}}
+\DoxyCodeLine{00513\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00514\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_loc_var}{LocVar}}\ \{}
+\DoxyCodeLine{00515\ \ \ \mbox{\hyperlink{struct_t_string}{TString}}\ *varname;}
+\DoxyCodeLine{00516\ \ \ \textcolor{keywordtype}{int}\ startpc;\ \ \textcolor{comment}{/*\ first\ point\ where\ variable\ is\ active\ */}}
+\DoxyCodeLine{00517\ \ \ \textcolor{keywordtype}{int}\ endpc;\ \ \ \ \textcolor{comment}{/*\ first\ point\ where\ variable\ is\ dead\ */}}
+\DoxyCodeLine{00518\ \}\ \mbox{\hyperlink{struct_loc_var}{LocVar}};}
+\DoxyCodeLine{00519\ }
+\DoxyCodeLine{00520\ }
+\DoxyCodeLine{00521\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00522\ \textcolor{comment}{**\ Associates\ the\ absolute\ line\ source\ for\ a\ given\ instruction\ ('pc').}}
+\DoxyCodeLine{00523\ \textcolor{comment}{**\ The\ array\ 'lineinfo'\ gives,\ for\ each\ instruction,\ the\ difference\ in}}
+\DoxyCodeLine{00524\ \textcolor{comment}{**\ lines\ from\ the\ previous\ instruction.\ When\ that\ difference\ does\ not}}
+\DoxyCodeLine{00525\ \textcolor{comment}{**\ fit\ into\ a\ byte,\ Lua\ saves\ the\ absolute\ line\ for\ that\ instruction.}}
+\DoxyCodeLine{00526\ \textcolor{comment}{**\ (Lua\ also\ saves\ the\ absolute\ line\ periodically,\ to\ speed\ up\ the}}
+\DoxyCodeLine{00527\ \textcolor{comment}{**\ computation\ of\ a\ line\ number:\ we\ can\ use\ binary\ search\ in\ the}}
+\DoxyCodeLine{00528\ \textcolor{comment}{**\ absolute-\/line\ array,\ but\ we\ must\ traverse\ the\ 'lineinfo'\ array}}
+\DoxyCodeLine{00529\ \textcolor{comment}{**\ linearly\ to\ compute\ a\ line.)}}
+\DoxyCodeLine{00530\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00531\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_abs_line_info}{AbsLineInfo}}\ \{}
+\DoxyCodeLine{00532\ \ \ \textcolor{keywordtype}{int}\ pc;}
+\DoxyCodeLine{00533\ \ \ \textcolor{keywordtype}{int}\ line;}
+\DoxyCodeLine{00534\ \}\ \mbox{\hyperlink{struct_abs_line_info}{AbsLineInfo}};}
+\DoxyCodeLine{00535\ }
+\DoxyCodeLine{00536\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00537\ \textcolor{comment}{**\ Function\ Prototypes}}
+\DoxyCodeLine{00538\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00539\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_proto}{Proto}}\ \{}
+\DoxyCodeLine{00540\ \ \ CommonHeader;}
+\DoxyCodeLine{00541\ \ \ lu\_byte\ numparams;\ \ \textcolor{comment}{/*\ number\ of\ fixed\ (named)\ parameters\ */}}
+\DoxyCodeLine{00542\ \ \ lu\_byte\ is\_vararg;}
+\DoxyCodeLine{00543\ \ \ lu\_byte\ maxstacksize;\ \ \textcolor{comment}{/*\ number\ of\ registers\ needed\ by\ this\ function\ */}}
+\DoxyCodeLine{00544\ \ \ \textcolor{keywordtype}{int}\ sizeupvalues;\ \ \textcolor{comment}{/*\ size\ of\ 'upvalues'\ */}}
+\DoxyCodeLine{00545\ \ \ \textcolor{keywordtype}{int}\ sizek;\ \ \textcolor{comment}{/*\ size\ of\ 'k'\ */}}
+\DoxyCodeLine{00546\ \ \ \textcolor{keywordtype}{int}\ sizecode;}
+\DoxyCodeLine{00547\ \ \ \textcolor{keywordtype}{int}\ sizelineinfo;}
+\DoxyCodeLine{00548\ \ \ \textcolor{keywordtype}{int}\ sizep;\ \ \textcolor{comment}{/*\ size\ of\ 'p'\ */}}
+\DoxyCodeLine{00549\ \ \ \textcolor{keywordtype}{int}\ sizelocvars;}
+\DoxyCodeLine{00550\ \ \ \textcolor{keywordtype}{int}\ sizeabslineinfo;\ \ \textcolor{comment}{/*\ size\ of\ 'abslineinfo'\ */}}
+\DoxyCodeLine{00551\ \ \ \textcolor{keywordtype}{int}\ linedefined;\ \ \textcolor{comment}{/*\ debug\ information\ \ */}}
+\DoxyCodeLine{00552\ \ \ \textcolor{keywordtype}{int}\ lastlinedefined;\ \ \textcolor{comment}{/*\ debug\ information\ \ */}}
+\DoxyCodeLine{00553\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ *k;\ \ \textcolor{comment}{/*\ constants\ used\ by\ the\ function\ */}}
+\DoxyCodeLine{00554\ \ \ Instruction\ *\mbox{\hyperlink{structcode}{code}};\ \ \textcolor{comment}{/*\ opcodes\ */}}
+\DoxyCodeLine{00555\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_proto}{Proto}}\ **p;\ \ \textcolor{comment}{/*\ functions\ defined\ inside\ the\ function\ */}}
+\DoxyCodeLine{00556\ \ \ \mbox{\hyperlink{struct_upvaldesc}{Upvaldesc}}\ *upvalues;\ \ \textcolor{comment}{/*\ upvalue\ information\ */}}
+\DoxyCodeLine{00557\ \ \ ls\_byte\ *lineinfo;\ \ \textcolor{comment}{/*\ information\ about\ source\ lines\ (debug\ information)\ */}}
+\DoxyCodeLine{00558\ \ \ \mbox{\hyperlink{struct_abs_line_info}{AbsLineInfo}}\ *abslineinfo;\ \ \textcolor{comment}{/*\ idem\ */}}
+\DoxyCodeLine{00559\ \ \ \mbox{\hyperlink{struct_loc_var}{LocVar}}\ *locvars;\ \ \textcolor{comment}{/*\ information\ about\ local\ variables\ (debug\ information)\ */}}
+\DoxyCodeLine{00560\ \ \ \mbox{\hyperlink{struct_t_string}{TString}}\ \ *source;\ \ \textcolor{comment}{/*\ used\ for\ debug\ information\ */}}
+\DoxyCodeLine{00561\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *gclist;}
+\DoxyCodeLine{00562\ \}\ \mbox{\hyperlink{struct_proto}{Proto}};}
+\DoxyCodeLine{00563\ }
+\DoxyCodeLine{00564\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00565\ }
+\DoxyCodeLine{00566\ }
+\DoxyCodeLine{00567\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00568\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00569\ \textcolor{comment}{**\ Functions}}
+\DoxyCodeLine{00570\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00571\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00572\ }
+\DoxyCodeLine{00573\ \textcolor{preprocessor}{\#define\ LUA\_VUPVAL\ \ makevariant(LUA\_TUPVAL,\ 0)}}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ }
+\DoxyCodeLine{00576\ \textcolor{comment}{/*\ Variant\ tags\ for\ functions\ */}}
+\DoxyCodeLine{00577\ \textcolor{preprocessor}{\#define\ LUA\_VLCL\ \ \ \ makevariant(LUA\_TFUNCTION,\ 0)\ \ }\textcolor{comment}{/*\ Lua\ closure\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00578\ \textcolor{preprocessor}{\#define\ LUA\_VLCF\ \ \ \ makevariant(LUA\_TFUNCTION,\ 1)\ \ }\textcolor{comment}{/*\ light\ C\ function\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00579\ \textcolor{preprocessor}{\#define\ LUA\_VCCL\ \ \ \ makevariant(LUA\_TFUNCTION,\ 2)\ \ }\textcolor{comment}{/*\ C\ closure\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00580\ }
+\DoxyCodeLine{00581\ \textcolor{preprocessor}{\#define\ ttisfunction(o)\ \ \ \ \ checktype(o,\ LUA\_TFUNCTION)}}
+\DoxyCodeLine{00582\ \textcolor{preprocessor}{\#define\ ttisLclosure(o)\ \ \ \ \ checktag((o),\ ctb(LUA\_VLCL))}}
+\DoxyCodeLine{00583\ \textcolor{preprocessor}{\#define\ ttislcf(o)\ \ \ \ \ \ checktag((o),\ LUA\_VLCF)}}
+\DoxyCodeLine{00584\ \textcolor{preprocessor}{\#define\ ttisCclosure(o)\ \ \ \ \ checktag((o),\ ctb(LUA\_VCCL))}}
+\DoxyCodeLine{00585\ \textcolor{preprocessor}{\#define\ ttisclosure(o)\ \ \ \ \ \ \ \ \ (ttisLclosure(o)\ ||\ ttisCclosure(o))}}
+\DoxyCodeLine{00586\ }
+\DoxyCodeLine{00587\ }
+\DoxyCodeLine{00588\ \textcolor{preprocessor}{\#define\ isLfunction(o)\ \ ttisLclosure(o)}}
+\DoxyCodeLine{00589\ }
+\DoxyCodeLine{00590\ \textcolor{preprocessor}{\#define\ clvalue(o)\ \ check\_exp(ttisclosure(o),\ gco2cl(val\_(o).gc))}}
+\DoxyCodeLine{00591\ \textcolor{preprocessor}{\#define\ clLvalue(o)\ check\_exp(ttisLclosure(o),\ gco2lcl(val\_(o).gc))}}
+\DoxyCodeLine{00592\ \textcolor{preprocessor}{\#define\ fvalue(o)\ \ \ check\_exp(ttislcf(o),\ val\_(o).f)}}
+\DoxyCodeLine{00593\ \textcolor{preprocessor}{\#define\ clCvalue(o)\ check\_exp(ttisCclosure(o),\ gco2ccl(val\_(o).gc))}}
+\DoxyCodeLine{00594\ }
+\DoxyCodeLine{00595\ \textcolor{preprocessor}{\#define\ fvalueraw(v)\ \ \ \ ((v).f)}}
+\DoxyCodeLine{00596\ }
+\DoxyCodeLine{00597\ \textcolor{preprocessor}{\#define\ setclLvalue(L,obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00598\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io\ =\ (obj);\ LClosure\ *x\_\ =\ (x);\ \(\backslash\)}}
+\DoxyCodeLine{00599\ \textcolor{preprocessor}{\ \ \ \ val\_(io).gc\ =\ obj2gco(x\_);\ settt\_(io,\ ctb(LUA\_VLCL));\ \(\backslash\)}}
+\DoxyCodeLine{00600\ \textcolor{preprocessor}{\ \ \ \ checkliveness(L,io);\ \}}}
+\DoxyCodeLine{00601\ }
+\DoxyCodeLine{00602\ \textcolor{preprocessor}{\#define\ setclLvalue2s(L,o,cl)\ \ \ setclLvalue(L,s2v(o),cl)}}
+\DoxyCodeLine{00603\ }
+\DoxyCodeLine{00604\ \textcolor{preprocessor}{\#define\ setfvalue(obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00605\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io=(obj);\ val\_(io).f=(x);\ settt\_(io,\ LUA\_VLCF);\ \}}}
+\DoxyCodeLine{00606\ }
+\DoxyCodeLine{00607\ \textcolor{preprocessor}{\#define\ setclCvalue(L,obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00608\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io\ =\ (obj);\ CClosure\ *x\_\ =\ (x);\ \(\backslash\)}}
+\DoxyCodeLine{00609\ \textcolor{preprocessor}{\ \ \ \ val\_(io).gc\ =\ obj2gco(x\_);\ settt\_(io,\ ctb(LUA\_VCCL));\ \(\backslash\)}}
+\DoxyCodeLine{00610\ \textcolor{preprocessor}{\ \ \ \ checkliveness(L,io);\ \}}}
+\DoxyCodeLine{00611\ }
+\DoxyCodeLine{00612\ }
+\DoxyCodeLine{00613\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00614\ \textcolor{comment}{**\ Upvalues\ for\ Lua\ closures}}
+\DoxyCodeLine{00615\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00616\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_up_val}{UpVal}}\ \{}
+\DoxyCodeLine{00617\ \ \ CommonHeader;}
+\DoxyCodeLine{00618\ \ \ lu\_byte\ tbc;\ \ \textcolor{comment}{/*\ true\ if\ it\ represents\ a\ to-\/be-\/closed\ variable\ */}}
+\DoxyCodeLine{00619\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ *v;\ \ \textcolor{comment}{/*\ points\ to\ stack\ or\ to\ its\ own\ value\ */}}
+\DoxyCodeLine{00620\ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00621\ \ \ \ \ \textcolor{keyword}{struct\ }\{\ \ \textcolor{comment}{/*\ (when\ open)\ */}}
+\DoxyCodeLine{00622\ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_up_val}{UpVal}}\ *next;\ \ \textcolor{comment}{/*\ linked\ list\ */}}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_up_val}{UpVal}}\ **previous;}
+\DoxyCodeLine{00624\ \ \ \ \ \}\ open;}
+\DoxyCodeLine{00625\ \ \ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ \mbox{\hyperlink{classvalue}{value}};\ \ \textcolor{comment}{/*\ the\ value\ (when\ closed)\ */}}
+\DoxyCodeLine{00626\ \ \ \}\ u;}
+\DoxyCodeLine{00627\ \}\ \mbox{\hyperlink{struct_up_val}{UpVal}};}
+\DoxyCodeLine{00628\ }
+\DoxyCodeLine{00629\ }
+\DoxyCodeLine{00630\ }
+\DoxyCodeLine{00631\ \textcolor{preprocessor}{\#define\ ClosureHeader\ \(\backslash\)}}
+\DoxyCodeLine{00632\ \textcolor{preprocessor}{\ \ \ \ CommonHeader;\ lu\_byte\ nupvalues;\ GCObject\ *gclist}}
+\DoxyCodeLine{00633\ }
+\DoxyCodeLine{00634\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_closure}{CClosure}}\ \{}
+\DoxyCodeLine{00635\ \ \ ClosureHeader;}
+\DoxyCodeLine{00636\ \ \ lua\_CFunction\ f;}
+\DoxyCodeLine{00637\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ upvalue[1];\ \ \textcolor{comment}{/*\ list\ of\ upvalues\ */}}
+\DoxyCodeLine{00638\ \}\ \mbox{\hyperlink{struct_c_closure}{CClosure}};}
+\DoxyCodeLine{00639\ }
+\DoxyCodeLine{00640\ }
+\DoxyCodeLine{00641\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_l_closure}{LClosure}}\ \{}
+\DoxyCodeLine{00642\ \ \ ClosureHeader;}
+\DoxyCodeLine{00643\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_proto}{Proto}}\ *p;}
+\DoxyCodeLine{00644\ \ \ \mbox{\hyperlink{struct_up_val}{UpVal}}\ *upvals[1];\ \ \textcolor{comment}{/*\ list\ of\ upvalues\ */}}
+\DoxyCodeLine{00645\ \}\ \mbox{\hyperlink{struct_l_closure}{LClosure}};}
+\DoxyCodeLine{00646\ }
+\DoxyCodeLine{00647\ }
+\DoxyCodeLine{00648\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{union\ }\mbox{\hyperlink{union_closure}{Closure}}\ \{}
+\DoxyCodeLine{00649\ \ \ \mbox{\hyperlink{struct_c_closure}{CClosure}}\ c;}
+\DoxyCodeLine{00650\ \ \ \mbox{\hyperlink{struct_l_closure}{LClosure}}\ l;}
+\DoxyCodeLine{00651\ \}\ \mbox{\hyperlink{union_closure}{Closure}};}
+\DoxyCodeLine{00652\ }
+\DoxyCodeLine{00653\ }
+\DoxyCodeLine{00654\ \textcolor{preprocessor}{\#define\ getproto(o)\ (clLvalue(o)-\/>p)}}
+\DoxyCodeLine{00655\ }
+\DoxyCodeLine{00656\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00657\ }
+\DoxyCodeLine{00658\ }
+\DoxyCodeLine{00659\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00660\ \textcolor{comment}{**\ \{==================================================================}}
+\DoxyCodeLine{00661\ \textcolor{comment}{**\ Tables}}
+\DoxyCodeLine{00662\ \textcolor{comment}{**\ ===================================================================}}
+\DoxyCodeLine{00663\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00664\ }
+\DoxyCodeLine{00665\ \textcolor{preprocessor}{\#define\ LUA\_VTABLE\ \ makevariant(LUA\_TTABLE,\ 0)}}
+\DoxyCodeLine{00666\ }
+\DoxyCodeLine{00667\ \textcolor{preprocessor}{\#define\ ttistable(o)\ \ \ \ \ \ \ \ checktag((o),\ ctb(LUA\_VTABLE))}}
+\DoxyCodeLine{00668\ }
+\DoxyCodeLine{00669\ \textcolor{preprocessor}{\#define\ hvalue(o)\ \ \ check\_exp(ttistable(o),\ gco2t(val\_(o).gc))}}
+\DoxyCodeLine{00670\ }
+\DoxyCodeLine{00671\ \textcolor{preprocessor}{\#define\ sethvalue(L,obj,x)\ \(\backslash\)}}
+\DoxyCodeLine{00672\ \textcolor{preprocessor}{\ \ \{\ TValue\ *io\ =\ (obj);\ Table\ *x\_\ =\ (x);\ \(\backslash\)}}
+\DoxyCodeLine{00673\ \textcolor{preprocessor}{\ \ \ \ val\_(io).gc\ =\ obj2gco(x\_);\ settt\_(io,\ ctb(LUA\_VTABLE));\ \(\backslash\)}}
+\DoxyCodeLine{00674\ \textcolor{preprocessor}{\ \ \ \ checkliveness(L,io);\ \}}}
+\DoxyCodeLine{00675\ }
+\DoxyCodeLine{00676\ \textcolor{preprocessor}{\#define\ sethvalue2s(L,o,h)\ \ sethvalue(L,s2v(o),h)}}
+\DoxyCodeLine{00677\ }
+\DoxyCodeLine{00678\ }
+\DoxyCodeLine{00679\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00680\ \textcolor{comment}{**\ Nodes\ for\ Hash\ tables:\ A\ pack\ of\ two\ TValue's\ (key-\/value\ pairs)}}
+\DoxyCodeLine{00681\ \textcolor{comment}{**\ plus\ a\ 'next'\ field\ to\ link\ colliding\ entries.\ The\ distribution}}
+\DoxyCodeLine{00682\ \textcolor{comment}{**\ of\ the\ key's\ fields\ ('key\_tt'\ and\ 'key\_val')\ not\ forming\ a\ proper}}
+\DoxyCodeLine{00683\ \textcolor{comment}{**\ 'TValue'\ allows\ for\ a\ smaller\ size\ for\ 'Node'\ both\ in\ 4-\/byte}}
+\DoxyCodeLine{00684\ \textcolor{comment}{**\ and\ 8-\/byte\ alignments.}}
+\DoxyCodeLine{00685\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00686\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{union\ }\mbox{\hyperlink{struct_node}{Node}}\ \{}
+\DoxyCodeLine{00687\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_node_1_1_node_key}{NodeKey}}\ \{}
+\DoxyCodeLine{00688\ \ \ \ \ TValuefields;\ \ \textcolor{comment}{/*\ fields\ for\ value\ */}}
+\DoxyCodeLine{00689\ \ \ \ \ lu\_byte\ key\_tt;\ \ \textcolor{comment}{/*\ key\ type\ */}}
+\DoxyCodeLine{00690\ \ \ \ \ \textcolor{keywordtype}{int}\ next;\ \ \textcolor{comment}{/*\ for\ chaining\ */}}
+\DoxyCodeLine{00691\ \ \ \ \ \mbox{\hyperlink{union_value}{Value}}\ key\_val;\ \ \textcolor{comment}{/*\ key\ value\ */}}
+\DoxyCodeLine{00692\ \ \ \}\ u;}
+\DoxyCodeLine{00693\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ i\_val;\ \ \textcolor{comment}{/*\ direct\ access\ to\ node's\ value\ as\ a\ proper\ 'TValue'\ */}}
+\DoxyCodeLine{00694\ \}\ \mbox{\hyperlink{struct_node}{Node}};}
+\DoxyCodeLine{00695\ }
+\DoxyCodeLine{00696\ }
+\DoxyCodeLine{00697\ \textcolor{comment}{/*\ copy\ a\ value\ into\ a\ key\ */}}
+\DoxyCodeLine{00698\ \textcolor{preprocessor}{\#define\ setnodekey(L,node,obj)\ \(\backslash\)}}
+\DoxyCodeLine{00699\ \textcolor{preprocessor}{\ \ \ \ \{\ Node\ *n\_=(node);\ const\ TValue\ *io\_=(obj);\ \(\backslash\)}}
+\DoxyCodeLine{00700\ \textcolor{preprocessor}{\ \ \ \ \ \ n\_-\/>u.key\_val\ =\ io\_-\/>value\_;\ n\_-\/>u.key\_tt\ =\ io\_-\/>tt\_;\ \(\backslash\)}}
+\DoxyCodeLine{00701\ \textcolor{preprocessor}{\ \ \ \ \ \ checkliveness(L,io\_);\ \}}}
+\DoxyCodeLine{00702\ }
+\DoxyCodeLine{00703\ }
+\DoxyCodeLine{00704\ \textcolor{comment}{/*\ copy\ a\ value\ from\ a\ key\ */}}
+\DoxyCodeLine{00705\ \textcolor{preprocessor}{\#define\ getnodekey(L,obj,node)\ \(\backslash\)}}
+\DoxyCodeLine{00706\ \textcolor{preprocessor}{\ \ \ \ \{\ TValue\ *io\_=(obj);\ const\ Node\ *n\_=(node);\ \(\backslash\)}}
+\DoxyCodeLine{00707\ \textcolor{preprocessor}{\ \ \ \ \ \ io\_-\/>value\_\ =\ n\_-\/>u.key\_val;\ io\_-\/>tt\_\ =\ n\_-\/>u.key\_tt;\ \(\backslash\)}}
+\DoxyCodeLine{00708\ \textcolor{preprocessor}{\ \ \ \ \ \ checkliveness(L,io\_);\ \}}}
+\DoxyCodeLine{00709\ }
+\DoxyCodeLine{00710\ }
+\DoxyCodeLine{00711\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00712\ \textcolor{comment}{**\ About\ 'alimit':\ if\ 'isrealasize(t)'\ is\ true,\ then\ 'alimit'\ is\ the}}
+\DoxyCodeLine{00713\ \textcolor{comment}{**\ real\ size\ of\ 'array'.\ Otherwise,\ the\ real\ size\ of\ 'array'\ is\ the}}
+\DoxyCodeLine{00714\ \textcolor{comment}{**\ smallest\ power\ of\ two\ not\ smaller\ than\ 'alimit'\ (or\ zero\ iff\ 'alimit'}}
+\DoxyCodeLine{00715\ \textcolor{comment}{**\ is\ zero);\ 'alimit'\ is\ then\ used\ as\ a\ hint\ for\ \#t.}}
+\DoxyCodeLine{00716\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00717\ }
+\DoxyCodeLine{00718\ \textcolor{preprocessor}{\#define\ BITRAS\ \ \ \ \ \ (1\ <<\ 7)}}
+\DoxyCodeLine{00719\ \textcolor{preprocessor}{\#define\ isrealasize(t)\ \ \ \ \ \ (!((t)-\/>flags\ \&\ BITRAS))}}
+\DoxyCodeLine{00720\ \textcolor{preprocessor}{\#define\ setrealasize(t)\ \ \ \ \ ((t)-\/>flags\ \&=\ cast\_byte(\string~BITRAS))}}
+\DoxyCodeLine{00721\ \textcolor{preprocessor}{\#define\ setnorealasize(t)\ \ \ ((t)-\/>flags\ |=\ BITRAS)}}
+\DoxyCodeLine{00722\ }
+\DoxyCodeLine{00723\ }
+\DoxyCodeLine{00724\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_table}{Table}}\ \{}
+\DoxyCodeLine{00725\ \ \ CommonHeader;}
+\DoxyCodeLine{00726\ \ \ lu\_byte\ flags;\ \ \textcolor{comment}{/*\ 1<<p\ means\ tagmethod(p)\ is\ not\ present\ */}}
+\DoxyCodeLine{00727\ \ \ lu\_byte\ lsizenode;\ \ \textcolor{comment}{/*\ log2\ of\ size\ of\ 'node'\ array\ */}}
+\DoxyCodeLine{00728\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ alimit;\ \ \textcolor{comment}{/*\ "{}limit"{}\ of\ 'array'\ array\ */}}
+\DoxyCodeLine{00729\ \ \ \mbox{\hyperlink{struct_t_value}{TValue}}\ *array;\ \ \textcolor{comment}{/*\ array\ part\ */}}
+\DoxyCodeLine{00730\ \ \ \mbox{\hyperlink{struct_node}{Node}}\ *node;}
+\DoxyCodeLine{00731\ \ \ \mbox{\hyperlink{struct_node}{Node}}\ *lastfree;\ \ \textcolor{comment}{/*\ any\ free\ position\ is\ before\ this\ position\ */}}
+\DoxyCodeLine{00732\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_table}{Table}}\ *metatable;}
+\DoxyCodeLine{00733\ \ \ \mbox{\hyperlink{struct_g_c_object}{GCObject}}\ *gclist;}
+\DoxyCodeLine{00734\ \}\ \mbox{\hyperlink{struct_table}{Table}};}
+\DoxyCodeLine{00735\ }
+\DoxyCodeLine{00736\ }
+\DoxyCodeLine{00737\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00738\ \textcolor{comment}{**\ Macros\ to\ manipulate\ keys\ inserted\ in\ nodes}}
+\DoxyCodeLine{00739\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00740\ \textcolor{preprocessor}{\#define\ keytt(node)\ \ \ \ \ ((node)-\/>u.key\_tt)}}
+\DoxyCodeLine{00741\ \textcolor{preprocessor}{\#define\ keyval(node)\ \ \ \ \ \ \ \ ((node)-\/>u.key\_val)}}
+\DoxyCodeLine{00742\ }
+\DoxyCodeLine{00743\ \textcolor{preprocessor}{\#define\ keyisnil(node)\ \ \ \ \ \ (keytt(node)\ ==\ LUA\_TNIL)}}
+\DoxyCodeLine{00744\ \textcolor{preprocessor}{\#define\ keyisinteger(node)\ \ (keytt(node)\ ==\ LUA\_VNUMINT)}}
+\DoxyCodeLine{00745\ \textcolor{preprocessor}{\#define\ keyival(node)\ \ \ \ \ \ \ (keyval(node).i)}}
+\DoxyCodeLine{00746\ \textcolor{preprocessor}{\#define\ keyisshrstr(node)\ \ \ (keytt(node)\ ==\ ctb(LUA\_VSHRSTR))}}
+\DoxyCodeLine{00747\ \textcolor{preprocessor}{\#define\ keystrval(node)\ \ \ \ \ (gco2ts(keyval(node).gc))}}
+\DoxyCodeLine{00748\ }
+\DoxyCodeLine{00749\ \textcolor{preprocessor}{\#define\ setnilkey(node)\ \ \ \ \ (keytt(node)\ =\ LUA\_TNIL)}}
+\DoxyCodeLine{00750\ }
+\DoxyCodeLine{00751\ \textcolor{preprocessor}{\#define\ keyiscollectable(n)\ (keytt(n)\ \&\ BIT\_ISCOLLECTABLE)}}
+\DoxyCodeLine{00752\ }
+\DoxyCodeLine{00753\ \textcolor{preprocessor}{\#define\ gckey(n)\ \ \ \ (keyval(n).gc)}}
+\DoxyCodeLine{00754\ \textcolor{preprocessor}{\#define\ gckeyN(n)\ \ \ (keyiscollectable(n)\ ?\ gckey(n)\ :\ NULL)}}
+\DoxyCodeLine{00755\ }
+\DoxyCodeLine{00756\ }
+\DoxyCodeLine{00757\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00758\ \textcolor{comment}{**\ Dead\ keys\ in\ tables\ have\ the\ tag\ DEADKEY\ but\ keep\ their\ original}}
+\DoxyCodeLine{00759\ \textcolor{comment}{**\ gcvalue.\ This\ distinguishes\ them\ from\ regular\ keys\ but\ allows\ them\ to}}
+\DoxyCodeLine{00760\ \textcolor{comment}{**\ be\ found\ when\ searched\ in\ a\ special\ way.\ ('next'\ needs\ that\ to\ find}}
+\DoxyCodeLine{00761\ \textcolor{comment}{**\ keys\ removed\ from\ a\ table\ during\ a\ traversal.)}}
+\DoxyCodeLine{00762\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00763\ \textcolor{preprocessor}{\#define\ setdeadkey(node)\ \ \ \ (keytt(node)\ =\ LUA\_TDEADKEY)}}
+\DoxyCodeLine{00764\ \textcolor{preprocessor}{\#define\ keyisdead(node)\ \ \ \ \ (keytt(node)\ ==\ LUA\_TDEADKEY)}}
+\DoxyCodeLine{00765\ }
+\DoxyCodeLine{00766\ \textcolor{comment}{/*\ \}==================================================================\ */}}
+\DoxyCodeLine{00767\ }
+\DoxyCodeLine{00768\ }
+\DoxyCodeLine{00769\ }
+\DoxyCodeLine{00770\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00771\ \textcolor{comment}{**\ 'module'\ operation\ for\ hashing\ (size\ is\ always\ a\ power\ of\ 2)}}
+\DoxyCodeLine{00772\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00773\ \textcolor{preprocessor}{\#define\ lmod(s,size)\ \(\backslash\)}}
+\DoxyCodeLine{00774\ \textcolor{preprocessor}{\ \ \ \ (check\_exp((size\&(size-\/1))==0,\ (cast\_int((s)\ \&\ ((size)-\/1)))))}}
+\DoxyCodeLine{00775\ }
+\DoxyCodeLine{00776\ }
+\DoxyCodeLine{00777\ \textcolor{preprocessor}{\#define\ twoto(x)\ \ \ \ (1<<(x))}}
+\DoxyCodeLine{00778\ \textcolor{preprocessor}{\#define\ sizenode(t)\ (twoto((t)-\/>lsizenode))}}
+\DoxyCodeLine{00779\ }
+\DoxyCodeLine{00780\ }
+\DoxyCodeLine{00781\ \textcolor{comment}{/*\ size\ of\ buffer\ for\ 'luaO\_utf8esc'\ function\ */}}
+\DoxyCodeLine{00782\ \textcolor{preprocessor}{\#define\ UTF8BUFFSZ\ \ 8}}
+\DoxyCodeLine{00783\ }
+\DoxyCodeLine{00784\ LUAI\_FUNC\ \textcolor{keywordtype}{int}\ luaO\_utf8esc\ (\textcolor{keywordtype}{char}\ *buff,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ x);}
+\DoxyCodeLine{00785\ LUAI\_FUNC\ \textcolor{keywordtype}{int}\ luaO\_ceillog2\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x);}
+\DoxyCodeLine{00786\ LUAI\_FUNC\ \textcolor{keywordtype}{int}\ luaO\_rawarith\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \textcolor{keywordtype}{int}\ op,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t_value}{TValue}}\ *p1,}
+\DoxyCodeLine{00787\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t_value}{TValue}}\ *p2,\ \mbox{\hyperlink{struct_t_value}{TValue}}\ *res);}
+\DoxyCodeLine{00788\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaO\_arith\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \textcolor{keywordtype}{int}\ op,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t_value}{TValue}}\ *p1,}
+\DoxyCodeLine{00789\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_t_value}{TValue}}\ *p2,\ \mbox{\hyperlink{union_stack_value}{StkId}}\ res);}
+\DoxyCodeLine{00790\ LUAI\_FUNC\ \textcolor{keywordtype}{size\_t}\ luaO\_str2num\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *s,\ \mbox{\hyperlink{struct_t_value}{TValue}}\ *o);}
+\DoxyCodeLine{00791\ LUAI\_FUNC\ \textcolor{keywordtype}{int}\ luaO\_hexavalue\ (\textcolor{keywordtype}{int}\ c);}
+\DoxyCodeLine{00792\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaO\_tostring\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \mbox{\hyperlink{struct_t_value}{TValue}}\ *obj);}
+\DoxyCodeLine{00793\ LUAI\_FUNC\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *luaO\_pushvfstring\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,}
+\DoxyCodeLine{00794\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ va\_list\ argp);}
+\DoxyCodeLine{00795\ LUAI\_FUNC\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *luaO\_pushfstring\ (\mbox{\hyperlink{structlua___state}{lua\_State}}\ *L,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,\ ...);}
+\DoxyCodeLine{00796\ LUAI\_FUNC\ \textcolor{keywordtype}{void}\ luaO\_chunkid\ (\textcolor{keywordtype}{char}\ *out,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *source,\ \textcolor{keywordtype}{size\_t}\ srclen);}
+\DoxyCodeLine{00797\ }
+\DoxyCodeLine{00798\ }
+\DoxyCodeLine{00799\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00800\ }
+
+\end{DoxyCode}

@@ -1,0 +1,93 @@
+\href{https://github.com/aseprite/flic/actions/workflows/build.yml}{\texttt{ }} \href{LICENSE.txt}{\texttt{ }}
+
+Library to read/write \href{https://en.wikipedia.org/wiki/FLIC_(file_format)}{\texttt{ Animator Pro FLI/\+FLC files}}. Tested with \href{https://github.com/aseprite/fuzz}{\texttt{ libfuzzer}}.\hypertarget{md__ase_sprite_aseprite_src_flic__r_e_a_d_m_e_autotoc_md539}{}\doxysection{Read File Example}\label{md__ase_sprite_aseprite_src_flic__r_e_a_d_m_e_autotoc_md539}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \{c++\}}
+\DoxyCodeLine{\#include\ "{}flic/flic.h"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#include\ <cstdio>}
+\DoxyCodeLine{\#include\ <vector>}
+\DoxyCodeLine{}
+\DoxyCodeLine{int\ main(int\ argc,\ char*\ argv[])}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ if\ (argc\ <\ 2)}
+\DoxyCodeLine{\ \ \ \ return\ 1;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ FILE*\ f\ =\ std::fopen(argv[1],\ "{}rb"{});}
+\DoxyCodeLine{\ \ flic::StdioFileInterface\ file(f);}
+\DoxyCodeLine{\ \ flic::Decoder\ decoder(\&file);}
+\DoxyCodeLine{\ \ flic::Header\ header;}
+\DoxyCodeLine{\ \ if\ (!decoder.readHeader(header))}
+\DoxyCodeLine{\ \ \ \ return\ 2;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ std::vector<uint8\_t>\ buffer(header.width\ *\ header.height);}
+\DoxyCodeLine{\ \ flic::Frame\ frame;}
+\DoxyCodeLine{\ \ frame.pixels\ =\ \&buffer[0];}
+\DoxyCodeLine{\ \ frame.rowstride\ =\ header.width;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ for\ (int\ i=0;\ i<header.frames;\ ++i)\ \{}
+\DoxyCodeLine{\ \ \ \ if\ (!decoder.readFrame(frame))}
+\DoxyCodeLine{\ \ \ \ \ \ return\ 3;}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ 0;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_src_flic__r_e_a_d_m_e_autotoc_md540}{}\doxysection{Write File Example}\label{md__ase_sprite_aseprite_src_flic__r_e_a_d_m_e_autotoc_md540}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\ \{c++\}}
+\DoxyCodeLine{\#include\ "{}flic/flic.h"{}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#include\ <cstdio>}
+\DoxyCodeLine{\#include\ <vector>}
+\DoxyCodeLine{}
+\DoxyCodeLine{void\ render\_frame(const\ flic::Header\&\ header,\ flic::Frame\&\ frame,}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ const\ int\ frameNumber)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ //\ Palettes\ can\ change\ frame\ by\ frame}
+\DoxyCodeLine{\ \ for\ (int\ c=0;\ c<256;\ ++c)}
+\DoxyCodeLine{\ \ \ \ frame.colormap[c]\ =\ flic::Color(c,\ c,\ 255*frameNumber/header.frames);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Frame\ image}
+\DoxyCodeLine{\ \ for\ (int\ y=0;\ y<header.height;\ ++y)}
+\DoxyCodeLine{\ \ \ \ for\ (int\ x=0;\ x<header.width;\ ++x)}
+\DoxyCodeLine{\ \ \ \ \ \ frame.pixels[y*frame.rowstride\ +\ x]\ =\ ((x*y*frameNumber)\ \%\ 256);}
+\DoxyCodeLine{\}}
+\DoxyCodeLine{}
+\DoxyCodeLine{int\ main(int\ argc,\ char*\ argv[])}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{\ \ if\ (argc\ <\ 2)}
+\DoxyCodeLine{\ \ \ \ return\ 1;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ FILE*\ f\ =\ std::fopen(argv[1],\ "{}wb"{});}
+\DoxyCodeLine{\ \ flic::StdioFileInterface\ file(f);}
+\DoxyCodeLine{\ \ flic::Encoder\ encoder(\&file);}
+\DoxyCodeLine{\ \ flic::Header\ header;}
+\DoxyCodeLine{\ \ header.frames\ =\ 10;}
+\DoxyCodeLine{\ \ header.width\ =\ 32;}
+\DoxyCodeLine{\ \ header.height\ =\ 32;}
+\DoxyCodeLine{\ \ header.speed\ =\ 50;\ \ \ \ \ \ \ \ \ \ \ \ \ \ //\ Speed\ is\ in\ milliseconds\ per\ frame}
+\DoxyCodeLine{\ \ encoder.writeHeader(header);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ std::vector<uint8\_t>\ buffer(header.width\ *\ header.height);}
+\DoxyCodeLine{\ \ flic::Frame\ frame;}
+\DoxyCodeLine{\ \ frame.pixels\ =\ \&buffer[0];}
+\DoxyCodeLine{\ \ frame.rowstride\ =\ header.width;}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ for\ (int\ i=0;\ i<header.frames;\ ++i)\ \{}
+\DoxyCodeLine{\ \ \ \ render\_frame(header,\ frame,\ i);}
+\DoxyCodeLine{\ \ \ \ encoder.writeFrame(frame);}
+\DoxyCodeLine{\ \ \}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ //\ Render\ first\ frame\ and\ call\ writeRingFrame()}
+\DoxyCodeLine{\ \ render\_frame(header,\ frame,\ 0);}
+\DoxyCodeLine{\ \ encoder.writeRingFrame(frame);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\ \ return\ 0;}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+ 

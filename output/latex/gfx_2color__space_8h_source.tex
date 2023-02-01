@@ -1,0 +1,143 @@
+\hypertarget{gfx_2color__space_8h_source}{}\doxysection{color\+\_\+space.\+h}
+\label{gfx_2color__space_8h_source}\index{AseSprite/aseprite/laf/gfx/color\_space.h@{AseSprite/aseprite/laf/gfx/color\_space.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ Gfx\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ GFX\_COLOR\_SPACE\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ GFX\_COLOR\_SPACE\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}base/ref.h"{}}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#pragma\ push\_macro("{}None"{}})}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#undef\ None\ }\textcolor{comment}{//\ Undefine\ the\ X11\ None\ macro}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{namespace\ }gfx\ \{}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{class\ }ColorSpace;}
+\DoxyCodeLine{00024\ \ \ \textcolor{keyword}{using\ }ColorSpaceRef\ =\ \mbox{\hyperlink{classbase_1_1_ref}{base::Ref<ColorSpace>}};}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \textcolor{comment}{//\ Gamut\ white\ point\ and\ primaries\ as\ in\ Skia's\ SkColorSpacePrimaries.}}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgfx_1_1_color_space_primaries}{ColorSpacePrimaries}}\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{float}\ rx,\ ry,\ gx,\ gy,\ bx,\ by;\ \textcolor{comment}{//\ Red/Green/Blue\ XY}}
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keywordtype}{float}\ wx,\ wy;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ White\ point\ XY}}
+\DoxyCodeLine{00030\ \ \ \};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \textcolor{comment}{//\ Transfer\ coefficients\ as\ in\ Skia's\ skcms\_TransferFunction,\ to}}
+\DoxyCodeLine{00033\ \ \ \textcolor{comment}{//\ transform\ from\ a\ curved\ space\ to\ linear:}}
+\DoxyCodeLine{00034\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00035\ \ \ \textcolor{comment}{//\ \ \ LinearVal\ =\ C*InputVal\ +\ F\ \ \ \ \ \ \ \ ,\ for\ 0.0f\ <=\ InputVal\ <\ \ D}}
+\DoxyCodeLine{00036\ \ \ \textcolor{comment}{//\ \ \ LinearVal\ =\ (A*InputVal\ +\ B)\string^G\ +\ E,\ for\ D\ \ \ \ <=\ InputVal\ <=\ 1.0f}}
+\DoxyCodeLine{00037\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00038\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgfx_1_1_color_space_transfer_fn}{ColorSpaceTransferFn}}\ \{}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keywordtype}{float}\ g,\ \mbox{\hyperlink{structa}{a}},\ b,\ c,\ d,\ e,\ f;}
+\DoxyCodeLine{00040\ \ \ \};}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classgfx_1_1_color_space}{ColorSpace}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classbase_1_1_ref_count_t}{base::RefCountT}}<ColorSpace>\ \{}
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keyword}{enum}\ Type\ \{\ None,}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ sRGB,}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ RGB,}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ICC\ \};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{enum}\ Flag\ \{\ NoFlags\ =\ 0,}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HasGamma\ =\ 1,}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HasTransferFn\ =\ 2,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HasPrimaries\ =\ 4,}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ HasICC\ =\ 8\ \};}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_color_space}{ColorSpace}}(\textcolor{keyword}{const}\ Type\ type,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ Flag\ flags\ =\ NoFlags,}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ gamma\ =\ 1.0,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<uint8\_t>\&\&\ rawData\ =\ std::vector<uint8\_t>());}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeNone();\ \ \ \textcolor{comment}{//\ Use\ display\ color\ space}}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeSRGB();}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeLinearSRGB();}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeSRGBWithGamma(\textcolor{keywordtype}{float}\ gamma);}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeRGB(\textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_transfer_fn}{ColorSpaceTransferFn}}\&\ fn,}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_primaries}{ColorSpacePrimaries}}\&\ p);}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeRGBWithSRGBGamut(\textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_transfer_fn}{ColorSpaceTransferFn}}\&\ fn);}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeRGBWithSRGBGamma(\textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_primaries}{ColorSpacePrimaries}}\&\ p);}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeICC(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ n);}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{classbase_1_1_ref}{ColorSpaceRef}}\ MakeICC(std::vector<uint8\_t>\&\&\ \mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ Type\ type()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_type;\ \}}
+\DoxyCodeLine{00072\ \ \ \ \ Flag\ flags()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_flags;\ \}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ name()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_name;\ \}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordtype}{void}\ setName(\textcolor{keyword}{const}\ std::string\&\ name)\ \{\ m\_name\ =\ name;\ \}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{float}\ gamma()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_gamma;\ \}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasGamma()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ has(HasGamma);\ \}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasTransferFn()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ has(HasTransferFn);\ \}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{bool}\ hasPrimaries()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ has(HasPrimaries);\ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ iccSize()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has(HasICC))}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_data.size();}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00088\ \ \ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*\ iccData()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has(HasICC))}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&m\_data[0];}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00095\ \ \ \ \ \}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_transfer_fn}{ColorSpaceTransferFn}}*\ transferFn()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has(HasTransferFn))}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_transfer_fn}{ColorSpaceTransferFn}}*)\&m\_data[0];}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00102\ \ \ \ \ \}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_primaries}{ColorSpacePrimaries}}*\ primaries()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has(HasPrimaries))\ \{}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has(HasTransferFn))}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_primaries}{ColorSpacePrimaries}}*)\&m\_data[\textcolor{keyword}{sizeof}(\mbox{\hyperlink{structgfx_1_1_color_space_transfer_fn}{ColorSpaceTransferFn}})];}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structgfx_1_1_color_space_primaries}{ColorSpacePrimaries}}*)\&m\_data[0];}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00113\ \ \ \ \ \}}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator==(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_color_space}{ColorSpace}}\&\ that)\ \textcolor{keyword}{const}\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keywordtype}{bool}\ operator!=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_color_space}{ColorSpace}}\&\ that)\ \textcolor{keyword}{const}\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00117\ \ \ \ \ \textcolor{keywordtype}{bool}\ nearlyEqual(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_color_space}{ColorSpace}}\&\ that)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{comment}{//\ This\ data\ can\ be\ used}}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keyword}{const}\ std::vector<uint8\_t>\&\ rawData()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_data;\ \}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordtype}{bool}\ has(\textcolor{keyword}{const}\ Flag\ flag)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (m\_flags\ \&\ \textcolor{keywordtype}{int}(flag))\ ==\ int(flag);\ \}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \ \ \ \ Type\ m\_type;}
+\DoxyCodeLine{00126\ \ \ \ \ Flag\ m\_flags;}
+\DoxyCodeLine{00127\ \ \ \ \ std::string\ m\_name;}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_gamma\ =\ 1.0f;}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{comment}{//\ ColorSpacePrimaries\ +\ ColorSpaceTransferFn\ or\ raw\ ICC\ profile\ data}}
+\DoxyCodeLine{00130\ \ \ \ \ std::vector<uint8\_t>\ m\_data;}
+\DoxyCodeLine{00131\ \ \ \};}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \}\ \textcolor{comment}{//\ namespace\ gfx}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#pragma\ pop\_macro("{}None"{}})}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

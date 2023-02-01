@@ -1,0 +1,134 @@
+\hypertarget{hb__shaper_8h_source}{}\doxysection{hb\+\_\+shaper.\+h}
+\label{hb__shaper_8h_source}\index{AseSprite/aseprite/laf/ft/hb\_shaper.h@{AseSprite/aseprite/laf/ft/hb\_shaper.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ FreeType\ Wrapper}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2020-\/2022\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (c)\ 2017\ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ FT\_HB\_SHAPER\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ FT\_HB\_SHAPER\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}base/utf8\_decode.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}ft/hb\_face.h"{}}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }ft\ \{}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ HBFace>}
+\DoxyCodeLine{00020\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classft_1_1_h_b_shaper}{HBShaper}}\ \{}
+\DoxyCodeLine{00021\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \ \ \ \ \mbox{\hyperlink{classft_1_1_h_b_shaper}{HBShaper}}(\mbox{\hyperlink{classft_1_1_h_b_face}{HBFace}}\&\ face,\ \textcolor{keyword}{const}\ std::string\&\ str)}
+\DoxyCodeLine{00024\ \ \ \ \ \ \ :\ m\_face(face)\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \mbox{\hyperlink{classbase_1_1utf8__decode}{base::utf8\_decode}}\ decode(str);}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (decode.is\_end())}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}*\ \mbox{\hyperlink{structbuf}{buf}}\ =\ hb\_buffer\_create();}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}*\ chrBuf\ =\ hb\_buffer\_create();}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ hb\_script\_t\ script\ =\ HB\_SCRIPT\_UNKNOWN;}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ begin\ =\ str.begin();}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (\textcolor{keyword}{true})\ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ pos\ =\ decode.pos();}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ chr\ =\ decode.next();}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!chr)}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Get\ the\ script\ of\ the\ next\ character\ in\ *it}}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ hb\_buffer\_set\_content\_type(chrBuf,\ HB\_BUFFER\_CONTENT\_TYPE\_UNICODE);}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ hb\_buffer\_add(chrBuf,\ chr,\ 0);}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ hb\_buffer\_guess\_segment\_properties(chrBuf);}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ hb\_script\_t\ newScript\ =\ hb\_buffer\_get\_script(chrBuf);}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ hb\_buffer\_reset(chrBuf);}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (newScript\ \&\&\ script\ !=\ newScript)\ \{}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ addBuffer(\mbox{\hyperlink{structbuf}{buf}},\ script);}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ hb\_buffer\_reset(\mbox{\hyperlink{structbuf}{buf}});}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ script\ =\ newScript;}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ hb\_buffer\_add(\mbox{\hyperlink{structbuf}{buf}},\ chr,\ pos\ -\/\ begin);}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ addBuffer(\mbox{\hyperlink{structbuf}{buf}},\ script);}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \ \ hb\_buffer\_destroy(\mbox{\hyperlink{structbuf}{buf}});}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ hb\_buffer\_destroy(chrBuf);}
+\DoxyCodeLine{00059\ \ \ \ \ \}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{int}\ next()\ \{}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (++m\_index\ <\ m\_glyphCount)}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_glyphInfo[m\_index].codepoint;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00066\ \ \ \ \ \}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{int}\ unicodeChar()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_glyphInfo[m\_index].codepoint;}
+\DoxyCodeLine{00070\ \ \ \ \ \}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{int}\ charIndex()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_glyphInfo[m\_index].cluster;}
+\DoxyCodeLine{00074\ \ \ \ \ \}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ glyphIndex()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_glyphInfo[m\_index].codepoint;}
+\DoxyCodeLine{00078\ \ \ \ \ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{void}\ glyphOffsetXY(\mbox{\hyperlink{structft_1_1_glyph}{Glyph}}*\ glyph)\ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ glyph-\/>x\ +=\ m\_glyphPos[m\_index].x\_offset\ /\ 64.0;}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ glyph-\/>y\ +=\ m\_glyphPos[m\_index].y\_offset\ /\ 64.0;}
+\DoxyCodeLine{00083\ \ \ \ \ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{void}\ glyphAdvanceXY(\textcolor{keyword}{const}\ \mbox{\hyperlink{structft_1_1_glyph}{Glyph}}*\ glyph,\ \textcolor{keywordtype}{double}\&\ x,\ \textcolor{keywordtype}{double}\&\ y)\ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ x\ +=\ m\_glyphPos[m\_index].x\_advance\ /\ 64.0;}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ y\ +=\ m\_glyphPos[m\_index].y\_advance\ /\ 64.0;}
+\DoxyCodeLine{00088\ \ \ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{void}\ addBuffer(\mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}*\ \mbox{\hyperlink{structbuf}{buf}},\ hb\_script\_t\ script)\ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_buffer\_get\_length(\mbox{\hyperlink{structbuf}{buf}})\ ==\ 0)}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \textcolor{comment}{//\ Just\ in\ case\ we're\ compiling\ with\ an\ old\ harfbuzz\ version}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#ifdef\ HB\_BUFFER\_CLUSTER\_LEVEL\_MONOTONE\_CHARACTERS}}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ hb\_buffer\_set\_cluster\_level(\mbox{\hyperlink{structbuf}{buf}},\ HB\_BUFFER\_CLUSTER\_LEVEL\_MONOTONE\_CHARACTERS);}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ hb\_buffer\_set\_content\_type(\mbox{\hyperlink{structbuf}{buf}},\ HB\_BUFFER\_CONTENT\_TYPE\_UNICODE);}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ hb\_buffer\_set\_script(\mbox{\hyperlink{structbuf}{buf}},\ script);}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ hb\_buffer\_set\_direction(\mbox{\hyperlink{structbuf}{buf}},\ hb\_script\_get\_horizontal\_direction(script));}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \ \ hb\_shape(m\_face.font(),\ \mbox{\hyperlink{structbuf}{buf}},\ \textcolor{keyword}{nullptr},\ 0);}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count;}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ info\ =\ hb\_buffer\_get\_glyph\_infos(\mbox{\hyperlink{structbuf}{buf}},\ \&count);}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ pos\ =\ hb\_buffer\_get\_glyph\_positions(\mbox{\hyperlink{structbuf}{buf}},\ \&count);}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ \ \ m\_glyphCount\ +=\ count;}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ m\_glyphInfo.size();}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ m\_glyphInfo.resize(m\_glyphCount);}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ m\_glyphPos.resize(m\_glyphCount);}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i=0;\ i<count;\ ++i)\ \{}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ m\_glyphInfo[start+i]\ =\ info[i];}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ m\_glyphPos[start+i]\ =\ pos[i];}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00117\ \ \ \ \ \}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \ \ \mbox{\hyperlink{classft_1_1_h_b_face}{HBFace}}\&\ m\_face;}
+\DoxyCodeLine{00120\ \ \ \ \ std::vector<hb\_glyph\_info\_t>\ m\_glyphInfo;}
+\DoxyCodeLine{00121\ \ \ \ \ std::vector<hb\_glyph\_position\_t>\ m\_glyphPos;}
+\DoxyCodeLine{00122\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_glyphCount\ =\ 0;}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_index\ =\ -\/1;}
+\DoxyCodeLine{00124\ \ \ \};}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \}\ \textcolor{comment}{//\ namespace\ ft}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

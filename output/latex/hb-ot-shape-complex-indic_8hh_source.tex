@@ -1,0 +1,436 @@
+\hypertarget{hb-ot-shape-complex-indic_8hh_source}{}\doxysection{hb-\/ot-\/shape-\/complex-\/indic.hh}
+\label{hb-ot-shape-complex-indic_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/shape-\/complex-\/indic.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/shape-\/complex-\/indic.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_OT\_SHAPE\_COMPLEX\_INDIC\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_OT\_SHAPE\_COMPLEX\_INDIC\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/shape-\/complex-\/syllabic.hh"{}}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{comment}{/*\ buffer\ var\ allocations\ */}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ indic\_category()\ complex\_var\_u8\_category()\ }\textcolor{comment}{/*\ indic\_category\_t\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ indic\_position()\ complex\_var\_u8\_auxiliary()\ }\textcolor{comment}{/*\ indic\_position\_t\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{comment}{/*\ Cateories\ used\ in\ the\ OpenType\ spec:}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ https://docs.microsoft.com/en-\/us/typography/script-\/development/devanagari}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00043\ \textcolor{comment}{/*\ Note:\ This\ enum\ is\ duplicated\ in\ the\ -\/machine.rl\ source\ file.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ Not\ sure\ how\ to\ avoid\ duplication.\ */}}
+\DoxyCodeLine{00045\ \textcolor{keyword}{enum}\ indic\_category\_t\ \{}
+\DoxyCodeLine{00046\ \ \ OT\_X\ =\ 0,}
+\DoxyCodeLine{00047\ \ \ OT\_C\ =\ 1,}
+\DoxyCodeLine{00048\ \ \ OT\_V\ =\ 2,}
+\DoxyCodeLine{00049\ \ \ OT\_N\ =\ 3,}
+\DoxyCodeLine{00050\ \ \ OT\_H\ =\ 4,}
+\DoxyCodeLine{00051\ \ \ OT\_ZWNJ\ =\ 5,}
+\DoxyCodeLine{00052\ \ \ OT\_ZWJ\ =\ 6,}
+\DoxyCodeLine{00053\ \ \ OT\_M\ =\ 7,}
+\DoxyCodeLine{00054\ \ \ OT\_SM\ =\ 8,}
+\DoxyCodeLine{00055\ \ \ \textcolor{comment}{/*\ OT\_VD\ =\ 9,\ UNUSED;\ we\ use\ OT\_A\ instead.\ */}}
+\DoxyCodeLine{00056\ \ \ OT\_A\ =\ 10,}
+\DoxyCodeLine{00057\ \ \ OT\_PLACEHOLDER\ =\ 11,}
+\DoxyCodeLine{00058\ \ \ OT\_DOTTEDCIRCLE\ =\ 12,}
+\DoxyCodeLine{00059\ \ \ OT\_RS\ =\ 13,\ \textcolor{comment}{/*\ Register\ Shifter,\ used\ in\ Khmer\ OT\ spec.\ */}}
+\DoxyCodeLine{00060\ \ \ OT\_Coeng\ =\ 14,\ \textcolor{comment}{/*\ Khmer-\/style\ Virama.\ */}}
+\DoxyCodeLine{00061\ \ \ OT\_Repha\ =\ 15,\ \textcolor{comment}{/*\ Atomically-\/encoded\ logical\ or\ visual\ repha.\ */}}
+\DoxyCodeLine{00062\ \ \ OT\_Ra\ =\ 16,}
+\DoxyCodeLine{00063\ \ \ OT\_CM\ =\ 17,\ \ \textcolor{comment}{/*\ Consonant-\/Medial.\ */}}
+\DoxyCodeLine{00064\ \ \ OT\_Symbol\ =\ 18,\ \textcolor{comment}{/*\ Avagraha,\ etc\ that\ take\ marks\ (SM,A,VD).\ */}}
+\DoxyCodeLine{00065\ \ \ OT\_CS\ =\ 19,}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \textcolor{comment}{/*\ The\ following\ are\ used\ by\ Khmer\ \&\ Myanmar\ shapers.\ \ Defined}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *\ here\ for\ them\ to\ share.\ */}}
+\DoxyCodeLine{00069\ \ \ OT\_VAbv\ \ \ \ =\ 26,}
+\DoxyCodeLine{00070\ \ \ OT\_VBlw\ \ \ \ =\ 27,}
+\DoxyCodeLine{00071\ \ \ OT\_VPre\ \ \ \ =\ 28,}
+\DoxyCodeLine{00072\ \ \ OT\_VPst\ \ \ \ =\ 29,}
+\DoxyCodeLine{00073\ \};}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#define\ MEDIAL\_FLAGS\ (FLAG\ (OT\_CM))}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{comment}{/*\ Note:}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ *\ We\ treat\ Vowels\ and\ placeholders\ as\ if\ they\ were\ consonants.\ \ This\ is\ safe\ because\ Vowels}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ *\ cannot\ happen\ in\ a\ consonant\ syllable.\ \ The\ plus\ side\ however\ is,\ we\ can\ call\ the}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ *\ consonant\ syllable\ logic\ from\ the\ vowel\ syllable\ function\ and\ get\ it\ all\ right!\ */}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#define\ CONSONANT\_FLAGS\ (FLAG\ (OT\_C)\ |\ FLAG\ (OT\_CS)\ |\ FLAG\ (OT\_Ra)\ |\ MEDIAL\_FLAGS\ |\ FLAG\ (OT\_V)\ |\ FLAG\ (OT\_PLACEHOLDER)\ |\ FLAG\ (OT\_DOTTEDCIRCLE))}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#define\ JOINER\_FLAGS\ (FLAG\ (OT\_ZWJ)\ |\ FLAG\ (OT\_ZWNJ))}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{comment}{/*\ Visual\ positions\ in\ a\ syllable\ from\ left\ to\ right.\ */}}
+\DoxyCodeLine{00087\ \textcolor{keyword}{enum}\ indic\_position\_t\ \{}
+\DoxyCodeLine{00088\ \ \ POS\_START\ =\ 0,}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ POS\_RA\_TO\_BECOME\_REPH\ =\ 1,}
+\DoxyCodeLine{00091\ \ \ POS\_PRE\_M\ =\ 2,}
+\DoxyCodeLine{00092\ \ \ POS\_PRE\_C\ =\ 3,}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ POS\_BASE\_C\ =\ 4,}
+\DoxyCodeLine{00095\ \ \ POS\_AFTER\_MAIN\ =\ 5,}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ POS\_ABOVE\_C\ =\ 6,}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ POS\_BEFORE\_SUB\ =\ 7,}
+\DoxyCodeLine{00100\ \ \ POS\_BELOW\_C\ =\ 8,}
+\DoxyCodeLine{00101\ \ \ POS\_AFTER\_SUB\ =\ 9,}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ POS\_BEFORE\_POST\ =\ 10,}
+\DoxyCodeLine{00104\ \ \ POS\_POST\_C\ =\ 11,}
+\DoxyCodeLine{00105\ \ \ POS\_AFTER\_POST\ =\ 12,}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ POS\_FINAL\_C\ =\ 13,}
+\DoxyCodeLine{00108\ \ \ POS\_SMVD\ =\ 14,}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ POS\_END\ =\ 15}
+\DoxyCodeLine{00111\ \};}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \textcolor{comment}{/*\ Categories\ used\ in\ IndicSyllabicCategory.txt\ from\ UCD.\ */}}
+\DoxyCodeLine{00114\ \textcolor{keyword}{enum}\ indic\_syllabic\_category\_t\ \{}
+\DoxyCodeLine{00115\ \ \ INDIC\_SYLLABIC\_CATEGORY\_OTHER\ \ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_X,}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ INDIC\_SYLLABIC\_CATEGORY\_AVAGRAHA\ \ \ \ \ \ \ \ \ \ =\ OT\_Symbol,}
+\DoxyCodeLine{00118\ \ \ INDIC\_SYLLABIC\_CATEGORY\_BINDU\ \ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_SM,}
+\DoxyCodeLine{00119\ \ \ INDIC\_SYLLABIC\_CATEGORY\_BRAHMI\_JOINING\_NUMBER\ \ \ \ \ =\ OT\_PLACEHOLDER,\ \textcolor{comment}{/*\ Don't\ care.\ */}}
+\DoxyCodeLine{00120\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CANTILLATION\_MARK\ \ \ \ \ =\ OT\_A,}
+\DoxyCodeLine{00121\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\ \ \ \ \ \ \ \ \ =\ OT\_C,}
+\DoxyCodeLine{00122\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_DEAD\ \ \ \ \ \ \ \ =\ OT\_C,}
+\DoxyCodeLine{00123\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_FINAL\ \ \ \ \ \ \ =\ OT\_CM,}
+\DoxyCodeLine{00124\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_HEAD\_LETTER\ \ \ \ \ =\ OT\_C,}
+\DoxyCodeLine{00125\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_KILLER\ \ \ \ \ \ =\ OT\_M,\ \textcolor{comment}{/*\ U+17CD\ only.\ */}}
+\DoxyCodeLine{00126\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_MEDIAL\ \ \ \ \ \ =\ OT\_CM,}
+\DoxyCodeLine{00127\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_PLACEHOLDER\ \ \ \ \ =\ OT\_PLACEHOLDER,}
+\DoxyCodeLine{00128\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_PRECEDING\_REPHA\ =\ OT\_Repha,}
+\DoxyCodeLine{00129\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_PREFIXED\ \ \ \ \ \ \ \ =\ OT\_X,\ \textcolor{comment}{/*\ Don't\ care.\ */}}
+\DoxyCodeLine{00130\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_SUBJOINED\ \ \ \ \ \ \ =\ OT\_CM,}
+\DoxyCodeLine{00131\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_SUCCEEDING\_REPHA\ \ \ \ =\ OT\_CM,}
+\DoxyCodeLine{00132\ \ \ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_WITH\_STACKER\ \ \ \ =\ OT\_CS,}
+\DoxyCodeLine{00133\ \ \ INDIC\_SYLLABIC\_CATEGORY\_GEMINATION\_MARK\ \ \ \ \ \ \ =\ OT\_SM,\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/552\ */}}
+\DoxyCodeLine{00134\ \ \ INDIC\_SYLLABIC\_CATEGORY\_INVISIBLE\_STACKER\ \ \ \ \ =\ OT\_Coeng,}
+\DoxyCodeLine{00135\ \ \ INDIC\_SYLLABIC\_CATEGORY\_JOINER\ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_ZWJ,}
+\DoxyCodeLine{00136\ \ \ INDIC\_SYLLABIC\_CATEGORY\_MODIFYING\_LETTER\ \ \ \ \ \ =\ OT\_X,}
+\DoxyCodeLine{00137\ \ \ INDIC\_SYLLABIC\_CATEGORY\_NON\_JOINER\ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_ZWNJ,}
+\DoxyCodeLine{00138\ \ \ INDIC\_SYLLABIC\_CATEGORY\_NUKTA\ \ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_N,}
+\DoxyCodeLine{00139\ \ \ INDIC\_SYLLABIC\_CATEGORY\_NUMBER\ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_PLACEHOLDER,}
+\DoxyCodeLine{00140\ \ \ INDIC\_SYLLABIC\_CATEGORY\_NUMBER\_JOINER\ \ \ \ \ \ \ \ \ =\ OT\_PLACEHOLDER,\ \textcolor{comment}{/*\ Don't\ care.\ */}}
+\DoxyCodeLine{00141\ \ \ INDIC\_SYLLABIC\_CATEGORY\_PURE\_KILLER\ \ \ \ \ \ \ \ \ \ \ =\ OT\_M,\ \textcolor{comment}{/*\ Is\ like\ a\ vowel\ matra.\ */}}
+\DoxyCodeLine{00142\ \ \ INDIC\_SYLLABIC\_CATEGORY\_REGISTER\_SHIFTER\ \ \ \ \ \ =\ OT\_RS,}
+\DoxyCodeLine{00143\ \ \ INDIC\_SYLLABIC\_CATEGORY\_SYLLABLE\_MODIFIER\ \ \ \ \ =\ OT\_SM,}
+\DoxyCodeLine{00144\ \ \ INDIC\_SYLLABIC\_CATEGORY\_TONE\_LETTER\ \ \ \ \ \ \ \ \ \ \ =\ OT\_X,}
+\DoxyCodeLine{00145\ \ \ INDIC\_SYLLABIC\_CATEGORY\_TONE\_MARK\ \ \ \ \ \ \ \ \ =\ OT\_N,}
+\DoxyCodeLine{00146\ \ \ INDIC\_SYLLABIC\_CATEGORY\_VIRAMA\ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_H,}
+\DoxyCodeLine{00147\ \ \ INDIC\_SYLLABIC\_CATEGORY\_VISARGA\ \ \ \ \ \ \ \ \ \ \ =\ OT\_SM,}
+\DoxyCodeLine{00148\ \ \ INDIC\_SYLLABIC\_CATEGORY\_VOWEL\ \ \ \ \ \ \ \ \ \ \ \ \ =\ OT\_V,}
+\DoxyCodeLine{00149\ \ \ INDIC\_SYLLABIC\_CATEGORY\_VOWEL\_DEPENDENT\ \ \ \ \ \ \ =\ OT\_M,}
+\DoxyCodeLine{00150\ \ \ INDIC\_SYLLABIC\_CATEGORY\_VOWEL\_INDEPENDENT\ \ \ \ \ =\ OT\_V}
+\DoxyCodeLine{00151\ \};}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{comment}{/*\ Categories\ used\ in\ IndicSMatraCategory.txt\ from\ UCD\ */}}
+\DoxyCodeLine{00154\ \textcolor{keyword}{enum}\ indic\_matra\_category\_t\ \{}
+\DoxyCodeLine{00155\ \ \ INDIC\_MATRA\_CATEGORY\_NOT\_APPLICABLE\ \ \ \ \ \ \ \ \ \ \ =\ POS\_END,}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ INDIC\_MATRA\_CATEGORY\_LEFT\ \ \ \ \ \ \ \ \ \ \ \ \ =\ POS\_PRE\_C,}
+\DoxyCodeLine{00158\ \ \ INDIC\_MATRA\_CATEGORY\_TOP\ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ POS\_ABOVE\_C,}
+\DoxyCodeLine{00159\ \ \ INDIC\_MATRA\_CATEGORY\_BOTTOM\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ POS\_BELOW\_C,}
+\DoxyCodeLine{00160\ \ \ INDIC\_MATRA\_CATEGORY\_RIGHT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ POS\_POST\_C,}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \textcolor{comment}{/*\ These\ should\ resolve\ to\ the\ position\ of\ the\ last\ part\ of\ the\ split\ sequence.\ */}}
+\DoxyCodeLine{00163\ \ \ INDIC\_MATRA\_CATEGORY\_BOTTOM\_AND\_RIGHT\ \ \ \ \ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_RIGHT,}
+\DoxyCodeLine{00164\ \ \ INDIC\_MATRA\_CATEGORY\_LEFT\_AND\_RIGHT\ \ \ \ \ \ \ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_RIGHT,}
+\DoxyCodeLine{00165\ \ \ INDIC\_MATRA\_CATEGORY\_TOP\_AND\_BOTTOM\ \ \ \ \ \ \ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_BOTTOM,}
+\DoxyCodeLine{00166\ \ \ INDIC\_MATRA\_CATEGORY\_TOP\_AND\_BOTTOM\_AND\_LEFT\ \ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_BOTTOM,}
+\DoxyCodeLine{00167\ \ \ INDIC\_MATRA\_CATEGORY\_TOP\_AND\_BOTTOM\_AND\_RIGHT\ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_RIGHT,}
+\DoxyCodeLine{00168\ \ \ INDIC\_MATRA\_CATEGORY\_TOP\_AND\_LEFT\ \ \ \ \ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_TOP,}
+\DoxyCodeLine{00169\ \ \ INDIC\_MATRA\_CATEGORY\_TOP\_AND\_LEFT\_AND\_RIGHT\ \ \ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_RIGHT,}
+\DoxyCodeLine{00170\ \ \ INDIC\_MATRA\_CATEGORY\_TOP\_AND\_RIGHT\ \ \ \ \ \ \ \ \ \ \ \ =\ INDIC\_MATRA\_CATEGORY\_RIGHT,}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ INDIC\_MATRA\_CATEGORY\_OVERSTRUCK\ \ \ \ \ \ \ \ \ \ \ =\ POS\_AFTER\_MAIN,}
+\DoxyCodeLine{00173\ \ \ INDIC\_MATRA\_CATEGORY\_VISUAL\_ORDER\_LEFT\ \ \ \ \ \ \ \ =\ POS\_PRE\_M}
+\DoxyCodeLine{00174\ \};}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ INDIC\_COMBINE\_CATEGORIES(S,M)\ \(\backslash\)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ (\ \(\backslash\)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ \ \ static\_assert\_expr\ (S\ <\ 255\ \&\&\ M\ <\ 255)\ +\ \(\backslash\)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ \ \ (\ S\ |\ \(\backslash\)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ \ \ \ (\ \(\backslash\)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\ \ \ \ \ \ (\ \(\backslash\)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\ \ \ \ \ \ \ S\ ==\ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_MEDIAL\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\ \ \ \ \ \ \ S\ ==\ INDIC\_SYLLABIC\_CATEGORY\_GEMINATION\_MARK\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\ \ \ \ \ \ \ S\ ==\ INDIC\_SYLLABIC\_CATEGORY\_REGISTER\_SHIFTER\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\ \ \ \ \ \ \ S\ ==\ INDIC\_SYLLABIC\_CATEGORY\_CONSONANT\_SUCCEEDING\_REPHA\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\ \ \ \ \ \ \ S\ ==\ INDIC\_SYLLABIC\_CATEGORY\_VIRAMA\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\ \ \ \ \ \ \ S\ ==\ INDIC\_SYLLABIC\_CATEGORY\_VOWEL\_DEPENDENT\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\ \ \ \ \ \ \ false\ \(\backslash\)}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\ \ \ \ \ \ \ ?\ M\ :\ INDIC\_MATRA\_CATEGORY\_NOT\_APPLICABLE\ \(\backslash\)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\ \ \ \ \ \ )\ <<\ 8\ \(\backslash\)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ \ )\ \(\backslash\)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\ \ \ \ )\ \(\backslash\)}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\ \ \ )}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ HB\_INTERNAL\ uint16\_t}
+\DoxyCodeLine{00196\ hb\_indic\_get\_categories\ (hb\_codepoint\_t\ u);}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00200\ is\_one\_of\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&info,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ flags)}
+\DoxyCodeLine{00201\ \{}
+\DoxyCodeLine{00202\ \ \ \textcolor{comment}{/*\ If\ it\ ligated,\ all\ bets\ are\ off.\ */}}
+\DoxyCodeLine{00203\ \ \ \textcolor{keywordflow}{if}\ (\_hb\_glyph\_info\_ligated\ (\&info))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00204\ \ \ \textcolor{keywordflow}{return}\ !!(FLAG\_UNSAFE\ (info.indic\_category())\ \&\ flags);}
+\DoxyCodeLine{00205\ \}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00208\ is\_joiner\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&info)}
+\DoxyCodeLine{00209\ \{}
+\DoxyCodeLine{00210\ \ \ \textcolor{keywordflow}{return}\ is\_one\_of\ (info,\ JOINER\_FLAGS);}
+\DoxyCodeLine{00211\ \}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00214\ is\_consonant\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&info)}
+\DoxyCodeLine{00215\ \{}
+\DoxyCodeLine{00216\ \ \ \textcolor{keywordflow}{return}\ is\_one\_of\ (info,\ CONSONANT\_FLAGS);}
+\DoxyCodeLine{00217\ \}}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00220\ is\_halant\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&info)}
+\DoxyCodeLine{00221\ \{}
+\DoxyCodeLine{00222\ \ \ \textcolor{keywordflow}{return}\ is\_one\_of\ (info,\ FLAG\ (OT\_H));}
+\DoxyCodeLine{00223\ \}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\#define\ IN\_HALF\_BLOCK(u,\ Base)\ (((u)\ \&\ \string~0x7Fu)\ ==\ (Base))}}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#define\ IS\_DEVA(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0900u))}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\#define\ IS\_BENG(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0980u))}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#define\ IS\_GURU(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0A00u))}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\#define\ IS\_GUJR(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0A80u))}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#define\ IS\_ORYA(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0B00u))}}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\#define\ IS\_TAML(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0B80u))}}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\#define\ IS\_TELU(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0C00u))}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\#define\ IS\_KNDA(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0C80u))}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\#define\ IS\_MLYM(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0D00u))}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\#define\ IS\_SINH(u)\ (IN\_HALF\_BLOCK\ (u,\ 0x0D80u))}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#define\ MATRA\_POS\_LEFT(u)\ \ \ POS\_PRE\_M}}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\#define\ MATRA\_POS\_RIGHT(u)\ \ (\ \(\backslash\)}}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_DEVA(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_BENG(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_GURU(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_GUJR(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_ORYA(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_TAML(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_TELU(u)\ ?\ (u\ <=\ 0x0C42u\ ?\ POS\_BEFORE\_SUB\ :\ POS\_AFTER\_SUB)\ :\ \(\backslash\)}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_KNDA(u)\ ?\ (u\ <\ 0x0CC3u\ ||\ u\ >\ 0xCD6u\ ?\ POS\_BEFORE\_SUB\ :\ POS\_AFTER\_SUB)\ :\ \(\backslash\)}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_MLYM(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_SINH(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00251\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*default*/}\textcolor{preprocessor}{\ \ POS\_AFTER\_SUB\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00252\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}}
+\DoxyCodeLine{00253\ \textcolor{preprocessor}{\#define\ MATRA\_POS\_TOP(u)\ \ \ \ (\ }\textcolor{comment}{/*\ BENG\ and\ MLYM\ don't\ have\ top\ matras.\ */}\textcolor{preprocessor}{\ \(\backslash\)}}
+\DoxyCodeLine{00254\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_DEVA(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00255\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_GURU(u)\ ?\ POS\_AFTER\_POST\ :\ }\textcolor{comment}{/*\ Deviate\ from\ spec\ */}\textcolor{preprocessor}{\ \(\backslash\)}}
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_GUJR(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_ORYA(u)\ ?\ POS\_AFTER\_MAIN\ :\ \(\backslash\)}}
+\DoxyCodeLine{00258\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_TAML(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_TELU(u)\ ?\ POS\_BEFORE\_SUB\ :\ \(\backslash\)}}
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_KNDA(u)\ ?\ POS\_BEFORE\_SUB\ :\ \(\backslash\)}}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_SINH(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00262\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*default*/}\textcolor{preprocessor}{\ \ POS\_AFTER\_SUB\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}}
+\DoxyCodeLine{00264\ \textcolor{preprocessor}{\#define\ MATRA\_POS\_BOTTOM(u)\ (\ \(\backslash\)}}
+\DoxyCodeLine{00265\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_DEVA(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_BENG(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_GURU(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_GUJR(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_ORYA(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_TAML(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_TELU(u)\ ?\ POS\_BEFORE\_SUB\ :\ \(\backslash\)}}
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_KNDA(u)\ ?\ POS\_BEFORE\_SUB\ :\ \(\backslash\)}}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_MLYM(u)\ ?\ POS\_AFTER\_POST\ :\ \(\backslash\)}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IS\_SINH(u)\ ?\ POS\_AFTER\_SUB\ \ :\ \(\backslash\)}}
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*default*/}\textcolor{preprocessor}{\ \ POS\_AFTER\_SUB\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00276\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ )}}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ indic\_position\_t}
+\DoxyCodeLine{00279\ matra\_position\_indic\ (hb\_codepoint\_t\ u,\ indic\_position\_t\ side)}
+\DoxyCodeLine{00280\ \{}
+\DoxyCodeLine{00281\ \ \ \textcolor{keywordflow}{switch}\ ((\textcolor{keywordtype}{int})\ side)}
+\DoxyCodeLine{00282\ \ \ \{}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keywordflow}{case}\ POS\_PRE\_C:\ \textcolor{keywordflow}{return}\ MATRA\_POS\_LEFT\ (u);}
+\DoxyCodeLine{00284\ \ \ \ \ \textcolor{keywordflow}{case}\ POS\_POST\_C:\ \ \ \ \textcolor{keywordflow}{return}\ MATRA\_POS\_RIGHT\ (u);}
+\DoxyCodeLine{00285\ \ \ \ \ \textcolor{keywordflow}{case}\ POS\_ABOVE\_C:\ \ \ \textcolor{keywordflow}{return}\ MATRA\_POS\_TOP\ (u);}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordflow}{case}\ POS\_BELOW\_C:\ \ \ \textcolor{keywordflow}{return}\ MATRA\_POS\_BOTTOM\ (u);}
+\DoxyCodeLine{00287\ \ \ \}}
+\DoxyCodeLine{00288\ \ \ \textcolor{keywordflow}{return}\ side;}
+\DoxyCodeLine{00289\ \}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \textcolor{comment}{/*\ XXX}}
+\DoxyCodeLine{00292\ \textcolor{comment}{\ *\ This\ is\ a\ hack\ for\ now.\ \ We\ should\ move\ this\ data\ into\ the\ main\ Indic\ table.}}
+\DoxyCodeLine{00293\ \textcolor{comment}{\ *\ Or\ completely\ remove\ it\ and\ just\ check\ in\ the\ tables.}}
+\DoxyCodeLine{00294\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00295\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ hb\_codepoint\_t\ ra\_chars[]\ =\ \{}
+\DoxyCodeLine{00296\ \ \ 0x0930u,\ \textcolor{comment}{/*\ Devanagari\ */}}
+\DoxyCodeLine{00297\ \ \ 0x09B0u,\ \textcolor{comment}{/*\ Bengali\ */}}
+\DoxyCodeLine{00298\ \ \ 0x09F0u,\ \textcolor{comment}{/*\ Bengali\ */}}
+\DoxyCodeLine{00299\ \ \ 0x0A30u,\ \textcolor{comment}{/*\ Gurmukhi\ */}\ \ \ \textcolor{comment}{/*\ No\ Reph\ */}}
+\DoxyCodeLine{00300\ \ \ 0x0AB0u,\ \textcolor{comment}{/*\ Gujarati\ */}}
+\DoxyCodeLine{00301\ \ \ 0x0B30u,\ \textcolor{comment}{/*\ Oriya\ */}}
+\DoxyCodeLine{00302\ \ \ 0x0BB0u,\ \textcolor{comment}{/*\ Tamil\ */}\ \ \ \ \ \ \textcolor{comment}{/*\ No\ Reph\ */}}
+\DoxyCodeLine{00303\ \ \ 0x0C30u,\ \textcolor{comment}{/*\ Telugu\ */}\ \ \ \ \ \textcolor{comment}{/*\ Reph\ formed\ only\ with\ ZWJ\ */}}
+\DoxyCodeLine{00304\ \ \ 0x0CB0u,\ \textcolor{comment}{/*\ Kannada\ */}}
+\DoxyCodeLine{00305\ \ \ 0x0D30u,\ \textcolor{comment}{/*\ Malayalam\ */}\ \ \textcolor{comment}{/*\ No\ Reph,\ Logical\ Repha\ */}}
+\DoxyCodeLine{00306\ }
+\DoxyCodeLine{00307\ \ \ 0x0DBBu,\ \textcolor{comment}{/*\ Sinhala\ */}\ \ \ \ \textcolor{comment}{/*\ Reph\ formed\ only\ with\ ZWJ\ */}}
+\DoxyCodeLine{00308\ \};}
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00311\ is\_ra\ (hb\_codepoint\_t\ u)}
+\DoxyCodeLine{00312\ \{}
+\DoxyCodeLine{00313\ \ \ \textcolor{keywordflow}{return}\ hb\_array\ (ra\_chars).lfind\ (u);}
+\DoxyCodeLine{00314\ \}}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00317\ set\_indic\_properties\ (\mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&info)}
+\DoxyCodeLine{00318\ \{}
+\DoxyCodeLine{00319\ \ \ hb\_codepoint\_t\ u\ =\ info.codepoint;}
+\DoxyCodeLine{00320\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ type\ =\ hb\_indic\_get\_categories\ (u);}
+\DoxyCodeLine{00321\ \ \ indic\_category\_t\ cat\ =\ (indic\_category\_t)\ (type\ \&\ 0xFFu);}
+\DoxyCodeLine{00322\ \ \ indic\_position\_t\ pos\ =\ (indic\_position\_t)\ (type\ >>\ 8);}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00326\ \textcolor{comment}{\ \ \ *\ Re-\/assign\ category}}
+\DoxyCodeLine{00327\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \ \ \textcolor{comment}{/*\ The\ following\ act\ more\ like\ the\ Bindus.\ */}}
+\DoxyCodeLine{00330\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (hb\_in\_range<hb\_codepoint\_t>\ (u,\ 0x0953u,\ 0x0954u)))}
+\DoxyCodeLine{00331\ \ \ \ \ cat\ =\ OT\_SM;}
+\DoxyCodeLine{00332\ \ \ \textcolor{comment}{/*\ The\ following\ act\ like\ consonants.\ */}}
+\DoxyCodeLine{00333\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (hb\_in\_ranges<hb\_codepoint\_t>\ (u,\ 0x0A72u,\ 0x0A73u,}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1CF5u,\ 0x1CF6u)))}
+\DoxyCodeLine{00335\ \ \ \ \ cat\ =\ OT\_C;}
+\DoxyCodeLine{00336\ \ \ \textcolor{comment}{/*\ TODO:\ The\ following\ should\ only\ be\ allowed\ after\ a\ Visarga.}}
+\DoxyCodeLine{00337\ \textcolor{comment}{\ \ \ *\ For\ now,\ just\ treat\ them\ like\ regular\ tone\ marks.\ */}}
+\DoxyCodeLine{00338\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (hb\_in\_range<hb\_codepoint\_t>\ (u,\ 0x1CE2u,\ 0x1CE8u)))}
+\DoxyCodeLine{00339\ \ \ \ \ cat\ =\ OT\_A;}
+\DoxyCodeLine{00340\ \ \ \textcolor{comment}{/*\ TODO:\ The\ following\ should\ only\ be\ allowed\ after\ some\ of}}
+\DoxyCodeLine{00341\ \textcolor{comment}{\ \ \ *\ the\ nasalization\ marks,\ maybe\ only\ for\ U+1CE9..U+1CF1.}}
+\DoxyCodeLine{00342\ \textcolor{comment}{\ \ \ *\ For\ now,\ just\ treat\ them\ like\ tone\ marks.\ */}}
+\DoxyCodeLine{00343\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x1CEDu))}
+\DoxyCodeLine{00344\ \ \ \ \ cat\ =\ OT\_A;}
+\DoxyCodeLine{00345\ \ \ \textcolor{comment}{/*\ The\ following\ take\ marks\ in\ standalone\ clusters,\ similar\ to\ Avagraha.\ */}}
+\DoxyCodeLine{00346\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (hb\_in\_ranges<hb\_codepoint\_t>\ (u,\ 0xA8F2u,\ 0xA8F7u,}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1CE9u,\ 0x1CECu,}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0x1CEEu,\ 0x1CF1u)))}
+\DoxyCodeLine{00349\ \ \ \{}
+\DoxyCodeLine{00350\ \ \ \ \ cat\ =\ OT\_Symbol;}
+\DoxyCodeLine{00351\ \ \ \ \ \textcolor{keyword}{static\_assert}\ (((int)\ INDIC\_SYLLABIC\_CATEGORY\_AVAGRAHA\ ==\ OT\_Symbol),\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00352\ \ \ \}}
+\DoxyCodeLine{00353\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x0A51u))}
+\DoxyCodeLine{00354\ \ \ \{}
+\DoxyCodeLine{00355\ \ \ \ \ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/524\ */}}
+\DoxyCodeLine{00356\ \ \ \ \ cat\ =\ OT\_M;}
+\DoxyCodeLine{00357\ \ \ \ \ pos\ =\ POS\_BELOW\_C;}
+\DoxyCodeLine{00358\ \ \ \}}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \ \ \textcolor{comment}{/*\ According\ to\ ScriptExtensions.txt,\ these\ Grantha\ marks\ may\ also\ be\ used\ in\ Tamil,}}
+\DoxyCodeLine{00361\ \textcolor{comment}{\ \ \ *\ so\ the\ Indic\ shaper\ needs\ to\ know\ their\ categories.\ */}}
+\DoxyCodeLine{00362\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x11301u\ ||\ u\ ==\ 0x11303u))\ cat\ =\ OT\_SM;}
+\DoxyCodeLine{00363\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x1133Bu\ ||\ u\ ==\ 0x1133Cu))\ cat\ =\ OT\_N;}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x0AFBu))\ cat\ =\ OT\_N;\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/552\ */}}
+\DoxyCodeLine{00366\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x0B55u))\ cat\ =\ OT\_N;\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/2849\ */}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x0980u))\ cat\ =\ OT\_PLACEHOLDER;\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/538\ */}}
+\DoxyCodeLine{00369\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x09FCu))\ cat\ =\ OT\_PLACEHOLDER;\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/pull/1613\ */}}
+\DoxyCodeLine{00370\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x0C80u))\ cat\ =\ OT\_PLACEHOLDER;\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/pull/623\ */}}
+\DoxyCodeLine{00371\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (hb\_in\_range<hb\_codepoint\_t>\ (u,\ 0x2010u,\ 0x2011u)))}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cat\ =\ OT\_PLACEHOLDER;}
+\DoxyCodeLine{00373\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x25CCu))\ cat\ =\ OT\_DOTTEDCIRCLE;}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00377\ \textcolor{comment}{\ \ \ *\ Re-\/assign\ position.}}
+\DoxyCodeLine{00378\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \ \ \textcolor{keywordflow}{if}\ ((FLAG\_UNSAFE\ (cat)\ \&\ CONSONANT\_FLAGS))}
+\DoxyCodeLine{00381\ \ \ \{}
+\DoxyCodeLine{00382\ \ \ \ \ pos\ =\ POS\_BASE\_C;}
+\DoxyCodeLine{00383\ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_ra\ (u))}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ cat\ =\ OT\_Ra;}
+\DoxyCodeLine{00385\ \ \ \}}
+\DoxyCodeLine{00386\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (cat\ ==\ OT\_M)}
+\DoxyCodeLine{00387\ \ \ \{}
+\DoxyCodeLine{00388\ \ \ \ \ pos\ =\ matra\_position\_indic\ (u,\ pos);}
+\DoxyCodeLine{00389\ \ \ \}}
+\DoxyCodeLine{00390\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((FLAG\_UNSAFE\ (cat)\ \&\ (FLAG\ (OT\_SM)\ \textcolor{comment}{/*\ |\ FLAG\ (OT\_VD)\ */}\ |\ FLAG\ (OT\_A)\ |\ FLAG\ (OT\_Symbol))))}
+\DoxyCodeLine{00391\ \ \ \{}
+\DoxyCodeLine{00392\ \ \ \ \ pos\ =\ POS\_SMVD;}
+\DoxyCodeLine{00393\ \ \ \}}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (u\ ==\ 0x0B01u))\ pos\ =\ POS\_BEFORE\_SUB;\ \textcolor{comment}{/*\ Oriya\ Bindu\ is\ BeforeSub\ in\ the\ spec.\ */}}
+\DoxyCodeLine{00396\ }
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \ \ info.indic\_category()\ =\ cat;}
+\DoxyCodeLine{00400\ \ \ info.indic\_position()\ =\ pos;}
+\DoxyCodeLine{00401\ \}}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__indic__would__substitute__feature__t}{hb\_indic\_would\_substitute\_feature\_t}}}
+\DoxyCodeLine{00404\ \{}
+\DoxyCodeLine{00405\ \ \ \textcolor{keywordtype}{void}\ init\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__map__t}{hb\_ot\_map\_t}}\ *map,\ hb\_tag\_t\ feature\_tag,\ \textcolor{keywordtype}{bool}\ zero\_context\_)}
+\DoxyCodeLine{00406\ \ \ \{}
+\DoxyCodeLine{00407\ \ \ \ \ zero\_context\ =\ zero\_context\_;}
+\DoxyCodeLine{00408\ \ \ \ \ map-\/>get\_stage\_lookups\ (0\textcolor{comment}{/*GSUB*/},}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ map-\/>get\_feature\_stage\ (0\textcolor{comment}{/*GSUB*/},\ feature\_tag),}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&lookups,\ \&count);}
+\DoxyCodeLine{00411\ \ \ \}}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ \ \ \textcolor{keywordtype}{bool}\ would\_substitute\ (\textcolor{keyword}{const}\ hb\_codepoint\_t\ *glyphs,}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ glyphs\_count,}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ \ \ \ \ \ \ \ \ \ \ \ *face)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00416\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00417\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ count;\ i++)}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_ot\_layout\_lookup\_would\_substitute\ (face,\ lookups[i].index,\ glyphs,\ glyphs\_count,\ zero\_context))}
+\DoxyCodeLine{00419\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00420\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00421\ \ \ \}}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00424\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__map__t_1_1lookup__map__t}{hb\_ot\_map\_t::lookup\_map\_t}}\ *lookups;}
+\DoxyCodeLine{00425\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count;}
+\DoxyCodeLine{00426\ \ \ \textcolor{keywordtype}{bool}\ zero\_context;}
+\DoxyCodeLine{00427\ \};}
+\DoxyCodeLine{00428\ }
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_OT\_SHAPE\_COMPLEX\_INDIC\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

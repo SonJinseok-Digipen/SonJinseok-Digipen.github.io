@@ -1,0 +1,82 @@
+\hypertarget{debug_8h_source}{}\doxysection{debug.\+h}
+\label{debug_8h_source}\index{AseSprite/aseprite/laf/base/debug.h@{AseSprite/aseprite/laf/base/debug.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ Base\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2021\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (c)\ 2001-\/2016\ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ BASE\_DEBUG\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ BASE\_DEBUG\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}base/base.h"{}}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keywordtype}{int}\ base\_assert(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ condition,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \mbox{\hyperlink{structfile}{file}},\ \textcolor{keywordtype}{int}\ lineNum)\ LAF\_ANALYZER\_NORETURN;}
+\DoxyCodeLine{00015\ \textcolor{keywordtype}{void}\ base\_trace(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ msg,\ ...);}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \#include\ <sstream>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\ \ \#include\ <string>}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Arg>}
+\DoxyCodeLine{00022\ \ \ \textcolor{keywordtype}{void}\ base\_args\_to\_string\_step(std::stringstream\&\ s,\ Arg\&\&\ arg)\ \{}
+\DoxyCodeLine{00023\ \ \ \ \ s\ <<\ std::forward<Arg>(arg);}
+\DoxyCodeLine{00024\ \ \ \}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Arg,\ \textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00027\ \ \ \textcolor{keywordtype}{void}\ base\_args\_to\_string\_step(std::stringstream\&\ s,\ Arg\&\&\ arg,\ Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ s\ <<\ std::forward<Arg>(arg)\ <<\ \textcolor{charliteral}{'\ '};}
+\DoxyCodeLine{00029\ \ \ \ \ base\_args\_to\_string\_step<Args...>(s,\ std::forward<Args>(args)...);}
+\DoxyCodeLine{00030\ \ \ \}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00033\ \ \ std::string\ base\_args\_to\_string(Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ std::stringstream\ s;}
+\DoxyCodeLine{00035\ \ \ \ \ base\_args\_to\_string\_step(s,\ std::forward<Args>(args)...);}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordflow}{return}\ s.str();}
+\DoxyCodeLine{00037\ \ \ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00040\ \ \ \textcolor{keywordtype}{void}\ base\_trace\_args(Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00041\ \ \ \ \ std::string\ s\ =\ base\_args\_to\_string(std::forward<Args>(args)...);}
+\DoxyCodeLine{00042\ \ \ \ \ s.push\_back(\textcolor{charliteral}{'\(\backslash\)n'});}
+\DoxyCodeLine{00043\ \ \ \ \ base\_trace(s.c\_str());}
+\DoxyCodeLine{00044\ \ \ \}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#undef\ ASSERT}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#undef\ TRACE}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#undef\ TRACEARGS}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#ifdef\ \_DEBUG}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\ \ \#if\ LAF\_WINDOWS}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\ \ \ \ \#include\ <crtdbg.h>}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\ \ \ \ \#define\ base\_break()\ \_CrtDbgBreak()}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\ \ \#else}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\ \ \ \ \#include\ <signal.h>}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\ \ \ \ \#define\ base\_break()\ raise(SIGTRAP)}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\ \ \#define\ ASSERT(condition)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ \ \ if\ (!(condition))\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\ \ \ \ \ \ if\ (base\_assert(\#condition,\ \_\_FILE\_\_,\ \_\_LINE\_\_))\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ base\_break();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\ \ \}}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \#define\ TRACE\ base\_trace}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\ \ \#define\ TRACEARGS\ base\_trace\_args}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\ \ \#define\ ASSERT(condition)}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\ \ \#define\ TRACE(...)}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\ \ \#define\ TRACEARGS(...)}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

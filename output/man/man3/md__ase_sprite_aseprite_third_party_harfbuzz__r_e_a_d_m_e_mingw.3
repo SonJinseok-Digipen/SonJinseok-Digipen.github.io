@@ -1,0 +1,60 @@
+.TH "md__ase_sprite_aseprite_third_party_harfbuzz__r_e_a_d_m_e_mingw" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_harfbuzz__r_e_a_d_m_e_mingw \- README\&.mingw 
+.PP
+For the development of HarfBuzz, the Microsoft shaping technology, Uniscribe, as a widely used and tested shaper is used as more-or-less OpenType reference implementation and that specially is important where OpenType specification is or wasn't that clear\&. For having access to Uniscribe on Linux/macOS these steps are recommended:
+.PP
+You want to follow the 32bit instructions\&. The 64bit equivalents are included for reference\&.
+.PP
+.IP "1." 4
+Install Wine\&.
+.IP "  \(bu" 4
+Fedora: \fCdnf install wine\fP\&.
+.PP
+
+.IP "2." 4
+Install \fCmingw-w64\fP compiler\&.
+.IP "  \(bu" 4
+Fedora, 32bit: \fCdnf install mingw32-gcc-c++\fP
+.IP "  \(bu" 4
+Fedora, 64bit: \fCdnf install mingw64-gcc-c++\fP
+.IP "  \(bu" 4
+Debian: \fCapt install g++-mingw-w64\fP
+.IP "  \(bu" 4
+Mac: \fCbrew install mingw-w64\fP
+.PP
+
+.IP "3." 4
+If you have drank the \fCmeson\fP koolaid, look at \fC\&.ci/build-win32\&.sh\fP to see how to invoke \fCmeson\fP now, or just run that script\&. Otherwise, here's how to use the old trusty autotools instead:
+.PP
+a) Install dependencies\&.
+.IP "  \(bu" 4
+Fedora, 32bit: \fCdnf install mingw32-glib2 mingw32-cairo mingw32-freetype\fP
+.IP "  \(bu" 4
+Fedora, 64bit: \fCdnf install mingw64-glib2 mingw64-cairo mingw64-freetype\fP
+.PP
+.PP
+b) Configure:
+.IP "  \(bu" 4
+\fCNOCONFIGURE=1 \&./autogen\&.sh && mkdir winbuild && cd winbuild\fP
+.IP "  \(bu" 4
+32bit: \fC\&.\&./mingw-configure\&.sh i686\fP
+.IP "  \(bu" 4
+64bit: \fC\&.\&./mingw-configure\&.sh x86_64\fP
+.PP
+
+.PP
+.PP
+Now you can use \fChb-shape\fP by \fC(cd win32build/util && wine hb-shape\&.exe)\fP but if you like to shape with the Microsoft Uniscribe:
+.PP
+.IP "4." 4
+Bring a 32bit version of \fCusp10\&.dll\fP for yourself from \fCC:\\Windows\\SysWOW64\\usp10\&.dll\fP of your Windows installation (assuming you have a 64-bit installation, otherwise \fCC:\\Windows\\System32\\usp10\&.dll\fP) that it is not a DirectWrite proxy (\fCfor more info\fP)\&. Rule of thumb, your \fCusp10\&.dll\fP should have a size more than 500kb, otherwise it is designed to work with DirectWrite which Wine can't work with its original one\&. You want a Uniscribe from Windows 7 or older\&.
+.PP
+Put the DLL in the folder you are going to run the next command,
+.IP "5." 4
+\fCWINEDLLOVERRIDES='usp10=n' wine hb-shape\&.exe fontname\&.ttf -u 0061,0062,0063 --shaper=uniscribe\fP
+.PP
+.PP
+(\fC0061,0062,0063\fP means \fCabc\fP, use test/shaping/hb-unicode-decode to generate ones you need) 

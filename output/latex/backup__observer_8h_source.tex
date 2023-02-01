@@ -1,0 +1,72 @@
+\hypertarget{backup__observer_8h_source}{}\doxysection{backup\+\_\+observer.\+h}
+\label{backup__observer_8h_source}\index{AseSprite/aseprite/src/app/crash/backup\_observer.h@{AseSprite/aseprite/src/app/crash/backup\_observer.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2020\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_CRASH\_BACKUP\_OBSERVER\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_CRASH\_BACKUP\_OBSERVER\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/context\_observer.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/doc\_observer.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/docs\_observer.h"{}}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <condition\_variable>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00024\ \textcolor{keyword}{class\ }Doc;}
+\DoxyCodeLine{00025\ \textcolor{keyword}{namespace\ }crash\ \{}
+\DoxyCodeLine{00026\ \ \ \textcolor{keyword}{struct\ }RecoveryConfig;}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{class\ }Session;}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1crash_1_1_backup_observer}{BackupObserver}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_context_observer}{ContextObserver}}}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ,\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_docs_observer}{DocsObserver}}}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ,\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_doc_observer}{DocObserver}}\ \{}
+\DoxyCodeLine{00032\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00033\ \ \ \ \ \mbox{\hyperlink{classapp_1_1crash_1_1_backup_observer}{BackupObserver}}(\mbox{\hyperlink{structapp_1_1crash_1_1_recovery_config}{RecoveryConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}},}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1crash_1_1_session}{Session}}*\ session,}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx);}
+\DoxyCodeLine{00036\ \ \ \ \ \mbox{\hyperlink{classapp_1_1crash_1_1_backup_observer}{\string~BackupObserver}}();}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{void}\ stop();}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordtype}{void}\ onAddDocument(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ document)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keywordtype}{void}\ onRemoveDocument(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ document)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{void}\ backgroundThread();}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{bool}\ saveDocData(\mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc);}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ \mbox{\hyperlink{structapp_1_1crash_1_1_recovery_config}{RecoveryConfig}}*\ m\_config;}
+\DoxyCodeLine{00048\ \ \ \ \ \mbox{\hyperlink{classapp_1_1crash_1_1_session}{Session}}*\ m\_session;}
+\DoxyCodeLine{00049\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ m\_ctx;}
+\DoxyCodeLine{00050\ \ \ \ \ std::vector<Doc*>\ m\_documents;}
+\DoxyCodeLine{00051\ \ \ \ \ std::vector<Doc*>\ m\_closedDocs;}
+\DoxyCodeLine{00052\ \ \ \ \ std::atomic<bool>\ m\_done;}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ std::mutex\ m\_mutex;}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//\ Used\ to\ wakeup\ the\ backgroundThread()\ when\ we\ have\ to\ stop\ the}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{comment}{//\ thread\ that\ saves\ backups\ (i.e.\ when\ we\ are\ closing\ the\ application).}}
+\DoxyCodeLine{00058\ \ \ \ \ std::condition\_variable\ m\_wakeup;}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ std::thread\ m\_thread;}
+\DoxyCodeLine{00061\ \ \ \};}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \}\ \textcolor{comment}{//\ namespace\ crash}}
+\DoxyCodeLine{00064\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

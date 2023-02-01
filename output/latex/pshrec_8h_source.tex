@@ -1,0 +1,177 @@
+\hypertarget{pshrec_8h_source}{}\doxysection{pshrec.\+h}
+\label{pshrec_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/pshinter/pshrec.h@{AseSprite/aseprite/third\_party/freetype2/src/pshinter/pshrec.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ pshrec.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Postscript\ (Type1/Type2)\ hints\ recorder\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2001-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{comment}{\ \ /***************************************************************************}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ \ \ *\ The\ functions\ defined\ here\ are\ called\ from\ the\ Type\ 1,\ CID\ and\ CFF}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ \ \ *\ font\ drivers\ to\ record\ the\ hints\ of\ a\ given\ character/glyph.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ \ \ *\ The\ hints\ are\ recorded\ in\ a\ unified\ format,\ and\ are\ later\ processed}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ \ \ *\ by\ the\ `optimizer'\ and\ `fitter'\ to\ adjust\ the\ outlines\ to\ the\ pixel}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ \ *\ grid.}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#ifndef\ PSHREC\_H\_}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ PSHREC\_H\_}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ <freetype/internal/pshints.h>}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ "{}pshglob.h"{}}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ GLYPH\ HINTS\ RECORDER\ INTERNALS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ /*****\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *****/}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ /*************************************************************************/}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \textcolor{comment}{/*\ handle\ to\ hint\ record\ */}}
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_s___hint_rec__}{PS\_HintRec\_}}*\ \ PS\_Hint;}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \textcolor{comment}{/*\ hint\ types\ */}}
+\DoxyCodeLine{00054\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ PS\_Hint\_Type\_}
+\DoxyCodeLine{00055\ \ \ \{}
+\DoxyCodeLine{00056\ \ \ \ \ PS\_HINT\_TYPE\_1\ =\ 1,}
+\DoxyCodeLine{00057\ \ \ \ \ PS\_HINT\_TYPE\_2\ =\ 2}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \}\ PS\_Hint\_Type;}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \textcolor{comment}{/*\ hint\ flags\ */}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#define\ PS\_HINT\_FLAG\_GHOST\ \ \ 1U}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#define\ PS\_HINT\_FLAG\_BOTTOM\ \ 2U}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \textcolor{comment}{/*\ hint\ descriptor\ */}}
+\DoxyCodeLine{00068\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___hint_rec__}{PS\_HintRec\_}}}
+\DoxyCodeLine{00069\ \ \ \{}
+\DoxyCodeLine{00070\ \ \ \ \ FT\_Int\ \ \ pos;}
+\DoxyCodeLine{00071\ \ \ \ \ FT\_Int\ \ \ len;}
+\DoxyCodeLine{00072\ \ \ \ \ FT\_UInt\ \ flags;}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \}\ \mbox{\hyperlink{struct_p_s___hint_rec__}{PS\_HintRec}};}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ ps\_hint\_is\_active(\ x\ )\ \ (\ (x)-\/>flags\ \&\ PS\_HINT\_FLAG\_ACTIVE\ )}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#define\ ps\_hint\_is\_ghost(\ x\ )\ \ \ (\ (x)-\/>flags\ \&\ PS\_HINT\_FLAG\_GHOST\ \ )}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ ps\_hint\_is\_bottom(\ x\ )\ \ (\ (x)-\/>flags\ \&\ PS\_HINT\_FLAG\_BOTTOM\ )}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \textcolor{comment}{/*\ hints\ table\ descriptor\ */}}
+\DoxyCodeLine{00083\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___hint___table_rec__}{PS\_Hint\_TableRec\_}}}
+\DoxyCodeLine{00084\ \ \ \{}
+\DoxyCodeLine{00085\ \ \ \ \ FT\_UInt\ \ num\_hints;}
+\DoxyCodeLine{00086\ \ \ \ \ FT\_UInt\ \ max\_hints;}
+\DoxyCodeLine{00087\ \ \ \ \ PS\_Hint\ \ hints;}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \}\ \mbox{\hyperlink{struct_p_s___hint___table_rec__}{PS\_Hint\_TableRec}},\ *\mbox{\hyperlink{struct_p_s___hint___table_rec__}{PS\_Hint\_Table}};}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \textcolor{comment}{/*\ hint\ and\ counter\ mask\ descriptor\ */}}
+\DoxyCodeLine{00093\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___mask_rec__}{PS\_MaskRec\_}}}
+\DoxyCodeLine{00094\ \ \ \{}
+\DoxyCodeLine{00095\ \ \ \ \ FT\_UInt\ \ \ num\_bits;}
+\DoxyCodeLine{00096\ \ \ \ \ FT\_UInt\ \ \ max\_bits;}
+\DoxyCodeLine{00097\ \ \ \ \ FT\_Byte*\ \ \mbox{\hyperlink{classbytes}{bytes}};}
+\DoxyCodeLine{00098\ \ \ \ \ FT\_UInt\ \ \ end\_point;}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \}\ \mbox{\hyperlink{struct_p_s___mask_rec__}{PS\_MaskRec}},\ *\mbox{\hyperlink{struct_p_s___mask_rec__}{PS\_Mask}};}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \textcolor{comment}{/*\ masks\ and\ counters\ table\ descriptor\ */}}
+\DoxyCodeLine{00104\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___mask___table_rec__}{PS\_Mask\_TableRec\_}}}
+\DoxyCodeLine{00105\ \ \ \{}
+\DoxyCodeLine{00106\ \ \ \ \ FT\_UInt\ \ num\_masks;}
+\DoxyCodeLine{00107\ \ \ \ \ FT\_UInt\ \ max\_masks;}
+\DoxyCodeLine{00108\ \ \ \ \ \mbox{\hyperlink{struct_p_s___mask_rec__}{PS\_Mask}}\ \ masks;}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \}\ \mbox{\hyperlink{struct_p_s___mask___table_rec__}{PS\_Mask\_TableRec}},\ *\mbox{\hyperlink{struct_p_s___mask___table_rec__}{PS\_Mask\_Table}};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \textcolor{comment}{/*\ dimension-\/specific\ hints\ descriptor\ */}}
+\DoxyCodeLine{00114\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___dimension_rec__}{PS\_DimensionRec\_}}}
+\DoxyCodeLine{00115\ \ \ \{}
+\DoxyCodeLine{00116\ \ \ \ \ \mbox{\hyperlink{struct_p_s___hint___table_rec__}{PS\_Hint\_TableRec}}\ \ hints;}
+\DoxyCodeLine{00117\ \ \ \ \ \mbox{\hyperlink{struct_p_s___mask___table_rec__}{PS\_Mask\_TableRec}}\ \ masks;}
+\DoxyCodeLine{00118\ \ \ \ \ \mbox{\hyperlink{struct_p_s___mask___table_rec__}{PS\_Mask\_TableRec}}\ \ counters;}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \}\ \mbox{\hyperlink{struct_p_s___dimension_rec__}{PS\_DimensionRec}},\ *\mbox{\hyperlink{struct_p_s___dimension_rec__}{PS\_Dimension}};}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \textcolor{comment}{/*\ glyph\ hints\ descriptor\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00124\ \ \ \textcolor{comment}{/*\ dimension\ 0\ =>\ X\ coordinates\ +\ vertical\ hints/stems\ \ \ */}}
+\DoxyCodeLine{00125\ \ \ \textcolor{comment}{/*\ dimension\ 1\ =>\ Y\ coordinates\ +\ horizontal\ hints/stems\ */}}
+\DoxyCodeLine{00126\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_p_s___hints_rec__}{PS\_HintsRec\_}}}
+\DoxyCodeLine{00127\ \ \ \{}
+\DoxyCodeLine{00128\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00129\ \ \ \ \ FT\_Error\ \ \ \ \ \ \ \ \ error;}
+\DoxyCodeLine{00130\ \ \ \ \ FT\_UInt32\ \ \ \ \ \ \ \ magic;}
+\DoxyCodeLine{00131\ \ \ \ \ PS\_Hint\_Type\ \ \ \ \ hint\_type;}
+\DoxyCodeLine{00132\ \ \ \ \ \mbox{\hyperlink{struct_p_s___dimension_rec__}{PS\_DimensionRec}}\ \ dimension[2];}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \}\ \mbox{\hyperlink{struct_p_s___hints_rec__}{PS\_HintsRec}},\ *\mbox{\hyperlink{struct_p_s___hints_rec__}{PS\_Hints}};}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \textcolor{comment}{/*\ initialize\ hints\ recorder\ */}}
+\DoxyCodeLine{00139\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00140\ \ \ ps\_hints\_init(\ \mbox{\hyperlink{struct_p_s___hints_rec__}{PS\_Hints}}\ \ \ hints,}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \mbox{\hyperlink{structmemory}{memory}}\ );}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \textcolor{comment}{/*\ finalize\ hints\ recorder\ */}}
+\DoxyCodeLine{00144\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00145\ \ \ ps\_hints\_done(\ \mbox{\hyperlink{struct_p_s___hints_rec__}{PS\_Hints}}\ \ hints\ );}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \textcolor{comment}{/*\ initialize\ Type1\ hints\ recorder\ interface\ */}}
+\DoxyCodeLine{00148\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00149\ \ \ t1\_hints\_funcs\_init(\ \mbox{\hyperlink{struct_t1___hints___funcs_rec__}{T1\_Hints\_FuncsRec}}*\ \ funcs\ );}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{comment}{/*\ initialize\ Type2\ hints\ recorder\ interface\ */}}
+\DoxyCodeLine{00152\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00153\ \ \ t2\_hints\_funcs\_init(\ \mbox{\hyperlink{struct_t2___hints___funcs_rec__}{T2\_Hints\_FuncsRec}}*\ \ funcs\ );}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#ifdef\ DEBUG\_HINTER}}
+\DoxyCodeLine{00157\ \ \ \textcolor{keyword}{extern}\ \mbox{\hyperlink{struct_p_s___hints_rec__}{PS\_Hints}}\ \ ps\_debug\_hints;}
+\DoxyCodeLine{00158\ \ \ \textcolor{keyword}{extern}\ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ ps\_debug\_no\_horz\_hints;}
+\DoxyCodeLine{00159\ \ \ \textcolor{keyword}{extern}\ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ ps\_debug\_no\_vert\_hints;}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ FT\_END\_HEADER}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PSHREC\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

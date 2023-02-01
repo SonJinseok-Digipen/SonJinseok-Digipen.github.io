@@ -1,0 +1,107 @@
+\hypertarget{neon_8h_source}{}\doxysection{neon.\+h}
+\label{neon_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dsp/neon.h@{AseSprite/aseprite/third\_party/libwebp/src/dsp/neon.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2014\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ \ NEON\ common\ code.}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DSP\_NEON\_H\_}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_NEON\_H\_}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <arm\_neon.h>}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}src/dsp/dsp.h"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{comment}{//\ Right\ now,\ some\ intrinsics\ functions\ seem\ slower,\ so\ we\ disable\ them}}
+\DoxyCodeLine{00020\ \textcolor{comment}{//\ everywhere\ except\ newer\ clang/gcc\ or\ aarch64\ where\ the\ inline\ assembly\ is}}
+\DoxyCodeLine{00021\ \textcolor{comment}{//\ incompatible.}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#if\ LOCAL\_CLANG\_PREREQ(3,8)\ ||\ LOCAL\_GCC\_PREREQ(4,9)\ ||\ defined(\_\_aarch64\_\_)}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ WEBP\_USE\_INTRINSICS\ \ \ }\textcolor{comment}{//\ use\ intrinsics\ when\ possible}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#define\ INIT\_VECTOR2(v,\ a,\ b)\ do\ \{\ \ \(\backslash\)}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ v.val[0]\ =\ a;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ v.val[1]\ =\ b;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\}\ while\ (0)}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ INIT\_VECTOR3(v,\ a,\ b,\ c)\ do\ \{\ \ \(\backslash\)}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\ \ v.val[0]\ =\ a;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ v.val[1]\ =\ b;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\ \ v.val[2]\ =\ c;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\}\ while\ (0)}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ INIT\_VECTOR4(v,\ a,\ b,\ c,\ d)\ do\ \{\ \ \(\backslash\)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ v.val[0]\ =\ a;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ v.val[1]\ =\ b;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\ \ v.val[2]\ =\ c;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\ \ v.val[3]\ =\ d;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\}\ while\ (0)}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{comment}{//\ if\ using\ intrinsics,\ this\ flag\ avoids\ some\ functions\ that\ make\ gcc-\/4.6.3}}
+\DoxyCodeLine{00045\ \textcolor{comment}{//\ crash\ ("{}internal\ compiler\ error:\ in\ immed\_double\_const,\ at\ emit-\/rtl."{}).}}
+\DoxyCodeLine{00046\ \textcolor{comment}{//\ (probably\ similar\ to\ gcc.gnu.org/bugzilla/show\_bug.cgi?id=48183)}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#if\ !(LOCAL\_CLANG\_PREREQ(3,8)\ ||\ LOCAL\_GCC\_PREREQ(4,8)\ ||\ defined(\_\_aarch64\_\_))}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ WORK\_AROUND\_GCC}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{static}\ WEBP\_INLINE\ int32x4x4\_t\ Transpose4x4\_NEON(\textcolor{keyword}{const}\ int32x4x4\_t\ rows)\ \{}
+\DoxyCodeLine{00052\ \ \ uint64x2x2\_t\ row01,\ row23;}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ row01.val[0]\ =\ vreinterpretq\_u64\_s32(rows.val[0]);}
+\DoxyCodeLine{00055\ \ \ row01.val[1]\ =\ vreinterpretq\_u64\_s32(rows.val[1]);}
+\DoxyCodeLine{00056\ \ \ row23.val[0]\ =\ vreinterpretq\_u64\_s32(rows.val[2]);}
+\DoxyCodeLine{00057\ \ \ row23.val[1]\ =\ vreinterpretq\_u64\_s32(rows.val[3]);}
+\DoxyCodeLine{00058\ \ \ \textcolor{comment}{//\ Transpose\ 64-\/bit\ values\ (there's\ no\ vswp\ equivalent)}}
+\DoxyCodeLine{00059\ \ \ \{}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{const}\ uint64x1\_t\ row0h\ =\ vget\_high\_u64(row01.val[0]);}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{const}\ uint64x1\_t\ row2l\ =\ vget\_low\_u64(row23.val[0]);}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{const}\ uint64x1\_t\ row1h\ =\ vget\_high\_u64(row01.val[1]);}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{const}\ uint64x1\_t\ row3l\ =\ vget\_low\_u64(row23.val[1]);}
+\DoxyCodeLine{00064\ \ \ \ \ row01.val[0]\ =\ vcombine\_u64(vget\_low\_u64(row01.val[0]),\ row2l);}
+\DoxyCodeLine{00065\ \ \ \ \ row23.val[0]\ =\ vcombine\_u64(row0h,\ vget\_high\_u64(row23.val[0]));}
+\DoxyCodeLine{00066\ \ \ \ \ row01.val[1]\ =\ vcombine\_u64(vget\_low\_u64(row01.val[1]),\ row3l);}
+\DoxyCodeLine{00067\ \ \ \ \ row23.val[1]\ =\ vcombine\_u64(row1h,\ vget\_high\_u64(row23.val[1]));}
+\DoxyCodeLine{00068\ \ \ \}}
+\DoxyCodeLine{00069\ \ \ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keyword}{const}\ int32x4x2\_t\ out01\ =\ vtrnq\_s32(vreinterpretq\_s32\_u64(row01.val[0]),}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vreinterpretq\_s32\_u64(row01.val[1]));}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keyword}{const}\ int32x4x2\_t\ out23\ =\ vtrnq\_s32(vreinterpretq\_s32\_u64(row23.val[0]),}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vreinterpretq\_s32\_u64(row23.val[1]));}
+\DoxyCodeLine{00074\ \ \ \ \ int32x4x4\_t\ out;}
+\DoxyCodeLine{00075\ \ \ \ \ out.val[0]\ =\ out01.val[0];}
+\DoxyCodeLine{00076\ \ \ \ \ out.val[1]\ =\ out01.val[1];}
+\DoxyCodeLine{00077\ \ \ \ \ out.val[2]\ =\ out23.val[0];}
+\DoxyCodeLine{00078\ \ \ \ \ out.val[3]\ =\ out23.val[1];}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{00080\ \ \ \}}
+\DoxyCodeLine{00081\ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#if\ 0\ \ \ \ \ }\textcolor{comment}{//\ Useful\ debug\ macro.}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ PRINT\_REG(REG,\ SIZE)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\ \ int\ i;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\ \ printf("{}\%s\ \(\backslash\)t[\%d]:\ 0x"{}},\ \#REG,\ SIZE);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00088\ \ \ if\ (SIZE\ ==\ 8)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00089\ \ \ \ \ uint8\_t\ \_tmp[8];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00090\ \ \ \ \ vst1\_u8(\_tmp,\ (REG));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00091\ \ \ \ \ for\ (i\ =\ 0;\ i\ <\ 8;\ ++i)\ printf("{}\%.2x\ "{},\ \_tmp[i]);\ \ \ \(\backslash\)}
+\DoxyCodeLine{00092\ \ \ \}\ else\ if\ (SIZE\ ==\ 16)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00093\ \ \ \ \ uint16\_t\ \_tmp[4];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00094\ \ \ \ \ vst1\_u16(\_tmp,\ (REG));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00095\ \ \ \ \ for\ (i\ =\ 0;\ i\ <\ 4;\ ++i)\ printf("{}\%.4x\ "{},\ \_tmp[i]);\ \ \ \(\backslash\)}
+\DoxyCodeLine{00096\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00097\ \ \ printf("{}\(\backslash\)n"{});\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00098\ \}\ while\ (0)}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DSP\_NEON\_H\_}}
+
+\end{DoxyCode}

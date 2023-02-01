@@ -1,0 +1,667 @@
+\hypertarget{psd_8h_source}{}\doxysection{psd.\+h}
+\label{psd_8h_source}\index{AseSprite/aseprite/src/psd/psd.h@{AseSprite/aseprite/src/psd/psd.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ PSD\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2021\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ PSD\_PSD\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ PSD\_PSD\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <map>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <stdexcept>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }psd\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#define\ PSD\_DEFINE\_DWORD(a,\ b,\ c,\ d)\ \(\backslash\)}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\ \ (((a)\ <<\ 24)\ |\ ((b)\ <<\ 16)\ |\ ((c)\ <<\ 8)\ |\ (d))}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \textcolor{keyword}{enum\ class}\ Version\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ Psd\ =\ 1,}
+\DoxyCodeLine{00026\ \ \ \ \ Psb\ =\ 2,}
+\DoxyCodeLine{00027\ \ \ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{enum\ class}\ ColorMode\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ Bitmap\ =\ 0,}
+\DoxyCodeLine{00031\ \ \ \ \ Grayscale\ =\ 1,}
+\DoxyCodeLine{00032\ \ \ \ \ Indexed\ =\ 2,}
+\DoxyCodeLine{00033\ \ \ \ \ RGB\ =\ 3,}
+\DoxyCodeLine{00034\ \ \ \ \ CMYK\ =\ 4,}
+\DoxyCodeLine{00035\ \ \ \ \ Multichannel\ =\ 7,}
+\DoxyCodeLine{00036\ \ \ \ \ Duotone\ =\ 8,}
+\DoxyCodeLine{00037\ \ \ \ \ Lab\ =\ 9,}
+\DoxyCodeLine{00038\ \ \ \};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ color\_mode\_string(\textcolor{keyword}{const}\ ColorMode\ colorMode);}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_file_header}{FileHeader}}\ \{}
+\DoxyCodeLine{00043\ \ \ \ \ Version\ version;}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{int}\ nchannels;}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{int}\ width;}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{int}\ height;}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{int}\ depth;}
+\DoxyCodeLine{00048\ \ \ \ \ ColorMode\ colorMode;}
+\DoxyCodeLine{00049\ \ \ \};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_index_color}{IndexColor}}\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ uint8\_t\ r,\ g,\ b;}
+\DoxyCodeLine{00053\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_index_color}{IndexColor}}()\ :\ r(0),\ g(0),\ b(0)\ \{\ \}}
+\DoxyCodeLine{00054\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_index_color}{IndexColor}}(uint8\_t\ r,\ uint8\_t\ g,\ uint8\_t\ b)\ :\ r(r),\ g(g),\ b(b)\ \{\ \}}
+\DoxyCodeLine{00055\ \ \ \};}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_color_mode_data}{ColorModeData}}\ \{}
+\DoxyCodeLine{00058\ \ \ \ \ uint32\_t\ length;}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{comment}{//\ Only\ valid\ for\ IndexedColorMode}}
+\DoxyCodeLine{00061\ \ \ \ \ std::vector<IndexColor>\ colors;}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ Raw\ data\ to\ restore\ in\ DuotoneColorMode}}
+\DoxyCodeLine{00064\ \ \ \ \ std::vector<uint8\_t>\ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00065\ \ \ \};}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_descriptor}{OSTypeDescriptor}};}
+\DoxyCodeLine{00068\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_image_resource}{ImageResource}}\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ uint16\_t\ resourceID;}
+\DoxyCodeLine{00070\ \ \ \ \ std::string\ name;}
+\DoxyCodeLine{00071\ \ \ \ \ std::vector<uint8\_t>\ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00072\ \ \ \ \ std::unique\_ptr<OSTypeDescriptor>\ descriptor;}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ resIDString(uint16\_t\ resID);}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ resIDHasDescriptor(uint16\_t\ resID);}
+\DoxyCodeLine{00076\ \ \ \};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_image_resources}{ImageResources}}\ \{}
+\DoxyCodeLine{00079\ \ \ \ \ std::vector<ImageResource>\ resources;}
+\DoxyCodeLine{00080\ \ \ \};}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \textcolor{keyword}{enum\ class}\ LayerBlendMode\ :\ uint32\_t\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ PassThrough\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00084\ \ \ \ \ Normal\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'m'}),}
+\DoxyCodeLine{00085\ \ \ \ \ Dissolve\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00086\ \ \ \ \ Darken\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'k'}),}
+\DoxyCodeLine{00087\ \ \ \ \ Multiply\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'\ '}),}
+\DoxyCodeLine{00088\ \ \ \ \ ColorBurn\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'v'}),}
+\DoxyCodeLine{00089\ \ \ \ \ LinearBurn\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'n'}),}
+\DoxyCodeLine{00090\ \ \ \ \ DarkerColor\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'k'},\ \textcolor{charliteral}{'C'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00091\ \ \ \ \ Lighten\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'e'}),}
+\DoxyCodeLine{00092\ \ \ \ \ Screen\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'n'}),}
+\DoxyCodeLine{00093\ \ \ \ \ ColorDodge\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'\ '}),}
+\DoxyCodeLine{00094\ \ \ \ \ LinearDodge\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'g'}),}
+\DoxyCodeLine{00095\ \ \ \ \ LighterColor\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'g'},\ \textcolor{charliteral}{'C'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00096\ \ \ \ \ Overlay\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00097\ \ \ \ \ SoftLight\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00098\ \ \ \ \ HardLight\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00099\ \ \ \ \ VividLight\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00100\ \ \ \ \ LinearLight\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00101\ \ \ \ \ PinLight\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00102\ \ \ \ \ HardMix\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'M'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'x'}),}
+\DoxyCodeLine{00103\ \ \ \ \ Difference\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'f'}),}
+\DoxyCodeLine{00104\ \ \ \ \ Exclusion\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00105\ \ \ \ \ Subtract\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'b'}),}
+\DoxyCodeLine{00106\ \ \ \ \ Divide\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'v'}),}
+\DoxyCodeLine{00107\ \ \ \ \ Hue\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'\ '}),}
+\DoxyCodeLine{00108\ \ \ \ \ Saturation\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'\ '}),}
+\DoxyCodeLine{00109\ \ \ \ \ Color\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00110\ \ \ \ \ Luminosity\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'\ '}),}
+\DoxyCodeLine{00111\ \ \ \};}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \textcolor{keyword}{enum\ class}\ LayerInfoKey\ :\ uint32\_t\ \{}
+\DoxyCodeLine{00114\ \ \ \ \ Alph\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'A'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'h'}),}
+\DoxyCodeLine{00115\ \ \ \ \ Anno\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'A'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'o'}),}
+\DoxyCodeLine{00116\ \ \ \ \ CgEd\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'C'},\ \textcolor{charliteral}{'g'},\ \textcolor{charliteral}{'E'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00117\ \ \ \ \ FEid\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'F'},\ \textcolor{charliteral}{'E'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00118\ \ \ \ \ FMsk\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'F'},\ \textcolor{charliteral}{'M'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'k'}),}
+\DoxyCodeLine{00119\ \ \ \ \ FXid\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'F'},\ \textcolor{charliteral}{'X'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00120\ \ \ \ \ GdFl\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'G'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'F'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00121\ \ \ \ \ LMsk\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'M'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'k'}),}
+\DoxyCodeLine{00122\ \ \ \ \ Layr\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'y'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00123\ \ \ \ \ Lr16\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'1'},\ \textcolor{charliteral}{'6'}),}
+\DoxyCodeLine{00124\ \ \ \ \ Lr32\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'3'},\ \textcolor{charliteral}{'2'}),}
+\DoxyCodeLine{00125\ \ \ \ \ Mt16\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'M'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'1'},\ \textcolor{charliteral}{'6'}),}
+\DoxyCodeLine{00126\ \ \ \ \ Mt32\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'M'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'3'},\ \textcolor{charliteral}{'2'}),}
+\DoxyCodeLine{00127\ \ \ \ \ Mtrn\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'M'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'n'}),}
+\DoxyCodeLine{00128\ \ \ \ \ Pat2\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'2'}),}
+\DoxyCodeLine{00129\ \ \ \ \ Pat3\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'3'}),}
+\DoxyCodeLine{00130\ \ \ \ \ Patt\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00131\ \ \ \ \ PtFl\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'F'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00132\ \ \ \ \ PxSD\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'S'},\ \textcolor{charliteral}{'D'}),}
+\DoxyCodeLine{00133\ \ \ \ \ PxSc\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'S'},\ \textcolor{charliteral}{'c'}),}
+\DoxyCodeLine{00134\ \ \ \ \ SoCo\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'S'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'C'},\ \textcolor{charliteral}{'o'}),}
+\DoxyCodeLine{00135\ \ \ \ \ SoLE\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'S'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'E'}),}
+\DoxyCodeLine{00136\ \ \ \ \ SoLd\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'S'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00137\ \ \ \ \ Txt2\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'T'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'2'}),}
+\DoxyCodeLine{00138\ \ \ \ \ TySh\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'T'},\ \textcolor{charliteral}{'y'},\ \textcolor{charliteral}{'S'},\ \textcolor{charliteral}{'h'}),}
+\DoxyCodeLine{00139\ \ \ \ \ abdd\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00140\ \ \ \ \ anFX\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'F'},\ \textcolor{charliteral}{'X'}),}
+\DoxyCodeLine{00141\ \ \ \ \ artb\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'b'}),}
+\DoxyCodeLine{00142\ \ \ \ \ artd\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00143\ \ \ \ \ blnc\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'c'}),}
+\DoxyCodeLine{00144\ \ \ \ \ blwh\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'w'},\ \textcolor{charliteral}{'h'}),}
+\DoxyCodeLine{00145\ \ \ \ \ brit\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00146\ \ \ \ \ brst\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00147\ \ \ \ \ cinf\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'f'}),}
+\DoxyCodeLine{00148\ \ \ \ \ clbl\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00149\ \ \ \ \ clrL\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'L'}),}
+\DoxyCodeLine{00150\ \ \ \ \ curv\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'v'}),}
+\DoxyCodeLine{00151\ \ \ \ \ cust\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00152\ \ \ \ \ expA\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'A'}),}
+\DoxyCodeLine{00153\ \ \ \ \ ffxi\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'i'}),}
+\DoxyCodeLine{00154\ \ \ \ \ fxrp\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'p'}),}
+\DoxyCodeLine{00155\ \ \ \ \ grdm\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'g'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'m'}),}
+\DoxyCodeLine{00156\ \ \ \ \ hue\ \ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'\ '}),}
+\DoxyCodeLine{00157\ \ \ \ \ hue2\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'2'}),}
+\DoxyCodeLine{00158\ \ \ \ \ infx\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'x'}),}
+\DoxyCodeLine{00159\ \ \ \ \ knko\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'k'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'k'},\ \textcolor{charliteral}{'o'}),}
+\DoxyCodeLine{00160\ \ \ \ \ lclr\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00161\ \ \ \ \ levl\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00162\ \ \ \ \ lfx2\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'2'}),}
+\DoxyCodeLine{00163\ \ \ \ \ lmgm\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'g'},\ \textcolor{charliteral}{'m'}),}
+\DoxyCodeLine{00164\ \ \ \ \ lnk2\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'k'},\ \textcolor{charliteral}{'2'}),}
+\DoxyCodeLine{00165\ \ \ \ \ lnk3\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'k'},\ \textcolor{charliteral}{'3'}),}
+\DoxyCodeLine{00166\ \ \ \ \ lnkD\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'k'},\ \textcolor{charliteral}{'D'}),}
+\DoxyCodeLine{00167\ \ \ \ \ lnsr\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00168\ \ \ \ \ lrFX\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'F'},\ \textcolor{charliteral}{'X'}),}
+\DoxyCodeLine{00169\ \ \ \ \ lsct\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00170\ \ \ \ \ lspf\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'f'}),}
+\DoxyCodeLine{00171\ \ \ \ \ luni\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'i'}),}
+\DoxyCodeLine{00172\ \ \ \ \ lyid\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'y'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00173\ \ \ \ \ lyvr\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'y'},\ \textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00174\ \ \ \ \ mixr\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00175\ \ \ \ \ mlst\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00176\ \ \ \ \ nvrt\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00177\ \ \ \ \ phfl\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'f'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00178\ \ \ \ \ plLd\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00179\ \ \ \ \ post\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00180\ \ \ \ \ pths\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00181\ \ \ \ \ selc\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'c'}),}
+\DoxyCodeLine{00182\ \ \ \ \ shmd\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'d'}),}
+\DoxyCodeLine{00183\ \ \ \ \ shpa\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'a'}),}
+\DoxyCodeLine{00184\ \ \ \ \ sn2P\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'2'},\ \textcolor{charliteral}{'P'}),}
+\DoxyCodeLine{00185\ \ \ \ \ thrs\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'h'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00186\ \ \ \ \ tmln\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'n'}),}
+\DoxyCodeLine{00187\ \ \ \ \ tsly\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'y'}),}
+\DoxyCodeLine{00188\ \ \ \ \ tySh\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'y'},\ \textcolor{charliteral}{'S'},\ \textcolor{charliteral}{'h'}),}
+\DoxyCodeLine{00189\ \ \ \ \ vibA\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'A'}),}
+\DoxyCodeLine{00190\ \ \ \ \ vmgm\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'g'},\ \textcolor{charliteral}{'m'}),}
+\DoxyCodeLine{00191\ \ \ \ \ vmsk\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'k'}),}
+\DoxyCodeLine{00192\ \ \ \ \ vogk\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'g'},\ \textcolor{charliteral}{'k'}),}
+\DoxyCodeLine{00193\ \ \ \ \ vscg\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'g'}),}
+\DoxyCodeLine{00194\ \ \ \ \ vsms\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00195\ \ \ \ \ vstk\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'v'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'k'}),}
+\DoxyCodeLine{00196\ \ \ \};}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \textcolor{keyword}{enum\ class}\ OSTypeKey\ :\ uint32\_t\ \{}
+\DoxyCodeLine{00199\ \ \ \ \ Reference\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'j'},\ \textcolor{charliteral}{'\ '}),}
+\DoxyCodeLine{00200\ \ \ \ \ Descriptor\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'O'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'j'},\ \textcolor{charliteral}{'c'}),}
+\DoxyCodeLine{00201\ \ \ \ \ List\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'V'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'L'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00202\ \ \ \ \ Double\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'b'}),}
+\DoxyCodeLine{00203\ \ \ \ \ UnitFloat\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'U'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'F'}),}
+\DoxyCodeLine{00204\ \ \ \ \ String\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'T'},\ \textcolor{charliteral}{'E'},\ \textcolor{charliteral}{'X'},\ \textcolor{charliteral}{'T'}),}
+\DoxyCodeLine{00205\ \ \ \ \ Enumerated\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'u'},\ \textcolor{charliteral}{'m'}),}
+\DoxyCodeLine{00206\ \ \ \ \ Long\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'g'}),}
+\DoxyCodeLine{00207\ \ \ \ \ LargeInteger\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'c'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'p'}),}
+\DoxyCodeLine{00208\ \ \ \ \ Boolean\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'l'}),}
+\DoxyCodeLine{00209\ \ \ \ \ GlobalObject\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'G'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'O'}),}
+\DoxyCodeLine{00210\ \ \ \ \ ClassType\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'y'},\ \textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'e'}),}
+\DoxyCodeLine{00211\ \ \ \ \ GlobalClass\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'G'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'b'},\ \textcolor{charliteral}{'C'}),}
+\DoxyCodeLine{00212\ \ \ \ \ Alias\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00213\ \ \ \ \ RawData\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'t'},\ \textcolor{charliteral}{'a'}),}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ \ \ RefProperty\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'p'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'o'},\ \textcolor{charliteral}{'p'}),}
+\DoxyCodeLine{00216\ \ \ \ \ RefClass\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'C'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00217\ \ \ \ \ RefEnum\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'E'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'r'}),}
+\DoxyCodeLine{00218\ \ \ \ \ RefOffset\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'e'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'e'}),}
+\DoxyCodeLine{00219\ \ \ \ \ RefIdentifier\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'I'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'t'}),}
+\DoxyCodeLine{00220\ \ \ \ \ RefIndex\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'i'},\ \textcolor{charliteral}{'d'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'x'}),}
+\DoxyCodeLine{00221\ \ \ \ \ RefName\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'a'},\ \textcolor{charliteral}{'m'},\ \textcolor{charliteral}{'e'}),}
+\DoxyCodeLine{00222\ \ \ \};}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \textcolor{keyword}{enum\ class}\ ImageResourceSection\ :\ uint32\_t\ \{}
+\DoxyCodeLine{00225\ \ \ \ \ ANDS\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'A'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'D'},\ \textcolor{charliteral}{'s'}),}
+\DoxyCodeLine{00226\ \ \ \};}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \textcolor{keyword}{enum\ class}\ ChannelID\ :\ \textcolor{keywordtype}{int}\ \{}
+\DoxyCodeLine{00229\ \ \ \ \ Red\ =\ 0,}
+\DoxyCodeLine{00230\ \ \ \ \ Green\ =\ 1,}
+\DoxyCodeLine{00231\ \ \ \ \ Blue\ =\ 2,}
+\DoxyCodeLine{00232\ \ \ \ \ Alpha\ =\ 3,}
+\DoxyCodeLine{00233\ \ \ \ \ TransparencyMask\ =\ -\/1,}
+\DoxyCodeLine{00234\ \ \ \ \ UserSuppliedMask\ =\ -\/2,}
+\DoxyCodeLine{00235\ \ \ \ \ RealUserSuppliedMask\ =\ -\/3,}
+\DoxyCodeLine{00236\ \ \ \};}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ \textcolor{keyword}{enum\ class}\ SectionType:\ uint32\_t\ \{}
+\DoxyCodeLine{00239\ \ \ \ \ Others,}
+\DoxyCodeLine{00240\ \ \ \ \ OpenFolder,}
+\DoxyCodeLine{00241\ \ \ \ \ CloseFolder,}
+\DoxyCodeLine{00242\ \ \ \ \ BoundingSection,}
+\DoxyCodeLine{00243\ \ \ \};}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_channel}{Channel}}\ \{}
+\DoxyCodeLine{00246\ \ \ \ \ ChannelID\ channelID;}
+\DoxyCodeLine{00247\ \ \ \ \ uint64\_t\ length;}
+\DoxyCodeLine{00248\ \ \ \};}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{\string~OSType}}()\ \{\ \}}
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{keyword}{virtual}\ OSTypeKey\ type()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{double}\ numberValue()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ 0.0;\ \}}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keyword}{const}\ T*\ as()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (type()\ ==\ T::kType)}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }T*\textcolor{keyword}{>}(\textcolor{keyword}{this});}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{throw}\ std::runtime\_error(\textcolor{stringliteral}{"{}Invalid\ cast"{}});}
+\DoxyCodeLine{00261\ \ \ \ \ \}}
+\DoxyCodeLine{00262\ \ \ \};}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ \{}
+\DoxyCodeLine{00265\ \ \ \ \ std::string\ name;}
+\DoxyCodeLine{00266\ \ \ \};}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_unit_float}{OSTypeUnitFloat}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::UnitFloat;}
+\DoxyCodeLine{00270\ \ \ \ \ \textcolor{keyword}{enum\ class}\ Unit\ \{}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ Angle\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'\#'},\ \textcolor{charliteral}{'A'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'g'}),\ \textcolor{comment}{//\ base\ degrees}}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ Density\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'\#'},\ \textcolor{charliteral}{'R'},\ \textcolor{charliteral}{'s'},\ \textcolor{charliteral}{'l'}),\ \textcolor{comment}{//\ base\ per\ inch}}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ Distance\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'\#'},\ \textcolor{charliteral}{'R'},\ \textcolor{charliteral}{'l'},\ \textcolor{charliteral}{'t'}),\ \textcolor{comment}{//\ base\ 72ppi}}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ None\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'\#'},\ \textcolor{charliteral}{'N'},\ \textcolor{charliteral}{'n'},\ \textcolor{charliteral}{'e'}),\ \textcolor{comment}{//\ coerced}}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ Percent\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'\#'},\ \textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'r'},\ \textcolor{charliteral}{'c'}),\ \textcolor{comment}{//\ unit\ value}}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ Pixel\ =\ PSD\_DEFINE\_DWORD(\textcolor{charliteral}{'\#'},\ \textcolor{charliteral}{'P'},\ \textcolor{charliteral}{'x'},\ \textcolor{charliteral}{'l'}),\ \textcolor{comment}{//\ tagged\ unit\ value}}
+\DoxyCodeLine{00277\ \ \ \ \ \};}
+\DoxyCodeLine{00278\ }
+\DoxyCodeLine{00279\ \ \ \ \ Unit\ unit;}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keywordtype}{double}\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0.0;}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_unit_float}{OSTypeUnitFloat}}(Unit\ u,\ \textcolor{keywordtype}{double}\ v)}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ :\ unit(u)}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ ,\ \mbox{\hyperlink{classvalue}{value}}(v)}
+\DoxyCodeLine{00285\ \ \ \ \ \{\ \}}
+\DoxyCodeLine{00286\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00287\ \ \ \};}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_double}{OSTypeDouble}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00290\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::Double;}
+\DoxyCodeLine{00291\ \ \ \ \ \textcolor{keywordtype}{double}\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0.0;}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_double}{OSTypeDouble}}(\textcolor{keywordtype}{double}\ v):\ \mbox{\hyperlink{classvalue}{value}}(v)\ \{\ \}}
+\DoxyCodeLine{00294\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00295\ \ \ \ \ \textcolor{keywordtype}{double}\ numberValue()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};\ \}}
+\DoxyCodeLine{00296\ \ \ \};}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_class}{OSTypeClass}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00299\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::ClassType;}
+\DoxyCodeLine{00300\ \ \ \ \ std::wstring\ className;}
+\DoxyCodeLine{00301\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ meta;}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00304\ \ \ \};}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_string}{OSTypeString}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00307\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::String;}
+\DoxyCodeLine{00308\ \ \ \ \ std::wstring\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_string}{OSTypeString}}(\textcolor{keyword}{const}\ std::wstring\&\ v):\ \mbox{\hyperlink{classvalue}{value}}(v)\ \{\ \}}
+\DoxyCodeLine{00311\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00312\ \ \ \};}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_enumerated_ref}{OSTypeEnumeratedRef}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::RefEnum;}
+\DoxyCodeLine{00316\ \ \ \ \ std::wstring\ refClassID;}
+\DoxyCodeLine{00317\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ classID;}
+\DoxyCodeLine{00318\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ typeID;}
+\DoxyCodeLine{00319\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ enumValue;}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00322\ \ \ \};}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_offset}{OSTypeOffset}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::RefOffset;}
+\DoxyCodeLine{00326\ \ \ \ \ std::wstring\ offsetName;}
+\DoxyCodeLine{00327\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ classID;}
+\DoxyCodeLine{00328\ \ \ \ \ uint32\_t\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0;}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00331\ \ \ \};}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_boolean}{OSTypeBoolean}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00334\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::Boolean;}
+\DoxyCodeLine{00335\ \ \ \ \ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classvalue}{value}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_boolean}{OSTypeBoolean}}(\textcolor{keywordtype}{bool}\ v):\ \mbox{\hyperlink{classvalue}{value}}(v)\ \{\ \}}
+\DoxyCodeLine{00338\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00339\ \ \ \};}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_alias}{OSTypeAlias}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00342\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::Alias;}
+\DoxyCodeLine{00343\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00344\ \ \ \};}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_list}{OSTypeList}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00347\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::List;}
+\DoxyCodeLine{00348\ \ \ \ \ std::vector<std::unique\_ptr<OSType>>\ values;}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00351\ \ \ \};}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_large_int}{OSTypeLargeInt}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00354\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::LargeInteger;}
+\DoxyCodeLine{00355\ \ \ \ \ std::uint64\_t\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0;}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_large_int}{OSTypeLargeInt}}(uint64\_t\ v):\ \mbox{\hyperlink{classvalue}{value}}(v)\ \{\ \}}
+\DoxyCodeLine{00358\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordtype}{double}\ numberValue()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};\ \}}
+\DoxyCodeLine{00360\ \ \ \};}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_int}{OSTypeInt}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::Long;}
+\DoxyCodeLine{00364\ \ \ \ \ std::uint32\_t\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0;}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_int}{OSTypeInt}}(uint32\_t\ v):\ \mbox{\hyperlink{classvalue}{value}}(v)\ \{\ \}}
+\DoxyCodeLine{00367\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00368\ \ \ \ \ \textcolor{keywordtype}{double}\ numberValue()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};\ \}}
+\DoxyCodeLine{00369\ \ \ \};}
+\DoxyCodeLine{00370\ }
+\DoxyCodeLine{00371\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_raw_data}{OSTypeRawData}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00372\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::RawData;}
+\DoxyCodeLine{00373\ \ \ \ \ std::vector<uint8\_t>\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00376\ \ \ \};}
+\DoxyCodeLine{00377\ }
+\DoxyCodeLine{00378\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_property}{OSTypeProperty}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00379\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::RefProperty;}
+\DoxyCodeLine{00380\ \ \ \ \ std::wstring\ propName;}
+\DoxyCodeLine{00381\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ classID;}
+\DoxyCodeLine{00382\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ keyID;}
+\DoxyCodeLine{00383\ }
+\DoxyCodeLine{00384\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00385\ \ \ \};}
+\DoxyCodeLine{00386\ }
+\DoxyCodeLine{00387\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classpsd_1_1_descriptor_map}{DescriptorMap}}\ \{}
+\DoxyCodeLine{00388\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00389\ \ \ \ \ \textcolor{keyword}{using\ }Map\ =\ std::map<std::string,\ std::unique\_ptr<OSType>>;}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00392\ \ \ \ \ \textcolor{keyword}{const}\ T*\ getValue(\textcolor{keyword}{const}\ std::string\&\ key)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ ptr\ =\ find(key);}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!ptr\ ||\ ptr-\/>type()\ !=\ T::kType)}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }T*\textcolor{keyword}{>}(ptr);}
+\DoxyCodeLine{00397\ \ \ \ \ \}}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}*\ find(\textcolor{keyword}{const}\ std::string\&\ key)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ iter\ =\ m\_items.find(key);}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (iter\ ==\ m\_items.cend())}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ iter-\/>second.get();}
+\DoxyCodeLine{00404\ \ \ \ \ \}}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00406\ \ \ \ \ Map::size\_type\ size()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_items.size();\ \}}
+\DoxyCodeLine{00407\ \ \ \ \ Map\&\ items()\ \{\ \textcolor{keywordflow}{return}\ m\_items;\ \}}
+\DoxyCodeLine{00408\ \ \ \ \ \textcolor{keyword}{const}\ Map\&\ items()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_items;\ \}}
+\DoxyCodeLine{00409\ }
+\DoxyCodeLine{00410\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00411\ \ \ \ \ Map\ m\_items;}
+\DoxyCodeLine{00412\ \ \ \};}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_descriptor}{OSTypeDescriptor}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00415\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::Descriptor;}
+\DoxyCodeLine{00416\ \ \ \ \ std::wstring\ descriptorName;}
+\DoxyCodeLine{00417\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ classId;}
+\DoxyCodeLine{00418\ \ \ \ \ \mbox{\hyperlink{classpsd_1_1_descriptor_map}{DescriptorMap}}\ descriptor;}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00421\ \ \ \};}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_enum}{OSTypeEnum}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00424\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::Enumerated;}
+\DoxyCodeLine{00425\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ typeID;}
+\DoxyCodeLine{00426\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ enumValue;}
+\DoxyCodeLine{00427\ }
+\DoxyCodeLine{00428\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00429\ \ \ \};}
+\DoxyCodeLine{00430\ }
+\DoxyCodeLine{00431\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_o_s_type_reference}{OSTypeReference}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{structpsd_1_1_o_s_type}{OSType}}\ \{}
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ OSTypeKey\ kType\ =\ OSTypeKey::Reference;}
+\DoxyCodeLine{00433\ \ \ \ \ std::vector<std::unique\_ptr<OSType>>\ refs;}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \ \ OSTypeKey\ type()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ kType;\ \}}
+\DoxyCodeLine{00436\ \ \ \};}
+\DoxyCodeLine{00437\ }
+\DoxyCodeLine{00438\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_bound}{Bound}}\ \{}
+\DoxyCodeLine{00439\ \ \ \ \ uint32\_t\ top\ =\ 0;}
+\DoxyCodeLine{00440\ \ \ \ \ uint32\_t\ left\ =\ 0;}
+\DoxyCodeLine{00441\ \ \ \ \ uint32\_t\ bottom\ =\ 0;}
+\DoxyCodeLine{00442\ \ \ \ \ uint32\_t\ right\ =\ 0;}
+\DoxyCodeLine{00443\ \ \ \};}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_slice}{Slice}}\ \{}
+\DoxyCodeLine{00446\ \ \ \ \ uint32\_t\ sliceID\ =\ 0;}
+\DoxyCodeLine{00447\ \ \ \ \ uint32\_t\ groupID\ =\ 0;}
+\DoxyCodeLine{00448\ \ \ \ \ uint32\_t\ origin\ =\ 0;}
+\DoxyCodeLine{00449\ \ \ \ \ uint32\_t\ assocLayerID\ =\ 0;\ \textcolor{comment}{//\ only\ available\ if\ origin\ is\ 1}}
+\DoxyCodeLine{00450\ \ \ \ \ uint32\_t\ type\ =\ 0;}
+\DoxyCodeLine{00451\ \ \ \ \ uint32\_t\ horizontalAlignment\ =\ 0;}
+\DoxyCodeLine{00452\ \ \ \ \ uint32\_t\ verticalAlignment\ =\ 0;}
+\DoxyCodeLine{00453\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_bound}{Bound}}\ \ \ \ bound;}
+\DoxyCodeLine{00454\ \ \ \ \ uint8\_t\ \ alpha\ =\ 0;}
+\DoxyCodeLine{00455\ \ \ \ \ uint8\_t\ \ red\ =\ 0;}
+\DoxyCodeLine{00456\ \ \ \ \ uint8\_t\ \ green\ =\ 0;}
+\DoxyCodeLine{00457\ \ \ \ \ uint8\_t\ \ blue\ =\ 0;}
+\DoxyCodeLine{00458\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ celTextIsHTML\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00459\ \ \ \ \ std::wstring\ name;}
+\DoxyCodeLine{00460\ \ \ \ \ std::wstring\ url;}
+\DoxyCodeLine{00461\ \ \ \ \ std::wstring\ target;}
+\DoxyCodeLine{00462\ \ \ \ \ std::wstring\ message;}
+\DoxyCodeLine{00463\ \ \ \ \ std::wstring\ altTag;}
+\DoxyCodeLine{00464\ \ \ \ \ std::wstring\ celText;}
+\DoxyCodeLine{00465\ \ \ \};}
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_slices}{Slices}}\ \{}
+\DoxyCodeLine{00468\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_bound}{Bound}}\ bound;}
+\DoxyCodeLine{00469\ \ \ \ \ std::wstring\ groupName;}
+\DoxyCodeLine{00470\ \ \ \ \ std::vector<Slice>\ slices;}
+\DoxyCodeLine{00471\ \ \ \ \ \textcolor{comment}{//\ PS\ 7.0\ added\ a\ descriptor\ at\ the\ end\ of\ the\ block.}}
+\DoxyCodeLine{00472\ \ \ \ \ \textcolor{comment}{//\ If\ available,\ user\ may\ use\ `Decoder::getSlices()`\ to}}
+\DoxyCodeLine{00473\ \ \ \ \ \textcolor{comment}{//\ decode\ this\ data\ and\ get\ a\ `SliceData`\ object\ from\ it}}
+\DoxyCodeLine{00474\ \ \ \ \ std::shared\_ptr<OSTypeDescriptor>\ desc;}
+\DoxyCodeLine{00475\ \ \ \};}
+\DoxyCodeLine{00476\ }
+\DoxyCodeLine{00477\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\ \{}
+\DoxyCodeLine{00478\ \ \ \ \ \textcolor{comment}{//\ structure\ to\ hold\ the\ visibility\ of\ layer\ in\ each}}
+\DoxyCodeLine{00479\ \ \ \ \ \textcolor{comment}{//\ frame\ in\ an\ animation,\ if\ any.}}
+\DoxyCodeLine{00480\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_layer_record_1_1_frame_visibility}{FrameVisibility}}\ \{}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ uint32\_t\ frameID;}
+\DoxyCodeLine{00482\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ isVisibleInFrame;}
+\DoxyCodeLine{00483\ \ \ \ \ \};}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \ \ \ \ int32\_t\ top,\ left,\ bottom,\ right;}
+\DoxyCodeLine{00486\ \ \ \ \ uint32\_t\ layerID;}
+\DoxyCodeLine{00487\ \ \ \ \ std::vector<Channel>\ channels;}
+\DoxyCodeLine{00488\ \ \ \ \ std::vector<FrameVisibility>\ inFrames;}
+\DoxyCodeLine{00489\ \ \ \ \ LayerBlendMode\ blendMode;}
+\DoxyCodeLine{00490\ \ \ \ \ SectionType\ sectionType;}
+\DoxyCodeLine{00491\ \ \ \ \ uint8\_t\ opacity;}
+\DoxyCodeLine{00492\ \ \ \ \ uint8\_t\ clipping;}
+\DoxyCodeLine{00493\ \ \ \ \ uint8\_t\ flags;}
+\DoxyCodeLine{00494\ \ \ \ \ std::string\ name;}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \ \ \ \ \textcolor{keywordtype}{bool}\ isTransparencyProtected()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ flags\ \&\ 1;\ \}}
+\DoxyCodeLine{00497\ \ \ \ \ \textcolor{keywordtype}{bool}\ isVisible()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (flags\ \&\ 2)\ ==\ 0;\ \}}
+\DoxyCodeLine{00498\ \ \ \ \ \textcolor{keywordtype}{bool}\ isOpenGroup()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ sectionType\ ==\ SectionType::BoundingSection;\ \}}
+\DoxyCodeLine{00499\ \ \ \ \ \textcolor{keywordtype}{bool}\ isCloseGroup()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ sectionType\ ==\ SectionType::OpenFolder;\ \}}
+\DoxyCodeLine{00500\ \ \ \ \ \textcolor{keywordtype}{int}\ width()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ right\ -\/\ left;\ \}}
+\DoxyCodeLine{00501\ \ \ \ \ \textcolor{keywordtype}{int}\ height()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bottom\ -\/\ top;\ \}}
+\DoxyCodeLine{00502\ \ \ \};}
+\DoxyCodeLine{00503\ }
+\DoxyCodeLine{00504\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_global_mask_info}{GlobalMaskInfo}}\ \{}
+\DoxyCodeLine{00505\ \ \ \ \ \textcolor{keyword}{enum\ class}\ MaskKind:\ uint8\_t\ \{}
+\DoxyCodeLine{00506\ \ \ \ \ \ \ Inverted\ =\ 0,}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ ColorProtected\ =\ 1,}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ ExactPixelValue\ =\ 128,}
+\DoxyCodeLine{00509\ \ \ \ \ \};}
+\DoxyCodeLine{00510\ }
+\DoxyCodeLine{00511\ \ \ \ \ uint16\_t\ opacity;}
+\DoxyCodeLine{00512\ \ \ \ \ MaskKind\ kind;}
+\DoxyCodeLine{00513\ \ \ \};}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_layers_information}{LayersInformation}}\ \{}
+\DoxyCodeLine{00516\ \ \ \ \ std::vector<LayerRecord>\ layers;}
+\DoxyCodeLine{00517\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_global_mask_info}{GlobalMaskInfo}}\ maskInfo;}
+\DoxyCodeLine{00518\ \ \ \};}
+\DoxyCodeLine{00519\ }
+\DoxyCodeLine{00520\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_frame_information}{FrameInformation}}\ \{}
+\DoxyCodeLine{00521\ \ \ \ \ uint32\_t\ \textcolor{keywordtype}{id}\ =\ 0;}
+\DoxyCodeLine{00522\ \ \ \ \ uint32\_t\ duration\ =\ 0;}
+\DoxyCodeLine{00523\ \ \ \ \ \textcolor{keywordtype}{double}\ ga\ =\ 0.0;}
+\DoxyCodeLine{00524\ \ \ \};}
+\DoxyCodeLine{00525\ }
+\DoxyCodeLine{00526\ \ \ \textcolor{keyword}{enum\ class}\ CompressionMethod\ \{}
+\DoxyCodeLine{00527\ \ \ \ \ RawImageData\ =\ 0,}
+\DoxyCodeLine{00528\ \ \ \ \ RLE\ =\ 1,}
+\DoxyCodeLine{00529\ \ \ \ \ ZIPWithoutPrediction\ =\ 2,}
+\DoxyCodeLine{00530\ \ \ \ \ ZIPWithPrediction\ =\ 3,}
+\DoxyCodeLine{00531\ \ \ \};}
+\DoxyCodeLine{00532\ }
+\DoxyCodeLine{00533\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpsd_1_1_image_data}{ImageData}}\ \{}
+\DoxyCodeLine{00534\ \ \ \ \ CompressionMethod\ compressionMethod;}
+\DoxyCodeLine{00535\ \ \ \ \ \textcolor{keywordtype}{int}\ width;}
+\DoxyCodeLine{00536\ \ \ \ \ \textcolor{keywordtype}{int}\ height;}
+\DoxyCodeLine{00537\ \ \ \ \ \textcolor{keywordtype}{int}\ depth;}
+\DoxyCodeLine{00538\ \ \ \ \ std::vector<ChannelID>\ channels;}
+\DoxyCodeLine{00539\ \ \ \};}
+\DoxyCodeLine{00540\ }
+\DoxyCodeLine{00541\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classpsd_1_1_file_interface}{FileInterface}}\ \{}
+\DoxyCodeLine{00542\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00543\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classpsd_1_1_file_interface}{\string~FileInterface}}()\ \{\ \}}
+\DoxyCodeLine{00544\ }
+\DoxyCodeLine{00545\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ we\ can\ read/write\ bytes\ from/into\ the\ file}}
+\DoxyCodeLine{00546\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ ok()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ \ \ \ \ \textcolor{comment}{//\ Current\ position\ in\ the\ file}}
+\DoxyCodeLine{00549\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{size\_t}\ tell()\ =\ 0;}
+\DoxyCodeLine{00550\ }
+\DoxyCodeLine{00551\ \ \ \ \ \textcolor{comment}{//\ Jump\ to\ the\ given\ position\ in\ the\ file}}
+\DoxyCodeLine{00552\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ seek(\textcolor{keywordtype}{size\_t}\ absPos)\ =\ 0;}
+\DoxyCodeLine{00553\ }
+\DoxyCodeLine{00554\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ next\ byte\ in\ the\ file\ or\ 0\ if\ ok()\ =\ false}}
+\DoxyCodeLine{00555\ \ \ \ \ \textcolor{keyword}{virtual}\ uint8\_t\ read8()\ =\ 0;}
+\DoxyCodeLine{00556\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ read(uint8\_t*\ \mbox{\hyperlink{structbuf}{buf}},\ uint32\_t\ size)\ =\ 0;}
+\DoxyCodeLine{00557\ }
+\DoxyCodeLine{00558\ \ \ \ \ \textcolor{comment}{//\ Writes\ one\ byte\ in\ the\ file\ (or\ do\ nothing\ if\ ok()\ =\ false)}}
+\DoxyCodeLine{00559\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ write8(uint8\_t\ \mbox{\hyperlink{classvalue}{value}})\ =\ 0;}
+\DoxyCodeLine{00560\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ write(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structbuf}{buf}},\ uint32\_t\ size)\ =\ 0;}
+\DoxyCodeLine{00561\ \ \ \};}
+\DoxyCodeLine{00562\ }
+\DoxyCodeLine{00563\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classpsd_1_1_stdio_file_interface}{StdioFileInterface}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classpsd_1_1_file_interface}{psd::FileInterface}}\ \{}
+\DoxyCodeLine{00564\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00565\ \ \ \ \ \mbox{\hyperlink{classpsd_1_1_stdio_file_interface}{StdioFileInterface}}(FILE*\ \mbox{\hyperlink{structfile}{file}});}
+\DoxyCodeLine{00566\ \ \ \ \ \textcolor{keywordtype}{bool}\ ok()\ \textcolor{keyword}{const\ override};}
+\DoxyCodeLine{00567\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ tell()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00568\ \ \ \ \ \textcolor{keywordtype}{void}\ seek(\textcolor{keywordtype}{size\_t}\ absPos)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00569\ \ \ \ \ uint8\_t\ read8()\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00570\ \ \ \ \ \textcolor{keywordtype}{bool}\ read(uint8\_t*\ \mbox{\hyperlink{structbuf}{buf}},\ uint32\_t\ size)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00571\ \ \ \ \ \textcolor{keywordtype}{void}\ write8(uint8\_t\ \mbox{\hyperlink{classvalue}{value}})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00572\ \ \ \ \ \textcolor{keywordtype}{bool}\ write(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structbuf}{buf}},\ uint32\_t\ size)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00573\ }
+\DoxyCodeLine{00574\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00575\ \ \ \ \ FILE*\ m\_file;}
+\DoxyCodeLine{00576\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_ok;}
+\DoxyCodeLine{00577\ \ \ \};}
+\DoxyCodeLine{00578\ }
+\DoxyCodeLine{00579\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classpsd_1_1_decoder_delegate}{DecoderDelegate}}\ \{}
+\DoxyCodeLine{00580\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00581\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classpsd_1_1_decoder_delegate}{\string~DecoderDelegate}}()\ \{\ \}}
+\DoxyCodeLine{00582\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onFileHeader(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_file_header}{FileHeader}}\&\ fileHeader)\ \{\ \}}
+\DoxyCodeLine{00583\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onColorModeData(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_color_mode_data}{ColorModeData}}\&\ \mbox{\hyperlink{structdata}{data}})\ \{\ \}}
+\DoxyCodeLine{00584\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onImageResources(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_image_resources}{ImageResources}}\&\ res)\ \{\ \}}
+\DoxyCodeLine{00585\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onImageResource(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_image_resource}{ImageResource}}\&\ res)\ \{\ \}}
+\DoxyCodeLine{00586\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onLayersAndMask(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_layers_information}{LayersInformation}}\&\ layers)\ \{\ \}}
+\DoxyCodeLine{00587\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onLayersInfo(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_layers_information}{LayersInformation}}\&\ layers)\ \{\ \}}
+\DoxyCodeLine{00588\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onImageData(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_image_data}{ImageData}}\&\ imageData)\ \{\ \}}
+\DoxyCodeLine{00589\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onBeginLayer(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layer)\ \{\ \}}
+\DoxyCodeLine{00590\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onEndLayer(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layer)\ \{\ \}}
+\DoxyCodeLine{00591\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onSlicesData(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_slices}{Slices}}\&\ slices)\ \{\ \}}
+\DoxyCodeLine{00592\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onFramesData(\textcolor{keyword}{const}\ std::vector<FrameInformation>\&\ framesInfo,}
+\DoxyCodeLine{00593\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ activeFrameIndex)\ \{\ \}}
+\DoxyCodeLine{00594\ \ \ \ \ \textcolor{comment}{//\ Function\ to\ read\ image\ data\ (from\ layers\ or\ from\ the\ whole}}
+\DoxyCodeLine{00595\ \ \ \ \ \textcolor{comment}{//\ document).}}
+\DoxyCodeLine{00596\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onBeginImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_image_data}{ImageData}}\&\ img)\ \{\ \}}
+\DoxyCodeLine{00597\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onImageScanline(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_image_data}{ImageData}}\&\ img,}
+\DoxyCodeLine{00598\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ y,}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ ChannelID\ chanID,}
+\DoxyCodeLine{00600\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00601\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classbytes}{bytes}})\ \{\ \}}
+\DoxyCodeLine{00602\ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onEndImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_image_data}{ImageData}}\&\ img)\ \{\ \}}
+\DoxyCodeLine{00603\ \ \ \};}
+\DoxyCodeLine{00604\ }
+\DoxyCodeLine{00605\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classpsd_1_1_decoder}{Decoder}}\ \{}
+\DoxyCodeLine{00606\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00607\ \ \ \ \ \mbox{\hyperlink{classpsd_1_1_decoder}{Decoder}}(\mbox{\hyperlink{classpsd_1_1_file_interface}{FileInterface}}*\ \mbox{\hyperlink{structfile}{file}},}
+\DoxyCodeLine{00608\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classpsd_1_1_decoder_delegate}{DecoderDelegate}}*\ delegate);}
+\DoxyCodeLine{00609\ }
+\DoxyCodeLine{00610\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_file_header}{FileHeader}}\&\ fileHeader()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_header;\ \}}
+\DoxyCodeLine{00611\ }
+\DoxyCodeLine{00612\ \ \ \ \ \textcolor{keywordtype}{bool}\ readFileHeader();}
+\DoxyCodeLine{00613\ \ \ \ \ \textcolor{keywordtype}{bool}\ readColorModeData();}
+\DoxyCodeLine{00614\ \ \ \ \ \textcolor{keywordtype}{bool}\ readImageResources();}
+\DoxyCodeLine{00615\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLayersAndMask();}
+\DoxyCodeLine{00616\ \ \ \ \ \textcolor{keywordtype}{bool}\ readImageData();}
+\DoxyCodeLine{00617\ \ \ \ \ \textcolor{keywordtype}{bool}\ getSlices(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_o_s_type_descriptor}{OSTypeDescriptor}}*\ desc,\ \mbox{\hyperlink{structpsd_1_1_slices}{Slices}}\&\ slices);}
+\DoxyCodeLine{00618\ }
+\DoxyCodeLine{00619\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00620\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLayersInfo(\mbox{\hyperlink{structpsd_1_1_layers_information}{LayersInformation}}\&\ layers);}
+\DoxyCodeLine{00621\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLayersInfo(\textcolor{keyword}{const}\ uint64\_t\ length,\ \mbox{\hyperlink{structpsd_1_1_layers_information}{LayersInformation}}\&\ layers);}
+\DoxyCodeLine{00622\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLayerRecord(\mbox{\hyperlink{structpsd_1_1_layers_information}{LayersInformation}}\&\ layers,}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layerRecord);}
+\DoxyCodeLine{00624\ \ \ \ \ \textcolor{keywordtype}{bool}\ readGlobalMaskInfo(\mbox{\hyperlink{structpsd_1_1_layers_information}{LayersInformation}}\&\ layers);}
+\DoxyCodeLine{00625\ \ \ \ \ \textcolor{keywordtype}{bool}\ readImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{structpsd_1_1_image_data}{ImageData}}\&\ img);}
+\DoxyCodeLine{00626\ \ \ \ \ \textcolor{keywordtype}{bool}\ readSectionDivider(\mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layerRecord,\ \textcolor{keyword}{const}\ uint64\_t\ length);}
+\DoxyCodeLine{00627\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLayerMLSTSection(\mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layerRecord);}
+\DoxyCodeLine{00628\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLayerTMLNSection(\mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layerRecord);}
+\DoxyCodeLine{00629\ \ \ \ \ \textcolor{keywordtype}{bool}\ readLayerCUSTSection(\mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layerRecord);}
+\DoxyCodeLine{00630\ \ \ \ \ \textcolor{keywordtype}{bool}\ readResourceSlicesV6();}
+\DoxyCodeLine{00631\ \ \ \ \ \textcolor{keywordtype}{bool}\ readResourceSlices();}
+\DoxyCodeLine{00632\ \ \ \ \ uint64\_t\ readAdditionalLayerInfo(\mbox{\hyperlink{structpsd_1_1_layer_record}{LayerRecord}}\&\ layerRecord);}
+\DoxyCodeLine{00633\ \ \ \ \ std::unique\_ptr<OSTypeDescriptor>\ readAnimatedDataSection();}
+\DoxyCodeLine{00634\ \ \ \ \ std::unique\_ptr<OSType>\ parseOsTypeVariable();}
+\DoxyCodeLine{00635\ \ \ \ \ std::unique\_ptr<OSTypeReference>\ parseReferenceType();}
+\DoxyCodeLine{00636\ \ \ \ \ std::unique\_ptr<OSTypeDescriptor>\ parseDescriptor();}
+\DoxyCodeLine{00637\ \ \ \ \ std::unique\_ptr<OSTypeList>\ parseListType();}
+\DoxyCodeLine{00638\ \ \ \ \ std::unique\_ptr<OSTypeClass>\ parseClassType();}
+\DoxyCodeLine{00639\ \ \ \ \ std::unique\_ptr<OSTypeEnum>\ parseEnumeratedType();}
+\DoxyCodeLine{00640\ \ \ \ \ std::unique\_ptr<OSTypeAlias>\ parseAliasType();}
+\DoxyCodeLine{00641\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_o_s_type_class_meta_type}{OSTypeClassMetaType}}\ parseDescrVariable();}
+\DoxyCodeLine{00642\ \ \ \ \ std::wstring\ getUnicodeString();}
+\DoxyCodeLine{00643\ }
+\DoxyCodeLine{00644\ \ \ \ \ uint8\_t\ read8()\ \{\ \textcolor{keywordflow}{return}\ m\_file-\/>read8();\ \}}
+\DoxyCodeLine{00645\ \ \ \ \ uint16\_t\ read16();}
+\DoxyCodeLine{00646\ \ \ \ \ uint32\_t\ read32();}
+\DoxyCodeLine{00647\ \ \ \ \ uint64\_t\ read64();}
+\DoxyCodeLine{00648\ \ \ \ \ uint32\_t\ read16or32Length();}
+\DoxyCodeLine{00649\ \ \ \ \ uint64\_t\ read32or64Length();}
+\DoxyCodeLine{00650\ \ \ \ \ std::string\ readPascalString(\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ alignment);}
+\DoxyCodeLine{00651\ }
+\DoxyCodeLine{00652\ \ \ \ \ \mbox{\hyperlink{classpsd_1_1_decoder_delegate}{DecoderDelegate}}*\ m\_delegate;}
+\DoxyCodeLine{00653\ \ \ \ \ \mbox{\hyperlink{classpsd_1_1_file_interface}{FileInterface}}*\ m\_file;}
+\DoxyCodeLine{00654\ \ \ \ \ \mbox{\hyperlink{structpsd_1_1_file_header}{FileHeader}}\ m\_header;}
+\DoxyCodeLine{00655\ \ \ \};}
+\DoxyCodeLine{00656\ }
+\DoxyCodeLine{00657\ \ \ \textcolor{keywordtype}{bool}\ decode\_psd(\mbox{\hyperlink{classpsd_1_1_file_interface}{FileInterface}}*\ \mbox{\hyperlink{structfile}{file}},\ \mbox{\hyperlink{classpsd_1_1_decoder_delegate}{DecoderDelegate}}*\ delegate);}
+\DoxyCodeLine{00658\ }
+\DoxyCodeLine{00659\ \}\ \textcolor{comment}{//\ namespace\ psd}}
+\DoxyCodeLine{00660\ }
+\DoxyCodeLine{00661\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

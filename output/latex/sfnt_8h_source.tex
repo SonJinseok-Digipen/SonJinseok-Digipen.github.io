@@ -1,0 +1,1098 @@
+\hypertarget{sfnt_8h_source}{}\doxysection{sfnt.\+h}
+\label{sfnt_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/sfnt.h@{AseSprite/aseprite/third\_party/freetype2/include/freetype/internal/sfnt.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ sfnt.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ High-\/level\ 'sfnt'\ driver\ interface\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ SFNT\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ SFNT\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <freetype/internal/ftdrv.h>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <freetype/internal/tttypes.h>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <freetype/internal/wofftypes.h>}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Init\_Face\_Func}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ \ *\ \ \ First\ part\ of\ the\ SFNT\ face\ object\ initialization.\ \ This\ finds\ the}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ *\ \ \ face\ in\ a\ SFNT\ file\ or\ collection,\ and\ load\ its\ format\ tag\ in}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ *\ \ \ face-\/>format\_tag.}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ input\ stream.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ face\ object.}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ *\ \ \ face\_index\ ::}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ index\ of\ the\ TrueType\ font,\ if\ we\ are\ opening\ a\ collection,\ in}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ *\ \ \ \ \ bits\ 0-\/15.\ \ The\ numbered\ instance\ index\string~+\string~1\ of\ a\ GX\ (sub)font,\ if}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ *\ \ \ \ \ applicable,\ in\ bits\ 16-\/30.}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ *\ \ \ num\_params\ ::}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ number\ of\ additional\ parameters.}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ *\ \ \ params\ ::}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Optional\ additional\ parameters.}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *\ \ \ The\ stream\ cursor\ must\ be\ at\ the\ font\ file's\ origin.}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ recognizes\ fonts\ embedded\ in\ a\ 'TrueType\ collection'.}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *\ \ \ Once\ the\ format\ tag\ has\ been\ validated\ by\ the\ font\ driver,\ it\ should}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *\ \ \ then\ call\ the\ TT\_Load\_Face\_Func()\ callback\ to\ read\ the\ rest\ of\ the}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ *\ \ \ SFNT\ tables\ in\ the\ object.}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00071\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00072\ \ \ (*TT\_Init\_Face\_Func)(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ stream,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ face\_index,}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ num\_params,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___parameter__}{FT\_Parameter}}*\ \ params\ );}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_Face\_Func}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ *\ \ \ Second\ part\ of\ the\ SFNT\ face\ object\ initialization.\ \ This\ loads\ the}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ *\ \ \ common\ SFNT\ tables\ (head,\ OS/2,\ maxp,\ metrics,\ etc.)\ in\ the\ face}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ *\ \ \ object.}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ input\ stream.}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ face\ object.}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ *\ \ \ face\_index\ ::}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ index\ of\ the\ TrueType\ font,\ if\ we\ are\ opening\ a\ collection,\ in}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ *\ \ \ \ \ bits\ 0-\/15.\ \ The\ numbered\ instance\ index\string~+\string~1\ of\ a\ GX\ (sub)font,\ if}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *\ \ \ \ \ applicable,\ in\ bits\ 16-\/30.}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ \ \ *\ \ \ num\_params\ ::}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ number\ of\ additional\ parameters.}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ *\ \ \ params\ ::}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Optional\ additional\ parameters.}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ must\ be\ called\ after\ TT\_Init\_Face\_Func().}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00113\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00114\ \ \ (*TT\_Load\_Face\_Func)(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ stream,}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ face\_index,}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ \ \ \ \ \ num\_params,}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___parameter__}{FT\_Parameter}}*\ \ params\ );}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Done\_Face\_Func}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00126\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00127\ \textcolor{comment}{\ \ \ *\ \ \ A\ callback\ used\ to\ delete\ the\ common\ SFNT\ data\ from\ a\ face.}}
+\DoxyCodeLine{00128\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00129\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00130\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00131\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ face\ object.}}
+\DoxyCodeLine{00132\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00133\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ \ \ *\ \ \ This\ function\ does\ NOT\ destroy\ the\ face\ object.}}
+\DoxyCodeLine{00135\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00136\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00137\ \ \ (*TT\_Done\_Face\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ face\ );}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_Any\_Func}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00146\ \textcolor{comment}{\ \ \ *\ \ \ Load\ any\ font\ table\ into\ client\ memory.}}
+\DoxyCodeLine{00147\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ face\ object\ to\ look\ for.}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ *\ \ \ tag\ ::}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ tag\ of\ table\ to\ load.\ \ Use\ the\ value\ 0\ if\ you\ want\ to\ access\ the}}
+\DoxyCodeLine{00154\ \textcolor{comment}{\ \ \ *\ \ \ \ \ whole\ font\ file,\ else\ set\ this\ parameter\ to\ a\ valid\ TrueType\ table}}
+\DoxyCodeLine{00155\ \textcolor{comment}{\ \ \ *\ \ \ \ \ tag\ that\ you\ can\ forge\ with\ the\ MAKE\_TT\_TAG\ macro.}}
+\DoxyCodeLine{00156\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ \ \ *\ \ \ offset\ ::}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ starting\ offset\ in\ the\ table\ (or\ the\ file\ if\ tag\ ==\ 0).}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00160\ \textcolor{comment}{\ \ \ *\ \ \ length\ ::}}
+\DoxyCodeLine{00161\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ address\ of\ the\ decision\ variable:}}
+\DoxyCodeLine{00162\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00163\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ `length\ ==\ NULL`:\ Loads\ the\ whole\ table.\ \ Returns\ an\ error\ if}}
+\DoxyCodeLine{00164\ \textcolor{comment}{\ \ \ *\ \ \ \ \ 'offset'\ ==\ 0!}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ `*length\ ==\ 0`:\ Exits\ immediately;\ returning\ the\ length\ of\ the}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ \ \ *\ \ \ \ \ given\ table\ or\ of\ the\ font\ file,\ depending\ on\ the\ value\ of\ 'tag'.}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ `*length\ !=\ 0`:\ Loads\ the\ next\ 'length'\ bytes\ of\ table\ or\ font,}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ \ \ *\ \ \ \ \ starting\ at\ offset\ 'offset'\ (in\ table\ or\ font\ too).}}
+\DoxyCodeLine{00171\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00172\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00173\ \textcolor{comment}{\ \ \ *\ \ \ buffer\ ::}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ address\ of\ target\ buffer.}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ \ \ *\ \ \ TrueType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00178\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00179\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00180\ \ \ (*TT\_Load\_Any\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ face,}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ tag,}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Long\ \ \ \ offset,}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte\ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong*\ \ length\ );}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00188\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00189\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00190\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Find\_SBit\_Image\_Func}}
+\DoxyCodeLine{00191\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00192\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00193\ \textcolor{comment}{\ \ \ *\ \ \ Check\ whether\ an\ embedded\ bitmap\ (an\ 'sbit')\ exists\ for\ a\ given\ glyph,}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ \ \ *\ \ \ at\ a\ given\ strike.}}
+\DoxyCodeLine{00195\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00196\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00197\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00198\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00199\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00200\ \textcolor{comment}{\ \ \ *\ \ \ glyph\_index\ ::}}
+\DoxyCodeLine{00201\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index.}}
+\DoxyCodeLine{00202\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ \ \ *\ \ \ strike\_index\ ::}}
+\DoxyCodeLine{00204\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ strike\ index.}}
+\DoxyCodeLine{00205\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00206\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00207\ \textcolor{comment}{\ \ \ *\ \ \ arange\ ::}}
+\DoxyCodeLine{00208\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ SBit\ range\ containing\ the\ glyph\ index.}}
+\DoxyCodeLine{00209\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00210\ \textcolor{comment}{\ \ \ *\ \ \ astrike\ ::}}
+\DoxyCodeLine{00211\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ SBit\ strike\ containing\ the\ glyph\ index.}}
+\DoxyCodeLine{00212\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00213\ \textcolor{comment}{\ \ \ *\ \ \ aglyph\_offset\ ::}}
+\DoxyCodeLine{00214\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ offset\ of\ the\ glyph\ data\ in\ 'EBDT'\ table.}}
+\DoxyCodeLine{00215\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00216\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00217\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.\ \ Returns}}
+\DoxyCodeLine{00218\ \textcolor{comment}{\ \ \ *\ \ \ SFNT\_Err\_Invalid\_Argument\ if\ no\ sbit\ exists\ for\ the\ requested\ glyph.}}
+\DoxyCodeLine{00219\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00220\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00221\ \ \ (*TT\_Find\_SBit\_Image\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ glyph\_index,}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ strike\_index,}
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___s_bit___range_rec__}{TT\_SBit\_Range}}\ \ \ *arange,}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___s_bit___strike_rec__}{TT\_SBit\_Strike}}\ \ *astrike,}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ *aglyph\_offset\ );}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00231\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00232\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_SBit\_Metrics\_Func}}
+\DoxyCodeLine{00233\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00234\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00235\ \textcolor{comment}{\ \ \ *\ \ \ Get\ the\ big\ metrics\ for\ a\ given\ embedded\ bitmap.}}
+\DoxyCodeLine{00236\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00237\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00238\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{00239\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ input\ stream.}}
+\DoxyCodeLine{00240\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00241\ \textcolor{comment}{\ \ \ *\ \ \ range\ ::}}
+\DoxyCodeLine{00242\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ SBit\ range\ containing\ the\ glyph.}}
+\DoxyCodeLine{00243\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00244\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00245\ \textcolor{comment}{\ \ \ *\ \ \ big\_metrics\ ::}}
+\DoxyCodeLine{00246\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ big\ SBit\ metrics\ structure\ for\ the\ glyph.}}
+\DoxyCodeLine{00247\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00248\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00249\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00250\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00251\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00252\ \textcolor{comment}{\ \ \ *\ \ \ The\ stream\ cursor\ must\ be\ positioned\ at\ the\ glyph's\ offset\ within\ the}}
+\DoxyCodeLine{00253\ \textcolor{comment}{\ \ \ *\ \ \ 'EBDT'\ table\ before\ the\ call.}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ \ \ *\ \ \ If\ the\ image\ format\ uses\ variable\ metrics,\ the\ stream\ cursor\ is}}
+\DoxyCodeLine{00256\ \textcolor{comment}{\ \ \ *\ \ \ positioned\ just\ after\ the\ metrics\ header\ in\ the\ 'EBDT'\ table\ on}}
+\DoxyCodeLine{00257\ \textcolor{comment}{\ \ \ *\ \ \ function\ exit.}}
+\DoxyCodeLine{00258\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00259\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00260\ \ \ (*TT\_Load\_SBit\_Metrics\_Func)(\ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ \ \ stream,}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___s_bit___range_rec__}{TT\_SBit\_Range}}\ \ \ \ range,}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___s_bit___metrics_rec__}{TT\_SBit\_Metrics}}\ \ metrics\ );}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00266\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00267\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00268\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_SBit\_Image\_Func}}
+\DoxyCodeLine{00269\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00270\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00271\ \textcolor{comment}{\ \ \ *\ \ \ Load\ a\ given\ glyph\ sbit\ image\ from\ the\ font\ resource.\ \ This\ also}}
+\DoxyCodeLine{00272\ \textcolor{comment}{\ \ \ *\ \ \ returns\ its\ metrics.}}
+\DoxyCodeLine{00273\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00274\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00275\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00276\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00277\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00278\ \textcolor{comment}{\ \ \ *\ \ \ strike\_index\ ::}}
+\DoxyCodeLine{00279\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ strike\ index.}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00281\ \textcolor{comment}{\ \ \ *\ \ \ glyph\_index\ ::}}
+\DoxyCodeLine{00282\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ glyph\ index.}}
+\DoxyCodeLine{00283\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00284\ \textcolor{comment}{\ \ \ *\ \ \ load\_flags\ ::}}
+\DoxyCodeLine{00285\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ load\ flags.}}
+\DoxyCodeLine{00286\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00287\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{00288\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ input\ stream.}}
+\DoxyCodeLine{00289\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00290\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00291\ \textcolor{comment}{\ \ \ *\ \ \ amap\ ::}}
+\DoxyCodeLine{00292\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ pixmap.}}
+\DoxyCodeLine{00293\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00294\ \textcolor{comment}{\ \ \ *\ \ \ ametrics\ ::}}
+\DoxyCodeLine{00295\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ big\ sbit\ metrics\ structure\ for\ the\ glyph\ image.}}
+\DoxyCodeLine{00296\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00297\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00298\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.\ \ Returns\ an\ error\ if\ no\ glyph}}
+\DoxyCodeLine{00299\ \textcolor{comment}{\ \ \ *\ \ \ sbit\ exists\ for\ the\ index.}}
+\DoxyCodeLine{00300\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00301\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00302\ \textcolor{comment}{\ \ \ *\ \ \ The\ `map.buffer`\ field\ is\ always\ freed\ before\ the\ glyph\ is\ loaded.}}
+\DoxyCodeLine{00303\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00304\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00305\ \ \ (*TT\_Load\_SBit\_Image\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ \ \ \ strike\_index,}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ glyph\_index,}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ load\_flags,}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ \ \ \ \ \ \ stream,}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___bitmap__}{FT\_Bitmap}}\ \ \ \ \ \ \ \ \ \ \ *amap,}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_t_t___s_bit___metrics_rec__}{TT\_SBit\_MetricsRec}}\ \ *ametrics\ );}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00315\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00316\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00317\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_Svg\_Doc\_Func}}
+\DoxyCodeLine{00318\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00319\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ \ \ *\ \ \ Scan\ the\ SVG\ document\ list\ to\ find\ the\ document\ containing\ the\ glyph}}
+\DoxyCodeLine{00321\ \textcolor{comment}{\ \ \ *\ \ \ that\ has\ the\ ID\ 'glyph*XXX*',\ where\ *XXX*\ is\ the\ value\ of}}
+\DoxyCodeLine{00322\ \textcolor{comment}{\ \ \ *\ \ \ `glyph\_index`\ as\ a\ decimal\ integer.}}
+\DoxyCodeLine{00323\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00324\ \textcolor{comment}{\ \ \ *\ @inout:}}
+\DoxyCodeLine{00325\ \textcolor{comment}{\ \ \ *\ \ \ glyph\ ::}}
+\DoxyCodeLine{00326\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ slot\ from\ which\ pointers\ to\ the\ SVG\ document\ list\ is\ to\ be}}
+\DoxyCodeLine{00327\ \textcolor{comment}{\ \ \ *\ \ \ \ \ grabbed.\ \ The\ results\ are\ stored\ back\ in\ the\ slot.}}
+\DoxyCodeLine{00328\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00329\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00330\ \textcolor{comment}{\ \ \ *\ \ \ glyph\_index\ ::}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ index\ of\ the\ glyph\ that\ is\ to\ be\ looked\ up.}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00336\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00337\ \ \ (*TT\_Load\_Svg\_Doc\_Func)(\ \mbox{\hyperlink{struct_f_t___glyph_slot_rec__}{FT\_GlyphSlot}}\ \ glyph,}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ glyph\_index\ );}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00342\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00343\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00344\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Set\_SBit\_Strike\_Func}}
+\DoxyCodeLine{00345\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00346\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00347\ \textcolor{comment}{\ \ \ *\ \ \ Select\ an\ sbit\ strike\ for\ a\ given\ size\ request.}}
+\DoxyCodeLine{00348\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00349\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00350\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00351\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00352\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00353\ \textcolor{comment}{\ \ \ *\ \ \ req\ ::}}
+\DoxyCodeLine{00354\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ size\ request.}}
+\DoxyCodeLine{00355\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00356\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00357\ \textcolor{comment}{\ \ \ *\ \ \ astrike\_index\ ::}}
+\DoxyCodeLine{00358\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ index\ of\ the\ sbit\ strike.}}
+\DoxyCodeLine{00359\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00360\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00361\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.\ \ Returns\ an\ error\ if\ no\ sbit}}
+\DoxyCodeLine{00362\ \textcolor{comment}{\ \ \ *\ \ \ strike\ exists\ for\ the\ selected\ ppem\ values.}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00364\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00365\ \ \ (*TT\_Set\_SBit\_Strike\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___size___request_rec__}{FT\_Size\_Request}}\ \ req,}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong*\ \ \ \ \ \ \ \ astrike\_index\ );}
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00371\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00372\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00373\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_Strike\_Metrics\_Func}}
+\DoxyCodeLine{00374\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00375\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00376\ \textcolor{comment}{\ \ \ *\ \ \ Load\ the\ metrics\ of\ a\ given\ strike.}}
+\DoxyCodeLine{00377\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00378\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00379\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00380\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00381\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00382\ \textcolor{comment}{\ \ \ *\ \ \ strike\_index\ ::}}
+\DoxyCodeLine{00383\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ strike\ index.}}
+\DoxyCodeLine{00384\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00385\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00386\ \textcolor{comment}{\ \ \ *\ \ \ metrics\ ::}}
+\DoxyCodeLine{00387\ \textcolor{comment}{\ \ \ *\ \ \ \ \ the\ metrics\ of\ the\ strike.}}
+\DoxyCodeLine{00388\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00389\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00390\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.\ \ Returns\ an\ error\ if\ no\ such}}
+\DoxyCodeLine{00391\ \textcolor{comment}{\ \ \ *\ \ \ sbit\ strike\ exists.}}
+\DoxyCodeLine{00392\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00393\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00394\ \ \ (*TT\_Load\_Strike\_Metrics\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ \ \ \ \ \ strike\_index,}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___size___metrics__}{FT\_Size\_Metrics}}*\ \ metrics\ );}
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00400\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00401\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00402\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_PS\_Name\_Func}}
+\DoxyCodeLine{00403\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00404\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00405\ \textcolor{comment}{\ \ \ *\ \ \ Get\ the\ PostScript\ glyph\ name\ of\ a\ glyph.}}
+\DoxyCodeLine{00406\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00407\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00408\ \textcolor{comment}{\ \ \ *\ \ \ idx\ ::}}
+\DoxyCodeLine{00409\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index.}}
+\DoxyCodeLine{00410\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00411\ \textcolor{comment}{\ \ \ *\ \ \ PSname\ ::}}
+\DoxyCodeLine{00412\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ address\ of\ a\ string\ pointer.\ \ Will\ be\ `NULL`\ in\ case\ of\ error,}}
+\DoxyCodeLine{00413\ \textcolor{comment}{\ \ \ *\ \ \ \ \ otherwise\ it\ is\ a\ pointer\ to\ the\ glyph\ name.}}
+\DoxyCodeLine{00414\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00415\ \textcolor{comment}{\ \ \ *\ \ \ \ \ You\ must\ not\ modify\ the\ returned\ string!}}
+\DoxyCodeLine{00416\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00417\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00418\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00419\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00420\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00421\ \ \ (*TT\_Get\_PS\_Name\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ face,}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ idx,}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_String**\ \ PSname\ );}
+\DoxyCodeLine{00424\ }
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00427\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00428\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00429\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_Metrics\_Func}}
+\DoxyCodeLine{00430\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00431\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00432\ \textcolor{comment}{\ \ \ *\ \ \ Load\ a\ metrics\ table,\ which\ is\ a\ table\ with\ a\ horizontal\ and\ a}}
+\DoxyCodeLine{00433\ \textcolor{comment}{\ \ \ *\ \ \ vertical\ version.}}
+\DoxyCodeLine{00434\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00435\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00436\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00437\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ face\ object.}}
+\DoxyCodeLine{00438\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00439\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{00440\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ input\ stream.}}
+\DoxyCodeLine{00441\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00442\ \textcolor{comment}{\ \ \ *\ \ \ vertical\ ::}}
+\DoxyCodeLine{00443\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ boolean\ flag.\ \ If\ set,\ load\ the\ vertical\ one.}}
+\DoxyCodeLine{00444\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00445\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00446\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00447\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00448\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00449\ \ \ (*TT\_Load\_Metrics\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ face,}
+\DoxyCodeLine{00450\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream,}
+\DoxyCodeLine{00451\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ vertical\ );}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ }
+\DoxyCodeLine{00454\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00455\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00456\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00457\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Metrics\_Func}}
+\DoxyCodeLine{00458\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00459\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00460\ \textcolor{comment}{\ \ \ *\ \ \ Load\ the\ horizontal\ or\ vertical\ header\ in\ a\ face\ object.}}
+\DoxyCodeLine{00461\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00462\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00463\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00464\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ face\ object.}}
+\DoxyCodeLine{00465\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00466\ \textcolor{comment}{\ \ \ *\ \ \ vertical\ ::}}
+\DoxyCodeLine{00467\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ boolean\ flag.\ \ If\ set,\ load\ vertical\ metrics.}}
+\DoxyCodeLine{00468\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00469\ \textcolor{comment}{\ \ \ *\ \ \ gindex\ ::}}
+\DoxyCodeLine{00470\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index.}}
+\DoxyCodeLine{00471\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00472\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00473\ \textcolor{comment}{\ \ \ *\ \ \ abearing\ ::}}
+\DoxyCodeLine{00474\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ (or\ vertical)\ bearing.\ \ Set\ to\ zero\ in\ case\ of\ error.}}
+\DoxyCodeLine{00475\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00476\ \textcolor{comment}{\ \ \ *\ \ \ aadvance\ ::}}
+\DoxyCodeLine{00477\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ horizontal\ (or\ vertical)\ advance.\ \ Set\ to\ zero\ in\ case\ of\ error.}}
+\DoxyCodeLine{00478\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00479\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00480\ \ \ (*TT\_Get\_Metrics\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ face,}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Bool\ \ \ \ \ vertical,}
+\DoxyCodeLine{00482\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ gindex,}
+\DoxyCodeLine{00483\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Short*\ \ \ abearing,}
+\DoxyCodeLine{00484\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UShort*\ \ aadvance\ );}
+\DoxyCodeLine{00485\ }
+\DoxyCodeLine{00486\ }
+\DoxyCodeLine{00487\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00488\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00489\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00490\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Set\_Palette\_Func}}
+\DoxyCodeLine{00491\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00492\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00493\ \textcolor{comment}{\ \ \ *\ \ \ Load\ the\ colors\ into\ `face-\/>palette`\ for\ a\ given\ palette\ index.}}
+\DoxyCodeLine{00494\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00495\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00496\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00497\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00498\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00499\ \textcolor{comment}{\ \ \ *\ \ \ idx\ ::}}
+\DoxyCodeLine{00500\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ palette\ index.}}
+\DoxyCodeLine{00501\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00502\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00503\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00504\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00505\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00506\ \ \ (*TT\_Set\_Palette\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ face,}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ idx\ );}
+\DoxyCodeLine{00508\ }
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00511\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00512\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00513\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Colr\_Layer\_Func}}
+\DoxyCodeLine{00514\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00515\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00516\ \textcolor{comment}{\ \ \ *\ \ \ Iteratively\ get\ the\ color\ layer\ data\ of\ a\ given\ glyph\ index.}}
+\DoxyCodeLine{00517\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00518\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00519\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00520\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00521\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00522\ \textcolor{comment}{\ \ \ *\ \ \ base\_glyph\ ::}}
+\DoxyCodeLine{00523\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index\ the\ colored\ glyph\ layers\ are\ associated\ with.}}
+\DoxyCodeLine{00524\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00525\ \textcolor{comment}{\ \ \ *\ @inout:}}
+\DoxyCodeLine{00526\ \textcolor{comment}{\ \ \ *\ \ \ iterator\ ::}}
+\DoxyCodeLine{00527\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ @FT\_LayerIterator\ object.\ \ For\ the\ first\ call\ you\ should\ set}}
+\DoxyCodeLine{00528\ \textcolor{comment}{\ \ \ *\ \ \ \ \ `iterator-\/>p`\ to\ `NULL`.\ \ For\ all\ following\ calls,\ simply\ use\ the}}
+\DoxyCodeLine{00529\ \textcolor{comment}{\ \ \ *\ \ \ \ \ same\ object\ again.}}
+\DoxyCodeLine{00530\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00531\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00532\ \textcolor{comment}{\ \ \ *\ \ \ aglyph\_index\ ::}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index\ of\ the\ current\ layer.}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00535\ \textcolor{comment}{\ \ \ *\ \ \ acolor\_index\ ::}}
+\DoxyCodeLine{00536\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ color\ index\ into\ the\ font\ face's\ color\ palette\ of\ the\ current}}
+\DoxyCodeLine{00537\ \textcolor{comment}{\ \ \ *\ \ \ \ \ layer.\ \ The\ value\ 0xFFFF\ is\ special;\ it\ doesn't\ reference\ a\ palette}}
+\DoxyCodeLine{00538\ \textcolor{comment}{\ \ \ *\ \ \ \ \ entry\ but\ indicates\ that\ the\ text\ foreground\ color\ should\ be\ used}}
+\DoxyCodeLine{00539\ \textcolor{comment}{\ \ \ *\ \ \ \ \ instead\ (to\ be\ set\ up\ by\ the\ application\ outside\ of\ FreeType).}}
+\DoxyCodeLine{00540\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00541\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00542\ \textcolor{comment}{\ \ \ *\ \ \ Value\string~1\ if\ everything\ is\ OK.\ \ If\ there\ are\ no\ more\ layers\ (or\ if\ there}}
+\DoxyCodeLine{00543\ \textcolor{comment}{\ \ \ *\ \ \ are\ no\ layers\ at\ all),\ value\string~0\ gets\ returned.\ \ In\ case\ of\ an\ error,}}
+\DoxyCodeLine{00544\ \textcolor{comment}{\ \ \ *\ \ \ value\string~0\ is\ returned\ also.}}
+\DoxyCodeLine{00545\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00546\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00547\ \ \ (*TT\_Get\_Colr\_Layer\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00548\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ base\_glyph,}
+\DoxyCodeLine{00549\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ *aglyph\_index,}
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ *acolor\_index,}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___layer_iterator__}{FT\_LayerIterator}}*\ \ iterator\ );}
+\DoxyCodeLine{00552\ }
+\DoxyCodeLine{00553\ }
+\DoxyCodeLine{00554\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00555\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00556\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00557\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Color\_Glyph\_Paint\_Func}}
+\DoxyCodeLine{00558\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00559\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00560\ \textcolor{comment}{\ \ \ *\ \ \ Find\ the\ root\ @FT\_OpaquePaint\ object\ for\ a\ given\ glyph\ ID.}}
+\DoxyCodeLine{00561\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00562\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00563\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00564\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00565\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00566\ \textcolor{comment}{\ \ \ *\ \ \ base\_glyph\ ::}}
+\DoxyCodeLine{00567\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index\ the\ colored\ glyph\ layers\ are\ associated\ with.}}
+\DoxyCodeLine{00568\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00569\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00570\ \textcolor{comment}{\ \ \ *\ \ \ paint\ ::}}
+\DoxyCodeLine{00571\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ root\ @FT\_OpaquePaint\ object.}}
+\DoxyCodeLine{00572\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00573\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00574\ \textcolor{comment}{\ \ \ *\ \ \ Value\string~1\ if\ everything\ is\ OK.\ \ If\ no\ color\ glyph\ is\ found,\ or\ the\ root}}
+\DoxyCodeLine{00575\ \textcolor{comment}{\ \ \ *\ \ \ paint\ could\ not\ be\ retrieved,\ value\string~0\ gets\ returned.\ \ In\ case\ of\ an}}
+\DoxyCodeLine{00576\ \textcolor{comment}{\ \ \ *\ \ \ error,\ value\string~0\ is\ returned\ also.}}
+\DoxyCodeLine{00577\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00578\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00579\ \ \ (\ *TT\_Get\_Color\_Glyph\_Paint\_Func\ )(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ base\_glyph,}
+\DoxyCodeLine{00581\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Color\_Root\_Transform\ \ \ root\_transform,}
+\DoxyCodeLine{00582\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___opaque___paint__}{FT\_OpaquePaint}}\ \ \ \ \ \ \ \ \ \ \ *paint\ );}
+\DoxyCodeLine{00583\ }
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00586\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00587\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00588\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Color\_Glyph\_ClipBox\_Func}}
+\DoxyCodeLine{00589\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00590\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00591\ \textcolor{comment}{\ \ \ *\ \ \ Search\ for\ a\ 'COLR'\ v1\ clip\ box\ for\ the\ specified\ `base\_glyph`\ and}}
+\DoxyCodeLine{00592\ \textcolor{comment}{\ \ \ *\ \ \ fill\ the\ `clip\_box`\ parameter\ with\ the\ 'COLR'\ v1\ 'ClipBox'\ information}}
+\DoxyCodeLine{00593\ \textcolor{comment}{\ \ \ *\ \ \ if\ one\ is\ found.}}
+\DoxyCodeLine{00594\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00595\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00596\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00597\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ parent\ face\ object.}}
+\DoxyCodeLine{00598\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00599\ \textcolor{comment}{\ \ \ *\ \ \ base\_glyph\ ::}}
+\DoxyCodeLine{00600\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ glyph\ index\ for\ which\ to\ retrieve\ the\ clip\ box.}}
+\DoxyCodeLine{00601\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00602\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00603\ \textcolor{comment}{\ \ \ *\ \ \ clip\_box\ ::}}
+\DoxyCodeLine{00604\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ clip\ box\ for\ the\ requested\ `base\_glyph`\ if\ one\ is\ found.\ \ The}}
+\DoxyCodeLine{00605\ \textcolor{comment}{\ \ \ *\ \ \ \ \ clip\ box\ is\ computed\ taking\ scale\ and\ transformations\ configured\ on}}
+\DoxyCodeLine{00606\ \textcolor{comment}{\ \ \ *\ \ \ \ \ the\ @FT\_Face\ into\ account.\ \ @FT\_ClipBox\ contains\ @FT\_Vector\ values}}
+\DoxyCodeLine{00607\ \textcolor{comment}{\ \ \ *\ \ \ \ \ in\ 26.6\ format.}}
+\DoxyCodeLine{00608\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00609\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00610\ \textcolor{comment}{\ \ \ *\ \ \ \ \ To\ retrieve\ the\ clip\ box\ in\ font\ units,\ reset\ scale\ to\ units-\/per-\/em}}
+\DoxyCodeLine{00611\ \textcolor{comment}{\ \ \ *\ \ \ \ \ and\ remove\ transforms\ configured\ using\ @FT\_Set\_Transform.}}
+\DoxyCodeLine{00612\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00613\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00614\ \textcolor{comment}{\ \ \ *\ \ \ Value\string~1\ if\ a\ ClipBox\ is\ found.\ \ If\ no\ clip\ box\ is\ found\ or\ an}}
+\DoxyCodeLine{00615\ \textcolor{comment}{\ \ \ *\ \ \ error\ occured,\ value\string~0\ is\ returned.}}
+\DoxyCodeLine{00616\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00617\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00618\ \ \ (\ *TT\_Get\_Color\_Glyph\_ClipBox\_Func\ )(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ face,}
+\DoxyCodeLine{00619\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ base\_glyph,}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___clip_box__}{FT\_ClipBox}}*\ \ clip\_box\ );}
+\DoxyCodeLine{00621\ }
+\DoxyCodeLine{00622\ }
+\DoxyCodeLine{00623\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00624\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00625\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00626\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Paint\_Layers\_Func}}
+\DoxyCodeLine{00627\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00628\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00629\ \textcolor{comment}{\ \ \ *\ \ \ Access\ the\ layers\ of\ a\ `PaintColrLayers`\ table.}}
+\DoxyCodeLine{00630\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00631\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00632\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00633\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00634\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00635\ \textcolor{comment}{\ \ \ *\ @inout:}}
+\DoxyCodeLine{00636\ \textcolor{comment}{\ \ \ *\ \ \ iterator\ ::}}
+\DoxyCodeLine{00637\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ @FT\_LayerIterator\ from\ an\ @FT\_PaintColrLayers\ object,\ for\ which}}
+\DoxyCodeLine{00638\ \textcolor{comment}{\ \ \ *\ \ \ \ \ the\ layers\ are\ to\ be\ retrieved.\ \ The\ internal\ state\ of\ the\ iterator}}
+\DoxyCodeLine{00639\ \textcolor{comment}{\ \ \ *\ \ \ \ \ is\ incremented\ after\ one\ call\ to\ this\ function\ for\ retrieving\ one}}
+\DoxyCodeLine{00640\ \textcolor{comment}{\ \ \ *\ \ \ \ \ layer.}}
+\DoxyCodeLine{00641\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00642\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00643\ \textcolor{comment}{\ \ \ *\ \ \ paint\ ::}}
+\DoxyCodeLine{00644\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ root\ @FT\_OpaquePaint\ object\ referencing\ the\ actual\ paint\ table.}}
+\DoxyCodeLine{00645\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00646\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00647\ \textcolor{comment}{\ \ \ *\ \ \ Value\string~1\ if\ everything\ is\ OK.\ \ Value\string~0\ gets\ returned\ when\ the\ paint}}
+\DoxyCodeLine{00648\ \textcolor{comment}{\ \ \ *\ \ \ object\ can\ not\ be\ retrieved\ or\ any\ other\ error\ occurs.}}
+\DoxyCodeLine{00649\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00650\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00651\ \ \ (\ *TT\_Get\_Paint\_Layers\_Func\ )(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00652\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___layer_iterator__}{FT\_LayerIterator}}*\ \ iterator,}
+\DoxyCodeLine{00653\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___opaque___paint__}{FT\_OpaquePaint}}\ \ \ \ *paint\ );}
+\DoxyCodeLine{00654\ }
+\DoxyCodeLine{00655\ }
+\DoxyCodeLine{00656\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00657\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00658\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00659\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Colorline\_Stops\_Func}}
+\DoxyCodeLine{00660\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00661\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00662\ \textcolor{comment}{\ \ \ *\ \ \ Get\ the\ gradient\ and\ solid\ fill\ information\ for\ a\ given\ glyph.}}
+\DoxyCodeLine{00663\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00664\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00665\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00666\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00667\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00668\ \textcolor{comment}{\ \ \ *\ @inout:}}
+\DoxyCodeLine{00669\ \textcolor{comment}{\ \ \ *\ \ \ iterator\ ::}}
+\DoxyCodeLine{00670\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ @FT\_ColorStopIterator\ object.\ \ For\ the\ first\ call\ you\ should\ set}}
+\DoxyCodeLine{00671\ \textcolor{comment}{\ \ \ *\ \ \ \ \ `iterator-\/>p`\ to\ `NULL`.\ \ For\ all\ following\ calls,\ simply\ use\ the}}
+\DoxyCodeLine{00672\ \textcolor{comment}{\ \ \ *\ \ \ \ \ same\ object\ again.}}
+\DoxyCodeLine{00673\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00674\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00675\ \textcolor{comment}{\ \ \ *\ \ \ color\_stop\ ::}}
+\DoxyCodeLine{00676\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Color\ index\ and\ alpha\ value\ for\ the\ retrieved\ color\ stop.}}
+\DoxyCodeLine{00677\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00678\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00679\ \textcolor{comment}{\ \ \ *\ \ \ Value\string~1\ if\ everything\ is\ OK.\ \ If\ there\ are\ no\ more\ color\ stops,}}
+\DoxyCodeLine{00680\ \textcolor{comment}{\ \ \ *\ \ \ value\string~0\ gets\ returned.\ \ In\ case\ of\ an\ error,\ value\string~0\ is\ returned}}
+\DoxyCodeLine{00681\ \textcolor{comment}{\ \ \ *\ \ \ also.}}
+\DoxyCodeLine{00682\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00683\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00684\ \ \ (\ *TT\_Get\_Colorline\_Stops\_Func\ )(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00685\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___color_stop__}{FT\_ColorStop}}\ \ \ \ \ \ \ \ \ \ *color\_stop,}
+\DoxyCodeLine{00686\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___color_stop_iterator__}{FT\_ColorStopIterator}}*\ \ iterator\ );}
+\DoxyCodeLine{00687\ }
+\DoxyCodeLine{00688\ }
+\DoxyCodeLine{00689\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00690\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00691\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00692\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Paint\_Func}}
+\DoxyCodeLine{00693\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00694\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00695\ \textcolor{comment}{\ \ \ *\ \ \ Get\ the\ paint\ details\ for\ a\ given\ @FT\_OpaquePaint\ object.}}
+\DoxyCodeLine{00696\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00697\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00698\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00699\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00700\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00701\ \textcolor{comment}{\ \ \ *\ \ \ opaque\_paint\ ::}}
+\DoxyCodeLine{00702\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ @FT\_OpaquePaint\ object.}}
+\DoxyCodeLine{00703\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00704\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00705\ \textcolor{comment}{\ \ \ *\ \ \ paint\ ::}}
+\DoxyCodeLine{00706\ \textcolor{comment}{\ \ \ *\ \ \ \ \ An\ @FT\_COLR\_Paint\ object\ holding\ the\ details\ on\ `opaque\_paint`.}}
+\DoxyCodeLine{00707\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00708\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00709\ \textcolor{comment}{\ \ \ *\ \ \ Value\string~1\ if\ everything\ is\ OK.\ \ Value\string~0\ if\ no\ details\ can\ be\ found\ for}}
+\DoxyCodeLine{00710\ \textcolor{comment}{\ \ \ *\ \ \ this\ paint\ or\ any\ other\ error\ occured.}}
+\DoxyCodeLine{00711\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00712\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00713\ \ \ (\ *TT\_Get\_Paint\_Func\ )(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00714\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___opaque___paint__}{FT\_OpaquePaint}}\ \ opaque\_paint,}
+\DoxyCodeLine{00715\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___c_o_l_r___paint__}{FT\_COLR\_Paint}}\ \ *paint\ );}
+\DoxyCodeLine{00716\ }
+\DoxyCodeLine{00717\ }
+\DoxyCodeLine{00718\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00719\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00720\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00721\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Blend\_Colr\_Func}}
+\DoxyCodeLine{00722\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00723\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00724\ \textcolor{comment}{\ \ \ *\ \ \ Blend\ the\ bitmap\ in\ `new\_glyph`\ into\ `base\_glyph`\ using\ the\ color}}
+\DoxyCodeLine{00725\ \textcolor{comment}{\ \ \ *\ \ \ specified\ by\ `color\_index`.\ \ If\ `color\_index`\ is\ 0xFFFF,\ use}}
+\DoxyCodeLine{00726\ \textcolor{comment}{\ \ \ *\ \ \ `face-\/>foreground\_color`\ if\ `face-\/>have\_foreground\_color`\ is\ set.}}
+\DoxyCodeLine{00727\ \textcolor{comment}{\ \ \ *\ \ \ Otherwise\ check\ `face-\/>palette\_data.palette\_flags`:\ If\ present\ and}}
+\DoxyCodeLine{00728\ \textcolor{comment}{\ \ \ *\ \ \ @FT\_PALETTE\_FOR\_DARK\_BACKGROUND\ is\ set,\ use\ BGRA\ value\ 0xFFFFFFFF}}
+\DoxyCodeLine{00729\ \textcolor{comment}{\ \ \ *\ \ \ (white\ opaque).\ \ Otherwise\ use\ BGRA\ value\ 0x000000FF\ (black\ opaque).}}
+\DoxyCodeLine{00730\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00731\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00732\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00733\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ target\ face\ object.}}
+\DoxyCodeLine{00734\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00735\ \textcolor{comment}{\ \ \ *\ \ \ color\_index\ ::}}
+\DoxyCodeLine{00736\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Color\ index\ from\ the\ COLR\ table.}}
+\DoxyCodeLine{00737\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00738\ \textcolor{comment}{\ \ \ *\ \ \ base\_glyph\ ::}}
+\DoxyCodeLine{00739\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Slot\ for\ bitmap\ to\ be\ merged\ into.\ \ The\ underlying\ bitmap\ may\ get}}
+\DoxyCodeLine{00740\ \textcolor{comment}{\ \ \ *\ \ \ \ \ reallocated.}}
+\DoxyCodeLine{00741\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00742\ \textcolor{comment}{\ \ \ *\ \ \ new\_glyph\ ::}}
+\DoxyCodeLine{00743\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Slot\ to\ be\ incooperated\ into\ `base\_glyph`.}}
+\DoxyCodeLine{00744\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00745\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00746\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.\ \ Returns\ an\ error\ if}}
+\DoxyCodeLine{00747\ \textcolor{comment}{\ \ \ *\ \ \ color\_index\ is\ invalid\ or\ reallocation\ fails.}}
+\DoxyCodeLine{00748\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00749\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00750\ \ \ (*TT\_Blend\_Colr\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ \ face,}
+\DoxyCodeLine{00751\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ color\_index,}
+\DoxyCodeLine{00752\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_slot_rec__}{FT\_GlyphSlot}}\ \ base\_glyph,}
+\DoxyCodeLine{00753\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___glyph_slot_rec__}{FT\_GlyphSlot}}\ \ new\_glyph\ );}
+\DoxyCodeLine{00754\ }
+\DoxyCodeLine{00755\ }
+\DoxyCodeLine{00756\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00757\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00758\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00759\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Name\_Func}}
+\DoxyCodeLine{00760\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00761\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00762\ \textcolor{comment}{\ \ \ *\ \ \ From\ the\ 'name'\ table,\ return\ a\ given\ ENGLISH\ name\ record\ in\ ASCII.}}
+\DoxyCodeLine{00763\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00764\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00765\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00766\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ source\ face\ object.}}
+\DoxyCodeLine{00767\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00768\ \textcolor{comment}{\ \ \ *\ \ \ nameid\ ::}}
+\DoxyCodeLine{00769\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ name\ id\ of\ the\ name\ record\ to\ return.}}
+\DoxyCodeLine{00770\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00771\ \textcolor{comment}{\ \ \ *\ @inout:}}
+\DoxyCodeLine{00772\ \textcolor{comment}{\ \ \ *\ \ \ name\ ::}}
+\DoxyCodeLine{00773\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ address\ of\ an\ allocated\ string\ pointer.\ \ `NULL`\ if\ no\ name\ is}}
+\DoxyCodeLine{00774\ \textcolor{comment}{\ \ \ *\ \ \ \ \ present.}}
+\DoxyCodeLine{00775\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00776\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00777\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00778\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00779\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00780\ \ \ (*TT\_Get\_Name\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ \ \ face,}
+\DoxyCodeLine{00781\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UShort\ \ \ \ nameid,}
+\DoxyCodeLine{00782\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_String**\ \ name\ );}
+\DoxyCodeLine{00783\ }
+\DoxyCodeLine{00784\ }
+\DoxyCodeLine{00785\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00786\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00787\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00788\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Get\_Name\_ID\_Func}}
+\DoxyCodeLine{00789\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00790\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00791\ \textcolor{comment}{\ \ \ *\ \ \ Search\ whether\ an\ ENGLISH\ version\ for\ a\ given\ name\ ID\ is\ in\ the\ 'name'}}
+\DoxyCodeLine{00792\ \textcolor{comment}{\ \ \ *\ \ \ table.}}
+\DoxyCodeLine{00793\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00794\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00795\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00796\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ source\ face\ object.}}
+\DoxyCodeLine{00797\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00798\ \textcolor{comment}{\ \ \ *\ \ \ nameid\ ::}}
+\DoxyCodeLine{00799\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ name\ id\ of\ the\ name\ record\ to\ return.}}
+\DoxyCodeLine{00800\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00801\ \textcolor{comment}{\ \ \ *\ @output:}}
+\DoxyCodeLine{00802\ \textcolor{comment}{\ \ \ *\ \ \ win\ ::}}
+\DoxyCodeLine{00803\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ non-\/negative,\ an\ index\ into\ the\ 'name'\ table\ with\ the}}
+\DoxyCodeLine{00804\ \textcolor{comment}{\ \ \ *\ \ \ \ \ corresponding\ (3,1)\ or\ (3,0)\ Windows\ entry.}}
+\DoxyCodeLine{00805\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00806\ \textcolor{comment}{\ \ \ *\ \ \ apple\ ::}}
+\DoxyCodeLine{00807\ \textcolor{comment}{\ \ \ *\ \ \ \ \ If\ non-\/negative,\ an\ index\ into\ the\ 'name'\ table\ with\ the}}
+\DoxyCodeLine{00808\ \textcolor{comment}{\ \ \ *\ \ \ \ \ corresponding\ (1,0)\ Apple\ entry.}}
+\DoxyCodeLine{00809\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00810\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00811\ \textcolor{comment}{\ \ \ *\ \ \ 1\ if\ there\ is\ either\ a\ win\ or\ apple\ entry\ (or\ both),\ 0\ otheriwse.}}
+\DoxyCodeLine{00812\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00813\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00814\ \ \ (*TT\_Get\_Name\_ID\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ face,}
+\DoxyCodeLine{00815\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UShort\ \ nameid,}
+\DoxyCodeLine{00816\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ *win,}
+\DoxyCodeLine{00817\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Int\ \ \ \ *apple\ );}
+\DoxyCodeLine{00818\ }
+\DoxyCodeLine{00819\ }
+\DoxyCodeLine{00820\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00821\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00822\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00823\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Load\_Table\_Func}}
+\DoxyCodeLine{00824\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00825\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00826\ \textcolor{comment}{\ \ \ *\ \ \ Load\ a\ given\ TrueType\ table.}}
+\DoxyCodeLine{00827\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00828\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00829\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00830\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ face\ object.}}
+\DoxyCodeLine{00831\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00832\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{00833\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ input\ stream.}}
+\DoxyCodeLine{00834\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00835\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00836\ \textcolor{comment}{\ \ \ *\ \ \ FreeType\ error\ code.\ \ 0\ means\ success.}}
+\DoxyCodeLine{00837\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00838\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00839\ \textcolor{comment}{\ \ \ *\ \ \ The\ function\ uses\ `face-\/>goto\_table`\ to\ seek\ the\ stream\ to\ the\ start}}
+\DoxyCodeLine{00840\ \textcolor{comment}{\ \ \ *\ \ \ of\ the\ table,\ except\ while\ loading\ the\ font\ directory.}}
+\DoxyCodeLine{00841\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00842\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00843\ \ \ (*TT\_Load\_Table\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ \ \ face,}
+\DoxyCodeLine{00844\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ stream\ );}
+\DoxyCodeLine{00845\ }
+\DoxyCodeLine{00846\ }
+\DoxyCodeLine{00847\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00848\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00849\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00850\ \textcolor{comment}{\ \ \ *\ \ \ TT\_Free\_Table\_Func}}
+\DoxyCodeLine{00851\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00852\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00853\ \textcolor{comment}{\ \ \ *\ \ \ Free\ a\ given\ TrueType\ table.}}
+\DoxyCodeLine{00854\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00855\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00856\ \textcolor{comment}{\ \ \ *\ \ \ face\ ::}}
+\DoxyCodeLine{00857\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ handle\ to\ the\ target\ face\ object.}}
+\DoxyCodeLine{00858\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00859\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00860\ \ \ (*TT\_Free\_Table\_Func)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ face\ );}
+\DoxyCodeLine{00861\ }
+\DoxyCodeLine{00862\ }
+\DoxyCodeLine{00863\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00864\ \textcolor{comment}{\ \ \ *\ @functype:}}
+\DoxyCodeLine{00865\ \textcolor{comment}{\ \ \ *\ \ \ \ TT\_Face\_GetKerningFunc}}
+\DoxyCodeLine{00866\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00867\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00868\ \textcolor{comment}{\ \ \ *\ \ \ \ Return\ the\ horizontal\ kerning\ value\ between\ two\ glyphs.}}
+\DoxyCodeLine{00869\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00870\ \textcolor{comment}{\ \ \ *\ @input:}}
+\DoxyCodeLine{00871\ \textcolor{comment}{\ \ \ *\ \ \ \ face\ ::}}
+\DoxyCodeLine{00872\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ A\ handle\ to\ the\ source\ face\ object.}}
+\DoxyCodeLine{00873\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00874\ \textcolor{comment}{\ \ \ *\ \ \ \ left\_glyph\ ::}}
+\DoxyCodeLine{00875\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ The\ left\ glyph\ index.}}
+\DoxyCodeLine{00876\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00877\ \textcolor{comment}{\ \ \ *\ \ \ \ right\_glyph\ ::}}
+\DoxyCodeLine{00878\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ The\ right\ glyph\ index.}}
+\DoxyCodeLine{00879\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00880\ \textcolor{comment}{\ \ \ *\ @return:}}
+\DoxyCodeLine{00881\ \textcolor{comment}{\ \ \ *\ \ \ \ The\ kerning\ value\ in\ font\ units.}}
+\DoxyCodeLine{00882\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00883\ \ \ \textcolor{keyword}{typedef}\ FT\_Int}
+\DoxyCodeLine{00884\ \ \ (*TT\_Face\_GetKerningFunc)(\ \mbox{\hyperlink{struct_t_t___face_rec__}{TT\_Face}}\ \ face,}
+\DoxyCodeLine{00885\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ left\_glyph,}
+\DoxyCodeLine{00886\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ right\_glyph\ );}
+\DoxyCodeLine{00887\ }
+\DoxyCodeLine{00888\ }
+\DoxyCodeLine{00889\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00890\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00891\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00892\ \textcolor{comment}{\ \ \ *\ \ \ SFNT\_Interface}}
+\DoxyCodeLine{00893\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00894\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00895\ \textcolor{comment}{\ \ \ *\ \ \ This\ structure\ holds\ pointers\ to\ the\ functions\ used\ to\ load\ and\ free}}
+\DoxyCodeLine{00896\ \textcolor{comment}{\ \ \ *\ \ \ the\ basic\ tables\ that\ are\ required\ in\ a\ 'sfnt'\ font\ file.}}
+\DoxyCodeLine{00897\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00898\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00899\ \textcolor{comment}{\ \ \ *\ \ \ Check\ the\ various\ xxx\_Func()\ descriptions\ for\ details.}}
+\DoxyCodeLine{00900\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00901\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_s_f_n_t___interface__}{SFNT\_Interface\_}}}
+\DoxyCodeLine{00902\ \ \ \{}
+\DoxyCodeLine{00903\ \ \ \ \ TT\_Loader\_GotoTableFunc\ \ goto\_table;}
+\DoxyCodeLine{00904\ }
+\DoxyCodeLine{00905\ \ \ \ \ TT\_Init\_Face\_Func\ \ \ \ init\_face;}
+\DoxyCodeLine{00906\ \ \ \ \ TT\_Load\_Face\_Func\ \ \ \ load\_face;}
+\DoxyCodeLine{00907\ \ \ \ \ TT\_Done\_Face\_Func\ \ \ \ done\_face;}
+\DoxyCodeLine{00908\ \ \ \ \ FT\_Module\_Requester\ \ get\_interface;}
+\DoxyCodeLine{00909\ }
+\DoxyCodeLine{00910\ \ \ \ \ TT\_Load\_Any\_Func\ \ load\_any;}
+\DoxyCodeLine{00911\ }
+\DoxyCodeLine{00912\ \ \ \ \ \textcolor{comment}{/*\ these\ functions\ are\ called\ by\ `load\_face'\ but\ they\ can\ also\ \ */}}
+\DoxyCodeLine{00913\ \ \ \ \ \textcolor{comment}{/*\ be\ called\ from\ external\ modules,\ if\ there\ is\ a\ need\ to\ do\ so\ */}}
+\DoxyCodeLine{00914\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ load\_head;}
+\DoxyCodeLine{00915\ \ \ \ \ TT\_Load\_Metrics\_Func\ \ load\_hhea;}
+\DoxyCodeLine{00916\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ load\_cmap;}
+\DoxyCodeLine{00917\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ load\_maxp;}
+\DoxyCodeLine{00918\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ load\_os2;}
+\DoxyCodeLine{00919\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ load\_post;}
+\DoxyCodeLine{00920\ }
+\DoxyCodeLine{00921\ \ \ \ \ TT\_Load\_Table\_Func\ \ load\_name;}
+\DoxyCodeLine{00922\ \ \ \ \ TT\_Free\_Table\_Func\ \ free\_name;}
+\DoxyCodeLine{00923\ }
+\DoxyCodeLine{00924\ \ \ \ \ \textcolor{comment}{/*\ this\ field\ was\ called\ `load\_kerning'\ up\ to\ version\ 2.1.10\ */}}
+\DoxyCodeLine{00925\ \ \ \ \ TT\_Load\_Table\_Func\ \ load\_kern;}
+\DoxyCodeLine{00926\ }
+\DoxyCodeLine{00927\ \ \ \ \ TT\_Load\_Table\_Func\ \ load\_gasp;}
+\DoxyCodeLine{00928\ \ \ \ \ TT\_Load\_Table\_Func\ \ load\_pclt;}
+\DoxyCodeLine{00929\ }
+\DoxyCodeLine{00930\ \ \ \ \ \textcolor{comment}{/*\ see\ `ttload.h';\ this\ field\ was\ called\ `load\_bitmap\_header'\ up\ to\ */}}
+\DoxyCodeLine{00931\ \ \ \ \ \textcolor{comment}{/*\ version\ 2.1.10\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00932\ \ \ \ \ TT\_Load\_Table\_Func\ \ load\_bhed;}
+\DoxyCodeLine{00933\ }
+\DoxyCodeLine{00934\ \ \ \ \ TT\_Load\_SBit\_Image\_Func\ \ load\_sbit\_image;}
+\DoxyCodeLine{00935\ }
+\DoxyCodeLine{00936\ \ \ \ \ \textcolor{comment}{/*\ see\ `ttpost.h'\ */}}
+\DoxyCodeLine{00937\ \ \ \ \ TT\_Get\_PS\_Name\_Func\ \ get\_psname;}
+\DoxyCodeLine{00938\ \ \ \ \ TT\_Free\_Table\_Func\ \ \ free\_psnames;}
+\DoxyCodeLine{00939\ }
+\DoxyCodeLine{00940\ \ \ \ \ \textcolor{comment}{/*\ starting\ here,\ the\ structure\ differs\ from\ version\ 2.1.7\ */}}
+\DoxyCodeLine{00941\ }
+\DoxyCodeLine{00942\ \ \ \ \ \textcolor{comment}{/*\ this\ field\ was\ introduced\ in\ version\ 2.1.8,\ named\ `get\_psname'\ */}}
+\DoxyCodeLine{00943\ \ \ \ \ TT\_Face\_GetKerningFunc\ \ get\_kerning;}
+\DoxyCodeLine{00944\ }
+\DoxyCodeLine{00945\ \ \ \ \ \textcolor{comment}{/*\ new\ elements\ introduced\ after\ version\ 2.1.10\ */}}
+\DoxyCodeLine{00946\ }
+\DoxyCodeLine{00947\ \ \ \ \ \textcolor{comment}{/*\ load\ the\ font\ directory,\ i.e.,\ the\ offset\ table\ and\ */}}
+\DoxyCodeLine{00948\ \ \ \ \ \textcolor{comment}{/*\ the\ table\ directory\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00949\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ load\_font\_dir;}
+\DoxyCodeLine{00950\ \ \ \ \ TT\_Load\_Metrics\_Func\ \ load\_hmtx;}
+\DoxyCodeLine{00951\ }
+\DoxyCodeLine{00952\ \ \ \ \ TT\_Load\_Table\_Func\ \ load\_eblc;}
+\DoxyCodeLine{00953\ \ \ \ \ TT\_Free\_Table\_Func\ \ free\_eblc;}
+\DoxyCodeLine{00954\ }
+\DoxyCodeLine{00955\ \ \ \ \ TT\_Set\_SBit\_Strike\_Func\ \ \ \ \ \ set\_sbit\_strike;}
+\DoxyCodeLine{00956\ \ \ \ \ TT\_Load\_Strike\_Metrics\_Func\ \ load\_strike\_metrics;}
+\DoxyCodeLine{00957\ }
+\DoxyCodeLine{00958\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ load\_cpal;}
+\DoxyCodeLine{00959\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ load\_colr;}
+\DoxyCodeLine{00960\ \ \ \ \ TT\_Free\_Table\_Func\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ free\_cpal;}
+\DoxyCodeLine{00961\ \ \ \ \ TT\_Free\_Table\_Func\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ free\_colr;}
+\DoxyCodeLine{00962\ \ \ \ \ TT\_Set\_Palette\_Func\ \ \ \ \ \ \ \ \ \ \ \ \ \ set\_palette;}
+\DoxyCodeLine{00963\ \ \ \ \ TT\_Get\_Colr\_Layer\_Func\ \ \ \ \ \ \ \ \ \ \ get\_colr\_layer;}
+\DoxyCodeLine{00964\ \ \ \ \ TT\_Get\_Color\_Glyph\_Paint\_Func\ \ \ \ get\_colr\_glyph\_paint;}
+\DoxyCodeLine{00965\ \ \ \ \ TT\_Get\_Color\_Glyph\_ClipBox\_Func\ \ get\_color\_glyph\_clipbox;}
+\DoxyCodeLine{00966\ \ \ \ \ TT\_Get\_Paint\_Layers\_Func\ \ \ \ \ \ \ \ \ get\_paint\_layers;}
+\DoxyCodeLine{00967\ \ \ \ \ TT\_Get\_Colorline\_Stops\_Func\ \ \ \ \ \ get\_colorline\_stops;}
+\DoxyCodeLine{00968\ \ \ \ \ TT\_Get\_Paint\_Func\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ get\_paint;}
+\DoxyCodeLine{00969\ \ \ \ \ TT\_Blend\_Colr\_Func\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ colr\_blend;}
+\DoxyCodeLine{00970\ }
+\DoxyCodeLine{00971\ \ \ \ \ TT\_Get\_Metrics\_Func\ \ get\_metrics;}
+\DoxyCodeLine{00972\ }
+\DoxyCodeLine{00973\ \ \ \ \ TT\_Get\_Name\_Func\ \ \ \ \ get\_name;}
+\DoxyCodeLine{00974\ \ \ \ \ TT\_Get\_Name\_ID\_Func\ \ get\_name\_id;}
+\DoxyCodeLine{00975\ }
+\DoxyCodeLine{00976\ \ \ \ \ \textcolor{comment}{/*\ OpenType\ SVG\ Support\ */}}
+\DoxyCodeLine{00977\ \ \ \ \ TT\_Load\_Table\_Func\ \ \ \ load\_svg;}
+\DoxyCodeLine{00978\ \ \ \ \ TT\_Free\_Table\_Func\ \ \ \ free\_svg;}
+\DoxyCodeLine{00979\ \ \ \ \ TT\_Load\_Svg\_Doc\_Func\ \ load\_svg\_doc;}
+\DoxyCodeLine{00980\ }
+\DoxyCodeLine{00981\ \ \ \}\ \mbox{\hyperlink{struct_s_f_n_t___interface__}{SFNT\_Interface}};}
+\DoxyCodeLine{00982\ }
+\DoxyCodeLine{00983\ }
+\DoxyCodeLine{00984\ \ \ \textcolor{comment}{/*\ transitional\ */}}
+\DoxyCodeLine{00985\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_s_f_n_t___interface__}{SFNT\_Interface}}*\ \ \ \mbox{\hyperlink{struct_s_f_n_t___interface__}{SFNT\_Service}};}
+\DoxyCodeLine{00986\ }
+\DoxyCodeLine{00987\ }
+\DoxyCodeLine{00988\ \textcolor{preprocessor}{\#define\ FT\_DEFINE\_SFNT\_INTERFACE(\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00989\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ class\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00990\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ goto\_table\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00991\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ init\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00992\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00993\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ done\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00994\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_interface\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00995\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_any\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00996\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_head\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00997\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_hhea\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00998\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_cmap\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00999\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_maxp\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01000\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_os2\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01001\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_post\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01002\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_name\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01003\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ free\_name\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01004\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_kern\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01005\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_gasp\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01006\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_pclt\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01007\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_bhed\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01008\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_sbit\_image\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01009\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_psname\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01010\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ free\_psnames\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01011\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_kerning\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01012\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_font\_dir\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01013\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_hmtx\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01014\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_eblc\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01015\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ free\_eblc\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01016\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ set\_sbit\_strike\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01017\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_strike\_metrics\_,\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01018\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_cpal\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01019\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_colr\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01020\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ free\_cpal\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01021\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ free\_colr\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01022\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ set\_palette\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01023\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_colr\_layer\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01024\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_colr\_glyph\_paint\_,\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01025\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_color\_glyph\_clipbox,\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01026\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_paint\_layers\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01027\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_colorline\_stops\_,\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01028\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_paint\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01029\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ colr\_blend\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01030\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_metrics\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01031\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_name\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01032\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ get\_name\_id\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01033\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_svg\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01034\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ free\_svg\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01035\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ load\_svg\_doc\_\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01036\ \textcolor{preprocessor}{\ \ static\ const\ SFNT\_Interface\ \ class\_\ =\ \ \(\backslash\)}}
+\DoxyCodeLine{01037\ \textcolor{preprocessor}{\ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01038\ \textcolor{preprocessor}{\ \ \ \ goto\_table\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01039\ \textcolor{preprocessor}{\ \ \ \ init\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01040\ \textcolor{preprocessor}{\ \ \ \ load\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01041\ \textcolor{preprocessor}{\ \ \ \ done\_face\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01042\ \textcolor{preprocessor}{\ \ \ \ get\_interface\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01043\ \textcolor{preprocessor}{\ \ \ \ load\_any\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01044\ \textcolor{preprocessor}{\ \ \ \ load\_head\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01045\ \textcolor{preprocessor}{\ \ \ \ load\_hhea\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01046\ \textcolor{preprocessor}{\ \ \ \ load\_cmap\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01047\ \textcolor{preprocessor}{\ \ \ \ load\_maxp\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01048\ \textcolor{preprocessor}{\ \ \ \ load\_os2\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01049\ \textcolor{preprocessor}{\ \ \ \ load\_post\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01050\ \textcolor{preprocessor}{\ \ \ \ load\_name\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01051\ \textcolor{preprocessor}{\ \ \ \ free\_name\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01052\ \textcolor{preprocessor}{\ \ \ \ load\_kern\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01053\ \textcolor{preprocessor}{\ \ \ \ load\_gasp\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01054\ \textcolor{preprocessor}{\ \ \ \ load\_pclt\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01055\ \textcolor{preprocessor}{\ \ \ \ load\_bhed\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01056\ \textcolor{preprocessor}{\ \ \ \ load\_sbit\_image\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01057\ \textcolor{preprocessor}{\ \ \ \ get\_psname\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01058\ \textcolor{preprocessor}{\ \ \ \ free\_psnames\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01059\ \textcolor{preprocessor}{\ \ \ \ get\_kerning\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01060\ \textcolor{preprocessor}{\ \ \ \ load\_font\_dir\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01061\ \textcolor{preprocessor}{\ \ \ \ load\_hmtx\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01062\ \textcolor{preprocessor}{\ \ \ \ load\_eblc\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01063\ \textcolor{preprocessor}{\ \ \ \ free\_eblc\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01064\ \textcolor{preprocessor}{\ \ \ \ set\_sbit\_strike\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01065\ \textcolor{preprocessor}{\ \ \ \ load\_strike\_metrics\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01066\ \textcolor{preprocessor}{\ \ \ \ load\_cpal\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01067\ \textcolor{preprocessor}{\ \ \ \ load\_colr\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01068\ \textcolor{preprocessor}{\ \ \ \ free\_cpal\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01069\ \textcolor{preprocessor}{\ \ \ \ free\_colr\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01070\ \textcolor{preprocessor}{\ \ \ \ set\_palette\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01071\ \textcolor{preprocessor}{\ \ \ \ get\_colr\_layer\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01072\ \textcolor{preprocessor}{\ \ \ \ get\_colr\_glyph\_paint\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01073\ \textcolor{preprocessor}{\ \ \ \ get\_color\_glyph\_clipbox,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01074\ \textcolor{preprocessor}{\ \ \ \ get\_paint\_layers\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01075\ \textcolor{preprocessor}{\ \ \ \ get\_colorline\_stops\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01076\ \textcolor{preprocessor}{\ \ \ \ get\_paint\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01077\ \textcolor{preprocessor}{\ \ \ \ colr\_blend\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01078\ \textcolor{preprocessor}{\ \ \ \ get\_metrics\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01079\ \textcolor{preprocessor}{\ \ \ \ get\_name\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01080\ \textcolor{preprocessor}{\ \ \ \ get\_name\_id\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01081\ \textcolor{preprocessor}{\ \ \ \ load\_svg\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01082\ \textcolor{preprocessor}{\ \ \ \ free\_svg\_,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01083\ \textcolor{preprocessor}{\ \ \ \ load\_svg\_doc\_\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01084\ \textcolor{preprocessor}{\ \ \};}}
+\DoxyCodeLine{01085\ }
+\DoxyCodeLine{01086\ }
+\DoxyCodeLine{01087\ FT\_END\_HEADER}
+\DoxyCodeLine{01088\ }
+\DoxyCodeLine{01089\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ SFNT\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01090\ }
+\DoxyCodeLine{01091\ }
+\DoxyCodeLine{01092\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

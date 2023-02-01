@@ -1,0 +1,404 @@
+\hypertarget{_ase_sprite_2aseprite_2third__party_2fmt_2include_2fmt_2os_8h_source}{}\doxysection{os.\+h}
+\label{_ase_sprite_2aseprite_2third__party_2fmt_2include_2fmt_2os_8h_source}\index{AseSprite/aseprite/third\_party/fmt/include/fmt/os.h@{AseSprite/aseprite/third\_party/fmt/include/fmt/os.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Formatting\ library\ for\ C++\ -\/\ optional\ OS-\/specific\ functionality}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (c)\ 2012\ -\/\ present,\ Victor\ Zverovich}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ All\ rights\ reserved.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ For\ the\ license\ information\ refer\ to\ format.h.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ FMT\_OS\_H\_}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ FMT\_OS\_H\_}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <cerrno>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <cstddef>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <cstdio>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <system\_error>}\ \ \textcolor{comment}{//\ std::system\_error}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#if\ defined\ \_\_APPLE\_\_\ ||\ defined(\_\_FreeBSD\_\_)}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#\ \ include\ <xlocale.h>}\ \ \textcolor{comment}{//\ for\ LC\_NUMERIC\_MASK\ on\ OS\ X}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}format.h"{}}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#ifndef\ FMT\_USE\_FCNTL}}
+\DoxyCodeLine{00023\ \textcolor{comment}{//\ UWP\ doesn't\ provide\ \_pipe.}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#\ \ if\ FMT\_HAS\_INCLUDE("{}winapifamily.h"{}})}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#\ \ \ \ include\ <winapifamily.h>}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#\ \ if\ (FMT\_HAS\_INCLUDE(<fcntl.h>)\ ||\ defined(\_\_APPLE\_\_)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \ \ \ defined(\_\_linux\_\_))\ \&\&\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ \ \ \ \ (!defined(WINAPI\_FAMILY)\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \ \ \ \ \ (WINAPI\_FAMILY\ ==\ WINAPI\_FAMILY\_DESKTOP\_APP))}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#\ \ \ \ include\ <fcntl.h>}\ \ \textcolor{comment}{//\ for\ O\_RDONLY}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#\ \ \ \ define\ FMT\_USE\_FCNTL\ 1}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#\ \ \ \ define\ FMT\_USE\_FCNTL\ 0}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#ifndef\ FMT\_POSIX}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#\ \ if\ defined(\_WIN32)\ \&\&\ !defined(\_\_MINGW32\_\_)}}
+\DoxyCodeLine{00040\ \textcolor{comment}{//\ Fix\ warnings\ about\ deprecated\ symbols.}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#\ \ \ \ define\ FMT\_POSIX(call)\ \_\#\#call}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#\ \ \ \ define\ FMT\_POSIX(call)\ call}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{//\ Calls\ to\ system\ functions\ are\ wrapped\ in\ FMT\_SYSTEM\ for\ testability.}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#ifdef\ FMT\_SYSTEM}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#\ \ define\ FMT\_POSIX\_CALL(call)\ FMT\_SYSTEM(call)}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#\ \ define\ FMT\_SYSTEM(call)\ ::call}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#\ \ ifdef\ \_WIN32}}
+\DoxyCodeLine{00053\ \textcolor{comment}{//\ Fix\ warnings\ about\ deprecated\ symbols.}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#\ \ \ \ define\ FMT\_POSIX\_CALL(call)\ ::\_\#\#call}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#\ \ \ \ define\ FMT\_POSIX\_CALL(call)\ ::call}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{comment}{//\ Retries\ the\ expression\ while\ it\ evaluates\ to\ error\_result\ and\ errno}}
+\DoxyCodeLine{00061\ \textcolor{comment}{//\ equals\ to\ EINTR.}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#ifndef\ \_WIN32}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#\ \ define\ FMT\_RETRY\_VAL(result,\ expression,\ error\_result)\ \(\backslash\)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ \ \ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\ \ \ \ \ \ (result)\ =\ (expression);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ ((result)\ ==\ (error\_result)\ \&\&\ errno\ ==\ EINTR)}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#\ \ define\ FMT\_RETRY\_VAL(result,\ expression,\ error\_result)\ result\ =\ (expression)}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#define\ FMT\_RETRY(result,\ expression)\ FMT\_RETRY\_VAL(result,\ expression,\ -\/1)}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ FMT\_BEGIN\_NAMESPACE}
+\DoxyCodeLine{00074\ FMT\_MODULE\_EXPORT\_BEGIN}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00101\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Char>\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbasic__cstring__view}{basic\_cstring\_view}}\ \{}
+\DoxyCodeLine{00102\ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00103\ \ \ \textcolor{keyword}{const}\ Char*\ data\_;}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00107\ \ \ \mbox{\hyperlink{classbasic__cstring__view_ab464b2378652892cec4716d3e3d475c7}{basic\_cstring\_view}}(\textcolor{keyword}{const}\ Char*\ s)\ :\ data\_(s)\ \{\}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00114\ \ \ \mbox{\hyperlink{classbasic__cstring__view_a10b92cc0e3e67789601984099b9ed339}{basic\_cstring\_view}}(\textcolor{keyword}{const}\ std::basic\_string<Char>\&\ s)\ :\ data\_(s.\mbox{\hyperlink{classbasic__cstring__view_ae2cd254a4686dd81753751193af179a8}{c\_str}}())\ \{\}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00117\ \ \ \textcolor{keyword}{const}\ Char*\ \mbox{\hyperlink{classbasic__cstring__view_ae2cd254a4686dd81753751193af179a8}{c\_str}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ data\_;\ \}}
+\DoxyCodeLine{00118\ \};}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{using\ }\mbox{\hyperlink{classbasic__cstring__view}{cstring\_view}}\ =\ \mbox{\hyperlink{classbasic__cstring__view}{basic\_cstring\_view<char>}};}
+\DoxyCodeLine{00121\ \textcolor{keyword}{using\ }\mbox{\hyperlink{classbasic__cstring__view}{wcstring\_view}}\ =\ \mbox{\hyperlink{classbasic__cstring__view}{basic\_cstring\_view<wchar\_t>}};}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Char>\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structformatter}{formatter}}<std::error\_code,\ Char>\ \{}
+\DoxyCodeLine{00124\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ParseContext>}
+\DoxyCodeLine{00125\ \ \ FMT\_CONSTEXPR\ \textcolor{keyword}{auto}\ parse(ParseContext\&\ ctx)\ -\/>\ \textcolor{keyword}{decltype}(ctx.begin())\ \{}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordflow}{return}\ ctx.begin();}
+\DoxyCodeLine{00127\ \ \ \}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ FormatContext>}
+\DoxyCodeLine{00130\ \ \ FMT\_CONSTEXPR\ \textcolor{keyword}{auto}\ format(\textcolor{keyword}{const}\ std::error\_code\&\ ec,\ FormatContext\&\ ctx)\ \textcolor{keyword}{const}}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ -\/>\ \textcolor{keyword}{decltype}(ctx.out())\ \{}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{keyword}{auto}\ out\ =\ ctx.out();}
+\DoxyCodeLine{00133\ \ \ \ \ out\ =\ detail::write\_bytes(out,\ ec.category().name(),}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structbasic__format__specs}{basic\_format\_specs<Char>}}());}
+\DoxyCodeLine{00135\ \ \ \ \ out\ =\ detail::write<Char>(out,\ Char(\textcolor{charliteral}{':'}));}
+\DoxyCodeLine{00136\ \ \ \ \ out\ =\ detail::write<Char>(out,\ ec.value());}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordflow}{return}\ out;}
+\DoxyCodeLine{00138\ \ \ \}}
+\DoxyCodeLine{00139\ \};}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#ifdef\ \_WIN32}}
+\DoxyCodeLine{00142\ FMT\_API\ \textcolor{keyword}{const}\ std::error\_category\&\ system\_category()\ noexcept;}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ FMT\_BEGIN\_DETAIL\_NAMESPACE}
+\DoxyCodeLine{00145\ \textcolor{comment}{//\ A\ converter\ from\ UTF-\/16\ to\ UTF-\/8.}}
+\DoxyCodeLine{00146\ \textcolor{comment}{//\ It\ is\ only\ provided\ for\ Windows\ since\ other\ systems\ support\ UTF-\/8\ natively.}}
+\DoxyCodeLine{00147\ class\ utf16\_to\_utf8\ \{}
+\DoxyCodeLine{00148\ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00149\ \ \ \mbox{\hyperlink{classbasic__memory__buffer}{memory\_buffer}}\ buffer\_;}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00152\ \ \ utf16\_to\_utf8()\ \{\}}
+\DoxyCodeLine{00153\ \ \ FMT\_API\ \textcolor{keyword}{explicit}\ utf16\_to\_utf8(\mbox{\hyperlink{classbasic__string__view}{basic\_string\_view<wchar\_t>}}\ s);}
+\DoxyCodeLine{00154\ \ \ \textcolor{keyword}{operator}\ \mbox{\hyperlink{classbasic__string__view}{string\_view}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classbasic__string__view}{string\_view}}(\&buffer\_[0],\ size());\ \}}
+\DoxyCodeLine{00155\ \ \ \textcolor{keywordtype}{size\_t}\ size()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ buffer\_.size()\ -\/\ 1;\ \}}
+\DoxyCodeLine{00156\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ c\_str()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \&buffer\_[0];\ \}}
+\DoxyCodeLine{00157\ \ \ std::string\ str()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ std::string(\&buffer\_[0],\ size());\ \}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \textcolor{comment}{//\ Performs\ conversion\ returning\ a\ system\ error\ code\ instead\ of}}
+\DoxyCodeLine{00160\ \ \ \textcolor{comment}{//\ throwing\ exception\ on\ conversion\ error.\ This\ method\ may\ still\ throw}}
+\DoxyCodeLine{00161\ \ \ \textcolor{comment}{//\ in\ case\ of\ memory\ allocation\ error.}}
+\DoxyCodeLine{00162\ \ \ FMT\_API\ \textcolor{keywordtype}{int}\ convert(\mbox{\hyperlink{classbasic__string__view}{basic\_string\_view<wchar\_t>}}\ s);}
+\DoxyCodeLine{00163\ \};}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ FMT\_API\ \textcolor{keywordtype}{void}\ format\_windows\_error(\mbox{\hyperlink{classbuffer}{buffer<char>}}\&\ out,\ \textcolor{keywordtype}{int}\ error\_code,}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ message)\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00167\ FMT\_END\_DETAIL\_NAMESPACE}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ FMT\_API\ std::system\_error\ vwindows\_error(\textcolor{keywordtype}{int}\ error\_code,\ \mbox{\hyperlink{classbasic__string__view}{string\_view}}\ format\_str,}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classbasic__format__args}{format\_args}}\ args);}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00200\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00201\ std::system\_error\ windows\_error(\textcolor{keywordtype}{int}\ error\_code,\ \mbox{\hyperlink{classbasic__string__view}{string\_view}}\ message,}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ Args\&...\ args)\ \{}
+\DoxyCodeLine{00203\ \ \ \textcolor{keywordflow}{return}\ vwindows\_error(error\_code,\ message,\ fmt::make\_format\_args(args...));}
+\DoxyCodeLine{00204\ \}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \textcolor{comment}{//\ Reports\ a\ Windows\ error\ without\ throwing\ an\ exception.}}
+\DoxyCodeLine{00207\ \textcolor{comment}{//\ Can\ be\ used\ to\ report\ errors\ from\ destructors.}}
+\DoxyCodeLine{00208\ FMT\_API\ \textcolor{keywordtype}{void}\ report\_windows\_error(\textcolor{keywordtype}{int}\ error\_code,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ message)\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00210\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ std::error\_category\&\ system\_category()\ noexcept\ \{}
+\DoxyCodeLine{00211\ \ \ \textcolor{keywordflow}{return}\ std::system\_category();}
+\DoxyCodeLine{00212\ \}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ \_WIN32}}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \textcolor{comment}{//\ std::system\ is\ not\ available\ on\ some\ platforms\ such\ as\ iOS\ (\#2248).}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\#ifdef\ \_\_OSX\_\_}}
+\DoxyCodeLine{00217\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ S,\ \textcolor{keyword}{typename}...\ Args,\ \textcolor{keyword}{typename}\ Char\ =\ char\_t<S>>}
+\DoxyCodeLine{00218\ \textcolor{keywordtype}{void}\ say(\textcolor{keyword}{const}\ S\&\ format\_str,\ Args\&\&...\ args)\ \{}
+\DoxyCodeLine{00219\ \ \ std::system(format(\textcolor{stringliteral}{"{}say\ \(\backslash\)"{}\{\}\(\backslash\)"{}"{}},\ format(format\_str,\ args...)).c\_str());}
+\DoxyCodeLine{00220\ \}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \textcolor{comment}{//\ A\ buffered\ file.}}
+\DoxyCodeLine{00224\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classbuffered__file}{buffered\_file}}\ \{}
+\DoxyCodeLine{00225\ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00226\ \ \ FILE*\ file\_;}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \textcolor{keyword}{friend}\ \textcolor{keyword}{class\ }\mbox{\hyperlink{structfile}{file}};}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}(FILE*\ f)\ :\ file\_(f)\ \{\}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00233\ \ \ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00234\ \ \ \textcolor{keywordtype}{void}\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \textcolor{comment}{//\ Constructs\ a\ buffered\_file\ object\ which\ doesn't\ represent\ any\ file.}}
+\DoxyCodeLine{00237\ \ \ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}()\ noexcept\ :\ file\_(\textcolor{keyword}{nullptr})\ \{\}}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \ \ \textcolor{comment}{//\ Destroys\ the\ object\ closing\ the\ file\ it\ represents\ if\ any.}}
+\DoxyCodeLine{00240\ \ \ FMT\_API\ \mbox{\hyperlink{classbuffered__file}{\string~buffered\_file}}()\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00243\ \ \ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}(\mbox{\hyperlink{classbuffered__file}{buffered\_file}}\&\&\ other)\ noexcept\ :\ file\_(other.file\_)\ \{}
+\DoxyCodeLine{00244\ \ \ \ \ other.file\_\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00245\ \ \ \}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}\&\ operator=(\mbox{\hyperlink{classbuffered__file}{buffered\_file}}\&\&\ other)\ \{}
+\DoxyCodeLine{00248\ \ \ \ \ close();}
+\DoxyCodeLine{00249\ \ \ \ \ file\_\ =\ other.file\_;}
+\DoxyCodeLine{00250\ \ \ \ \ other.file\_\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00251\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00252\ \ \ \}}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \textcolor{comment}{//\ Opens\ a\ file.}}
+\DoxyCodeLine{00255\ \ \ FMT\_API\ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}(\mbox{\hyperlink{classbasic__cstring__view}{cstring\_view}}\ filename,\ \mbox{\hyperlink{classbasic__cstring__view}{cstring\_view}}\ mode);}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \textcolor{comment}{//\ Closes\ the\ file.}}
+\DoxyCodeLine{00258\ \ \ FMT\_API\ \textcolor{keywordtype}{void}\ close();}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \ \ \textcolor{comment}{//\ Returns\ the\ pointer\ to\ a\ FILE\ object\ representing\ this\ file.}}
+\DoxyCodeLine{00261\ \ \ FILE*\ get()\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}\ \{\ \textcolor{keywordflow}{return}\ file\_;\ \}}
+\DoxyCodeLine{00262\ }
+\DoxyCodeLine{00263\ \ \ FMT\_API\ \textcolor{keywordtype}{int}\ descriptor()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \ \ \textcolor{keywordtype}{void}\ vprint(\mbox{\hyperlink{classbasic__string__view}{string\_view}}\ format\_str,\ \mbox{\hyperlink{classbasic__format__args}{format\_args}}\ args)\ \{}
+\DoxyCodeLine{00266\ \ \ \ \ fmt::vprint(file\_,\ format\_str,\ args);}
+\DoxyCodeLine{00267\ \ \ \}}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00270\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ print(\mbox{\hyperlink{classbasic__string__view}{string\_view}}\ format\_str,\ \textcolor{keyword}{const}\ Args\&...\ args)\ \{}
+\DoxyCodeLine{00271\ \ \ \ \ vprint(format\_str,\ fmt::make\_format\_args(args...));}
+\DoxyCodeLine{00272\ \ \ \}}
+\DoxyCodeLine{00273\ \};}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\#if\ FMT\_USE\_FCNTL}}
+\DoxyCodeLine{00276\ \textcolor{comment}{//\ A\ file.\ Closed\ file\ is\ represented\ by\ a\ file\ object\ with\ descriptor\ -\/1.}}
+\DoxyCodeLine{00277\ \textcolor{comment}{//\ Methods\ that\ are\ not\ declared\ with\ noexcept\ may\ throw}}
+\DoxyCodeLine{00278\ \textcolor{comment}{//\ fmt::system\_error\ in\ case\ of\ failure.\ Note\ that\ some\ errors\ such\ as}}
+\DoxyCodeLine{00279\ \textcolor{comment}{//\ closing\ the\ file\ multiple\ times\ will\ cause\ a\ crash\ on\ Windows\ rather}}
+\DoxyCodeLine{00280\ \textcolor{comment}{//\ than\ an\ exception.\ You\ can\ get\ standard\ behavior\ by\ overriding\ the}}
+\DoxyCodeLine{00281\ \textcolor{comment}{//\ invalid\ parameter\ handler\ with\ \_set\_invalid\_parameter\_handler.}}
+\DoxyCodeLine{00282\ \textcolor{keyword}{class\ }FMT\_API\ \mbox{\hyperlink{structfile}{file}}\ \{}
+\DoxyCodeLine{00283\ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00284\ \ \ \textcolor{keywordtype}{int}\ fd\_;\ \ \textcolor{comment}{//\ File\ descriptor.}}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ \textcolor{comment}{//\ Constructs\ a\ file\ object\ with\ a\ given\ descriptor.}}
+\DoxyCodeLine{00287\ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{structfile}{file}}(\textcolor{keywordtype}{int}\ fd)\ :\ fd\_(fd)\ \{\}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00290\ \ \ \textcolor{comment}{//\ Possible\ values\ for\ the\ oflag\ argument\ to\ the\ constructor.}}
+\DoxyCodeLine{00291\ \ \ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00292\ \ \ \ \ RDONLY\ =\ FMT\_POSIX(O\_RDONLY),\ \ \textcolor{comment}{//\ Open\ for\ reading\ only.}}
+\DoxyCodeLine{00293\ \ \ \ \ WRONLY\ =\ FMT\_POSIX(O\_WRONLY),\ \ \textcolor{comment}{//\ Open\ for\ writing\ only.}}
+\DoxyCodeLine{00294\ \ \ \ \ RDWR\ =\ FMT\_POSIX(O\_RDWR),\ \ \ \ \ \ \textcolor{comment}{//\ Open\ for\ reading\ and\ writing.}}
+\DoxyCodeLine{00295\ \ \ \ \ CREATE\ =\ FMT\_POSIX(O\_CREAT),\ \ \ \textcolor{comment}{//\ Create\ if\ the\ file\ doesn't\ exist.}}
+\DoxyCodeLine{00296\ \ \ \ \ APPEND\ =\ FMT\_POSIX(O\_APPEND),\ \ \textcolor{comment}{//\ Open\ in\ append\ mode.}}
+\DoxyCodeLine{00297\ \ \ \ \ TRUNC\ =\ FMT\_POSIX(O\_TRUNC)\ \ \ \ \ \textcolor{comment}{//\ Truncate\ the\ content\ of\ the\ file.}}
+\DoxyCodeLine{00298\ \ \ \};}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \ \ \textcolor{comment}{//\ Constructs\ a\ file\ object\ which\ doesn't\ represent\ any\ file.}}
+\DoxyCodeLine{00301\ \ \ \mbox{\hyperlink{structfile}{file}}()\ noexcept\ :\ fd\_(-\/1)\ \{\}}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \textcolor{comment}{//\ Opens\ a\ file\ and\ constructs\ a\ file\ object\ representing\ this\ file.}}
+\DoxyCodeLine{00304\ \ \ \mbox{\hyperlink{structfile}{file}}(\mbox{\hyperlink{classbasic__cstring__view}{cstring\_view}}\ path,\ \textcolor{keywordtype}{int}\ oflag);}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00307\ \ \ \mbox{\hyperlink{structfile}{file}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{structfile}{file}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00308\ \ \ \textcolor{keywordtype}{void}\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{structfile}{file}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00309\ }
+\DoxyCodeLine{00310\ \ \ \mbox{\hyperlink{structfile}{file}}(\mbox{\hyperlink{structfile}{file}}\&\&\ other)\ noexcept\ :\ fd\_(other.fd\_)\ \{\ other.fd\_\ =\ -\/1;\ \}}
+\DoxyCodeLine{00311\ }
+\DoxyCodeLine{00312\ \ \ \textcolor{comment}{//\ Move\ assignment\ is\ not\ noexcept\ because\ close\ may\ throw.}}
+\DoxyCodeLine{00313\ \ \ \mbox{\hyperlink{structfile}{file}}\&\ operator=(\mbox{\hyperlink{structfile}{file}}\&\&\ other)\ \{}
+\DoxyCodeLine{00314\ \ \ \ \ close();}
+\DoxyCodeLine{00315\ \ \ \ \ fd\_\ =\ other.fd\_;}
+\DoxyCodeLine{00316\ \ \ \ \ other.fd\_\ =\ -\/1;}
+\DoxyCodeLine{00317\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00318\ \ \ \}}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \ \ \textcolor{comment}{//\ Destroys\ the\ object\ closing\ the\ file\ it\ represents\ if\ any.}}
+\DoxyCodeLine{00321\ \ \ \mbox{\hyperlink{structfile}{\string~file}}()\ noexcept;}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \ \ \textcolor{comment}{//\ Returns\ the\ file\ descriptor.}}
+\DoxyCodeLine{00324\ \ \ \textcolor{keywordtype}{int}\ descriptor()\ const\ noexcept\ \{\ \textcolor{keywordflow}{return}\ fd\_;\ \}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \ \ \textcolor{comment}{//\ Closes\ the\ file.}}
+\DoxyCodeLine{00327\ \ \ \textcolor{keywordtype}{void}\ close();}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \ \ \textcolor{comment}{//\ Returns\ the\ file\ size.\ The\ size\ has\ signed\ type\ for\ consistency\ with}}
+\DoxyCodeLine{00330\ \ \ \textcolor{comment}{//\ stat::st\_size.}}
+\DoxyCodeLine{00331\ \ \ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ size()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \textcolor{comment}{//\ Attempts\ to\ read\ count\ bytes\ from\ the\ file\ into\ the\ specified\ buffer.}}
+\DoxyCodeLine{00334\ \ \ \textcolor{keywordtype}{size\_t}\ read(\textcolor{keywordtype}{void}*\ \mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keywordtype}{size\_t}\ count);}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ \ \ \textcolor{comment}{//\ Attempts\ to\ write\ count\ bytes\ from\ the\ specified\ buffer\ to\ the\ file.}}
+\DoxyCodeLine{00337\ \ \ \textcolor{keywordtype}{size\_t}\ write(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}*\ \mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keywordtype}{size\_t}\ count);}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \ \ \textcolor{comment}{//\ Duplicates\ a\ file\ descriptor\ with\ the\ dup\ function\ and\ returns}}
+\DoxyCodeLine{00340\ \ \ \textcolor{comment}{//\ the\ duplicate\ as\ a\ file\ object.}}
+\DoxyCodeLine{00341\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structfile}{file}}\ dup(\textcolor{keywordtype}{int}\ fd);}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \textcolor{comment}{//\ Makes\ fd\ be\ the\ copy\ of\ this\ file\ descriptor,\ closing\ fd\ first\ if}}
+\DoxyCodeLine{00344\ \ \ \textcolor{comment}{//\ necessary.}}
+\DoxyCodeLine{00345\ \ \ \textcolor{keywordtype}{void}\ dup2(\textcolor{keywordtype}{int}\ fd);}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ \ \ \textcolor{comment}{//\ Makes\ fd\ be\ the\ copy\ of\ this\ file\ descriptor,\ closing\ fd\ first\ if}}
+\DoxyCodeLine{00348\ \ \ \textcolor{comment}{//\ necessary.}}
+\DoxyCodeLine{00349\ \ \ \textcolor{keywordtype}{void}\ dup2(\textcolor{keywordtype}{int}\ fd,\ std::error\_code\&\ ec)\ \textcolor{keyword}{noexcept};}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \ \ \textcolor{comment}{//\ Creates\ a\ pipe\ setting\ up\ read\_end\ and\ write\_end\ file\ objects\ for\ reading}}
+\DoxyCodeLine{00352\ \ \ \textcolor{comment}{//\ and\ writing\ respectively.}}
+\DoxyCodeLine{00353\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ pipe(\mbox{\hyperlink{structfile}{file}}\&\ read\_end,\ \mbox{\hyperlink{structfile}{file}}\&\ write\_end);}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \ \ \textcolor{comment}{//\ Creates\ a\ buffered\_file\ object\ associated\ with\ this\ file\ and\ detaches}}
+\DoxyCodeLine{00356\ \ \ \textcolor{comment}{//\ this\ file\ object\ from\ the\ file.}}
+\DoxyCodeLine{00357\ \ \ \mbox{\hyperlink{classbuffered__file}{buffered\_file}}\ fdopen(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ mode);}
+\DoxyCodeLine{00358\ \};}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \textcolor{comment}{//\ Returns\ the\ memory\ page\ size.}}
+\DoxyCodeLine{00361\ \textcolor{keywordtype}{long}\ getpagesize();}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ FMT\_BEGIN\_DETAIL\_NAMESPACE}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \textcolor{keyword}{struct\ }buffer\_size\ \{}
+\DoxyCodeLine{00366\ \ \ buffer\_size()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00367\ \ \ \textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0;}
+\DoxyCodeLine{00368\ \ \ buffer\_size\ operator=(\textcolor{keywordtype}{size\_t}\ val)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00369\ \ \ \ \ \textcolor{keyword}{auto}\ bs\ =\ buffer\_size();}
+\DoxyCodeLine{00370\ \ \ \ \ bs.value\ =\ val;}
+\DoxyCodeLine{00371\ \ \ \ \ \textcolor{keywordflow}{return}\ bs;}
+\DoxyCodeLine{00372\ \ \ \}}
+\DoxyCodeLine{00373\ \};}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \textcolor{keyword}{struct\ }ostream\_params\ \{}
+\DoxyCodeLine{00376\ \ \ \textcolor{keywordtype}{int}\ oflag\ =\ file::WRONLY\ |\ file::CREATE\ |\ file::TRUNC;}
+\DoxyCodeLine{00377\ \ \ \textcolor{keywordtype}{size\_t}\ buffer\_size\ =\ BUFSIZ\ >\ 32768\ ?\ BUFSIZ\ :\ 32768;}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \ \ ostream\_params()\ \{\}}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ T>}
+\DoxyCodeLine{00382\ \ \ ostream\_params(T...\ params,\ \textcolor{keywordtype}{int}\ new\_oflag)\ :\ ostream\_params(params...)\ \{}
+\DoxyCodeLine{00383\ \ \ \ \ oflag\ =\ new\_oflag;}
+\DoxyCodeLine{00384\ \ \ \}}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ T>}
+\DoxyCodeLine{00387\ \ \ ostream\_params(T...\ params,\ detail::buffer\_size\ bs)}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ :\ ostream\_params(params...)\ \{}
+\DoxyCodeLine{00389\ \ \ \ \ this-\/>buffer\_size\ =\ bs.value;}
+\DoxyCodeLine{00390\ \ \ \}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \textcolor{comment}{//\ Intel\ has\ a\ bug\ that\ results\ in\ failure\ to\ deduce\ a\ constructor}}
+\DoxyCodeLine{00393\ \textcolor{comment}{//\ for\ empty\ parameter\ packs.}}
+\DoxyCodeLine{00394\ \textcolor{preprocessor}{\#\ \ if\ defined(\_\_INTEL\_COMPILER)\ \&\&\ \_\_INTEL\_COMPILER\ <\ 2000}}
+\DoxyCodeLine{00395\ \ \ ostream\_params(\textcolor{keywordtype}{int}\ new\_oflag)\ :\ oflag(new\_oflag)\ \{\}}
+\DoxyCodeLine{00396\ \ \ ostream\_params(detail::buffer\_size\ bs)\ :\ buffer\_size(bs.\mbox{\hyperlink{classvalue}{value}})\ \{\}}
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00398\ \};}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ FMT\_END\_DETAIL\_NAMESPACE}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \textcolor{comment}{//\ Added\ \{\}\ below\ to\ work\ around\ default\ constructor\ error\ known\ to}}
+\DoxyCodeLine{00403\ \textcolor{comment}{//\ occur\ in\ Xcode\ versions\ 7.2.1\ and\ 8.2.1.}}
+\DoxyCodeLine{00404\ \textcolor{keyword}{constexpr}\ detail::buffer\_size\ buffer\_size\{\};}
+\DoxyCodeLine{00405\ }
+\DoxyCodeLine{00407\ \textcolor{keyword}{class\ }FMT\_API\ ostream\ final\ :\ \textcolor{keyword}{private}\ detail::buffer<char>\ \{}
+\DoxyCodeLine{00408\ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00409\ \ \ \mbox{\hyperlink{structfile}{file}}\ file\_;}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \ \ \textcolor{keywordtype}{void}\ grow(\textcolor{keywordtype}{size\_t})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ \ \ ostream(\mbox{\hyperlink{classbasic__cstring__view}{cstring\_view}}\ path,\ \textcolor{keyword}{const}\ detail::ostream\_params\&\ params)}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ :\ file\_(path,\ params.oflag)\ \{}
+\DoxyCodeLine{00415\ \ \ \ \ set(\textcolor{keyword}{new}\ \textcolor{keywordtype}{char}[params.buffer\_size],\ params.buffer\_size);}
+\DoxyCodeLine{00416\ \ \ \}}
+\DoxyCodeLine{00417\ }
+\DoxyCodeLine{00418\ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00419\ \ \ ostream(ostream\&\&\ other)}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ :\ detail::\mbox{\hyperlink{classbuffer}{buffer}}<char>(other.\mbox{\hyperlink{structdata}{data}}(),\ other.size(),\ other.capacity()),}
+\DoxyCodeLine{00421\ \ \ \ \ \ \ \ \ file\_(std::move(other.file\_))\ \{}
+\DoxyCodeLine{00422\ \ \ \ \ other.clear();}
+\DoxyCodeLine{00423\ \ \ \ \ other.set(\textcolor{keyword}{nullptr},\ 0);}
+\DoxyCodeLine{00424\ \ \ \}}
+\DoxyCodeLine{00425\ \ \ \string~ostream()\ \{}
+\DoxyCodeLine{00426\ \ \ \ \ flush();}
+\DoxyCodeLine{00427\ \ \ \ \ \textcolor{keyword}{delete}[]\ \mbox{\hyperlink{structdata}{data}}();}
+\DoxyCodeLine{00428\ \ \ \}}
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \ \ \textcolor{keywordtype}{void}\ flush()\ \{}
+\DoxyCodeLine{00431\ \ \ \ \ \textcolor{keywordflow}{if}\ (size()\ ==\ 0)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00432\ \ \ \ \ file\_.write(\mbox{\hyperlink{structdata}{data}}(),\ size());}
+\DoxyCodeLine{00433\ \ \ \ \ clear();}
+\DoxyCodeLine{00434\ \ \ \}}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ T>}
+\DoxyCodeLine{00437\ \ \ \textcolor{keyword}{friend}\ ostream\ output\_file(\mbox{\hyperlink{classbasic__cstring__view}{cstring\_view}}\ path,\ T...\ params);}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \ \ \textcolor{keywordtype}{void}\ close()\ \{}
+\DoxyCodeLine{00440\ \ \ \ \ flush();}
+\DoxyCodeLine{00441\ \ \ \ \ file\_.close();}
+\DoxyCodeLine{00442\ \ \ \}}
+\DoxyCodeLine{00443\ }
+\DoxyCodeLine{00448\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ T>\ \textcolor{keywordtype}{void}\ print(\mbox{\hyperlink{classbasic__format__string}{format\_string<T...>}}\ fmt,\ T\&\&...\ args)\ \{}
+\DoxyCodeLine{00449\ \ \ \ \ vformat\_to(detail::buffer\_appender<char>(*\textcolor{keyword}{this}),\ fmt,}
+\DoxyCodeLine{00450\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ fmt::make\_format\_args(args...));}
+\DoxyCodeLine{00451\ \ \ \}}
+\DoxyCodeLine{00452\ \};}
+\DoxyCodeLine{00453\ }
+\DoxyCodeLine{00469\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}...\ T>}
+\DoxyCodeLine{00470\ \textcolor{keyword}{inline}\ ostream\ output\_file(\mbox{\hyperlink{classbasic__cstring__view}{cstring\_view}}\ path,\ T...\ params)\ \{}
+\DoxyCodeLine{00471\ \ \ \textcolor{keywordflow}{return}\ \{path,\ detail::ostream\_params(params...)\};}
+\DoxyCodeLine{00472\ \}}
+\DoxyCodeLine{00473\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ FMT\_USE\_FCNTL}}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ FMT\_MODULE\_EXPORT\_END}
+\DoxyCodeLine{00476\ FMT\_END\_NAMESPACE}
+\DoxyCodeLine{00477\ }
+\DoxyCodeLine{00478\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ FMT\_OS\_H\_}}
+
+\end{DoxyCode}

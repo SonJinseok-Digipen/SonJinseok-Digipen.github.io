@@ -1,0 +1,104 @@
+\hypertarget{perf-extents_8hh_source}{}\doxysection{perf-\/extents.hh}
+\label{perf-extents_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/perf/perf-\/extents.hh@{AseSprite/aseprite/third\_party/harfbuzz/perf/perf-\/extents.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#include\ "{}benchmark/benchmark.h"{}}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}hb.h"{}}}
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}hb-\/ft.h"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot.h"{}}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifdef\ HAVE\_TTFPARSER}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}ttfparser.h"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ extents\ (\mbox{\hyperlink{classbenchmark_1_1_state}{benchmark::State}}\ \&\mbox{\hyperlink{structstate}{state}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *font\_path,\ \textcolor{keywordtype}{bool}\ is\_var,\ backend\_t\ backend)}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00013\ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font;}
+\DoxyCodeLine{00014\ \ \ \textcolor{keywordtype}{unsigned}\ num\_glyphs;}
+\DoxyCodeLine{00015\ \ \ \{}
+\DoxyCodeLine{00016\ \ \ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *blob\ =\ hb\_blob\_create\_from\_file\_or\_fail\ (font\_path);}
+\DoxyCodeLine{00017\ \ \ \ \ assert\ (blob);}
+\DoxyCodeLine{00018\ \ \ \ \ \mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ *face\ =\ hb\_face\_create\ (blob,\ 0);}
+\DoxyCodeLine{00019\ \ \ \ \ hb\_blob\_destroy\ (blob);}
+\DoxyCodeLine{00020\ \ \ \ \ num\_glyphs\ =\ hb\_face\_get\_glyph\_count\ (face);}
+\DoxyCodeLine{00021\ \ \ \ \ font\ =\ hb\_font\_create\ (face);}
+\DoxyCodeLine{00022\ \ \ \ \ hb\_face\_destroy\ (face);}
+\DoxyCodeLine{00023\ \ \ \}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \textcolor{keywordflow}{if}\ (is\_var)}
+\DoxyCodeLine{00026\ \ \ \{}
+\DoxyCodeLine{00027\ \ \ \ \ \mbox{\hyperlink{structhb__variation__t}{hb\_variation\_t}}\ wght\ =\ \{HB\_TAG\ (\textcolor{charliteral}{'w'},\textcolor{charliteral}{'g'},\textcolor{charliteral}{'h'},\textcolor{charliteral}{'t'}),\ 500\};}
+\DoxyCodeLine{00028\ \ \ \ \ hb\_font\_set\_variations\ (font,\ \&wght,\ 1);}
+\DoxyCodeLine{00029\ \ \ \}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \ \ \textcolor{keywordflow}{if}\ (backend\ ==\ HARFBUZZ\ ||\ backend\ ==\ FREETYPE)}
+\DoxyCodeLine{00032\ \ \ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordflow}{if}\ (backend\ ==\ FREETYPE)}
+\DoxyCodeLine{00034\ \ \ \ \ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ hb\_ft\_font\_set\_funcs\ (font);}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ hb\_ft\_font\_set\_load\_flags\ (font,\ FT\_LOAD\_NO\_HINTING\ |\ FT\_LOAD\_NO\_SCALE);}
+\DoxyCodeLine{00037\ \ \ \ \ \}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \mbox{\hyperlink{structhb__glyph__extents__t}{hb\_glyph\_extents\_t}}\ extents;}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \_\ :\ \mbox{\hyperlink{structstate}{state}})}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ gid\ =\ 0;\ gid\ <\ num\_glyphs;\ ++gid)}
+\DoxyCodeLine{00042\ \ \ \ \ hb\_font\_get\_glyph\_extents\ (font,\ gid,\ \&extents);}
+\DoxyCodeLine{00043\ \ \ \}}
+\DoxyCodeLine{00044\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (backend\ ==\ TTF\_PARSER)}
+\DoxyCodeLine{00045\ \ \ \{}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#ifdef\ HAVE\_TTFPARSER}}
+\DoxyCodeLine{00047\ \ \ \ \ ttfp\_face\ *tp\_font\ =\ (ttfp\_face\ *)\ malloc\ (ttfp\_face\_size\_of\ ());}
+\DoxyCodeLine{00048\ \ \ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *blob\ =\ hb\_face\_reference\_blob\ (hb\_font\_get\_face\ (font));}
+\DoxyCodeLine{00049\ \ \ \ \ assert\ (ttfp\_face\_init\ (hb\_blob\_get\_data\ (blob,\ \textcolor{keyword}{nullptr}),\ hb\_blob\_get\_length\ (blob),\ 0,\ tp\_font));}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordflow}{if}\ (is\_var)\ ttfp\_set\_variation\ (tp\_font,\ TTFP\_TAG(\textcolor{charliteral}{'w'},\textcolor{charliteral}{'g'},\textcolor{charliteral}{'h'},\textcolor{charliteral}{'t'}),\ 500);}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \ \ ttfp\_rect\ bbox;}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \_\ :\ \mbox{\hyperlink{structstate}{state}})}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ gid\ =\ 0;\ gid\ <\ num\_glyphs;\ ++gid)}
+\DoxyCodeLine{00055\ \ \ \ \ ttfp\_get\_glyph\_bbox(tp\_font,\ gid,\ \&bbox);}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ hb\_blob\_destroy\ (blob);}
+\DoxyCodeLine{00058\ \ \ \ \ free\ (tp\_font);}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00060\ \ \ \}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ hb\_font\_destroy\ (font);}
+\DoxyCodeLine{00063\ \}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ FONT\_BASE\_PATH\ "{}test/subset/data/fonts/"{}}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ BENCHMARK\_CAPTURE\ (extents,\ cff\ -\/\ ot\ -\/\ SourceSansPro,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSansPro-\/Regular.otf"{}},\ \textcolor{keyword}{false},\ HARFBUZZ);}
+\DoxyCodeLine{00068\ BENCHMARK\_CAPTURE\ (extents,\ cff\ -\/\ ft\ -\/\ SourceSansPro,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSansPro-\/Regular.otf"{}},\ \textcolor{keyword}{false},\ FREETYPE);}
+\DoxyCodeLine{00069\ BENCHMARK\_CAPTURE\ (extents,\ cff\ -\/\ tp\ -\/\ SourceSansPro,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSansPro-\/Regular.otf"{}},\ \textcolor{keyword}{false},\ TTF\_PARSER);}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ BENCHMARK\_CAPTURE\ (extents,\ cff2\ -\/\ ot\ -\/\ AdobeVFPrototype,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}AdobeVFPrototype.otf"{}},\ \textcolor{keyword}{false},\ HARFBUZZ);}
+\DoxyCodeLine{00072\ BENCHMARK\_CAPTURE\ (extents,\ cff2\ -\/\ ft\ -\/\ AdobeVFPrototype,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}AdobeVFPrototype.otf"{}},\ \textcolor{keyword}{false},\ FREETYPE);}
+\DoxyCodeLine{00073\ BENCHMARK\_CAPTURE\ (extents,\ cff2\ -\/\ tp\ -\/\ AdobeVFPrototype,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}AdobeVFPrototype.otf"{}},\ \textcolor{keyword}{false},\ TTF\_PARSER);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ BENCHMARK\_CAPTURE\ (extents,\ cff2/vf\ -\/\ ot\ -\/\ AdobeVFPrototype,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}AdobeVFPrototype.otf"{}},\ \textcolor{keyword}{true},\ HARFBUZZ);}
+\DoxyCodeLine{00076\ BENCHMARK\_CAPTURE\ (extents,\ cff2/vf\ -\/\ ft\ -\/\ AdobeVFPrototype,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}AdobeVFPrototype.otf"{}},\ \textcolor{keyword}{true},\ FREETYPE);}
+\DoxyCodeLine{00077\ BENCHMARK\_CAPTURE\ (extents,\ cff2/vf\ -\/\ tp\ -\/\ AdobeVFPrototype,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}AdobeVFPrototype.otf"{}},\ \textcolor{keyword}{true},\ TTF\_PARSER);}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ ot\ -\/\ SourceSerifVariable,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSerifVariable-\/Roman.ttf"{}},\ \textcolor{keyword}{false},\ HARFBUZZ);}
+\DoxyCodeLine{00080\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ ft\ -\/\ SourceSerifVariable,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSerifVariable-\/Roman.ttf"{}},\ \textcolor{keyword}{false},\ FREETYPE);}
+\DoxyCodeLine{00081\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ tp\ -\/\ SourceSerifVariable,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSerifVariable-\/Roman.ttf"{}},\ \textcolor{keyword}{false},\ TTF\_PARSER);}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ BENCHMARK\_CAPTURE\ (extents,\ glyf/vf\ -\/\ ot\ -\/\ SourceSerifVariable,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSerifVariable-\/Roman.ttf"{}},\ \textcolor{keyword}{true},\ HARFBUZZ);}
+\DoxyCodeLine{00084\ BENCHMARK\_CAPTURE\ (extents,\ glyf/vf\ -\/\ ft\ -\/\ SourceSerifVariable,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSerifVariable-\/Roman.ttf"{}},\ \textcolor{keyword}{true},\ FREETYPE);}
+\DoxyCodeLine{00085\ BENCHMARK\_CAPTURE\ (extents,\ glyf/vf\ -\/\ tp\ -\/\ SourceSerifVariable,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}SourceSerifVariable-\/Roman.ttf"{}},\ \textcolor{keyword}{true},\ TTF\_PARSER);}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ ot\ -\/\ Comfortaa,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Comfortaa-\/Regular-\/new.ttf"{}},\ \textcolor{keyword}{false},\ HARFBUZZ);}
+\DoxyCodeLine{00088\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ ft\ -\/\ Comfortaa,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Comfortaa-\/Regular-\/new.ttf"{}},\ \textcolor{keyword}{false},\ FREETYPE);}
+\DoxyCodeLine{00089\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ tp\ -\/\ Comfortaa,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Comfortaa-\/Regular-\/new.ttf"{}},\ \textcolor{keyword}{false},\ TTF\_PARSER);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ BENCHMARK\_CAPTURE\ (extents,\ glyf/vf\ -\/\ ot\ -\/\ Comfortaa,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Comfortaa-\/Regular-\/new.ttf"{}},\ \textcolor{keyword}{true},\ HARFBUZZ);}
+\DoxyCodeLine{00092\ BENCHMARK\_CAPTURE\ (extents,\ glyf/vf\ -\/\ ft\ -\/\ Comfortaa,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Comfortaa-\/Regular-\/new.ttf"{}},\ \textcolor{keyword}{true},\ FREETYPE);}
+\DoxyCodeLine{00093\ BENCHMARK\_CAPTURE\ (extents,\ glyf/vf\ -\/\ tp\ -\/\ Comfortaa,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Comfortaa-\/Regular-\/new.ttf"{}},\ \textcolor{keyword}{true},\ TTF\_PARSER);}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ ot\ -\/\ Roboto,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Roboto-\/Regular.ttf"{}},\ \textcolor{keyword}{false},\ HARFBUZZ);}
+\DoxyCodeLine{00096\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ ft\ -\/\ Roboto,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Roboto-\/Regular.ttf"{}},\ \textcolor{keyword}{false},\ FREETYPE);}
+\DoxyCodeLine{00097\ BENCHMARK\_CAPTURE\ (extents,\ glyf\ -\/\ tp\ -\/\ Roboto,\ FONT\_BASE\_PATH\ \textcolor{stringliteral}{"{}Roboto-\/Regular.ttf"{}},\ \textcolor{keyword}{false},\ TTF\_PARSER);}
+\DoxyCodeLine{00098\ }
+
+\end{DoxyCode}

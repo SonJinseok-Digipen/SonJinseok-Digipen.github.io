@@ -1,0 +1,1371 @@
+\hypertarget{pixman-inlines_8h_source}{}\doxysection{pixman-\/inlines.h}
+\label{pixman-inlines_8h_source}\index{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/inlines.h@{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/inlines.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*\ -\/*-\/\ Mode:\ c;\ c-\/basic-\/offset:\ 4;\ tab-\/width:\ 8;\ indent-\/tabs-\/mode:\ t;\ -\/*-\/\ */}}
+\DoxyCodeLine{00002\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2000\ SuSE,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Copyright\ ©\ 2007\ Red\ Hat,\ Inc.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ to\ use,\ copy,\ modify,\ distribute,\ and\ sell\ this\ software\ and\ its}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ documentation\ for\ any\ purpose\ is\ hereby\ granted\ without\ fee,\ provided\ that}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ the\ above\ copyright\ notice\ appear\ in\ all\ copies\ and\ that\ both\ that}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ copyright\ notice\ and\ this\ permission\ notice\ appear\ in\ supporting}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ documentation,\ and\ that\ the\ name\ of\ SuSE\ not\ be\ used\ in\ advertising\ or}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ publicity\ pertaining\ to\ distribution\ of\ the\ software\ without\ specific,}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ written\ prior\ permission.\ \ SuSE\ makes\ no\ representations\ about\ the}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ suitability\ of\ this\ software\ for\ any\ purpose.\ \ It\ is\ provided\ "{}as\ is"{}}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ without\ express\ or\ implied\ warranty.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ SuSE\ DISCLAIMS\ ALL\ WARRANTIES\ WITH\ REGARD\ TO\ THIS\ SOFTWARE,\ INCLUDING\ ALL}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND\ FITNESS,\ IN\ NO\ EVENT\ SHALL\ SuSE}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ BE\ LIABLE\ FOR\ ANY\ SPECIAL,\ INDIRECT\ OR\ CONSEQUENTIAL\ DAMAGES\ OR\ ANY\ DAMAGES}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ WHATSOEVER\ RESULTING\ FROM\ LOSS\ OF\ USE,\ DATA\ OR\ PROFITS,\ WHETHER\ IN\ AN\ ACTION}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ OF\ CONTRACT,\ NEGLIGENCE\ OR\ OTHER\ TORTIOUS\ ACTION,\ ARISING\ OUT\ OF\ OR\ IN}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ CONNECTION\ WITH\ THE\ USE\ OR\ PERFORMANCE\ OF\ THIS\ SOFTWARE.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ Author:\ \ Keith\ Packard,\ SuSE,\ Inc.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#ifndef\ PIXMAN\_FAST\_PATH\_H\_\_}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ PIXMAN\_FAST\_PATH\_H\_\_}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ "{}pixman-\/private.h"{}}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ PIXMAN\_REPEAT\_COVER\ -\/1}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{comment}{/*\ Flags\ describing\ input\ parameters\ to\ fast\ path\ macro\ template.}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ Turning\ on\ some\ flag\ values\ may\ indicate\ that}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ "{}some\ property\ X\ is\ available\ so\ template\ can\ use\ this"{}\ or}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ "{}some\ property\ X\ should\ be\ handled\ by\ template"{}.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ FLAG\_HAVE\_SOLID\_MASK}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ \ Input\ mask\ is\ solid\ so\ template\ should\ handle\ this.}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ FLAG\_HAVE\_NON\_SOLID\_MASK}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ \ Input\ mask\ is\ bits\ mask\ so\ template\ should\ handle\ this.}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ FLAG\_HAVE\_SOLID\_MASK\ and\ FLAG\_HAVE\_NON\_SOLID\_MASK\ are\ mutually}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ exclusive.\ (It's\ not\ allowed\ to\ turn\ both\ flags\ on)}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ FLAG\_NONE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (0)}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ FLAG\_HAVE\_SOLID\_MASK\ \ \ \ \ \ \ \ \ \ \ \ (1\ <<\ \ \ 1)}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ FLAG\_HAVE\_NON\_SOLID\_MASK\ \ \ \ \ \ \ \ (1\ <<\ \ \ 2)}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{comment}{/*\ To\ avoid\ too\ short\ repeated\ scanline\ function\ calls,\ extend\ source}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ scanlines\ having\ width\ less\ than\ below\ constant\ value.}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ REPEAT\_NORMAL\_MIN\_WIDTH\ \ \ \ \ \ \ \ \ 64}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{static}\ force\_inline\ pixman\_bool\_t}
+\DoxyCodeLine{00057\ repeat\ (pixman\_repeat\_t\ repeat,\ \textcolor{keywordtype}{int}\ *c,\ \textcolor{keywordtype}{int}\ size)}
+\DoxyCodeLine{00058\ \{}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordflow}{if}\ (repeat\ ==\ PIXMAN\_REPEAT\_NONE)}
+\DoxyCodeLine{00060\ \ \ \ \ \{}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordflow}{if}\ (*c\ <\ 0\ ||\ *c\ >=\ size)}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ FALSE;}
+\DoxyCodeLine{00063\ \ \ \ \ \}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (repeat\ ==\ PIXMAN\_REPEAT\_NORMAL)}
+\DoxyCodeLine{00065\ \ \ \ \ \{}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordflow}{while}\ (*c\ >=\ size)}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ *c\ -\/=\ size;}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordflow}{while}\ (*c\ <\ 0)}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ *c\ +=\ size;}
+\DoxyCodeLine{00070\ \ \ \ \ \}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (repeat\ ==\ PIXMAN\_REPEAT\_PAD)}
+\DoxyCodeLine{00072\ \ \ \ \ \{}
+\DoxyCodeLine{00073\ \ \ \ \ *c\ =\ CLIP\ (*c,\ 0,\ size\ -\/\ 1);}
+\DoxyCodeLine{00074\ \ \ \ \ \}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{comment}{/*\ REFLECT\ */}}
+\DoxyCodeLine{00076\ \ \ \ \ \{}
+\DoxyCodeLine{00077\ \ \ \ \ *c\ =\ MOD\ (*c,\ size\ *\ 2);}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordflow}{if}\ (*c\ >=\ size)}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ *c\ =\ size\ *\ 2\ -\/\ *c\ -\/\ 1;}
+\DoxyCodeLine{00080\ \ \ \ \ \}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordflow}{return}\ TRUE;}
+\DoxyCodeLine{00082\ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00085\ pixman\_fixed\_to\_bilinear\_weight\ (pixman\_fixed\_t\ x)}
+\DoxyCodeLine{00086\ \{}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordflow}{return}\ (x\ >>\ (16\ -\/\ BILINEAR\_INTERPOLATION\_BITS))\ \&}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ ((1\ <<\ BILINEAR\_INTERPOLATION\_BITS)\ -\/\ 1);}
+\DoxyCodeLine{00089\ \}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#if\ BILINEAR\_INTERPOLATION\_BITS\ <=\ 4}}
+\DoxyCodeLine{00092\ \textcolor{comment}{/*\ Inspired\ by\ Filter\_32\_opaque\ from\ Skia\ */}}
+\DoxyCodeLine{00093\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00094\ bilinear\_interpolation\ (uint32\_t\ tl,\ uint32\_t\ tr,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ bl,\ uint32\_t\ br,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ distx,\ \textcolor{keywordtype}{int}\ disty)}
+\DoxyCodeLine{00097\ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{int}\ distxy,\ distxiy,\ distixy,\ distixiy;}
+\DoxyCodeLine{00099\ \ \ \ \ uint32\_t\ lo,\ hi;}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ distx\ <<=\ (4\ -\/\ BILINEAR\_INTERPOLATION\_BITS);}
+\DoxyCodeLine{00102\ \ \ \ \ disty\ <<=\ (4\ -\/\ BILINEAR\_INTERPOLATION\_BITS);}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ distxy\ =\ distx\ *\ disty;}
+\DoxyCodeLine{00105\ \ \ \ \ distxiy\ =\ (distx\ <<\ 4)\ -\/\ distxy;\ \ \ \ \textcolor{comment}{/*\ distx\ *\ (16\ -\/\ disty)\ */}}
+\DoxyCodeLine{00106\ \ \ \ \ distixy\ =\ (disty\ <<\ 4)\ -\/\ distxy;\ \ \ \ \textcolor{comment}{/*\ disty\ *\ (16\ -\/\ distx)\ */}}
+\DoxyCodeLine{00107\ \ \ \ \ distixiy\ =}
+\DoxyCodeLine{00108\ \ \ \ \ 16\ *\ 16\ -\/\ (disty\ <<\ 4)\ -\/}
+\DoxyCodeLine{00109\ \ \ \ \ (distx\ <<\ 4)\ +\ distxy;\ \textcolor{comment}{/*\ (16\ -\/\ distx)\ *\ (16\ -\/\ disty)\ */}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ lo\ =\ (tl\ \&\ 0xff00ff)\ *\ distixiy;}
+\DoxyCodeLine{00112\ \ \ \ \ hi\ =\ ((tl\ >>\ 8)\ \&\ 0xff00ff)\ *\ distixiy;}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ lo\ +=\ (tr\ \&\ 0xff00ff)\ *\ distxiy;}
+\DoxyCodeLine{00115\ \ \ \ \ hi\ +=\ ((tr\ >>\ 8)\ \&\ 0xff00ff)\ *\ distxiy;}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ lo\ +=\ (bl\ \&\ 0xff00ff)\ *\ distixy;}
+\DoxyCodeLine{00118\ \ \ \ \ hi\ +=\ ((bl\ >>\ 8)\ \&\ 0xff00ff)\ *\ distixy;}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ lo\ +=\ (br\ \&\ 0xff00ff)\ *\ distxy;}
+\DoxyCodeLine{00121\ \ \ \ \ hi\ +=\ ((br\ >>\ 8)\ \&\ 0xff00ff)\ *\ distxy;}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordflow}{return}\ ((lo\ >>\ 8)\ \&\ 0xff00ff)\ |\ (hi\ \&\ \string~0xff00ff);}
+\DoxyCodeLine{00124\ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#if\ SIZEOF\_LONG\ >\ 4}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00130\ bilinear\_interpolation\ (uint32\_t\ tl,\ uint32\_t\ tr,}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ bl,\ uint32\_t\ br,}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ distx,\ \textcolor{keywordtype}{int}\ disty)}
+\DoxyCodeLine{00133\ \{}
+\DoxyCodeLine{00134\ \ \ \ \ uint64\_t\ distxy,\ distxiy,\ distixy,\ distixiy;}
+\DoxyCodeLine{00135\ \ \ \ \ uint64\_t\ tl64,\ tr64,\ bl64,\ br64;}
+\DoxyCodeLine{00136\ \ \ \ \ uint64\_t\ f,\ r;}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \ \ distx\ <<=\ (8\ -\/\ BILINEAR\_INTERPOLATION\_BITS);}
+\DoxyCodeLine{00139\ \ \ \ \ disty\ <<=\ (8\ -\/\ BILINEAR\_INTERPOLATION\_BITS);}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \ \ distxy\ =\ distx\ *\ disty;}
+\DoxyCodeLine{00142\ \ \ \ \ distxiy\ =\ distx\ *\ (256\ -\/\ disty);}
+\DoxyCodeLine{00143\ \ \ \ \ distixy\ =\ (256\ -\/\ distx)\ *\ disty;}
+\DoxyCodeLine{00144\ \ \ \ \ distixiy\ =\ (256\ -\/\ distx)\ *\ (256\ -\/\ disty);}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{comment}{/*\ Alpha\ and\ Blue\ */}}
+\DoxyCodeLine{00147\ \ \ \ \ tl64\ =\ tl\ \&\ 0xff0000ff;}
+\DoxyCodeLine{00148\ \ \ \ \ tr64\ =\ tr\ \&\ 0xff0000ff;}
+\DoxyCodeLine{00149\ \ \ \ \ bl64\ =\ bl\ \&\ 0xff0000ff;}
+\DoxyCodeLine{00150\ \ \ \ \ br64\ =\ br\ \&\ 0xff0000ff;}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ \ \ f\ =\ tl64\ *\ distixiy\ +\ tr64\ *\ distxiy\ +\ bl64\ *\ distixy\ +\ br64\ *\ distxy;}
+\DoxyCodeLine{00153\ \ \ \ \ r\ =\ f\ \&\ 0x0000ff0000ff0000ull;}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{comment}{/*\ Red\ and\ Green\ */}}
+\DoxyCodeLine{00156\ \ \ \ \ tl64\ =\ tl;}
+\DoxyCodeLine{00157\ \ \ \ \ tl64\ =\ ((tl64\ <<\ 16)\ \&\ 0x000000ff00000000ull)\ |\ (tl64\ \&\ 0x0000ff00ull);}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ tr64\ =\ tr;}
+\DoxyCodeLine{00160\ \ \ \ \ tr64\ =\ ((tr64\ <<\ 16)\ \&\ 0x000000ff00000000ull)\ |\ (tr64\ \&\ 0x0000ff00ull);}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \ \ bl64\ =\ bl;}
+\DoxyCodeLine{00163\ \ \ \ \ bl64\ =\ ((bl64\ <<\ 16)\ \&\ 0x000000ff00000000ull)\ |\ (bl64\ \&\ 0x0000ff00ull);}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \ \ br64\ =\ br;}
+\DoxyCodeLine{00166\ \ \ \ \ br64\ =\ ((br64\ <<\ 16)\ \&\ 0x000000ff00000000ull)\ |\ (br64\ \&\ 0x0000ff00ull);}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \ \ f\ =\ tl64\ *\ distixiy\ +\ tr64\ *\ distxiy\ +\ bl64\ *\ distixy\ +\ br64\ *\ distxy;}
+\DoxyCodeLine{00169\ \ \ \ \ r\ |=\ ((f\ >>\ 16)\ \&\ 0x000000ff00000000ull)\ |\ (f\ \&\ 0xff000000ull);}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordflow}{return}\ (uint32\_t)(r\ >>\ 16);}
+\DoxyCodeLine{00172\ \}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00177\ bilinear\_interpolation\ (uint32\_t\ tl,\ uint32\_t\ tr,}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ bl,\ uint32\_t\ br,}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ distx,\ \textcolor{keywordtype}{int}\ disty)}
+\DoxyCodeLine{00180\ \{}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordtype}{int}\ distxy,\ distxiy,\ distixy,\ distixiy;}
+\DoxyCodeLine{00182\ \ \ \ \ uint32\_t\ f,\ r;}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \ \ \ \ distx\ <<=\ (8\ -\/\ BILINEAR\_INTERPOLATION\_BITS);}
+\DoxyCodeLine{00185\ \ \ \ \ disty\ <<=\ (8\ -\/\ BILINEAR\_INTERPOLATION\_BITS);}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \ \ \ \ distxy\ =\ distx\ *\ disty;}
+\DoxyCodeLine{00188\ \ \ \ \ distxiy\ =\ (distx\ <<\ 8)\ -\/\ distxy;\ \ \ \ \textcolor{comment}{/*\ distx\ *\ (256\ -\/\ disty)\ */}}
+\DoxyCodeLine{00189\ \ \ \ \ distixy\ =\ (disty\ <<\ 8)\ -\/\ distxy;\ \ \ \ \textcolor{comment}{/*\ disty\ *\ (256\ -\/\ distx)\ */}}
+\DoxyCodeLine{00190\ \ \ \ \ distixiy\ =}
+\DoxyCodeLine{00191\ \ \ \ \ 256\ *\ 256\ -\/\ (disty\ <<\ 8)\ -\/}
+\DoxyCodeLine{00192\ \ \ \ \ (distx\ <<\ 8)\ +\ distxy;\ \ \ \ \ \ \textcolor{comment}{/*\ (256\ -\/\ distx)\ *\ (256\ -\/\ disty)\ */}}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{comment}{/*\ Blue\ */}}
+\DoxyCodeLine{00195\ \ \ \ \ r\ =\ (tl\ \&\ 0x000000ff)\ *\ distixiy\ +\ (tr\ \&\ 0x000000ff)\ *\ distxiy}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ +\ (bl\ \&\ 0x000000ff)\ *\ distixy\ \ +\ (br\ \&\ 0x000000ff)\ *\ distxy;}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{comment}{/*\ Green\ */}}
+\DoxyCodeLine{00199\ \ \ \ \ f\ =\ (tl\ \&\ 0x0000ff00)\ *\ distixiy\ +\ (tr\ \&\ 0x0000ff00)\ *\ distxiy}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ +\ (bl\ \&\ 0x0000ff00)\ *\ distixy\ \ +\ (br\ \&\ 0x0000ff00)\ *\ distxy;}
+\DoxyCodeLine{00201\ \ \ \ \ r\ |=\ f\ \&\ 0xff000000;}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ tl\ >>=\ 16;}
+\DoxyCodeLine{00204\ \ \ \ \ tr\ >>=\ 16;}
+\DoxyCodeLine{00205\ \ \ \ \ bl\ >>=\ 16;}
+\DoxyCodeLine{00206\ \ \ \ \ br\ >>=\ 16;}
+\DoxyCodeLine{00207\ \ \ \ \ r\ >>=\ 16;}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \ \ \ \ \textcolor{comment}{/*\ Red\ */}}
+\DoxyCodeLine{00210\ \ \ \ \ f\ =\ (tl\ \&\ 0x000000ff)\ *\ distixiy\ +\ (tr\ \&\ 0x000000ff)\ *\ distxiy}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ +\ (bl\ \&\ 0x000000ff)\ *\ distixy\ \ +\ (br\ \&\ 0x000000ff)\ *\ distxy;}
+\DoxyCodeLine{00212\ \ \ \ \ r\ |=\ f\ \&\ 0x00ff0000;}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \ \ \ \ \textcolor{comment}{/*\ Alpha\ */}}
+\DoxyCodeLine{00215\ \ \ \ \ f\ =\ (tl\ \&\ 0x0000ff00)\ *\ distixiy\ +\ (tr\ \&\ 0x0000ff00)\ *\ distxiy}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ +\ (bl\ \&\ 0x0000ff00)\ *\ distixy\ \ +\ (br\ \&\ 0x0000ff00)\ *\ distxy;}
+\DoxyCodeLine{00217\ \ \ \ \ r\ |=\ f\ \&\ 0xff000000;}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{00220\ \}}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ BILINEAR\_INTERPOLATION\_BITS\ <=\ 4}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \textcolor{keyword}{static}\ force\_inline\ \mbox{\hyperlink{structargb__t}{argb\_t}}}
+\DoxyCodeLine{00226\ bilinear\_interpolation\_float\ (\mbox{\hyperlink{structargb__t}{argb\_t}}\ tl,\ \mbox{\hyperlink{structargb__t}{argb\_t}}\ tr,}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structargb__t}{argb\_t}}\ bl,\ \mbox{\hyperlink{structargb__t}{argb\_t}}\ br,}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ distx,\ \textcolor{keywordtype}{float}\ disty)}
+\DoxyCodeLine{00229\ \{}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{keywordtype}{float}\ distxy,\ distxiy,\ distixy,\ distixiy;}
+\DoxyCodeLine{00231\ \ \ \ \ \mbox{\hyperlink{structargb__t}{argb\_t}}\ r;}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \ \ distxy\ =\ distx\ *\ disty;}
+\DoxyCodeLine{00234\ \ \ \ \ distxiy\ =\ distx\ *\ (1.f\ -\/\ disty);}
+\DoxyCodeLine{00235\ \ \ \ \ distixy\ =\ (1.f\ -\/\ distx)\ *\ disty;}
+\DoxyCodeLine{00236\ \ \ \ \ distixiy\ =\ (1.f\ -\/\ distx)\ *\ (1.f\ -\/\ disty);}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ \ \ r.a\ =\ tl.a\ *\ distixiy\ +\ tr.a\ *\ distxiy\ +}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ bl.a\ *\ distixy\ \ +\ br.a\ *\ distxy;}
+\DoxyCodeLine{00240\ \ \ \ \ r.r\ =\ tl.r\ *\ distixiy\ +\ tr.r\ *\ distxiy\ +}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ bl.r\ *\ distixy\ \ +\ br.r\ *\ distxy;}
+\DoxyCodeLine{00242\ \ \ \ \ r.g\ =\ tl.g\ *\ distixiy\ +\ tr.g\ *\ distxiy\ +}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ bl.g\ *\ distixy\ \ +\ br.g\ *\ distxy;}
+\DoxyCodeLine{00244\ \ \ \ \ r.b\ =\ tl.b\ *\ distixiy\ +\ tr.b\ *\ distxiy\ +}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ bl.b\ *\ distixy\ \ +\ br.b\ *\ distxy;}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{00248\ \}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00251\ \textcolor{comment}{\ *\ For\ each\ scanline\ fetched\ from\ source\ image\ with\ PAD\ repeat:}}
+\DoxyCodeLine{00252\ \textcolor{comment}{\ *\ -\/\ calculate\ how\ many\ pixels\ need\ to\ be\ padded\ on\ the\ left\ side}}
+\DoxyCodeLine{00253\ \textcolor{comment}{\ *\ -\/\ calculate\ how\ many\ pixels\ need\ to\ be\ padded\ on\ the\ right\ side}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ *\ -\/\ update\ width\ to\ only\ count\ pixels\ which\ are\ fetched\ from\ the\ image}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ *\ All\ this\ information\ is\ returned\ via\ 'width',\ 'left\_pad',\ 'right\_pad'}}
+\DoxyCodeLine{00256\ \textcolor{comment}{\ *\ arguments.\ The\ code\ is\ assuming\ that\ 'unit\_x'\ is\ positive.}}
+\DoxyCodeLine{00257\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00258\ \textcolor{comment}{\ *\ Note:\ 64-\/bit\ math\ is\ used\ in\ order\ to\ avoid\ potential\ overflows,\ which}}
+\DoxyCodeLine{00259\ \textcolor{comment}{\ *\ \ \ \ \ \ \ is\ probably\ excessive\ in\ many\ cases.\ This\ particular\ function}}
+\DoxyCodeLine{00260\ \textcolor{comment}{\ *\ \ \ \ \ \ \ may\ need\ its\ own\ correctness\ test\ and\ performance\ tuning.}}
+\DoxyCodeLine{00261\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00262\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00263\ pad\_repeat\_get\_scanline\_bounds\ (int32\_t\ \ \ \ \ \ \ \ \ source\_image\_width,}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ vx,}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ unit\_x,}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00267\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ left\_pad,}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ right\_pad)}
+\DoxyCodeLine{00269\ \{}
+\DoxyCodeLine{00270\ \ \ \ \ int64\_t\ max\_vx\ =\ (int64\_t)\ source\_image\_width\ <<\ 16;}
+\DoxyCodeLine{00271\ \ \ \ \ int64\_t\ tmp;}
+\DoxyCodeLine{00272\ \ \ \ \ \textcolor{keywordflow}{if}\ (vx\ <\ 0)}
+\DoxyCodeLine{00273\ \ \ \ \ \{}
+\DoxyCodeLine{00274\ \ \ \ \ tmp\ =\ ((int64\_t)\ unit\_x\ -\/\ 1\ -\/\ vx)\ /\ unit\_x;}
+\DoxyCodeLine{00275\ \ \ \ \ \textcolor{keywordflow}{if}\ (tmp\ >\ *width)}
+\DoxyCodeLine{00276\ \ \ \ \ \{}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ *left\_pad\ =\ *width;}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ *width\ =\ 0;}
+\DoxyCodeLine{00279\ \ \ \ \ \}}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00281\ \ \ \ \ \{}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ *left\_pad\ =\ (int32\_t)\ tmp;}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ *width\ -\/=\ (int32\_t)\ tmp;}
+\DoxyCodeLine{00284\ \ \ \ \ \}}
+\DoxyCodeLine{00285\ \ \ \ \ \}}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00287\ \ \ \ \ \{}
+\DoxyCodeLine{00288\ \ \ \ \ *left\_pad\ =\ 0;}
+\DoxyCodeLine{00289\ \ \ \ \ \}}
+\DoxyCodeLine{00290\ \ \ \ \ tmp\ =\ ((int64\_t)\ unit\_x\ -\/\ 1\ -\/\ vx\ +\ max\_vx)\ /\ unit\_x\ -\/\ *left\_pad;}
+\DoxyCodeLine{00291\ \ \ \ \ \textcolor{keywordflow}{if}\ (tmp\ <\ 0)}
+\DoxyCodeLine{00292\ \ \ \ \ \{}
+\DoxyCodeLine{00293\ \ \ \ \ *right\_pad\ =\ *width;}
+\DoxyCodeLine{00294\ \ \ \ \ *width\ =\ 0;}
+\DoxyCodeLine{00295\ \ \ \ \ \}}
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (tmp\ >=\ *width)}
+\DoxyCodeLine{00297\ \ \ \ \ \{}
+\DoxyCodeLine{00298\ \ \ \ \ *right\_pad\ =\ 0;}
+\DoxyCodeLine{00299\ \ \ \ \ \}}
+\DoxyCodeLine{00300\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00301\ \ \ \ \ \{}
+\DoxyCodeLine{00302\ \ \ \ \ *right\_pad\ =\ *width\ -\/\ (int32\_t)\ tmp;}
+\DoxyCodeLine{00303\ \ \ \ \ *width\ =\ (int32\_t)\ tmp;}
+\DoxyCodeLine{00304\ \ \ \ \ \}}
+\DoxyCodeLine{00305\ \}}
+\DoxyCodeLine{00306\ }
+\DoxyCodeLine{00307\ \textcolor{comment}{/*\ A\ macroified\ version\ of\ specialized\ nearest\ scalers\ for\ some}}
+\DoxyCodeLine{00308\ \textcolor{comment}{\ *\ common\ 8888\ and\ 565\ formats.\ It\ supports\ SRC\ and\ OVER\ ops.}}
+\DoxyCodeLine{00309\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00310\ \textcolor{comment}{\ *\ There\ are\ two\ repeat\ versions,\ one\ that\ handles\ repeat\ normal,}}
+\DoxyCodeLine{00311\ \textcolor{comment}{\ *\ and\ one\ without\ repeat\ handling\ that\ only\ works\ if\ the\ src\ region}}
+\DoxyCodeLine{00312\ \textcolor{comment}{\ *\ used\ is\ completely\ covered\ by\ the\ pre-\/repeated\ source\ samples.}}
+\DoxyCodeLine{00313\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00314\ \textcolor{comment}{\ *\ The\ loops\ are\ unrolled\ to\ process\ two\ pixels\ per\ iteration\ for\ better}}
+\DoxyCodeLine{00315\ \textcolor{comment}{\ *\ performance\ on\ most\ CPU\ architectures\ (superscalar\ processors}}
+\DoxyCodeLine{00316\ \textcolor{comment}{\ *\ can\ issue\ several\ operations\ simultaneously,\ other\ processors\ can\ hide}}
+\DoxyCodeLine{00317\ \textcolor{comment}{\ *\ instructions\ latencies\ by\ pipelining\ operations).\ Unrolling\ more}}
+\DoxyCodeLine{00318\ \textcolor{comment}{\ *\ does\ not\ make\ much\ sense\ because\ the\ compiler\ will\ start\ running\ out}}
+\DoxyCodeLine{00319\ \textcolor{comment}{\ *\ of\ spare\ registers\ soon.}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \textcolor{preprocessor}{\#define\ GET\_8888\_ALPHA(s)\ ((s)\ >>\ 24)}}
+\DoxyCodeLine{00323\ \ \textcolor{comment}{/*\ This\ is\ not\ actually\ used\ since\ we\ don't\ have\ an\ OVER\ with}}
+\DoxyCodeLine{00324\ \textcolor{comment}{\ \ \ \ 565\ source,\ but\ it\ is\ needed\ to\ build.\ */}}
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\#define\ GET\_0565\_ALPHA(s)\ 0xff}}
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\#define\ GET\_x888\_ALPHA(s)\ 0xff}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#define\ FAST\_NEAREST\_SCANLINE(scanline\_func\_name,\ SRC\_FORMAT,\ DST\_FORMAT,\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_type\_t,\ dst\_type\_t,\ OP,\ repeat\_mode)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{static\ force\_inline\ void\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00331\ \textcolor{preprocessor}{scanline\_func\_name\ (dst\_type\_t\ \ \ \ \ \ \ *dst,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ const\ src\_type\_t\ *src,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ w,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ vx,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ unit\_x,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00336\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ src\_width\_fixed,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ \ \ \ \ fully\_transparent\_src)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ \ \ d;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\ \ \ \ src\_type\_t\ s1,\ s2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00341\ \textcolor{preprocessor}{\ \ \ \ uint8\_t\ \ \ \ a1,\ a2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00342\ \textcolor{preprocessor}{\ \ \ \ int\ \ \ \ \ \ \ \ x1,\ x2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00343\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00344\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_OP\_\ \#\#\ OP\ ==\ PIXMAN\_OP\_OVER\ \&\&\ fully\_transparent\_src)\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00345\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ return;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00346\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00347\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_OP\_\ \#\#\ OP\ !=\ PIXMAN\_OP\_SRC\ \&\&\ PIXMAN\_OP\_\ \#\#\ OP\ !=\ PIXMAN\_OP\_OVER)\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00348\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ abort();\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00350\ \textcolor{preprocessor}{\ \ \ \ while\ ((w\ -\/=\ 2)\ >=\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00352\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ x1\ =\ pixman\_fixed\_to\_int\ (vx);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00353\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ vx\ +=\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00354\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NORMAL)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00355\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00356\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ This\ works\ because\ we\ know\ that\ unit\_x\ is\ positive\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00357\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ while\ (vx\ >=\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00358\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ vx\ -\/=\ src\_width\_fixed;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00359\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00360\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ s1\ =\ *(src\ +\ x1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00361\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00362\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ x2\ =\ pixman\_fixed\_to\_int\ (vx);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ vx\ +=\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00364\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NORMAL)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00365\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00366\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ This\ works\ because\ we\ know\ that\ unit\_x\ is\ positive\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00367\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ while\ (vx\ >=\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00368\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ vx\ -\/=\ src\_width\_fixed;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00369\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00370\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ s2\ =\ *(src\ +\ x2);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00371\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (PIXMAN\_OP\_\ \#\#\ OP\ ==\ PIXMAN\_OP\_OVER)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00373\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00374\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ a1\ =\ GET\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_ALPHA(s1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ a2\ =\ GET\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_ALPHA(s2);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00376\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00377\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (a1\ ==\ 0xff)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00378\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00379\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ *dst\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_\ \#\#\ DST\_FORMAT\ (s1);\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00380\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00381\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ if\ (s1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00382\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00383\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ d\ =\ convert\_\ \#\#\ DST\_FORMAT\ \#\#\ \_to\_8888\ (*dst);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00384\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ s1\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_8888\ (s1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00385\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ a1\ \string^=\ 0xff;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00386\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ UN8x4\_MUL\_UN8\_ADD\_UN8x4\ (d,\ a1,\ s1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00387\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ *dst\ =\ convert\_8888\_to\_\ \#\#\ DST\_FORMAT\ (d);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00388\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00389\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst++;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00390\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00391\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (a2\ ==\ 0xff)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00392\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00393\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ *dst\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_\ \#\#\ DST\_FORMAT\ (s2);\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00394\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00395\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ if\ (s2)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00396\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00397\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ d\ =\ convert\_\#\#\ DST\_FORMAT\ \#\#\ \_to\_8888\ (*dst);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00398\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ s2\ =\ convert\_\#\#\ SRC\_FORMAT\ \#\#\ \_to\_8888\ (s2);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00399\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ a2\ \string^=\ 0xff;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00400\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ UN8x4\_MUL\_UN8\_ADD\_UN8x4\ (d,\ a2,\ s2);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00401\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ *dst\ =\ convert\_8888\_to\_\ \#\#\ DST\_FORMAT\ (d);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00402\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00403\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst++;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00404\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00405\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ }\textcolor{comment}{/*\ PIXMAN\_OP\_SRC\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00406\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00407\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ *dst++\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_\ \#\#\ DST\_FORMAT\ (s1);\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00408\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ *dst++\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_\ \#\#\ DST\_FORMAT\ (s2);\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00409\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00410\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00411\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00412\ \textcolor{preprocessor}{\ \ \ \ if\ (w\ \&\ 1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00413\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00414\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ x1\ =\ pixman\_fixed\_to\_int\ (vx);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00415\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ s1\ =\ *(src\ +\ x1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00416\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00417\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (PIXMAN\_OP\_\ \#\#\ OP\ ==\ PIXMAN\_OP\_OVER)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00418\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00419\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ a1\ =\ GET\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_ALPHA(s1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00420\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00421\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (a1\ ==\ 0xff)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00422\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00423\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ *dst\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_\ \#\#\ DST\_FORMAT\ (s1);\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00424\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00425\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ if\ (s1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00426\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00427\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ d\ =\ convert\_\#\#\ DST\_FORMAT\ \#\#\ \_to\_8888\ (*dst);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00428\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ s1\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_8888\ (s1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00429\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ a1\ \string^=\ 0xff;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00430\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ UN8x4\_MUL\_UN8\_ADD\_UN8x4\ (d,\ a1,\ s1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00431\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ *dst\ =\ convert\_8888\_to\_\ \#\#\ DST\_FORMAT\ (d);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00432\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00433\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst++;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00434\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00435\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ else\ }\textcolor{comment}{/*\ PIXMAN\_OP\_SRC\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00436\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00437\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ *dst++\ =\ convert\_\ \#\#\ SRC\_FORMAT\ \#\#\ \_to\_\ \#\#\ DST\_FORMAT\ (s1);\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00438\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00439\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00440\ \textcolor{preprocessor}{\}}}
+\DoxyCodeLine{00441\ }
+\DoxyCodeLine{00442\ \textcolor{preprocessor}{\#define\ FAST\_NEAREST\_MAINLOOP\_INT(scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ mask\_type\_t,\ \ \(\backslash\)}}
+\DoxyCodeLine{00443\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t,\ repeat\_mode,\ have\_mask,\ mask\_is\_solid)\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00444\ \textcolor{preprocessor}{static\ void\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00445\ \textcolor{preprocessor}{fast\_composite\_scaled\_nearest\ \ \#\#\ scale\_func\_name\ (pixman\_implementation\_t\ *imp,\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00446\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_composite\_info\_t\ *info)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00447\ \textcolor{preprocessor}{\{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00448\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_COMPOSITE\_ARGS\ (info);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00449\ \textcolor{preprocessor}{\ \ \ \ dst\_type\_t\ *dst\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00450\ \textcolor{preprocessor}{\ \ \ \ mask\_type\_t\ *mask\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00451\ \textcolor{preprocessor}{\ \ \ \ src\_type\_t\ *src\_first\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00452\ \textcolor{preprocessor}{\ \ \ \ int\ \ \ \ \ \ \ y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00453\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ src\_width\_fixed\ =\ pixman\_int\_to\_fixed\ (src\_image-\/>bits.width);\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00454\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ max\_vy;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00455\ \textcolor{preprocessor}{\ \ \ \ pixman\_vector\_t\ v;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00456\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ vx,\ vy;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00457\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ unit\_x,\ unit\_y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00458\ \textcolor{preprocessor}{\ \ \ \ int32\_t\ left\_pad,\ right\_pad;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00459\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00460\ \textcolor{preprocessor}{\ \ \ \ src\_type\_t\ *src;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00461\ \textcolor{preprocessor}{\ \ \ \ dst\_type\_t\ *dst;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00462\ \textcolor{preprocessor}{\ \ \ \ mask\_type\_t\ solid\_mask;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00463\ \textcolor{preprocessor}{\ \ \ \ const\ mask\_type\_t\ *mask\ =\ \&solid\_mask;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00464\ \textcolor{preprocessor}{\ \ \ \ int\ src\_stride,\ mask\_stride,\ dst\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00465\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00466\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_IMAGE\_GET\_LINE\ (dest\_image,\ dest\_x,\ dest\_y,\ dst\_type\_t,\ dst\_stride,\ dst\_line,\ 1);\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00467\ \textcolor{preprocessor}{\ \ \ \ if\ (have\_mask)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00468\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00469\ \textcolor{preprocessor}{\ \ \ \ if\ (mask\_is\_solid)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00470\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ solid\_mask\ =\ \_pixman\_image\_get\_solid\ (imp,\ mask\_image,\ dest\_image-\/>bits.format);\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00471\ \textcolor{preprocessor}{\ \ \ \ else\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00472\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ PIXMAN\_IMAGE\_GET\_LINE\ (mask\_image,\ mask\_x,\ mask\_y,\ mask\_type\_t,\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00473\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\_stride,\ mask\_line,\ 1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00474\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00475\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ pass\ in\ 0\ instead\ of\ src\_x\ and\ src\_y\ because\ src\_x\ and\ src\_y\ need\ to\ be\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00476\ \textcolor{comment}{\ \ \ \ \ *\ transformed\ from\ destination\ space\ to\ source\ space\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00477\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_IMAGE\_GET\_LINE\ (src\_image,\ 0,\ 0,\ src\_type\_t,\ src\_stride,\ src\_first\_line,\ 1);\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00478\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00479\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ reference\ point\ is\ the\ center\ of\ the\ pixel\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00480\ \textcolor{preprocessor}{\ \ \ \ v.vector[0]\ =\ pixman\_int\_to\_fixed\ (src\_x)\ +\ pixman\_fixed\_1\ /\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00481\ \textcolor{preprocessor}{\ \ \ \ v.vector[1]\ =\ pixman\_int\_to\_fixed\ (src\_y)\ +\ pixman\_fixed\_1\ /\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00482\ \textcolor{preprocessor}{\ \ \ \ v.vector[2]\ =\ pixman\_fixed\_1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00483\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00484\ \textcolor{preprocessor}{\ \ \ \ if\ (!pixman\_transform\_point\_3d\ (src\_image-\/>common.transform,\ \&v))\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00485\ \textcolor{preprocessor}{\ \ \ \ return;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00486\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00487\ \textcolor{preprocessor}{\ \ \ \ unit\_x\ =\ src\_image-\/>common.transform-\/>matrix[0][0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00488\ \textcolor{preprocessor}{\ \ \ \ unit\_y\ =\ src\_image-\/>common.transform-\/>matrix[1][1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00489\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00490\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ Round\ down\ to\ closest\ integer,\ ensuring\ that\ 0.5\ rounds\ to\ 0,\ not\ 1\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00491\ \textcolor{preprocessor}{\ \ \ \ v.vector[0]\ -\/=\ pixman\_fixed\_e;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00492\ \textcolor{preprocessor}{\ \ \ \ v.vector[1]\ -\/=\ pixman\_fixed\_e;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00493\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00494\ \textcolor{preprocessor}{\ \ \ \ vx\ =\ v.vector[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00495\ \textcolor{preprocessor}{\ \ \ \ vy\ =\ v.vector[1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00496\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00497\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NORMAL)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00498\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00499\ \textcolor{preprocessor}{\ \ \ \ max\_vy\ =\ pixman\_int\_to\_fixed\ (src\_image-\/>bits.height);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00500\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00501\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ Clamp\ repeating\ positions\ inside\ the\ actual\ samples\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00502\ \textcolor{preprocessor}{\ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&vx,\ src\_width\_fixed);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00503\ \textcolor{preprocessor}{\ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&vy,\ max\_vy);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00504\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00505\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00506\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_PAD\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00507\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NONE)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00508\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00509\ \textcolor{preprocessor}{\ \ \ \ pad\_repeat\_get\_scanline\_bounds\ (src\_image-\/>bits.width,\ vx,\ unit\_x,\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00510\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&width,\ \&left\_pad,\ \&right\_pad);\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00511\ \textcolor{preprocessor}{\ \ \ \ vx\ +=\ left\_pad\ *\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00512\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00513\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00514\ \textcolor{preprocessor}{\ \ \ \ while\ (-\/-\/height\ >=\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00515\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00516\ \textcolor{preprocessor}{\ \ \ \ dst\ =\ dst\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00517\ \textcolor{preprocessor}{\ \ \ \ dst\_line\ +=\ dst\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00518\ \textcolor{preprocessor}{\ \ \ \ if\ (have\_mask\ \&\&\ !mask\_is\_solid)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00519\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00520\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ mask\ =\ mask\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00521\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ mask\_line\ +=\ mask\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00522\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00523\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00524\ \textcolor{preprocessor}{\ \ \ \ y\ =\ pixman\_fixed\_to\_int\ (vy);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00525\ \textcolor{preprocessor}{\ \ \ \ vy\ +=\ unit\_y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00526\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NORMAL)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00527\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&vy,\ max\_vy);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00528\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_PAD)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00529\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00530\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_PAD,\ \&y,\ src\_image-\/>bits.height);\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00531\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\ =\ src\_first\_line\ +\ src\_stride\ *\ y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00532\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (left\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00533\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00534\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask,\ dst,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00535\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\ +\ src\_image-\/>bits.width\ -\/\ src\_image-\/>bits.width\ +\ 1,\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00536\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ left\_pad,\ -\/pixman\_fixed\_e,\ 0,\ src\_width\_fixed,\ FALSE);\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00537\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00538\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (width\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00539\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00540\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask\ +\ (mask\_is\_solid\ ?\ 0\ :\ left\_pad),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00541\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\ +\ left\_pad,\ src\ +\ src\_image-\/>bits.width,\ width,\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00542\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vx\ -\/\ src\_width\_fixed,\ unit\_x,\ src\_width\_fixed,\ FALSE);\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00543\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00544\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (right\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00545\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00546\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask\ +\ (mask\_is\_solid\ ?\ 0\ :\ left\_pad\ +\ width),\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00547\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\ +\ left\_pad\ +\ width,\ src\ +\ src\_image-\/>bits.width,\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00548\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ right\_pad,\ -\/pixman\_fixed\_e,\ 0,\ src\_width\_fixed,\ FALSE);\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00549\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00550\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00551\ \textcolor{preprocessor}{\ \ \ \ else\ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NONE)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00552\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00553\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ static\ const\ src\_type\_t\ zero[1]\ =\ \{\ 0\ \};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00554\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (y\ <\ 0\ ||\ y\ >=\ src\_image-\/>bits.height)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00555\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00556\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask,\ dst,\ zero\ +\ 1,\ left\_pad\ +\ width\ +\ right\_pad,\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00557\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/pixman\_fixed\_e,\ 0,\ src\_width\_fixed,\ TRUE);\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00558\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ continue;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00559\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00560\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\ =\ src\_first\_line\ +\ src\_stride\ *\ y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00561\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (left\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00562\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00563\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask,\ dst,\ zero\ +\ 1,\ left\_pad,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00564\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/pixman\_fixed\_e,\ 0,\ src\_width\_fixed,\ TRUE);\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00565\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00566\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (width\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00567\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00568\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask\ +\ (mask\_is\_solid\ ?\ 0\ :\ left\_pad),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00569\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\ +\ left\_pad,\ src\ +\ src\_image-\/>bits.width,\ width,\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00570\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vx\ -\/\ src\_width\_fixed,\ unit\_x,\ src\_width\_fixed,\ FALSE);\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00571\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00572\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (right\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00573\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00574\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask\ +\ (mask\_is\_solid\ ?\ 0\ :\ left\_pad\ +\ width),\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00575\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\ +\ left\_pad\ +\ width,\ zero\ +\ 1,\ right\_pad,\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00576\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/pixman\_fixed\_e,\ 0,\ src\_width\_fixed,\ TRUE);\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00577\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00578\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00579\ \textcolor{preprocessor}{\ \ \ \ else\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00580\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00581\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\ =\ src\_first\_line\ +\ src\_stride\ *\ y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00582\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (mask,\ dst,\ src\ +\ src\_image-\/>bits.width,\ width,\ vx\ -\/\ src\_width\_fixed,\ \(\backslash\)}}
+\DoxyCodeLine{00583\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unit\_x,\ src\_width\_fixed,\ FALSE);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00584\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00585\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00586\ \textcolor{preprocessor}{\}}}
+\DoxyCodeLine{00587\ }
+\DoxyCodeLine{00588\ \textcolor{comment}{/*\ A\ workaround\ for\ old\ sun\ studio,\ see:\ https://bugs.freedesktop.org/show\_bug.cgi?id=32764\ */}}
+\DoxyCodeLine{00589\ \textcolor{preprocessor}{\#define\ FAST\_NEAREST\_MAINLOOP\_COMMON(scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ mask\_type\_t,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00590\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t,\ repeat\_mode,\ have\_mask,\ mask\_is\_solid)\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00591\ \textcolor{preprocessor}{\ \ \ \ FAST\_NEAREST\_MAINLOOP\_INT(\_\ \#\#\ scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ mask\_type\_t,\ \(\backslash\)}}
+\DoxyCodeLine{00592\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t,\ repeat\_mode,\ have\_mask,\ mask\_is\_solid)}}
+\DoxyCodeLine{00593\ }
+\DoxyCodeLine{00594\ \textcolor{preprocessor}{\#define\ FAST\_NEAREST\_MAINLOOP\_NOMASK(scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ dst\_type\_t,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00595\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ repeat\_mode)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00596\ \textcolor{preprocessor}{\ \ \ \ static\ force\_inline\ void\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00597\ \textcolor{preprocessor}{\ \ \ \ scanline\_func\#\#scale\_func\_name\#\#\_wrapper\ (\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00598\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ const\ uint8\_t\ \ \ \ *mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00599\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t\ \ \ \ \ \ \ *dst,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00600\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ const\ src\_type\_t\ *src,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00601\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ w,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00602\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ vx,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00603\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ unit\_x,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00604\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ max\_vx,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00605\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ \ \ \ fully\_transparent\_src)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00606\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00607\ \textcolor{preprocessor}{\ \ \ \ scanline\_func\ (dst,\ src,\ w,\ vx,\ unit\_x,\ max\_vx,\ fully\_transparent\_src);\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00608\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00609\ \textcolor{preprocessor}{\ \ \ \ FAST\_NEAREST\_MAINLOOP\_INT\ (scale\_func\_name,\ scanline\_func\#\#scale\_func\_name\#\#\_wrapper,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00610\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_type\_t,\ uint8\_t,\ dst\_type\_t,\ repeat\_mode,\ FALSE,\ FALSE)}}
+\DoxyCodeLine{00611\ }
+\DoxyCodeLine{00612\ \textcolor{preprocessor}{\#define\ FAST\_NEAREST\_MAINLOOP(scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ dst\_type\_t,\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00613\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ repeat\_mode)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00614\ \textcolor{preprocessor}{\ \ \ \ FAST\_NEAREST\_MAINLOOP\_NOMASK(\_\ \#\#\ scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00615\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t,\ repeat\_mode)}}
+\DoxyCodeLine{00616\ }
+\DoxyCodeLine{00617\ \textcolor{preprocessor}{\#define\ FAST\_NEAREST(scale\_func\_name,\ SRC\_FORMAT,\ DST\_FORMAT,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00618\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ src\_type\_t,\ dst\_type\_t,\ OP,\ repeat\_mode)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00619\ \textcolor{preprocessor}{\ \ \ \ FAST\_NEAREST\_SCANLINE(scaled\_nearest\_scanline\_\ \#\#\ scale\_func\_name\ \#\#\ \_\ \#\#\ OP,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00620\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ SRC\_FORMAT,\ DST\_FORMAT,\ src\_type\_t,\ dst\_type\_t,\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00621\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ OP,\ repeat\_mode)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00622\ \textcolor{preprocessor}{\ \ \ \ FAST\_NEAREST\_MAINLOOP\_NOMASK(\_\ \#\#\ scale\_func\_name\ \#\#\ \_\ \#\#\ OP,\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00623\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ scaled\_nearest\_scanline\_\ \#\#\ scale\_func\_name\ \#\#\ \_\ \#\#\ OP,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00624\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_type\_t,\ dst\_type\_t,\ repeat\_mode)}}
+\DoxyCodeLine{00625\ }
+\DoxyCodeLine{00626\ }
+\DoxyCodeLine{00627\ \textcolor{preprocessor}{\#define\ SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00628\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_SCALE\_TRANSFORM\ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00629\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_ALPHA\_MAP\ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00630\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NEAREST\_FILTER\ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00631\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_ACCESSORS\ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00632\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NARROW\_FORMAT)}}
+\DoxyCodeLine{00633\ }
+\DoxyCodeLine{00634\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_FAST\_PATH\_NORMAL(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00635\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00636\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00637\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00638\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NORMAL\_REPEAT\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00639\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00640\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00641\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00642\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_normal\ \#\#\ \_\ \#\#\ op,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00643\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00644\ }
+\DoxyCodeLine{00645\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_FAST\_PATH\_PAD(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00646\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00647\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00648\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00649\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_PAD\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00650\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00651\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00652\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00653\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_pad\ \#\#\ \_\ \#\#\ op,\ \ \(\backslash\)}}
+\DoxyCodeLine{00654\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00655\ }
+\DoxyCodeLine{00656\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_FAST\_PATH\_NONE(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00657\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00658\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00659\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00660\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NONE\_REPEAT\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00661\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00662\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00663\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00664\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_none\ \#\#\ \_\ \#\#\ op,\ \(\backslash\)}}
+\DoxyCodeLine{00665\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00666\ }
+\DoxyCodeLine{00667\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_FAST\_PATH\_COVER(op,s,d,func)\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00668\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00669\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00670\ \textcolor{preprocessor}{\ \ \ \ SCALED\_NEAREST\_FLAGS\ |\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_NEAREST,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00671\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00672\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00673\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_cover\ \#\#\ \_\ \#\#\ op,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00674\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00675\ }
+\DoxyCodeLine{00676\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH\_NORMAL(op,s,d,func)\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00677\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00678\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00679\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00680\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NORMAL\_REPEAT\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00681\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00682\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00683\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00684\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_normal\ \#\#\ \_\ \#\#\ op,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00685\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00686\ }
+\DoxyCodeLine{00687\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH\_PAD(op,s,d,func)\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00688\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00689\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00690\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00691\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_PAD\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00692\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00693\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00694\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00695\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_pad\ \#\#\ \_\ \#\#\ op,\ \ \(\backslash\)}}
+\DoxyCodeLine{00696\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00697\ }
+\DoxyCodeLine{00698\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH\_NONE(op,s,d,func)\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00699\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00700\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00701\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00702\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NONE\_REPEAT\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00703\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00704\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00705\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00706\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_none\ \#\#\ \_\ \#\#\ op,\ \(\backslash\)}}
+\DoxyCodeLine{00707\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00708\ }
+\DoxyCodeLine{00709\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH\_COVER(op,s,d,func)\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00710\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00711\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00712\ \textcolor{preprocessor}{\ \ \ \ SCALED\_NEAREST\_FLAGS\ |\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_NEAREST,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00713\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00714\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00715\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_cover\ \#\#\ \_\ \#\#\ op,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00716\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00717\ }
+\DoxyCodeLine{00718\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_NORMAL(op,s,d,func)\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00719\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00720\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00721\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00722\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NORMAL\_REPEAT\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00723\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00724\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{00725\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00726\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_normal\ \#\#\ \_\ \#\#\ op,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00727\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00728\ }
+\DoxyCodeLine{00729\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_PAD(op,s,d,func)\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00730\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00731\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00732\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00733\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_PAD\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00734\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00735\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{00736\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00737\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_pad\ \#\#\ \_\ \#\#\ op,\ \ \(\backslash\)}}
+\DoxyCodeLine{00738\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00739\ }
+\DoxyCodeLine{00740\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_NONE(op,s,d,func)\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00741\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00742\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00743\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_NEAREST\_FLAGS\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00744\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NONE\_REPEAT\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00745\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00746\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{00747\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00748\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_none\ \#\#\ \_\ \#\#\ op,\ \(\backslash\)}}
+\DoxyCodeLine{00749\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00750\ }
+\DoxyCodeLine{00751\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_COVER(op,s,d,func)\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00752\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00753\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00754\ \textcolor{preprocessor}{\ \ \ \ SCALED\_NEAREST\_FLAGS\ |\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_NEAREST,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00755\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{00756\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00757\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_nearest\_\ \#\#\ func\ \#\#\ \_cover\ \#\#\ \_\ \#\#\ op,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00758\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{00759\ }
+\DoxyCodeLine{00760\ \textcolor{comment}{/*\ Prefer\ the\ use\ of\ 'cover'\ variant,\ because\ it\ is\ faster\ */}}
+\DoxyCodeLine{00761\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_FAST\_PATH(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00762\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_FAST\_PATH\_COVER\ (op,s,d,func),\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00763\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_FAST\_PATH\_NONE\ (op,s,d,func),\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00764\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_FAST\_PATH\_PAD\ (op,s,d,func),\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00765\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_FAST\_PATH\_NORMAL\ (op,s,d,func)}}
+\DoxyCodeLine{00766\ }
+\DoxyCodeLine{00767\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00768\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH\_COVER\ (op,s,d,func),\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00769\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH\_NONE\ (op,s,d,func),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00770\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_A8\_MASK\_FAST\_PATH\_PAD\ (op,s,d,func)}}
+\DoxyCodeLine{00771\ }
+\DoxyCodeLine{00772\ \textcolor{preprocessor}{\#define\ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH(op,s,d,func)\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00773\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_COVER\ (op,s,d,func),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00774\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_NONE\ (op,s,d,func),\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00775\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_PAD\ (op,s,d,func),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00776\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_NEAREST\_SOLID\_MASK\_FAST\_PATH\_NORMAL\ (op,s,d,func)}}
+\DoxyCodeLine{00777\ }
+\DoxyCodeLine{00778\ \textcolor{comment}{/*****************************************************************************/}}
+\DoxyCodeLine{00779\ }
+\DoxyCodeLine{00780\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00781\ \textcolor{comment}{\ *\ Identify\ 5\ zones\ in\ each\ scanline\ for\ bilinear\ scaling.\ Depending\ on}}
+\DoxyCodeLine{00782\ \textcolor{comment}{\ *\ whether\ 2\ pixels\ to\ be\ interpolated\ are\ fetched\ from\ the\ image\ itself,}}
+\DoxyCodeLine{00783\ \textcolor{comment}{\ *\ from\ the\ padding\ area\ around\ it\ or\ from\ both\ image\ and\ padding\ area.}}
+\DoxyCodeLine{00784\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00785\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00786\ bilinear\_pad\_repeat\_get\_scanline\_bounds\ (int32\_t\ \ \ \ \ \ \ \ \ source\_image\_width,}
+\DoxyCodeLine{00787\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ vx,}
+\DoxyCodeLine{00788\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ unit\_x,}
+\DoxyCodeLine{00789\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ left\_pad,}
+\DoxyCodeLine{00790\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ left\_tz,}
+\DoxyCodeLine{00791\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00792\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ right\_tz,}
+\DoxyCodeLine{00793\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ *\ \ \ \ \ \ \ right\_pad)}
+\DoxyCodeLine{00794\ \{}
+\DoxyCodeLine{00795\ \ \ \ \ \textcolor{keywordtype}{int}\ width1\ =\ *width,\ left\_pad1,\ right\_pad1;}
+\DoxyCodeLine{00796\ \ \ \ \ \textcolor{keywordtype}{int}\ width2\ =\ *width,\ left\_pad2,\ right\_pad2;}
+\DoxyCodeLine{00797\ }
+\DoxyCodeLine{00798\ \ \ \ \ pad\_repeat\_get\_scanline\_bounds\ (source\_image\_width,\ vx,\ unit\_x,}
+\DoxyCodeLine{00799\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&width1,\ \&left\_pad1,\ \&right\_pad1);}
+\DoxyCodeLine{00800\ \ \ \ \ pad\_repeat\_get\_scanline\_bounds\ (source\_image\_width,\ vx\ +\ pixman\_fixed\_1,}
+\DoxyCodeLine{00801\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unit\_x,\ \&width2,\ \&left\_pad2,\ \&right\_pad2);}
+\DoxyCodeLine{00802\ }
+\DoxyCodeLine{00803\ \ \ \ \ *left\_pad\ =\ left\_pad2;}
+\DoxyCodeLine{00804\ \ \ \ \ *left\_tz\ =\ left\_pad1\ -\/\ left\_pad2;}
+\DoxyCodeLine{00805\ \ \ \ \ *right\_tz\ =\ right\_pad2\ -\/\ right\_pad1;}
+\DoxyCodeLine{00806\ \ \ \ \ *right\_pad\ =\ right\_pad1;}
+\DoxyCodeLine{00807\ \ \ \ \ *width\ -\/=\ *left\_pad\ +\ *left\_tz\ +\ *right\_tz\ +\ *right\_pad;}
+\DoxyCodeLine{00808\ \}}
+\DoxyCodeLine{00809\ }
+\DoxyCodeLine{00810\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00811\ \textcolor{comment}{\ *\ Main\ loop\ template\ for\ single\ pass\ bilinear\ scaling.\ It\ needs\ to\ be}}
+\DoxyCodeLine{00812\ \textcolor{comment}{\ *\ provided\ with\ 'scanline\_func'\ which\ should\ do\ the\ compositing\ operation.}}
+\DoxyCodeLine{00813\ \textcolor{comment}{\ *\ The\ needed\ function\ has\ the\ following\ prototype:}}
+\DoxyCodeLine{00814\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00815\ \textcolor{comment}{\ *\ \ scanline\_func\ (dst\_type\_t\ *\ \ \ \ \ \ \ dst,}}
+\DoxyCodeLine{00816\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ const\ mask\_type\_\ *\ mask,}}
+\DoxyCodeLine{00817\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ const\ src\_type\_t\ *\ src\_top,}}
+\DoxyCodeLine{00818\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ const\ src\_type\_t\ *\ src\_bottom,}}
+\DoxyCodeLine{00819\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ width,}}
+\DoxyCodeLine{00820\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ weight\_top,}}
+\DoxyCodeLine{00821\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ int\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ weight\_bottom,}}
+\DoxyCodeLine{00822\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ \ vx,}}
+\DoxyCodeLine{00823\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ \ unit\_x,}}
+\DoxyCodeLine{00824\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ \ max\_vx,}}
+\DoxyCodeLine{00825\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ zero\_src)}}
+\DoxyCodeLine{00826\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00827\ \textcolor{comment}{\ *\ Where:}}
+\DoxyCodeLine{00828\ \textcolor{comment}{\ *\ \ dst\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ destination\ scanline\ buffer\ for\ storing\ results}}
+\DoxyCodeLine{00829\ \textcolor{comment}{\ *\ \ mask\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ mask\ buffer\ (or\ single\ value\ for\ solid\ mask)}}
+\DoxyCodeLine{00830\ \textcolor{comment}{\ *\ \ src\_top,\ src\_bottom\ -\/\ two\ source\ scanlines}}
+\DoxyCodeLine{00831\ \textcolor{comment}{\ *\ \ width\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ number\ of\ pixels\ to\ process}}
+\DoxyCodeLine{00832\ \textcolor{comment}{\ *\ \ weight\_top\ \ \ \ \ \ \ \ \ \ -\/\ weight\ of\ the\ top\ row\ for\ interpolation}}
+\DoxyCodeLine{00833\ \textcolor{comment}{\ *\ \ weight\_bottom\ \ \ \ \ \ \ -\/\ weight\ of\ the\ bottom\ row\ for\ interpolation}}
+\DoxyCodeLine{00834\ \textcolor{comment}{\ *\ \ vx\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ initial\ position\ for\ fetching\ the\ first\ pair\ of}}
+\DoxyCodeLine{00835\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixels\ from\ the\ source\ buffer}}
+\DoxyCodeLine{00836\ \textcolor{comment}{\ *\ \ unit\_x\ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ position\ increment\ needed\ to\ move\ to\ the\ next\ pair}}
+\DoxyCodeLine{00837\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ of\ pixels}}
+\DoxyCodeLine{00838\ \textcolor{comment}{\ *\ \ max\_vx\ \ \ \ \ \ \ \ \ \ \ \ \ \ -\/\ image\ size\ as\ a\ fixed\ point\ value,\ can\ be\ used\ for}}
+\DoxyCodeLine{00839\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ implementing\ NORMAL\ repeat\ (when\ it\ is\ supported)}}
+\DoxyCodeLine{00840\ \textcolor{comment}{\ *\ \ zero\_src\ \ \ \ \ \ \ \ \ \ \ \ -\/\ boolean\ hint\ variable,\ which\ is\ set\ to\ TRUE\ when}}
+\DoxyCodeLine{00841\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ all\ source\ pixels\ are\ fetched\ from\ zero\ padding}}
+\DoxyCodeLine{00842\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ zone\ for\ NONE\ repeat}}
+\DoxyCodeLine{00843\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00844\ \textcolor{comment}{\ *\ Note:\ normally\ the\ sum\ of\ 'weight\_top'\ and\ 'weight\_bottom'\ is\ equal\ to}}
+\DoxyCodeLine{00845\ \textcolor{comment}{\ *\ \ \ \ \ \ \ BILINEAR\_INTERPOLATION\_RANGE,\ but\ sometimes\ it\ may\ be\ less\ than\ that}}
+\DoxyCodeLine{00846\ \textcolor{comment}{\ *\ \ \ \ \ \ \ for\ NONE\ repeat\ when\ handling\ fuzzy\ antialiased\ top\ or\ bottom\ image}}
+\DoxyCodeLine{00847\ \textcolor{comment}{\ *\ \ \ \ \ \ \ edges.\ Also\ both\ top\ and\ bottom\ weight\ variables\ are\ guaranteed\ to}}
+\DoxyCodeLine{00848\ \textcolor{comment}{\ *\ \ \ \ \ \ \ have\ value,\ which\ is\ less\ than\ BILINEAR\_INTERPOLATION\_RANGE.}}
+\DoxyCodeLine{00849\ \textcolor{comment}{\ *\ \ \ \ \ \ \ For\ example,\ the\ weights\ can\ fit\ into\ unsigned\ byte\ or\ be\ used}}
+\DoxyCodeLine{00850\ \textcolor{comment}{\ *\ \ \ \ \ \ \ with\ 8-\/bit\ SIMD\ multiplication\ instructions\ for\ 8-\/bit\ interpolation}}
+\DoxyCodeLine{00851\ \textcolor{comment}{\ *\ \ \ \ \ \ \ precision.}}
+\DoxyCodeLine{00852\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00853\ \textcolor{preprocessor}{\#define\ FAST\_BILINEAR\_MAINLOOP\_INT(scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ mask\_type\_t,\ \(\backslash\)}}
+\DoxyCodeLine{00854\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t,\ repeat\_mode,\ flags)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00855\ \textcolor{preprocessor}{static\ void\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00856\ \textcolor{preprocessor}{fast\_composite\_scaled\_bilinear\ \#\#\ scale\_func\_name\ (pixman\_implementation\_t\ *imp,\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00857\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_composite\_info\_t\ *info)\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00858\ \textcolor{preprocessor}{\{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00859\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_COMPOSITE\_ARGS\ (info);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00860\ \textcolor{preprocessor}{\ \ \ \ dst\_type\_t\ *dst\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00861\ \textcolor{preprocessor}{\ \ \ \ mask\_type\_t\ *mask\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00862\ \textcolor{preprocessor}{\ \ \ \ src\_type\_t\ *src\_first\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00863\ \textcolor{preprocessor}{\ \ \ \ int\ \ \ \ \ \ \ y1,\ y2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00864\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ max\_vx\ =\ INT32\_MAX;\ }\textcolor{comment}{/*\ suppress\ uninitialized\ variable\ warning\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00865\ \textcolor{preprocessor}{\ \ \ \ pixman\_vector\_t\ v;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00866\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ vx,\ vy;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00867\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ unit\_x,\ unit\_y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00868\ \textcolor{preprocessor}{\ \ \ \ int32\_t\ left\_pad,\ left\_tz,\ right\_tz,\ right\_pad;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00869\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00870\ \textcolor{preprocessor}{\ \ \ \ dst\_type\_t\ *dst;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00871\ \textcolor{preprocessor}{\ \ \ \ mask\_type\_t\ solid\_mask;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00872\ \textcolor{preprocessor}{\ \ \ \ const\ mask\_type\_t\ *mask\ =\ \&solid\_mask;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00873\ \textcolor{preprocessor}{\ \ \ \ int\ src\_stride,\ mask\_stride,\ dst\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00874\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00875\ \textcolor{preprocessor}{\ \ \ \ int\ src\_width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00876\ \textcolor{preprocessor}{\ \ \ \ pixman\_fixed\_t\ src\_width\_fixed;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00877\ \textcolor{preprocessor}{\ \ \ \ int\ max\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00878\ \textcolor{preprocessor}{\ \ \ \ pixman\_bool\_t\ need\_src\_extension;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00879\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00880\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_IMAGE\_GET\_LINE\ (dest\_image,\ dest\_x,\ dest\_y,\ dst\_type\_t,\ dst\_stride,\ dst\_line,\ 1);\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00881\ \textcolor{preprocessor}{\ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00882\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00883\ \textcolor{preprocessor}{\ \ \ \ solid\_mask\ =\ \_pixman\_image\_get\_solid\ (imp,\ mask\_image,\ dest\_image-\/>bits.format);\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00884\ \textcolor{preprocessor}{\ \ \ \ mask\_stride\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00885\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00886\ \textcolor{preprocessor}{\ \ \ \ else\ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00887\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00888\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_IMAGE\_GET\_LINE\ (mask\_image,\ mask\_x,\ mask\_y,\ mask\_type\_t,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00889\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\_stride,\ mask\_line,\ 1);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00890\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00891\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00892\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ pass\ in\ 0\ instead\ of\ src\_x\ and\ src\_y\ because\ src\_x\ and\ src\_y\ need\ to\ be\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00893\ \textcolor{comment}{\ \ \ \ \ *\ transformed\ from\ destination\ space\ to\ source\ space\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00894\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_IMAGE\_GET\_LINE\ (src\_image,\ 0,\ 0,\ src\_type\_t,\ src\_stride,\ src\_first\_line,\ 1);\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00895\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00896\ \textcolor{preprocessor}{\ \ \ \ }\textcolor{comment}{/*\ reference\ point\ is\ the\ center\ of\ the\ pixel\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00897\ \textcolor{preprocessor}{\ \ \ \ v.vector[0]\ =\ pixman\_int\_to\_fixed\ (src\_x)\ +\ pixman\_fixed\_1\ /\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00898\ \textcolor{preprocessor}{\ \ \ \ v.vector[1]\ =\ pixman\_int\_to\_fixed\ (src\_y)\ +\ pixman\_fixed\_1\ /\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00899\ \textcolor{preprocessor}{\ \ \ \ v.vector[2]\ =\ pixman\_fixed\_1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00900\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00901\ \textcolor{preprocessor}{\ \ \ \ if\ (!pixman\_transform\_point\_3d\ (src\_image-\/>common.transform,\ \&v))\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00902\ \textcolor{preprocessor}{\ \ \ \ return;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00903\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00904\ \textcolor{preprocessor}{\ \ \ \ unit\_x\ =\ src\_image-\/>common.transform-\/>matrix[0][0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00905\ \textcolor{preprocessor}{\ \ \ \ unit\_y\ =\ src\_image-\/>common.transform-\/>matrix[1][1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00906\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00907\ \textcolor{preprocessor}{\ \ \ \ v.vector[0]\ -\/=\ pixman\_fixed\_1\ /\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00908\ \textcolor{preprocessor}{\ \ \ \ v.vector[1]\ -\/=\ pixman\_fixed\_1\ /\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00909\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00910\ \textcolor{preprocessor}{\ \ \ \ vy\ =\ v.vector[1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00911\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00912\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_PAD\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00913\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NONE)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00914\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00915\ \textcolor{preprocessor}{\ \ \ \ bilinear\_pad\_repeat\_get\_scanline\_bounds\ (src\_image-\/>bits.width,\ v.vector[0],\ unit\_x,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00916\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&left\_pad,\ \&left\_tz,\ \&width,\ \&right\_tz,\ \&right\_pad);\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00917\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_PAD)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00918\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00919\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ PAD\ repeat\ does\ not\ need\ special\ handling\ for\ 'transition\ zones'\ and\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00920\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ they\ can\ be\ combined\ with\ 'padding\ zones'\ safely\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00921\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ left\_pad\ +=\ left\_tz;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00922\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ right\_pad\ +=\ right\_tz;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00923\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ left\_tz\ =\ right\_tz\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00924\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00925\ \textcolor{preprocessor}{\ \ \ \ v.vector[0]\ +=\ left\_pad\ *\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00926\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00927\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00928\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NORMAL)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00929\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00930\ \textcolor{preprocessor}{\ \ \ \ vx\ =\ v.vector[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00931\ \textcolor{preprocessor}{\ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&vx,\ pixman\_int\_to\_fixed(src\_image-\/>bits.width));\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00932\ \textcolor{preprocessor}{\ \ \ \ max\_x\ =\ pixman\_fixed\_to\_int\ (vx\ +\ (width\ -\/\ 1)\ *\ (int64\_t)unit\_x)\ +\ 1;\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00933\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00934\ \textcolor{preprocessor}{\ \ \ \ if\ (src\_image-\/>bits.width\ <\ REPEAT\_NORMAL\_MIN\_WIDTH)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00935\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00936\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_width\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00937\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00938\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ while\ (src\_width\ <\ REPEAT\_NORMAL\_MIN\_WIDTH\ \&\&\ src\_width\ <=\ max\_x)\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00939\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_width\ +=\ src\_image-\/>bits.width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00940\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00941\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ need\_src\_extension\ =\ TRUE;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00942\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00943\ \textcolor{preprocessor}{\ \ \ \ else\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00944\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00945\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_width\ =\ src\_image-\/>bits.width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00946\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ need\_src\_extension\ =\ FALSE;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00947\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00948\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00949\ \textcolor{preprocessor}{\ \ \ \ src\_width\_fixed\ =\ pixman\_int\_to\_fixed\ (src\_width);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00950\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00951\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00952\ \textcolor{preprocessor}{\ \ \ \ while\ (-\/-\/height\ >=\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00953\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00954\ \textcolor{preprocessor}{\ \ \ \ int\ weight1,\ weight2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00955\ \textcolor{preprocessor}{\ \ \ \ dst\ =\ dst\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00956\ \textcolor{preprocessor}{\ \ \ \ dst\_line\ +=\ dst\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00957\ \textcolor{preprocessor}{\ \ \ \ vx\ =\ v.vector[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00958\ \textcolor{preprocessor}{\ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00959\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00960\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ mask\ =\ mask\_line;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00961\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ mask\_line\ +=\ mask\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00962\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00963\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00964\ \textcolor{preprocessor}{\ \ \ \ y1\ =\ pixman\_fixed\_to\_int\ (vy);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00965\ \textcolor{preprocessor}{\ \ \ \ weight2\ =\ pixman\_fixed\_to\_bilinear\_weight\ (vy);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00966\ \textcolor{preprocessor}{\ \ \ \ if\ (weight2)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00967\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00968\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ both\ weight1\ and\ weight2\ are\ smaller\ than\ BILINEAR\_INTERPOLATION\_RANGE\ */}\textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00969\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ y2\ =\ y1\ +\ 1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00970\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ weight1\ =\ BILINEAR\_INTERPOLATION\_RANGE\ -\/\ weight2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00971\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00972\ \textcolor{preprocessor}{\ \ \ \ else\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00973\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00974\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ set\ both\ top\ and\ bottom\ row\ to\ the\ same\ scanline\ and\ tweak\ weights\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00975\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ y2\ =\ y1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00976\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ weight1\ =\ weight2\ =\ BILINEAR\_INTERPOLATION\_RANGE\ /\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00977\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00978\ \textcolor{preprocessor}{\ \ \ \ vy\ +=\ unit\_y;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00979\ \textcolor{preprocessor}{\ \ \ \ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_PAD)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00980\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00981\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ *src1,\ *src2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00982\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ buf1[2];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00983\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ buf2[2];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00984\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_PAD,\ \&y1,\ src\_image-\/>bits.height);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00985\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_PAD,\ \&y2,\ src\_image-\/>bits.height);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00986\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src1\ =\ src\_first\_line\ +\ src\_stride\ *\ y1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00987\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src2\ =\ src\_first\_line\ +\ src\_stride\ *\ y2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00988\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00989\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (left\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00990\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00991\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[0]\ =\ buf1[1]\ =\ src1[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00992\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[0]\ =\ buf2[1]\ =\ src2[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00993\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00994\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ buf1,\ buf2,\ left\_pad,\ weight1,\ weight2,\ 0,\ 0,\ 0,\ FALSE);\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00995\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst\ +=\ left\_pad;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00996\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00997\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ left\_pad;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00998\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00999\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (width\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01000\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01001\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01002\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src1,\ src2,\ width,\ weight1,\ weight2,\ vx,\ unit\_x,\ 0,\ FALSE);\ \ \(\backslash\)}}
+\DoxyCodeLine{01003\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst\ +=\ width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01004\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01005\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01006\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01007\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (right\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01008\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01009\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[0]\ =\ buf1[1]\ =\ src1[src\_image-\/>bits.width\ -\/\ 1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01010\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[0]\ =\ buf2[1]\ =\ src2[src\_image-\/>bits.width\ -\/\ 1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01011\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01012\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ buf1,\ buf2,\ right\_pad,\ weight1,\ weight2,\ 0,\ 0,\ 0,\ FALSE);\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01013\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01014\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01015\ \textcolor{preprocessor}{\ \ \ \ else\ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NONE)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01016\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01017\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ *src1,\ *src2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01018\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ buf1[2];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01019\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ buf2[2];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01020\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ handle\ top/bottom\ zero\ padding\ by\ just\ setting\ weights\ to\ 0\ if\ needed\ */}\textcolor{preprocessor}{\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01021\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (y1\ <\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01022\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01023\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ weight1\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01024\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ y1\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01025\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01026\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (y1\ >=\ src\_image-\/>bits.height)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01027\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01028\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ weight1\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01029\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ y1\ =\ src\_image-\/>bits.height\ -\/\ 1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01030\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01031\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (y2\ <\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01032\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01033\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ weight2\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01034\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ y2\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01035\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01036\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (y2\ >=\ src\_image-\/>bits.height)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01037\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01038\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ weight2\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01039\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ y2\ =\ src\_image-\/>bits.height\ -\/\ 1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01040\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01041\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src1\ =\ src\_first\_line\ +\ src\_stride\ *\ y1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01042\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src2\ =\ src\_first\_line\ +\ src\_stride\ *\ y2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01043\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01044\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (left\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01045\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01046\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[0]\ =\ buf1[1]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01047\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[0]\ =\ buf2[1]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01048\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01049\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ buf1,\ buf2,\ left\_pad,\ weight1,\ weight2,\ 0,\ 0,\ 0,\ TRUE);\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01050\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst\ +=\ left\_pad;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01051\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01052\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ left\_pad;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01053\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01054\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (left\_tz\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01055\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01056\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[0]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01057\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[1]\ =\ src1[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01058\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[0]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01059\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[1]\ =\ src2[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01060\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01061\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ buf1,\ buf2,\ left\_tz,\ weight1,\ weight2,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01062\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_frac\ (vx),\ unit\_x,\ 0,\ FALSE);\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01063\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst\ +=\ left\_tz;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01064\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01065\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ left\_tz;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01066\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ vx\ +=\ left\_tz\ *\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01067\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01068\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (width\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01069\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01070\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01071\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src1,\ src2,\ width,\ weight1,\ weight2,\ vx,\ unit\_x,\ 0,\ FALSE);\ \ \(\backslash\)}}
+\DoxyCodeLine{01072\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst\ +=\ width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01073\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01074\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01075\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ vx\ +=\ width\ *\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01076\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01077\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (right\_tz\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01078\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01079\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[0]\ =\ src1[src\_image-\/>bits.width\ -\/\ 1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01080\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[1]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01081\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[0]\ =\ src2[src\_image-\/>bits.width\ -\/\ 1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01082\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[1]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01083\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01084\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ buf1,\ buf2,\ right\_tz,\ weight1,\ weight2,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01085\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_frac\ (vx),\ unit\_x,\ 0,\ FALSE);\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01086\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dst\ +=\ right\_tz;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01087\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01088\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ right\_tz;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01089\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01090\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (right\_pad\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01091\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01092\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[0]\ =\ buf1[1]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01093\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[0]\ =\ buf2[1]\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01094\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01095\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ buf1,\ buf2,\ right\_pad,\ weight1,\ weight2,\ 0,\ 0,\ 0,\ TRUE);\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01096\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01097\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01098\ \textcolor{preprocessor}{\ \ \ \ else\ if\ (PIXMAN\_REPEAT\_\ \#\#\ repeat\_mode\ ==\ PIXMAN\_REPEAT\_NORMAL)\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01099\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01100\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ num\_pixels;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01101\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ width\_remain;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01102\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ *\ \ \ \ src\_line\_top;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01103\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ *\ \ \ \ src\_line\_bottom;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01104\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ \ \ \ \ \ buf1[2];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01105\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ \ \ \ \ \ buf2[2];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01106\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ \ \ \ \ \ extended\_src\_line0[REPEAT\_NORMAL\_MIN\_WIDTH*2];\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01107\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_type\_t\ \ \ \ \ \ extended\_src\_line1[REPEAT\_NORMAL\_MIN\_WIDTH*2];\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01108\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ int\ \ \ \ \ \ \ \ \ i,\ j;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01109\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01110\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&y1,\ src\_image-\/>bits.height);\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01111\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&y2,\ src\_image-\/>bits.height);\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01112\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_line\_top\ =\ src\_first\_line\ +\ src\_stride\ *\ y1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01113\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_line\_bottom\ =\ src\_first\_line\ +\ src\_stride\ *\ y2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01114\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01115\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (need\_src\_extension)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01116\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01117\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ for\ (i=0;\ i<src\_width;)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01118\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01119\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ for\ (j=0;\ j<src\_image-\/>bits.width;\ j++,\ i++)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01120\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01121\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ extended\_src\_line0[i]\ =\ src\_line\_top[j];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01122\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ extended\_src\_line1[i]\ =\ src\_line\_bottom[j];\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01123\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01124\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01125\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01126\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_line\_top\ =\ \&extended\_src\_line0[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01127\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src\_line\_bottom\ =\ \&extended\_src\_line1[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01128\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01129\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01130\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ Top\ \&\ Bottom\ wrap\ around\ buffer\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01131\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[0]\ =\ src\_line\_top[src\_width\ -\/\ 1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01132\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf1[1]\ =\ src\_line\_top[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01133\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[0]\ =\ src\_line\_bottom[src\_width\ -\/\ 1];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01134\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ buf2[1]\ =\ src\_line\_bottom[0];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01135\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01136\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ width\_remain\ =\ width;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01137\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01138\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ while\ (width\_remain\ >\ 0)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01139\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01140\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ We\ use\ src\_width\_fixed\ because\ it\ can\ make\ vx\ in\ original\ source\ range\ */}\textcolor{preprocessor}{\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01141\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&vx,\ src\_width\_fixed);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01142\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01143\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ Wrap\ around\ part\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01144\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (pixman\_fixed\_to\_int\ (vx)\ ==\ src\_width\ -\/\ 1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01145\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01146\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ for\ positive\ unit\_x\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01147\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ num\_pixels\ =\ max(n)\ +\ 1,\ where\ vx\ +\ n*unit\_x\ <\ src\_width\_fixed\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01148\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01149\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ vx\ is\ in\ range\ [0,\ src\_width\_fixed\ -\/\ pixman\_fixed\_e]\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01150\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ So\ we\ are\ safe\ from\ overflow.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01151\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01152\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ num\_pixels\ =\ ((src\_width\_fixed\ -\/\ vx\ -\/\ pixman\_fixed\_e)\ /\ unit\_x)\ +\ 1;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01153\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01154\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (num\_pixels\ >\ width\_remain)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01155\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ num\_pixels\ =\ width\_remain;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01156\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01157\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ buf1,\ buf2,\ num\_pixels,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01158\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ weight1,\ weight2,\ pixman\_fixed\_frac(vx),\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01159\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ unit\_x,\ src\_width\_fixed,\ FALSE);\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01160\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01161\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ width\_remain\ -\/=\ num\_pixels;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01162\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ vx\ +=\ num\_pixels\ *\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01163\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ dst\ +=\ num\_pixels;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01164\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01165\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01166\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ num\_pixels;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01167\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01168\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ repeat\ (PIXMAN\_REPEAT\_NORMAL,\ \&vx,\ src\_width\_fixed);\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01169\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01170\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01171\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ Normal\ scanline\ composite\ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01172\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (pixman\_fixed\_to\_int\ (vx)\ !=\ src\_width\ -\/\ 1\ \&\&\ width\_remain\ >\ 0)\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01173\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01174\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ }\textcolor{comment}{/*\ for\ positive\ unit\_x\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01175\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ num\_pixels\ =\ max(n)\ +\ 1,\ where\ vx\ +\ n*unit\_x\ <\ (src\_width\_fixed\ -\/\ 1)\ \(\backslash\)}}
+\DoxyCodeLine{01176\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01177\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ vx\ is\ in\ range\ [0,\ src\_width\_fixed\ -\/\ pixman\_fixed\_e]\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01178\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ *\ So\ we\ are\ safe\ from\ overflow\ here.\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01179\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ */}\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01180\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ num\_pixels\ =\ ((src\_width\_fixed\ -\/\ pixman\_fixed\_1\ -\/\ vx\ -\/\ pixman\_fixed\_e)\ \ \(\backslash\)}}
+\DoxyCodeLine{01181\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ unit\_x)\ +\ 1;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01182\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01183\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (num\_pixels\ >\ width\_remain)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01184\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ num\_pixels\ =\ width\_remain;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01185\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01186\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ src\_line\_top,\ src\_line\_bottom,\ num\_pixels,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01187\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ weight1,\ weight2,\ vx,\ unit\_x,\ src\_width\_fixed,\ FALSE);\ \ \ \(\backslash\)}}
+\DoxyCodeLine{01188\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01189\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ width\_remain\ -\/=\ num\_pixels;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01190\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ vx\ +=\ num\_pixels\ *\ unit\_x;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01191\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ dst\ +=\ num\_pixels;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01192\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01193\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (flags\ \&\ FLAG\_HAVE\_NON\_SOLID\_MASK)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01194\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\ +=\ num\_pixels;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01195\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01196\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01197\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01198\ \textcolor{preprocessor}{\ \ \ \ else\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01199\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01200\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ scanline\_func\ (dst,\ mask,\ src\_first\_line\ +\ src\_stride\ *\ y1,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01201\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_first\_line\ +\ src\_stride\ *\ y2,\ width,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01202\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ weight1,\ weight2,\ vx,\ unit\_x,\ max\_vx,\ FALSE);\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01203\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01204\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01205\ \textcolor{preprocessor}{\}}}
+\DoxyCodeLine{01206\ }
+\DoxyCodeLine{01207\ \textcolor{comment}{/*\ A\ workaround\ for\ old\ sun\ studio,\ see:\ https://bugs.freedesktop.org/show\_bug.cgi?id=32764\ */}}
+\DoxyCodeLine{01208\ \textcolor{preprocessor}{\#define\ FAST\_BILINEAR\_MAINLOOP\_COMMON(scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ mask\_type\_t,\ \ \(\backslash\)}}
+\DoxyCodeLine{01209\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t,\ repeat\_mode,\ flags)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01210\ \textcolor{preprocessor}{\ \ \ \ FAST\_BILINEAR\_MAINLOOP\_INT(\_\ \#\#\ scale\_func\_name,\ scanline\_func,\ src\_type\_t,\ mask\_type\_t,\(\backslash\)}}
+\DoxyCodeLine{01211\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_type\_t,\ repeat\_mode,\ flags)}}
+\DoxyCodeLine{01212\ }
+\DoxyCodeLine{01213\ \textcolor{preprocessor}{\#define\ SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01214\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_SCALE\_TRANSFORM\ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01215\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_ALPHA\_MAP\ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01216\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_BILINEAR\_FILTER\ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01217\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_ACCESSORS\ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01218\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NARROW\_FORMAT)}}
+\DoxyCodeLine{01219\ }
+\DoxyCodeLine{01220\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_FAST\_PATH\_PAD(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01221\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01222\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01223\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01224\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_PAD\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01225\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01226\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01227\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01228\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_pad\ \#\#\ \_\ \#\#\ op,\ \(\backslash\)}}
+\DoxyCodeLine{01229\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01230\ }
+\DoxyCodeLine{01231\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_FAST\_PATH\_NONE(op,s,d,func)\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01232\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01233\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01234\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01235\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NONE\_REPEAT\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01236\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01237\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01238\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01239\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_none\ \#\#\ \_\ \#\#\ op,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01240\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01241\ }
+\DoxyCodeLine{01242\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_FAST\_PATH\_COVER(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01243\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01244\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01245\ \textcolor{preprocessor}{\ \ \ \ SCALED\_BILINEAR\_FLAGS\ |\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_BILINEAR,\ \ \(\backslash\)}}
+\DoxyCodeLine{01246\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01247\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01248\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_cover\ \#\#\ \_\ \#\#\ op,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{01249\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01250\ }
+\DoxyCodeLine{01251\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_FAST\_PATH\_NORMAL(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01252\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01253\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01254\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01255\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NORMAL\_REPEAT\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01256\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01257\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_null,\ 0,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01258\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01259\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_normal\ \#\#\ \_\ \#\#\ op,\ \ \(\backslash\)}}
+\DoxyCodeLine{01260\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01261\ }
+\DoxyCodeLine{01262\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_PAD(op,s,d,func)\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01263\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01264\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01265\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01266\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_PAD\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01267\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01268\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01269\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01270\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_pad\ \#\#\ \_\ \#\#\ op,\ \(\backslash\)}}
+\DoxyCodeLine{01271\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01272\ }
+\DoxyCodeLine{01273\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_NONE(op,s,d,func)\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01274\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01275\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01276\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01277\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NONE\_REPEAT\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01278\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01279\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01280\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01281\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_none\ \#\#\ \_\ \#\#\ op,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01282\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01283\ }
+\DoxyCodeLine{01284\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_COVER(op,s,d,func)\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01285\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01286\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01287\ \textcolor{preprocessor}{\ \ \ \ SCALED\_BILINEAR\_FLAGS\ |\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_BILINEAR,\ \ \(\backslash\)}}
+\DoxyCodeLine{01288\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01289\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01290\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_cover\ \#\#\ \_\ \#\#\ op,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{01291\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01292\ }
+\DoxyCodeLine{01293\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_NORMAL(op,s,d,func)\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01294\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01295\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01296\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01297\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NORMAL\_REPEAT\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01298\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01299\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_a8,\ MASK\_FLAGS\ (a8,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01300\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01301\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_normal\ \#\#\ \_\ \#\#\ op,\ \ \(\backslash\)}}
+\DoxyCodeLine{01302\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01303\ }
+\DoxyCodeLine{01304\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_PAD(op,s,d,func)\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01305\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01306\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01307\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01308\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_PAD\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01309\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01310\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{01311\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01312\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_pad\ \#\#\ \_\ \#\#\ op,\ \(\backslash\)}}
+\DoxyCodeLine{01313\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01314\ }
+\DoxyCodeLine{01315\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_NONE(op,s,d,func)\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01316\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01317\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01318\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01319\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NONE\_REPEAT\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01320\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01321\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{01322\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01323\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_none\ \#\#\ \_\ \#\#\ op,\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01324\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01325\ }
+\DoxyCodeLine{01326\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_COVER(op,s,d,func)\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01327\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01328\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01329\ \textcolor{preprocessor}{\ \ \ \ SCALED\_BILINEAR\_FLAGS\ |\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_BILINEAR,\ \ \(\backslash\)}}
+\DoxyCodeLine{01330\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{01331\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01332\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_cover\ \#\#\ \_\ \#\#\ op,\ \ \ \(\backslash\)}}
+\DoxyCodeLine{01333\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01334\ }
+\DoxyCodeLine{01335\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_NORMAL(op,s,d,func)\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01336\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01337\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ s,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01338\ \textcolor{preprocessor}{\ \ \ \ (SCALED\_BILINEAR\_FLAGS\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01339\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NORMAL\_REPEAT\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01340\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_X\_UNIT\_POSITIVE),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01341\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_solid,\ MASK\_FLAGS\ (solid,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \(\backslash\)}}
+\DoxyCodeLine{01342\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ d,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01343\ \textcolor{preprocessor}{\ \ \ \ fast\_composite\_scaled\_bilinear\_\ \#\#\ func\ \#\#\ \_normal\ \#\#\ \_\ \#\#\ op,\ \ \(\backslash\)}}
+\DoxyCodeLine{01344\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01345\ }
+\DoxyCodeLine{01346\ \textcolor{comment}{/*\ Prefer\ the\ use\ of\ 'cover'\ variant,\ because\ it\ is\ faster\ */}}
+\DoxyCodeLine{01347\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_FAST\_PATH(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01348\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_FAST\_PATH\_COVER\ (op,s,d,func),\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01349\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_FAST\_PATH\_NONE\ (op,s,d,func),\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01350\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_FAST\_PATH\_PAD\ (op,s,d,func),\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01351\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_FAST\_PATH\_NORMAL\ (op,s,d,func)}}
+\DoxyCodeLine{01352\ }
+\DoxyCodeLine{01353\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH(op,s,d,func)\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01354\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_COVER\ (op,s,d,func),\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01355\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_NONE\ (op,s,d,func),\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01356\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_PAD\ (op,s,d,func),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01357\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_A8\_MASK\_FAST\_PATH\_NORMAL\ (op,s,d,func)}}
+\DoxyCodeLine{01358\ }
+\DoxyCodeLine{01359\ \textcolor{preprocessor}{\#define\ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH(op,s,d,func)\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01360\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_COVER\ (op,s,d,func),\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01361\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_NONE\ (op,s,d,func),\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01362\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_PAD\ (op,s,d,func),\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01363\ \textcolor{preprocessor}{\ \ \ \ SIMPLE\_BILINEAR\_SOLID\_MASK\_FAST\_PATH\_NORMAL\ (op,s,d,func)}}
+\DoxyCodeLine{01364\ }
+\DoxyCodeLine{01365\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

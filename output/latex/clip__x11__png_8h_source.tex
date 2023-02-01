@@ -1,0 +1,234 @@
+\hypertarget{clip__x11__png_8h_source}{}\doxysection{clip\+\_\+x11\+\_\+png.\+h}
+\label{clip__x11__png_8h_source}\index{AseSprite/aseprite/src/clip/clip\_x11\_png.h@{AseSprite/aseprite/src/clip/clip\_x11\_png.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Clip\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2018-\/2021\ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}clip.h"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}png.h"{}}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{keyword}{namespace\ }clip\ \{}
+\DoxyCodeLine{00015\ \textcolor{keyword}{namespace\ }x11\ \{}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00018\ \textcolor{comment}{//\ Functions\ to\ convert\ clip::image\ into\ png\ data\ to\ store\ it\ in\ the}}
+\DoxyCodeLine{00019\ \textcolor{comment}{//\ clipboard.}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keywordtype}{void}\ write\_data\_fn(\mbox{\hyperlink{structpng__struct__def}{png\_structp}}\ png,\ png\_bytep\ \mbox{\hyperlink{structbuf}{buf}},\ png\_size\_t\ len)\ \{}
+\DoxyCodeLine{00022\ \ \ std::vector<uint8\_t>\&\ output\ =\ *(std::vector<uint8\_t>*)png\_get\_io\_ptr(png);}
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ i\ =\ output.size();}
+\DoxyCodeLine{00024\ \ \ output.resize(i+len);}
+\DoxyCodeLine{00025\ \ \ std::copy(\mbox{\hyperlink{structbuf}{buf}},\ \mbox{\hyperlink{structbuf}{buf}}+len,\ output.begin()+i);}
+\DoxyCodeLine{00026\ \}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keywordtype}{bool}\ write\_png(\textcolor{keyword}{const}\ image\&\ image,}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::vector<uint8\_t>\&\ output)\ \{}
+\DoxyCodeLine{00030\ \ \ \mbox{\hyperlink{structpng__struct__def}{png\_structp}}\ png\ =\ png\_create\_write\_struct(PNG\_LIBPNG\_VER\_STRING,}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00032\ \ \ \textcolor{keywordflow}{if}\ (!png)}
+\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \mbox{\hyperlink{structpng__info__def}{png\_infop}}\ info\ =\ png\_create\_info\_struct(png);}
+\DoxyCodeLine{00036\ \ \ \textcolor{keywordflow}{if}\ (!info)\ \{}
+\DoxyCodeLine{00037\ \ \ \ \ png\_destroy\_write\_struct(\&png,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00039\ \ \ \}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \textcolor{keywordflow}{if}\ (setjmp(png\_jmpbuf(png)))\ \{}
+\DoxyCodeLine{00042\ \ \ \ \ png\_destroy\_write\_struct(\&png,\ \&info);}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00044\ \ \ \}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ png\_set\_write\_fn(png,}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (png\_voidp)\&output,}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ write\_data\_fn,}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr});\ \ \ \ \textcolor{comment}{//\ No\ need\ for\ a\ flush\ function}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{const}\ image\_spec\&\ spec\ =\ image.spec();}
+\DoxyCodeLine{00052\ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structcolor__type}{color\_type}}\ =\ (spec.alpha\_mask\ ?}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PNG\_COLOR\_TYPE\_RGB\_ALPHA:}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PNG\_COLOR\_TYPE\_RGB);}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ png\_set\_IHDR(png,\ info,}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ spec.width,\ spec.height,\ 8,\ \mbox{\hyperlink{structcolor__type}{color\_type}},}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PNG\_INTERLACE\_NONE,\ PNG\_COMPRESSION\_TYPE\_BASE,\ PNG\_FILTER\_TYPE\_BASE);}
+\DoxyCodeLine{00059\ \ \ png\_write\_info(png,\ info);}
+\DoxyCodeLine{00060\ \ \ png\_set\_packing(png);}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ png\_bytep\ row\ =}
+\DoxyCodeLine{00063\ \ \ \ \ (png\_bytep)png\_malloc(png,\ png\_get\_rowbytes(png,\ info));}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \textcolor{keywordflow}{for}\ (png\_uint\_32\ y=0;\ y<spec.height;\ ++y)\ \{}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ src\ =}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ (\textcolor{keyword}{const}\ uint32\_t*)(((\textcolor{keyword}{const}\ uint8\_t*)image.data())}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ y*spec.bytes\_per\_row);}
+\DoxyCodeLine{00069\ \ \ \ \ uint8\_t*\ dst\ =\ row;}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x,\ c;}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordflow}{for}\ (x=0;\ x<spec.width;\ x++)\ \{}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ c\ =\ *(src++);}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ *(dst++)\ =\ (c\ \&\ spec.red\_mask\ \ )\ >>\ spec.red\_shift;}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ *(dst++)\ =\ (c\ \&\ spec.green\_mask)\ >>\ spec.green\_shift;}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ *(dst++)\ =\ (c\ \&\ spec.blue\_mask\ )\ >>\ spec.blue\_shift;}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structcolor__type}{color\_type}}\ ==\ PNG\_COLOR\_TYPE\_RGB\_ALPHA)}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ *(dst++)\ =\ (c\ \&\ spec.alpha\_mask)\ >>\ spec.alpha\_shift;}
+\DoxyCodeLine{00079\ \ \ \ \ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ png\_write\_rows(png,\ \&row,\ 1);}
+\DoxyCodeLine{00082\ \ \ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ png\_free(png,\ row);}
+\DoxyCodeLine{00085\ \ \ png\_write\_end(png,\ info);}
+\DoxyCodeLine{00086\ \ \ png\_destroy\_write\_struct(\&png,\ \&info);}
+\DoxyCodeLine{00087\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00088\ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{//\ Functions\ to\ convert\ png\ data\ stored\ in\ the\ clipboard\ to\ a}}
+\DoxyCodeLine{00092\ \textcolor{comment}{//\ clip::image.}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structclip_1_1x11_1_1read__png__io}{read\_png\_io}}\ \{}
+\DoxyCodeLine{00095\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00096\ \ \ \textcolor{keywordtype}{size\_t}\ len;}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordtype}{size\_t}\ pos;}
+\DoxyCodeLine{00098\ \};}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{keywordtype}{void}\ read\_data\_fn(\mbox{\hyperlink{structpng__struct__def}{png\_structp}}\ png,\ png\_bytep\ \mbox{\hyperlink{structbuf}{buf}},\ png\_size\_t\ len)\ \{}
+\DoxyCodeLine{00101\ \ \ \mbox{\hyperlink{structclip_1_1x11_1_1read__png__io}{read\_png\_io}}\&\ io\ =\ *(\mbox{\hyperlink{structclip_1_1x11_1_1read__png__io}{read\_png\_io}}*)png\_get\_io\_ptr(png);}
+\DoxyCodeLine{00102\ \ \ \textcolor{keywordflow}{if}\ (io.pos\ <\ io.len)\ \{}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ n\ =\ std::min(len,\ io.len-\/io.pos);}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ >\ 0)\ \{}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ std::copy(io.buf+io.pos,}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ io.buf+io.pos+n,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structbuf}{buf}});}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ io.pos\ +=\ n;}
+\DoxyCodeLine{00109\ \ \ \ \ \}}
+\DoxyCodeLine{00110\ \ \ \}}
+\DoxyCodeLine{00111\ \}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \textcolor{keywordtype}{bool}\ read\_png(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structbuf}{buf}},}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{size\_t}\ len,}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image*\ output\_image,}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image\_spec*\ output\_spec)\ \{}
+\DoxyCodeLine{00117\ \ \ \mbox{\hyperlink{structpng__struct__def}{png\_structp}}\ png\ =\ png\_create\_read\_struct(PNG\_LIBPNG\_VER\_STRING,}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00119\ \ \ \textcolor{keywordflow}{if}\ (!png)}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \mbox{\hyperlink{structpng__info__def}{png\_infop}}\ info\ =\ png\_create\_info\_struct(png);}
+\DoxyCodeLine{00123\ \ \ \textcolor{keywordflow}{if}\ (!info)\ \{}
+\DoxyCodeLine{00124\ \ \ \ \ png\_destroy\_read\_struct(\&png,\ \textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00126\ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \textcolor{keywordflow}{if}\ (setjmp(png\_jmpbuf(png)))\ \{}
+\DoxyCodeLine{00129\ \ \ \ \ png\_destroy\_read\_struct(\&png,\ \&info,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00131\ \ \ \}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ read\_png\_io\ io\ =\ \{\ \mbox{\hyperlink{structbuf}{buf}},\ len,\ 0\ \};}
+\DoxyCodeLine{00134\ \ \ png\_set\_read\_fn(png,\ (png\_voidp)\&io,\ read\_data\_fn);}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ png\_read\_info(png,\ info);}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ png\_uint\_32\ width,\ height;}
+\DoxyCodeLine{00139\ \ \ \textcolor{keywordtype}{int}\ bit\_depth,\ \mbox{\hyperlink{structcolor__type}{color\_type}},\ interlace\_type;}
+\DoxyCodeLine{00140\ \ \ png\_get\_IHDR(png,\ info,\ \&width,\ \&height,}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&bit\_depth,\ \&\mbox{\hyperlink{structcolor__type}{color\_type}},}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&interlace\_type,}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ image\_spec\ spec;}
+\DoxyCodeLine{00146\ \ \ spec.width\ =\ width;}
+\DoxyCodeLine{00147\ \ \ spec.height\ =\ height;}
+\DoxyCodeLine{00148\ \ \ spec.bits\_per\_pixel\ =\ 32;}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \textcolor{comment}{//\ Don't\ use\ png\_get\_rowbytes(png,\ info)\ here\ because\ this\ is\ the}}
+\DoxyCodeLine{00151\ \ \ \textcolor{comment}{//\ bytes\_per\_row\ of\ the\ output\ clip::image\ (the\ png\ file\ could}}
+\DoxyCodeLine{00152\ \ \ \textcolor{comment}{//\ contain\ 24bpp\ but\ we\ want\ to\ return\ a\ 32bpp\ anyway\ with\ alpha=255}}
+\DoxyCodeLine{00153\ \ \ \textcolor{comment}{//\ in\ that\ case).}}
+\DoxyCodeLine{00154\ \ \ spec.bytes\_per\_row\ =\ 4*width;}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ spec.red\_mask\ \ \ \ =\ 0x000000ff;}
+\DoxyCodeLine{00157\ \ \ spec.green\_mask\ \ =\ 0x0000ff00;}
+\DoxyCodeLine{00158\ \ \ spec.blue\_mask\ \ \ =\ 0x00ff0000;}
+\DoxyCodeLine{00159\ \ \ spec.red\_shift\ \ \ =\ 0;}
+\DoxyCodeLine{00160\ \ \ spec.green\_shift\ =\ 8;}
+\DoxyCodeLine{00161\ \ \ spec.blue\_shift\ \ =\ 16;}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \textcolor{keywordflow}{if}\ ((\mbox{\hyperlink{structcolor__type}{color\_type}}\ \&\ PNG\_COLOR\_MASK\_ALPHA)\ ==\ PNG\_COLOR\_MASK\_ALPHA)\ \{}
+\DoxyCodeLine{00164\ \ \ \ \ spec.alpha\_mask\ =\ 0xff000000;}
+\DoxyCodeLine{00165\ \ \ \ \ spec.alpha\_shift\ =\ 24;}
+\DoxyCodeLine{00166\ \ \ \}}
+\DoxyCodeLine{00167\ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00168\ \ \ \ \ spec.alpha\_mask\ =\ 0;}
+\DoxyCodeLine{00169\ \ \ \ \ spec.alpha\_shift\ =\ 0;}
+\DoxyCodeLine{00170\ \ \ \}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \textcolor{keywordflow}{if}\ (output\_spec)}
+\DoxyCodeLine{00173\ \ \ \ \ *output\_spec\ =\ spec;}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \textcolor{keywordflow}{if}\ (output\_image\ \&\&}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ width\ >\ 0\ \&\&}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ height\ >\ 0)\ \{}
+\DoxyCodeLine{00178\ \ \ \ \ image\ img(spec);}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{comment}{//\ We\ want\ RGB\ 24-\/bit\ or\ RGBA\ 32-\/bit\ as\ a\ result}}
+\DoxyCodeLine{00181\ \ \ \ \ png\_set\_strip\_16(png);\ \textcolor{comment}{//\ Down\ to\ 8-\/bit\ (TODO\ we\ might\ support\ 16-\/bit\ values)}}
+\DoxyCodeLine{00182\ \ \ \ \ png\_set\_packing(png);\ \ \textcolor{comment}{//\ Use\ one\ byte\ if\ color\ depth\ <\ 8-\/bit}}
+\DoxyCodeLine{00183\ \ \ \ \ png\_set\_expand\_gray\_1\_2\_4\_to\_8(png);}
+\DoxyCodeLine{00184\ \ \ \ \ png\_set\_palette\_to\_rgb(png);}
+\DoxyCodeLine{00185\ \ \ \ \ png\_set\_gray\_to\_rgb(png);}
+\DoxyCodeLine{00186\ \ \ \ \ png\_set\_tRNS\_to\_alpha(png);}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{keywordtype}{int}\ number\_passes\ =\ png\_set\_interlace\_handling(png);}
+\DoxyCodeLine{00189\ \ \ \ \ png\_read\_update\_info(png,\ info);}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ src\_bytes\_per\_row\ =\ png\_get\_rowbytes(png,\ info);}
+\DoxyCodeLine{00192\ \ \ \ \ png\_bytepp\ rows\ =\ (png\_bytepp)png\_malloc(png,\ \textcolor{keyword}{sizeof}(png\_bytep)*height);}
+\DoxyCodeLine{00193\ \ \ \ \ png\_uint\_32\ y;}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordflow}{for}\ (y=0;\ y<height;\ ++y)}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ rows[y]\ =\ (png\_bytep)png\_malloc(png,\ src\_bytes\_per\_row);}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ pass=0;\ pass<number\_passes;\ ++pass)}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (y=0;\ y<height;\ ++y)}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ png\_read\_rows(png,\ rows+y,\ \textcolor{keyword}{nullptr},\ 1);}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keywordflow}{for}\ (y=0;\ y<height;\ ++y)\ \{}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ src\ =\ rows[y];}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ uint32\_t*\ dst\ =\ (uint32\_t*)(img.data()\ +\ y*spec.bytes\_per\_row);}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x,\ r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}}\ =\ 0;}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (x=0;\ x<width;\ x++)\ \{}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ r\ =\ *(src++);}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ g\ =\ *(src++);}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ b\ =\ *(src++);}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (spec.alpha\_mask)}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ =\ *(src++);}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ *(dst++)\ =}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ (r\ <<\ spec.red\_shift)\ |}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ (g\ <<\ spec.green\_shift)\ |}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ (b\ <<\ spec.blue\_shift)\ |}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \ \ \ \ (\mbox{\hyperlink{structa}{a}}\ <<\ spec.alpha\_shift);}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ png\_free(png,\ rows[y]);}
+\DoxyCodeLine{00219\ \ \ \ \ \}}
+\DoxyCodeLine{00220\ \ \ \ \ png\_free(png,\ rows);}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ std::swap(*output\_image,\ img);}
+\DoxyCodeLine{00223\ \ \ \}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \ \ png\_destroy\_read\_struct(\&png,\ \&info,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00226\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00227\ \}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \}\ \textcolor{comment}{//\ namespace\ x11}}
+\DoxyCodeLine{00230\ \}\ \textcolor{comment}{//\ namespace\ clip}}
+
+\end{DoxyCode}

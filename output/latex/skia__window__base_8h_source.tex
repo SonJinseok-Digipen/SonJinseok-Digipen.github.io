@@ -1,0 +1,252 @@
+\hypertarget{skia__window__base_8h_source}{}\doxysection{skia\+\_\+window\+\_\+base.\+h}
+\label{skia__window__base_8h_source}\index{AseSprite/aseprite/laf/os/skia/skia\_window\_base.h@{AseSprite/aseprite/laf/os/skia/skia\_window\_base.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ OS\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2021-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ OS\_SKIA\_SKIA\_WINDOW\_BASE\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ OS\_SKIA\_SKIA\_WINDOW\_BASE\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}os/event.h"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}os/event\_queue.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}os/gl/gl\_context.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}os/skia/skia\_gl.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}os/skia/skia\_surface.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}os/system.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}os/window.h"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}include/core/SkCanvas.h"{}}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#if\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\ \ \#if\ LAF\_WINDOWS}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\ \ \ \ \#include\ <windows.h>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\ \ \ \ \#include\ <GL/gl.h>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \#elif\ LAF\_MACOS}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ \#include\ <OpenGL/gl.h>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{keyword}{namespace\ }os\ \{}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00033\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classos_1_1_skia_window_base}{SkiaWindowBase}}\ :\ \textcolor{keyword}{public}\ T\ \{}
+\DoxyCodeLine{00034\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classos_1_1_skia_window_base}{Base}}\ =\ \mbox{\hyperlink{classos_1_1_skia_window_base}{SkiaWindowBase<T>}};}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...\ Args>}
+\DoxyCodeLine{00038\ \ \ \mbox{\hyperlink{classos_1_1_skia_window_base}{SkiaWindowBase}}(Args\&\&...\ args)}
+\DoxyCodeLine{00039\ \ \ \ \ :\ T(std::forward<Args\&\&>(args)...)}
+\DoxyCodeLine{00040\ \ \ \ \ ,\ m\_initialized(\textcolor{keyword}{false})}
+\DoxyCodeLine{00041\ \ \ \ \ ,\ m\_surface(\textcolor{keyword}{new}\ \mbox{\hyperlink{classos_1_1_skia_surface}{SkiaSurface}})}
+\DoxyCodeLine{00042\ \ \ \ \ ,\ m\_colorSpace(\textcolor{keyword}{nullptr})\ \{}
+\DoxyCodeLine{00043\ \ \ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{keywordtype}{void}\ initColorSpace()\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{comment}{//\ Needed\ on\ macOS\ because\ WindowOSX::colorSpace()\ needs\ the}}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{comment}{//\ m\_nsWindow\ created,\ and\ that\ happens\ after}}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{comment}{//\ WindowOSX::createWindow()\ is\ called.}}
+\DoxyCodeLine{00049\ \ \ \ \ m\_colorSpace\ =\ T::colorSpace();}
+\DoxyCodeLine{00050\ \ \ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \textcolor{keywordtype}{bool}\ isInitialized()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_initialized;}
+\DoxyCodeLine{00054\ \ \ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \textcolor{keywordtype}{void}\ resetSkiaSurface()\ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_surface)}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ m\_surface.reset();}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ resizeSkiaSurface(this-\/>clientSize());}
+\DoxyCodeLine{00061\ \ \ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \textcolor{keywordtype}{void}\ resizeSkiaSurface(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\&\ size)\ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_initialized)}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\ newSize(size.w\ /\ this-\/>scale(),}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size.h\ /\ this-\/>scale());}
+\DoxyCodeLine{00069\ \ \ \ \ newSize.w\ =\ std::max(1,\ newSize.w);}
+\DoxyCodeLine{00070\ \ \ \ \ newSize.h\ =\ std::max(1,\ newSize.h);}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_initialized\ \&\&}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ m\_surface\ \&\&}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ m\_surface-\/>width()\ ==\ newSize.w\ \&\&}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ m\_surface-\/>height()\ ==\ newSize.h)\ \{}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00077\ \ \ \ \ \}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ m\_backend\ =\ Backend::NONE;}
+\DoxyCodeLine{00080\ \ \ \ \ m\_surface.reset();}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#if\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//\ Re-\/create\ OpenGL\ context}}
+\DoxyCodeLine{00084\ \ \ \ \ m\_gl.detachGL();}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_glCtx-\/>isValid())}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ m\_glCtx-\/>destroyGLContext();}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//\ GPU-\/accelerated\ surface}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordflow}{if}\ (os::instance()-\/>gpuAcceleration())\ \{}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ m\_glCtx-\/>createGLContext();}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_glCtx-\/>isValid())\ \{}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ m\_glCtx-\/>makeCurrent();}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_gl.attachGL()\ \&\&}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ m\_gl.createRenderTarget(}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ size,\ this-\/>scale(),}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ((\mbox{\hyperlink{classos_1_1_skia_color_space}{SkiaColorSpace}}*)colorSpace().get())-\/>skColorSpace()))\ \{}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ m\_surface\ =\ make\_ref<SkiaSurface>(m\_gl.surface());}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ m\_backend\ =\ Backend::GL;}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00103\ \ \ \ \ \}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{comment}{//\ Raster\ surface}}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_surface)\ \{}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ m\_surface\ =\ make\_ref<SkiaSurface>();}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (T::isTransparent())}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ m\_surface-\/>createRgba(newSize.w,\ newSize.h,\ m\_colorSpace);}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ m\_surface-\/>create(newSize.w,\ newSize.h,\ m\_colorSpace);}
+\DoxyCodeLine{00114\ \ \ \ \ \}}
+\DoxyCodeLine{00115\ \ \ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \textcolor{comment}{//\ Returns\ the\ main\ surface\ to\ draw\ into\ this\ window.}}
+\DoxyCodeLine{00118\ \ \ \textcolor{comment}{//\ You\ must\ not\ dispose\ this\ surface.}}
+\DoxyCodeLine{00119\ \ \ \mbox{\hyperlink{classos_1_1_surface}{Surface}}*\ surface()\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_surface.get();}
+\DoxyCodeLine{00121\ \ \ \}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \textcolor{comment}{//\ Overrides\ the\ colorSpace()\ method\ to\ return\ the\ cached/stored}}
+\DoxyCodeLine{00124\ \ \ \textcolor{comment}{//\ color\ space\ in\ this\ instance\ (instead\ of\ asking\ for\ the\ color}}
+\DoxyCodeLine{00125\ \ \ \textcolor{comment}{//\ space\ to\ the\ screen\ as\ T::colorSpace()\ should\ do).}}
+\DoxyCodeLine{00126\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ colorSpace()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_colorSpace;}
+\DoxyCodeLine{00128\ \ \ \}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \textcolor{keywordtype}{void}\ setColorSpace(\textcolor{keyword}{const}\ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\&\ colorSpace)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordflow}{if}\ (colorSpace)}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ m\_colorSpace\ =\ colorSpace;}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ m\_colorSpace\ =\ T::colorSpace();\ \textcolor{comment}{//\ Screen\ color\ space}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_surface)}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ resetSkiaSurface();}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{comment}{//\ Generate\ the\ resizing\ window\ event\ to\ redraw\ everything.}}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{comment}{//\ TODO\ we\ could\ create\ a\ new\ event\ like\ Event::ColorSpaceChange,}}
+\DoxyCodeLine{00141\ \ \ \ \ \textcolor{comment}{//\ but\ the\ result\ would\ be\ the\ same,\ the\ window\ must\ be\ re-\/painted.}}
+\DoxyCodeLine{00142\ \ \ \ \ \mbox{\hyperlink{classos_1_1_event}{Event}}\ ev;}
+\DoxyCodeLine{00143\ \ \ \ \ ev.setType(Event::ResizeWindow);}
+\DoxyCodeLine{00144\ \ \ \ \ ev.setWindow(AddRef(\textcolor{keyword}{this}));}
+\DoxyCodeLine{00145\ \ \ \ \ os::queue\_event(ev);}
+\DoxyCodeLine{00146\ \ \ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \textcolor{keywordtype}{void}\ swapBuffers()\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\#if\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00150\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_backend\ ==\ Backend::NONE\ ||}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ !m\_gl.backbufferSurface()\ ||}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ !m\_glCtx-\/>isValid())}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keyword}{auto}\ surface\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classos_1_1_skia_surface}{SkiaSurface}}*\textcolor{keyword}{>}(this-\/>surface());}
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordflow}{if}\ (!surface)}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ m\_glCtx-\/>makeCurrent();}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{comment}{//\ Draw\ the\ small\ (unscaled)\ surface\ to\ the\ backbuffer\ surface}}
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{comment}{//\ scaling\ it\ to\ the\ this-\/>scale()\ factor.}}
+\DoxyCodeLine{00163\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_gl.backbufferSurface()\ !=\ m\_gl.surface())\ \{}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ SkSamplingOptions\ sampling;}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ SkPaint\ paint;}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \ \ \ \ \ \ SkCanvas*\ dstCanvas\ =\ m\_gl.backbufferSurface()-\/>getCanvas();}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ dstCanvas-\/>save();}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ dstCanvas-\/>scale(SkScalar(this-\/>scale()),}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ SkScalar(this-\/>scale()));}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ m\_gl.surface()-\/>draw(}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ dstCanvas,}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ 0.0,\ 0.0,\ sampling,\ \&paint);}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ dstCanvas-\/>restore();}
+\DoxyCodeLine{00175\ \ \ \ \ \}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \ \ surface-\/>flushAndSubmit();}
+\DoxyCodeLine{00178\ \ \ \ \ m\_glCtx-\/>swapBuffers();}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00180\ \ \ \}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \textcolor{keywordtype}{bool}\ isGpuAccelerated()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#if\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_backend\ ==\ Backend::GL);}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00188\ \ \ \}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#if\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00191\ \ \ GrDirectContext*\ sk\_grCtx()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_gl.grCtx();}
+\DoxyCodeLine{00193\ \ \ \}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00197\ \ \ \textcolor{keywordtype}{void}\ initializeSurface()\ \{}
+\DoxyCodeLine{00198\ \ \ \ \ m\_initialized\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00199\ \ \ \ \ resetSkiaSurface();}
+\DoxyCodeLine{00200\ \ \ \}}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \textcolor{keywordtype}{void}\ onResize(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\&\ sz)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00203\ \ \ \ \ resizeSkiaSurface(sz);}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordflow}{if}\ (os::instance()-\/>handleWindowResize\ \&\&}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Check\ that\ the\ surface\ is\ created\ to\ avoid\ a\ call\ to}}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ handleWindowResize()\ with\ an\ empty\ surface\ (or\ null}}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ SkiaSurface::m\_canvas)\ when\ the\ window\ is\ being\ created.}}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ isInitialized())\ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ os::instance()-\/>handleWindowResize(\textcolor{keyword}{this});}
+\DoxyCodeLine{00211\ \ \ \ \ \}}
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \mbox{\hyperlink{classos_1_1_event}{Event}}\ ev;}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ ev.setType(Event::ResizeWindow);}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ ev.setWindow(AddRef(\textcolor{keyword}{this}));}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ queue\_event(ev);}
+\DoxyCodeLine{00217\ \ \ \ \ \}}
+\DoxyCodeLine{00218\ \ \ \}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \textcolor{keyword}{enum\ class}\ Backend\ \{}
+\DoxyCodeLine{00221\ \ \ \ \ NONE,}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\#if\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00223\ \ \ \ \ GL,}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00225\ \ \ \};}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \ \ Backend\ backend()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_backend;\ \}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#if\ SK\_SUPPORT\_GPU}}
+\DoxyCodeLine{00230\ \ \ std::unique\_ptr<GLContext>\ m\_glCtx;}
+\DoxyCodeLine{00231\ \ \ \mbox{\hyperlink{classos_1_1_skia_g_l}{SkiaGL}}\ m\_gl;}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00235\ \ \ Backend\ m\_backend\ =\ Backend::NONE;}
+\DoxyCodeLine{00236\ \ \ \textcolor{comment}{//\ Flag\ used\ to\ avoid\ accessing\ to\ an\ invalid\ m\_surface\ in\ the\ first}}
+\DoxyCodeLine{00237\ \ \ \textcolor{comment}{//\ SkiaWindow::resize()\ call\ when\ the\ window\ is\ created\ (as\ the}}
+\DoxyCodeLine{00238\ \ \ \textcolor{comment}{//\ window\ is\ created,\ it\ send\ a\ first\ resize\ event.)}}
+\DoxyCodeLine{00239\ \ \ \textcolor{keywordtype}{bool}\ m\_initialized;}
+\DoxyCodeLine{00240\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{Ref<SkiaSurface>}}\ m\_surface;}
+\DoxyCodeLine{00241\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{os::ColorSpaceRef}}\ m\_colorSpace;}
+\DoxyCodeLine{00242\ \};}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \}\ \textcolor{comment}{//\ namespace\ os}}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

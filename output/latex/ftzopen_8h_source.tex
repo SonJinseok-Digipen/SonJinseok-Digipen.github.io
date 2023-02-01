@@ -1,0 +1,180 @@
+\hypertarget{ftzopen_8h_source}{}\doxysection{ftzopen.\+h}
+\label{ftzopen_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/lzw/ftzopen.h@{AseSprite/aseprite/third\_party/freetype2/src/lzw/ftzopen.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftzopen.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ FreeType\ support\ for\ .Z\ compressed\ files.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ This\ optional\ component\ relies\ on\ NetBSD's\ zopen().\ \ It\ should\ mainly}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ be\ used\ to\ parse\ compressed\ PCF\ fonts,\ as\ found\ with\ many\ X11\ server}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ distributions.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2005-\/2022\ by}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ David\ Turner.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#ifndef\ FTZOPEN\_H\_}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ FTZOPEN\_H\_}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <freetype/freetype.h>}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ \ *\ This\ is\ a\ complete\ re-\/implementation\ of\ the\ LZW\ file\ reader,}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ *\ since\ the\ old\ one\ was\ incredibly\ badly\ written,\ using}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ *\ 400\ KByte\ of\ heap\ memory\ before\ decompressing\ anything.}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ FT\_LZW\_IN\_BUFF\_SIZE\ \ \ \ \ \ \ \ 64}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ FT\_LZW\_DEFAULT\_STACK\_SIZE\ \ 64}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ LZW\_INIT\_BITS\ \ \ \ \ 9}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ LZW\_MAX\_BITS\ \ \ \ \ \ 16}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ LZW\_CLEAR\ \ \ \ \ \ \ \ \ 256}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ LZW\_FIRST\ \ \ \ \ \ \ \ \ 257}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ LZW\_BIT\_MASK\ \ \ \ \ \ 0x1F}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ LZW\_BLOCK\_MASK\ \ \ \ 0x80}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ LZW\_MASK(\ n\ )\ \ \ \ \ (\ (\ 1U\ <<\ (n)\ )\ -\/\ 1U\ )}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \ FT\_LzwPhase\_}
+\DoxyCodeLine{00051\ \ \ \{}
+\DoxyCodeLine{00052\ \ \ \ \ FT\_LZW\_PHASE\_START\ =\ 0,}
+\DoxyCodeLine{00053\ \ \ \ \ FT\_LZW\_PHASE\_CODE,}
+\DoxyCodeLine{00054\ \ \ \ \ FT\_LZW\_PHASE\_STACK,}
+\DoxyCodeLine{00055\ \ \ \ \ FT\_LZW\_PHASE\_EOF}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \}\ FT\_LzwPhase;}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *\ state\ of\ LZW\ decompressor}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *\ small\ technical\ note}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *\ We\ use\ a\ few\ tricks\ in\ this\ implementation\ that\ are\ explained\ here\ to}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *\ ease\ debugging\ and\ maintenance.}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ *\ -\/\ First\ of\ all,\ the\ `prefix'\ and\ `suffix'\ arrays\ contain\ the\ suffix}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ *\ \ \ and\ prefix\ for\ codes\ over\ 256;\ this\ means\ that}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ *\ \ \ \ \ prefix\_of(code)\ ==\ state-\/>prefix[code-\/256]}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ \ *\ \ \ \ \ suffix\_of(code)\ ==\ state-\/>suffix[code-\/256]}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00075\ \textcolor{comment}{\ \ \ *\ \ \ Each\ prefix\ is\ a\ 16-\/bit\ code,\ and\ each\ suffix\ an\ 8-\/bit\ byte.}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ \ \ *\ \ \ Both\ arrays\ are\ stored\ in\ a\ single\ memory\ block,\ pointed\ to\ by}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ *\ \ \ `state-\/>prefix'.\ \ This\ means\ that\ the\ following\ equality\ is\ always}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ \ *\ \ \ true:}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ \ \ *\ \ \ \ \ state-\/>suffix\ ==\ (FT\_Byte*)(state-\/>prefix\ +\ state-\/>prefix\_size)}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ *\ \ \ Of\ course,\ state-\/>prefix\_size\ is\ the\ number\ of\ prefix/suffix\ slots}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ *\ \ \ in\ the\ arrays,\ corresponding\ to\ codes\ 256..255+prefix\_size.}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ *\ -\/\ `free\_ent'\ is\ the\ index\ of\ the\ next\ free\ entry\ in\ the\ `prefix'}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ *\ \ \ and\ `suffix'\ arrays.\ \ This\ means\ that\ the\ corresponding\ `next\ free}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *\ \ \ code'\ is\ really\ `256+free\_ent'.}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ *\ \ \ Moreover,\ `max\_free'\ is\ the\ maximum\ value\ that\ `free\_ent'\ can\ reach.}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ *\ \ \ `max\_free'\ corresponds\ to\ `(1\ <<\ max\_bits)\ -\/\ 256'.\ \ Note\ that\ this}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ \ *\ \ \ value\ is\ always\ <=\ 0xFF00,\ which\ means\ that\ both\ `free\_ent'\ and}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ *\ \ \ `max\_free'\ can\ be\ stored\ in\ an\ FT\_UInt\ variable,\ even\ on\ 16-\/bit}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *\ \ \ machines.}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ *\ \ \ If\ `free\_ent\ ==\ max\_free',\ you\ cannot\ add\ new\ codes\ to\ the}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ *\ \ \ prefix/suffix\ table.}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ *\ -\/\ `num\_bits'\ is\ the\ current\ number\ of\ code\ bits,\ starting\ at\ 9\ and}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ \ \ *\ \ \ growing\ each\ time\ `free\_ent'\ reaches\ the\ value\ of\ `free\_bits'.\ \ The}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ *\ \ \ latter\ is\ computed\ as\ follows}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ *\ \ \ \ \ if\ num\_bits\ <\ max\_bits:}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ free\_bits\ =\ (1\ <<\ num\_bits)-\/256}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ \ \ *\ \ \ \ \ else:}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ free\_bits\ =\ max\_free\ +\ 1}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ \ \ *\ \ \ Since\ the\ value\ of\ `max\_free\ +\ 1'\ can\ never\ be\ reached\ by}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ \ \ *\ \ \ `free\_ent',\ `num\_bits'\ cannot\ grow\ larger\ than\ `max\_bits'.}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t___lzw_state_rec__}{FT\_LzwStateRec\_}}}
+\DoxyCodeLine{00114\ \ \ \{}
+\DoxyCodeLine{00115\ \ \ \ \ FT\_LzwPhase\ \ phase;}
+\DoxyCodeLine{00116\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ in\_eof;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ FT\_Byte\ \ \ \ \ \ buf\_tab[16];}
+\DoxyCodeLine{00119\ \ \ \ \ FT\_UInt\ \ \ \ \ \ buf\_offset;}
+\DoxyCodeLine{00120\ \ \ \ \ FT\_UInt\ \ \ \ \ \ buf\_size;}
+\DoxyCodeLine{00121\ \ \ \ \ FT\_Bool\ \ \ \ \ \ buf\_clear;}
+\DoxyCodeLine{00122\ \ \ \ \ FT\_Offset\ \ \ \ buf\_total;}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ FT\_UInt\ \ \ \ \ \ max\_bits;\ \ \ \ \textcolor{comment}{/*\ max\ code\ bits,\ from\ file\ header\ \ \ */}}
+\DoxyCodeLine{00125\ \ \ \ \ FT\_Int\ \ \ \ \ \ \ block\_mode;\ \ \textcolor{comment}{/*\ block\ mode\ flag,\ from\ file\ header\ */}}
+\DoxyCodeLine{00126\ \ \ \ \ FT\_UInt\ \ \ \ \ \ max\_free;\ \ \ \ \textcolor{comment}{/*\ (1\ <<\ max\_bits)\ -\/\ 256\ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ FT\_UInt\ \ \ \ \ \ num\_bits;\ \ \ \ \textcolor{comment}{/*\ current\ code\ bit\ number\ */}}
+\DoxyCodeLine{00129\ \ \ \ \ FT\_UInt\ \ \ \ \ \ free\_ent;\ \ \ \ \textcolor{comment}{/*\ index\ of\ next\ free\ entry\ */}}
+\DoxyCodeLine{00130\ \ \ \ \ FT\_UInt\ \ \ \ \ \ free\_bits;\ \ \ \textcolor{comment}{/*\ if\ reached\ by\ free\_ent,\ increment\ num\_bits\ */}}
+\DoxyCodeLine{00131\ \ \ \ \ FT\_UInt\ \ \ \ \ \ old\_code;}
+\DoxyCodeLine{00132\ \ \ \ \ FT\_UInt\ \ \ \ \ \ old\_char;}
+\DoxyCodeLine{00133\ \ \ \ \ FT\_UInt\ \ \ \ \ \ in\_code;}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ FT\_UShort*\ \ \ prefix;\ \ \ \ \ \ \textcolor{comment}{/*\ always\ dynamically\ allocated\ /\ reallocated\ */}}
+\DoxyCodeLine{00136\ \ \ \ \ FT\_Byte*\ \ \ \ \ suffix;\ \ \ \ \ \ \textcolor{comment}{/*\ suffix\ =\ (FT\_Byte*)(prefix\ +\ prefix\_size)\ \ */}}
+\DoxyCodeLine{00137\ \ \ \ \ FT\_UInt\ \ \ \ \ \ prefix\_size;\ \textcolor{comment}{/*\ number\ of\ slots\ in\ `prefix'\ or\ `suffix'\ \ \ \ */}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ FT\_Byte*\ \ \ \ \ stack;\ \ \ \ \ \ \ \textcolor{comment}{/*\ character\ stack\ */}}
+\DoxyCodeLine{00140\ \ \ \ \ FT\_UInt\ \ \ \ \ \ stack\_top;}
+\DoxyCodeLine{00141\ \ \ \ \ FT\_Offset\ \ \ \ stack\_size;}
+\DoxyCodeLine{00142\ \ \ \ \ FT\_Byte\ \ \ \ \ \ stack\_0[FT\_LZW\_DEFAULT\_STACK\_SIZE];\ \textcolor{comment}{/*\ minimize\ heap\ alloc\ */}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ source;\ \ \ \ \ \ \textcolor{comment}{/*\ source\ stream\ */}}
+\DoxyCodeLine{00145\ \ \ \ \ FT\_Memory\ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \}\ \mbox{\hyperlink{struct_f_t___lzw_state_rec__}{FT\_LzwStateRec}},\ *\mbox{\hyperlink{struct_f_t___lzw_state_rec__}{FT\_LzwState}};}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00151\ \ \ ft\_lzwstate\_init(\ \mbox{\hyperlink{struct_f_t___lzw_state_rec__}{FT\_LzwState}}\ \ \mbox{\hyperlink{structstate}{state}},}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ source\ );}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00155\ \ \ ft\_lzwstate\_done(\ \mbox{\hyperlink{struct_f_t___lzw_state_rec__}{FT\_LzwState}}\ \ \mbox{\hyperlink{structstate}{state}}\ );}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00159\ \ \ ft\_lzwstate\_reset(\ \mbox{\hyperlink{struct_f_t___lzw_state_rec__}{FT\_LzwState}}\ \ \mbox{\hyperlink{structstate}{state}}\ );}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ FT\_LOCAL(\ FT\_ULong\ )}
+\DoxyCodeLine{00163\ \ \ ft\_lzwstate\_io(\ \mbox{\hyperlink{struct_f_t___lzw_state_rec__}{FT\_LzwState}}\ \ \mbox{\hyperlink{structstate}{state}},}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_ULong\ \ \ \ \ out\_size\ );}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ FT\_END\_HEADER}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTZOPEN\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

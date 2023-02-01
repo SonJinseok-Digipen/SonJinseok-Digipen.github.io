@@ -1,0 +1,124 @@
+\hypertarget{hb-mutex_8hh_source}{}\doxysection{hb-\/mutex.hh}
+\label{hb-mutex_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/mutex.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/mutex.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2007\ \ Chris\ Wilson}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2009,2010\ \ Red\ Hat,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Copyright\ ©\ 2011,2012\ \ Google,\ Inc.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Contributor(s):}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ \ Chris\ Wilson\ <chris@chris-\/wilson.co.uk>}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *\ Red\ Hat\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#ifndef\ HB\_MUTEX\_HH}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ HB\_MUTEX\_HH}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{comment}{/*\ mutex\ */}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{comment}{/*\ We\ need\ external\ help\ for\ these\ */}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#if\ defined(hb\_mutex\_impl\_init)\ \(\backslash\)}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\ \&\&\ defined(hb\_mutex\_impl\_lock)\ \(\backslash\)}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\ \&\&\ defined(hb\_mutex\_impl\_unlock)\ \(\backslash\)}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\ \&\&\ defined(hb\_mutex\_impl\_finish)}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{/*\ Defined\ externally,\ i.e.\ in\ config.h;\ must\ have\ typedef'ed\ hb\_mutex\_impl\_t\ as\ well.\ */}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#elif\ !defined(HB\_NO\_MT)\ \&\&\ !defined(HB\_MUTEX\_IMPL\_STD\_MUTEX)\ \&\&\ (defined(HAVE\_PTHREAD)\ ||\ defined(\_\_APPLE\_\_))}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#include\ <pthread.h>}}
+\DoxyCodeLine{00053\ \textcolor{keyword}{typedef}\ pthread\_mutex\_t\ hb\_mutex\_impl\_t;}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_init(M)\ \ \ pthread\_mutex\_init\ (M,\ nullptr)}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_lock(M)\ \ \ pthread\_mutex\_lock\ (M)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_unlock(M)\ pthread\_mutex\_unlock\ (M)}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_finish(M)\ pthread\_mutex\_destroy\ (M)}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#elif\ !defined(HB\_NO\_MT)\ \&\&\ !defined(HB\_MUTEX\_IMPL\_STD\_MUTEX)\ \&\&\ defined(\_WIN32)}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{keyword}{typedef}\ CRITICAL\_SECTION\ hb\_mutex\_impl\_t;}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#if\ !WINAPI\_FAMILY\_PARTITION(WINAPI\_PARTITION\_DESKTOP)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_init(M)\ \ \ InitializeCriticalSectionEx\ (M,\ 0,\ 0)}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_init(M)\ \ \ InitializeCriticalSection\ (M)}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_lock(M)\ \ \ EnterCriticalSection\ (M)}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_unlock(M)\ LeaveCriticalSection\ (M)}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_finish(M)\ DeleteCriticalSection\ (M)}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#elif\ !defined(HB\_NO\_MT)}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00076\ \textcolor{keyword}{typedef}\ std::mutex\ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_mutex\_impl\_t;}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_init(M)\ \ \ HB\_STMT\_START\ \{\ new\ (M)\ hb\_mutex\_impl\_t;\ \}\ HB\_STMT\_END}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_lock(M)\ \ \ (M)-\/>lock\ ()}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_unlock(M)\ (M)-\/>unlock\ ()}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_finish(M)\ HB\_STMT\_START\ \{\ (M)-\/>\string~hb\_mutex\_impl\_t();\ \}\ HB\_STMT\_END}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{/*\ defined(HB\_NO\_MT)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{int}\ hb\_mutex\_impl\_t;}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_init(M)\ \ \ HB\_STMT\_START\ \{\}\ HB\_STMT\_END}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_lock(M)\ \ \ HB\_STMT\_START\ \{\}\ HB\_STMT\_END}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_unlock(M)\ HB\_STMT\_START\ \{\}\ HB\_STMT\_END}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ hb\_mutex\_impl\_finish(M)\ HB\_STMT\_START\ \{\}\ HB\_STMT\_END}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__mutex__t}{hb\_mutex\_t}}}
+\DoxyCodeLine{00096\ \{}
+\DoxyCodeLine{00097\ \ \ \textcolor{comment}{/*\ Create\ space\ for,\ but\ do\ not\ initialize\ m.\ */}}
+\DoxyCodeLine{00098\ \ \ \textcolor{keyword}{alignas}(hb\_mutex\_impl\_t)\ \textcolor{keywordtype}{char}\ m[\textcolor{keyword}{sizeof}\ (hb\_mutex\_impl\_t)];}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ push}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ ignored\ "{}-\/Wcast-\/align"{}}}
+\DoxyCodeLine{00102\ \ \ \textcolor{keywordtype}{void}\ init\ \ \ ()\ \{\ hb\_mutex\_impl\_init\ \ \ ((hb\_mutex\_impl\_t\ *)\ m);\ \}}
+\DoxyCodeLine{00103\ \ \ \textcolor{keywordtype}{void}\ lock\ \ \ ()\ \{\ hb\_mutex\_impl\_lock\ \ \ ((hb\_mutex\_impl\_t\ *)\ m);\ \}}
+\DoxyCodeLine{00104\ \ \ \textcolor{keywordtype}{void}\ unlock\ ()\ \{\ hb\_mutex\_impl\_unlock\ ((hb\_mutex\_impl\_t\ *)\ m);\ \}}
+\DoxyCodeLine{00105\ \ \ \textcolor{keywordtype}{void}\ fini\ \ \ ()\ \{\ hb\_mutex\_impl\_finish\ ((hb\_mutex\_impl\_t\ *)\ m);\ \}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ pop}}
+\DoxyCodeLine{00107\ \};}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__lock__t}{hb\_lock\_t}}}
+\DoxyCodeLine{00110\ \{}
+\DoxyCodeLine{00111\ \ \ \mbox{\hyperlink{structhb__lock__t}{hb\_lock\_t}}\ (\mbox{\hyperlink{structhb__mutex__t}{hb\_mutex\_t}}\ \&mutex\_)\ :\ mutex\ (mutex\_)\ \{\ mutex.lock\ ();\ \}}
+\DoxyCodeLine{00112\ \ \ \mbox{\hyperlink{structhb__lock__t}{\string~hb\_lock\_t}}\ ()\ \{\ mutex.unlock\ ();\ \}}
+\DoxyCodeLine{00113\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00114\ \ \ \mbox{\hyperlink{structhb__mutex__t}{hb\_mutex\_t}}\ \&mutex;}
+\DoxyCodeLine{00115\ \};}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_MUTEX\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

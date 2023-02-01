@@ -1,0 +1,70 @@
+\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md961}{}\doxysection{Cookie overview}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md961}
+Cookies are {\ttfamily name=contents} pairs that a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} server tells the client to hold and then the client sends back those to the server on subsequent requests to the same domains and paths for which the cookies were set.
+
+Cookies are either \char`\"{}session cookies\char`\"{} which typically are forgotten when the session is over which is often translated to equal when browser quits, or the cookies aren\textquotesingle{}t session cookies they have expiration dates after which the client will throw them away.
+
+Cookies are set to the client with the Set-\/\+Cookie\+: header and are sent to servers with the \mbox{\hyperlink{struct_cookie}{Cookie}}\+: header.
+
+For a very long time, the only spec explaining how to use cookies was the original \href{https://curl.se/rfc/cookie_spec.html}{\texttt{ Netscape spec from 1994}}.
+
+In 2011, \href{https://www.ietf.org/rfc/rfc6265.txt}{\texttt{ RFC6265}} was finally published and details how cookies work within \mbox{\hyperlink{struct_h_t_t_p}{HTTP}}. In 2016, an update which added support for prefixes was \href{https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00}{\texttt{ proposed}}, and in 2017, another update was \href{https://tools.ietf.org/html/draft-ietf-httpbis-cookie-alone-01}{\texttt{ drafted}} to deprecate modification of \textquotesingle{}secure\textquotesingle{} cookies from non-\/secure origins. Both of these drafts have been incorporated into a proposal to \href{https://tools.ietf.org/html/draft-ietf-httpbis-rfc6265bis-02}{\texttt{ replace}} RFC6265. \mbox{\hyperlink{struct_cookie}{Cookie}} prefixes and secure cookie modification protection has been implemented by curl.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md962}{}\doxysection{Cookies saved to disk}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md962}
+Netscape once created a file format for storing cookies on disk so that they would survive browser restarts. curl adopted that file format to allow sharing the cookies with browsers, only to see browsers move away from that format. Modern browsers no longer use it, while curl still does.
+
+The netscape cookie file format stores one cookie per physical line in the file with a bunch of associated meta data, each field separated with TAB. That file is called the cookiejar in curl terminology.
+
+When libcurl saves a cookiejar, it creates a file header of its own in which there is a URL mention that will link to the web version of this document.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md963}{}\doxysection{Cookie file format}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md963}
+The cookie file format is text based and stores one cookie per line. Lines that start with {\ttfamily \#} are treated as comments.
+
+Each line that each specifies a single cookie consists of seven text fields separated with TAB characters. \mbox{\hyperlink{class_a}{A}} valid line must end with a newline character.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md964}{}\doxysubsection{Fields in the file}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md964}
+Field number, what type and example data and the meaning of it\+:
+
+0. string {\ttfamily example.\+com} -\/ the domain name
+\begin{DoxyEnumerate}
+\item boolean {\ttfamily FALSE} -\/ include subdomains
+\item string {\ttfamily /foobar/} -\/ path
+\item boolean {\ttfamily TRUE} -\/ send/receive over HTTPS only
+\item number {\ttfamily 1462299217} -\/ expires at -\/ seconds since Jan 1st 1970, or 0
+\item string {\ttfamily person} -\/ name of the cookie
+\item string {\ttfamily daniel} -\/ value of the cookie
+\end{DoxyEnumerate}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md965}{}\doxysection{Cookies with curl the command line tool}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md965}
+curl has a full cookie \char`\"{}engine\char`\"{} built in. If you just activate it, you can have curl receive and send cookies exactly as mandated in the specs.
+
+Command line options\+:
+
+{\ttfamily -\/b, -\/-\/cookie}
+
+tell curl a file to read cookies from and start the cookie engine, or if it isn\textquotesingle{}t a file it will pass on the given string. -\/b name=var works and so does -\/b cookiefile.
+
+{\ttfamily -\/j, -\/-\/junk-\/session-\/cookies}
+
+when used in combination with -\/b, it will skip all \char`\"{}session cookies\char`\"{} on load so as to appear to start a new cookie session.
+
+{\ttfamily -\/c, -\/-\/cookie-\/jar}
+
+tell curl to start the cookie engine and write cookies to the given file after the request(s)\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md966}{}\doxysection{Cookies with libcurl}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md966}
+libcurl offers several ways to enable and interface the cookie engine. These options are the ones provided by the native API. libcurl bindings may offer access to them using other means.
+
+{\ttfamily CURLOPT\+\_\+\+COOKIE}
+
+Is used when you want to specify the exact contents of a cookie header to send to the server.
+
+{\ttfamily CURLOPT\+\_\+\+COOKIEFILE}
+
+Tell libcurl to activate the cookie engine, and to read the initial set of cookies from the given file. Read-\/only.
+
+{\ttfamily CURLOPT\+\_\+\+COOKIEJAR}
+
+Tell libcurl to activate the cookie engine, and when the easy handle is closed save all known cookies to the given cookiejar file. Write-\/only.
+
+{\ttfamily CURLOPT\+\_\+\+COOKIELIST}
+
+Provide detailed information about a single cookie to add to the internal storage of cookies. Pass in the cookie as a \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} header with all the details set, or pass in a line from a netscape cookie file. This option can also be used to flush the cookies etc.
+
+{\ttfamily CURLINFO\+\_\+\+COOKIELIST}
+
+Extract cookie information from the internal cookie storage as a linked list.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md967}{}\doxysection{Cookies with javascript}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_t_t_p__c_o_o_k_i_e_s_autotoc_md967}
+These days a lot of the web is built up by javascript. The webbrowser loads complete programs that render the page you see. These javascript programs can also set and access cookies.
+
+Since curl and libcurl are plain \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} clients without any knowledge of or capability to handle javascript, such cookies will not be detected or used.
+
+Often, if you want to mimic what a browser does on such websites, you can record web browser \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} traffic when using such a site and then repeat the cookie operations using curl or libcurl. 

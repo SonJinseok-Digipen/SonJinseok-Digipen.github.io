@@ -1,0 +1,277 @@
+\hypertarget{tool__loop_8h_source}{}\doxysection{tool\+\_\+loop.\+h}
+\label{tool__loop_8h_source}\index{AseSprite/aseprite/src/app/tools/tool\_loop.h@{AseSprite/aseprite/src/app/tools/tool\_loop.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2017\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_TOOLS\_TOOL\_LOOP\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_TOOLS\_TOOL\_LOOP\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/shade.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/util/tiled\_mode.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}app/tools/dynamics.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}app/tools/stroke.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}app/tools/tool\_loop\_modifiers.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}app/tools/trace\_policy.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/brush.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}doc/color.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}doc/frame.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}doc/grid.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}filters/tiled\_mode.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}gfx/point.h"{}}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ "{}gfx/rect.h"{}}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}render/gradient.h"{}}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{namespace\ }gfx\ \{}
+\DoxyCodeLine{00028\ \ \ \textcolor{keyword}{class\ }Region;}
+\DoxyCodeLine{00029\ \}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00032\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{class\ }Layer;}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{class\ }Mask;}
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{class\ }Palette;}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{class\ }Remap;}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{class\ }RgbMap;}
+\DoxyCodeLine{00038\ \ \ \textcolor{keyword}{class\ }Slice;}
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00040\ \ \ \textcolor{keyword}{class\ }Tileset;}
+\DoxyCodeLine{00041\ \}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{namespace\ }render\ \{}
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{class\ }DitheringAlgorithmBase;}
+\DoxyCodeLine{00045\ \ \ \textcolor{keyword}{class\ }DitheringMatrix;}
+\DoxyCodeLine{00046\ \}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00049\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00050\ \ \ \textcolor{keyword}{class\ }Doc;}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \textcolor{keyword}{namespace\ }tools\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{class\ }Controller;}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keyword}{class\ }Ink;}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{class\ }Intertwine;}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keyword}{class\ }PointShape;}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keyword}{class\ }Symmetry;}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keyword}{class\ }Tool;}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{using\ namespace\ }doc;}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{comment}{//\ Interface\ to\ communicate\ the\ sprite\ editor\ with\ the\ tool\ when\ the\ user}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ starts\ using\ a\ tool\ to\ paint,\ select,\ pick\ color,\ etc.}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{comment}{//\ All\ this\ information\ should\ be\ provided\ by\ the\ editor\ and\ consumed}}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{comment}{//\ by\ the\ tool\ (+controller+intertwiner+pointshape+ink).}}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{comment}{//\ TODO\ This\ interface\ is\ huge,\ it\ should\ be\ refactored.}}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}\ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \textcolor{keyword}{enum}\ Button\ \{\ Left\ =\ 0,\ Right\ =\ 1\ \};}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{\string~ToolLoop}}()\ \{\ \}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ commit()\ =\ 0;}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ rollback()\ =\ 0;}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ tool\ to\ use\ to\ draw\ or\ use}}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_tool}{Tool}}*\ getTool()\ =\ 0;}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ brush\ which\ will\ be\ used\ with\ the\ tool}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_brush}{Brush}}*\ getBrush()\ =\ 0;}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setBrush(\textcolor{keyword}{const}\ BrushRef\&\ newBrush)\ =\ 0;}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ document\ to\ which\ belongs\ the\ sprite.}}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ getDocument()\ =\ 0;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ sprite\ where\ we\ will\ draw\ on}}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_sprite}{Sprite}}*\ sprite()\ =\ 0;}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ layer\ that\ will\ be\ modified\ if\ the\ tool\ paints}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_layer}{Layer}}*\ getLayer()\ =\ 0;}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_cel}{Cel}}*\ getCel()\ =\ 0;}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ current\ mode\ is\ TileMap\ (false\ =\ Pixels)}}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ isTilemapMode()\ =\ 0;}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ isManualTilesetMode()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ frame\ where\ we're\ paiting}}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ frame\_t\ getFrame()\ =\ 0;}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \textcolor{comment}{//\ Should\ return\ an\ image\ where\ we\ can\ read\ pixels\ (readonly\ image)}}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ getSrcImage()\ =\ 0;}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \textcolor{comment}{//\ The\ image\ used\ to\ get\ get\ pixels\ in\ floodfill\ algorithm.}}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ getFloodFillSrcImage()\ =\ 0;}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \textcolor{comment}{//\ Should\ return\ an\ image\ where\ we\ can\ write\ pixels}}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ getDstImage()\ =\ 0;}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \textcolor{comment}{//\ Can\ return\ a\ tileset\ used\ for\ preview\ purposes\ in\ Manual}}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \textcolor{comment}{//\ tiles\ mode\ (to\ show\ a\ preview\ modifying\ all\ instances\ of\ the}}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \textcolor{comment}{//\ same\ tile\ at\ the\ same\ time).}}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_tileset}{Tileset}}*\ getDstTileset()\ =\ 0;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \textcolor{comment}{//\ Makes\ the\ specified\ region\ valid\ in\ the\ source}}
+\DoxyCodeLine{00119\ \ \ \ \ \ \ \textcolor{comment}{//\ image.\ Basically\ the\ implementation\ should\ copy\ from\ the}}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \textcolor{comment}{//\ original\ cel\ the\ given\ region\ to\ the\ source\ image.\ The\ source}}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \textcolor{comment}{//\ image\ is\ used\ by\ inks\ to\ create\ blur\ effects\ or\ similar.}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ validateSrcImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn)\ =\ 0;}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \textcolor{comment}{//\ Makes\ the\ specified\ destination\ image\ region\ valid\ to\ be}}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \textcolor{comment}{//\ painted.\ The\ destination\ image\ is\ used\ by\ inks\ to\ compose\ the}}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \textcolor{comment}{//\ brush,\ so\ we've\ to\ make\ sure\ that\ the\ destination\ image}}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \textcolor{comment}{//\ matches\ the\ original\ cel\ when\ we\ make\ that\ composition.}}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ validateDstImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn)\ =\ 0;}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ validateDstTileset(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn)\ =\ 0;}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \textcolor{comment}{//\ Invalidates\ the\ whole\ destination\ image.\ It's\ used\ for\ tools}}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \textcolor{comment}{//\ like\ line\ or\ rectangle\ which\ don't\ accumulate\ the\ effect\ so}}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \textcolor{comment}{//\ they\ need\ to\ start\ with\ a\ fresh\ destination\ image\ on\ each}}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \textcolor{comment}{//\ loop\ step/cycle.}}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ invalidateDstImage()\ =\ 0;}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ invalidateDstImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn)\ =\ 0;}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \textcolor{comment}{//\ Copies\ the\ given\ region\ from\ the\ destination\ to\ the\ source}}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \textcolor{comment}{//\ image,\ used\ by\ "{}overlap"{}\ tools\ like\ jumble\ or\ spray.}}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ copyValidDstToSrcImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn)\ =\ 0;}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ current\ Palette.}}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ getPalette()\ =\ 0;}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ RGB\ map\ used\ to\ convert\ RGB\ values\ to\ palette\ index.}}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ getRgbMap()\ =\ 0;}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ we\ should\ use\ the\ mask\ to\ limit\ the\ paint\ area.}}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ useMask()\ =\ 0;}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \textcolor{comment}{//\ Current\ mask\ to\ limit\ paint\ area}}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classdoc_1_1_mask}{Mask}}*\ getMask()\ =\ 0;}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setMask(\mbox{\hyperlink{classdoc_1_1_mask}{Mask}}*\ newMask)\ =\ 0;}
+\DoxyCodeLine{00154\ }
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \textcolor{comment}{//\ Gets\ mask\ X,Y\ origin\ coordinates}}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ getMaskOrigin()\ =\ 0;}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \textcolor{comment}{//\ Return\ the\ mouse\ button\ which\ start\ the\ tool-\/loop.\ It\ can\ be\ used}}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \textcolor{comment}{//\ by\ some\ tools\ that\ instead\ of\ using\ the\ primary/secondary\ color}}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \textcolor{comment}{//\ uses\ the\ pressed\ button\ for\ different\ behavior\ (like\ selection}}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \textcolor{comment}{//\ tools).}}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ Button\ getMouseButton()\ =\ 0;}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ active\ foreground/background\ color\ (certain\ tools}}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \textcolor{comment}{//\ needs\ to\ know\ the\ exact\ foreground/background\ color,\ they}}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \textcolor{comment}{//\ cannot\ used\ the\ primary/secondary).}}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ doc::color\_t\ getFgColor()\ =\ 0;}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ doc::color\_t\ getBgColor()\ =\ 0;}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \textcolor{comment}{//\ Primary\ color\ to\ draw\ (e.g.\ foreground\ if\ the\ user\ start\ drawing}}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \textcolor{comment}{//\ with\ the\ left\ button,\ or\ background\ color\ if\ he\ used\ the\ right}}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \textcolor{comment}{//\ button)}}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ doc::color\_t\ getPrimaryColor()\ =\ 0;}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setPrimaryColor(doc::color\_t\ color)\ =\ 0;}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \textcolor{comment}{//\ Secondary\ color\ to\ draw\ (e.g.\ background\ if\ the\ user\ start\ drawing}}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \textcolor{comment}{//\ with\ the\ left\ button,\ or\ foreground\ color\ if\ he\ used\ the\ right}}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \textcolor{comment}{//\ button)}}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ doc::color\_t\ getSecondaryColor()\ =\ 0;}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setSecondaryColor(doc::color\_t\ color)\ =\ 0;}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ opacity\ to\ be\ used\ by\ the\ ink\ (Ink).}}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ getOpacity()\ =\ 0;}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ tolerance\ to\ be\ used\ by\ the\ ink\ (Ink).}}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ getTolerance()\ =\ 0;}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ flood\ fill\ algorithm\ should\ take\ care}}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \textcolor{comment}{//\ contiguous\ pixels\ or\ not.}}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ getContiguous()\ =\ 0;}
+\DoxyCodeLine{00191\ }
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ flags/modifiers\ that\ change\ the\ way\ each\ part\ of\ the}}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \textcolor{comment}{//\ tool\ (ink/controllers/etc.)\ work.}}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ tools::ToolLoopModifiers\ getModifiers()\ =\ 0;}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ preferred\ "{}tiled"{}\ mode\ of\ the\ document.}}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \textcolor{comment}{//\ See\ the\ method\ PointShape::doInkHline\ to\ check\ how\ this\ member\ is}}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \textcolor{comment}{//\ used.\ When\ tiled\ mode\ is\ activated,\ each\ scanline\ can\ be\ divided}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \textcolor{comment}{//\ in\ various\ sub-\/lines\ if\ they\ pass\ the\ image\ bounds.\ For\ each\ of}}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \textcolor{comment}{//\ these\ scanlines\ a\ Ink::inkHline\ is\ called}}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ filters::TiledMode\ getTiledMode()\ =\ 0;}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ getGridVisible()\ =\ 0;}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ getSnapToGrid()\ =\ 0;}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ isSelectingTiles()\ =\ 0;}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ getStopAtGrid()\ =\ 0;\ \textcolor{comment}{//\ For\ floodfill-\/like\ tools}}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_grid}{doc::Grid}}\&\ getGrid()\ \textcolor{keyword}{const}\ =\ 0;}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getGridBounds()\ =\ 0;}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ isPixelConnectivityEightConnected()\ =\ 0;}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ figure\ must\ be\ filled\ when\ we\ release\ the}}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \textcolor{comment}{//\ mouse\ (e.g.\ a\ filled\ rectangle,\ etc.)}}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \textcolor{comment}{//\ To\ fill\ a\ shape,\ the\ Intertwine::fillPoints\ function\ is\ used.}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ getFilled()\ =\ 0;}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ preview\ should\ be\ with\ filled\ shapes.}}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ getPreviewFilled()\ =\ 0;}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \textcolor{comment}{//\ Spray\ configuration}}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ getSprayWidth()\ =\ 0;}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{int}\ getSpraySpeed()\ =\ 0;}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \ \ \ \ \textcolor{comment}{//\ X,Y\ origin\ of\ the\ cel\ where\ we\ are\ drawing}}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ getCelOrigin()\ =\ 0;}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ needsCelCoordinates()\ =\ 0;}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \textcolor{comment}{//\ Velocity\ vector\ of\ the\ mouse}}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ setSpeed(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ speed)\ =\ 0;}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ getSpeed()\ =\ 0;}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ ink\ to\ use\ with\ the\ tool.\ Each\ tool\ has\ an\ associated}}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \textcolor{comment}{//\ ink,\ but\ it\ could\ be\ modified\ for\ this\ specific\ loop,\ so}}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \textcolor{comment}{//\ generally\ you\ should\ return\ the\ same\ ink\ as\ the\ tool,\ but\ it\ can}}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \textcolor{comment}{//\ be\ different.\ The\ same\ for\ the\ other\ properties.}}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_ink}{Ink}}*\ getInk()\ =\ 0;}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_controller}{Controller}}*\ getController()\ =\ 0;}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_point_shape}{PointShape}}*\ getPointShape()\ =\ 0;}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_intertwine}{Intertwine}}*\ getIntertwine()\ =\ 0;}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ TracePolicy\ getTracePolicy()\ =\ 0;}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_symmetry}{Symmetry}}*\ getSymmetry()\ =\ 0;}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ Shade\&\ getShade()\ =\ 0;}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_remap}{doc::Remap}}*\ getShadingRemap()\ =\ 0;}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ limitDirtyAreaToViewport(\mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ rgn)\ =\ 0;}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \textcolor{comment}{//\ Redraws\ the\ dirty\ area.}}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ updateDirtyArea(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_region}{gfx::Region}}\&\ dirtyArea)\ =\ 0;}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ updateStatusBar(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ text)\ =\ 0;}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ statusBarPositionOffset()\ =\ 0;}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \textcolor{comment}{//\ For\ gradients}}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classrender_1_1_dithering_matrix}{render::DitheringMatrix}}\ getDitheringMatrix()\ =\ 0;}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classrender_1_1_dithering_algorithm_base}{render::DitheringAlgorithmBase}}*\ getDitheringAlgorithm()\ =\ 0;}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ render::GradientType\ getGradientType()\ =\ 0;}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \ \ \ \ \textcolor{comment}{//\ For\ freehand\ algorithms\ with\ dynamics}}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{structapp_1_1tools_1_1_dynamics_options}{tools::DynamicsOptions}}\ getDynamics()\ =\ 0;}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \textcolor{comment}{//\ Called\ when\ the\ user\ release\ the\ mouse\ on\ SliceInk}}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onSliceRect(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds)\ =\ 0;}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \textcolor{keyword}{virtual}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_tiled_mode_helper}{app::TiledModeHelper}}\&\ getTiledModeHelper()\ =\ 0;}
+\DoxyCodeLine{00266\ \ \ \ \ \};}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \}\ \textcolor{comment}{//\ namespace\ tools}}
+\DoxyCodeLine{00269\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ TOOLS\_TOOL\_LOOP\_H\_INCLUDED}}
+
+\end{DoxyCode}

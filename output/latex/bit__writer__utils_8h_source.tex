@@ -1,0 +1,160 @@
+\hypertarget{bit__writer__utils_8h_source}{}\doxysection{bit\+\_\+writer\+\_\+utils.\+h}
+\label{bit__writer__utils_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/utils/bit\_writer\_utils.h@{AseSprite/aseprite/third\_party/libwebp/src/utils/bit\_writer\_utils.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2011\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Bit\ writing\ and\ boolean\ coder}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_UTILS\_BIT\_WRITER\_UTILS\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_UTILS\_BIT\_WRITER\_UTILS\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00020\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00024\ \textcolor{comment}{//\ Bit-\/writing}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}\ \mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}};}
+\DoxyCodeLine{00027\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}\ \{}
+\DoxyCodeLine{00028\ \ \ int32\_t\ \ range\_;\ \ \ \ \ \ \textcolor{comment}{//\ range-\/1}}
+\DoxyCodeLine{00029\ \ \ int32\_t\ \ value\_;}
+\DoxyCodeLine{00030\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ run\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ number\ of\ outstanding\ bits}}
+\DoxyCodeLine{00031\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ nb\_bits\_;\ \ \ \ \textcolor{comment}{//\ number\ of\ pending\ bits}}
+\DoxyCodeLine{00032\ \ \ uint8\_t*\ buf\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ internal\ buffer.\ Re-\/allocated\ regularly.\ Not\ owned.}}
+\DoxyCodeLine{00033\ \ \ \textcolor{keywordtype}{size\_t}\ \ \ pos\_;}
+\DoxyCodeLine{00034\ \ \ \textcolor{keywordtype}{size\_t}\ \ \ max\_pos\_;}
+\DoxyCodeLine{00035\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ error\_;\ \ \ \ \ \ \textcolor{comment}{//\ true\ in\ case\ of\ error}}
+\DoxyCodeLine{00036\ \};}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ Initialize\ the\ object.\ Allocates\ some\ initial\ memory\ based\ on\ expected\_size.}}
+\DoxyCodeLine{00039\ \textcolor{keywordtype}{int}\ VP8BitWriterInit(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw,\ \textcolor{keywordtype}{size\_t}\ expected\_size);}
+\DoxyCodeLine{00040\ \textcolor{comment}{//\ Finalize\ the\ bitstream\ coding.\ Returns\ a\ pointer\ to\ the\ internal\ buffer.}}
+\DoxyCodeLine{00041\ uint8\_t*\ VP8BitWriterFinish(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw);}
+\DoxyCodeLine{00042\ \textcolor{comment}{//\ Release\ any\ pending\ memory\ and\ zeroes\ the\ object.\ Not\ a\ mandatory\ call.}}
+\DoxyCodeLine{00043\ \textcolor{comment}{//\ Only\ useful\ in\ case\ of\ error,\ when\ the\ internal\ buffer\ hasn't\ been\ grabbed!}}
+\DoxyCodeLine{00044\ \textcolor{keywordtype}{void}\ VP8BitWriterWipeOut(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw);}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keywordtype}{int}\ VP8PutBit(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw,\ \textcolor{keywordtype}{int}\ bit,\ \textcolor{keywordtype}{int}\ prob);}
+\DoxyCodeLine{00047\ \textcolor{keywordtype}{int}\ VP8PutBitUniform(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw,\ \textcolor{keywordtype}{int}\ bit);}
+\DoxyCodeLine{00048\ \textcolor{keywordtype}{void}\ VP8PutBits(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw,\ uint32\_t\ \mbox{\hyperlink{classvalue}{value}},\ \textcolor{keywordtype}{int}\ nb\_bits);}
+\DoxyCodeLine{00049\ \textcolor{keywordtype}{void}\ VP8PutSignedBits(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{classvalue}{value}},\ \textcolor{keywordtype}{int}\ nb\_bits);}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{comment}{//\ Appends\ some\ bytes\ to\ the\ internal\ buffer.\ Data\ is\ copied.}}
+\DoxyCodeLine{00052\ \textcolor{keywordtype}{int}\ VP8BitWriterAppend(\mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw,}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{//\ return\ approximate\ write\ position\ (in\ bits)}}
+\DoxyCodeLine{00056\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint64\_t\ VP8BitWriterPos(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw)\ \{}
+\DoxyCodeLine{00057\ \ \ \textcolor{keyword}{const}\ uint64\_t\ nb\_bits\ =\ 8\ +\ bw-\/>nb\_bits\_;\ \ \ \textcolor{comment}{//\ bw-\/>nb\_bits\_\ is\ <=\ 0,\ note}}
+\DoxyCodeLine{00058\ \ \ \textcolor{keywordflow}{return}\ (bw-\/>pos\_\ +\ bw-\/>run\_)\ *\ 8\ +\ nb\_bits;}
+\DoxyCodeLine{00059\ \}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{comment}{//\ Returns\ a\ pointer\ to\ the\ internal\ buffer.}}
+\DoxyCodeLine{00062\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint8\_t*\ VP8BitWriterBuf(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw)\ \{}
+\DoxyCodeLine{00063\ \ \ \textcolor{keywordflow}{return}\ bw-\/>buf\_;}
+\DoxyCodeLine{00064\ \}}
+\DoxyCodeLine{00065\ \textcolor{comment}{//\ Returns\ the\ size\ of\ the\ internal\ buffer.}}
+\DoxyCodeLine{00066\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{size\_t}\ VP8BitWriterSize(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_bit_writer}{VP8BitWriter}}*\ \textcolor{keyword}{const}\ bw)\ \{}
+\DoxyCodeLine{00067\ \ \ \textcolor{keywordflow}{return}\ bw-\/>pos\_;}
+\DoxyCodeLine{00068\ \}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00071\ \textcolor{comment}{//\ VP8LBitWriter}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#if\ defined(\_\_x86\_64\_\_)\ ||\ defined(\_M\_X64)\ \ \ }\textcolor{comment}{//\ 64bit}}
+\DoxyCodeLine{00074\ \textcolor{keyword}{typedef}\ uint64\_t\ vp8l\_atype\_t;\ \ \ \textcolor{comment}{//\ accumulator\ type}}
+\DoxyCodeLine{00075\ \textcolor{keyword}{typedef}\ uint32\_t\ vp8l\_wtype\_t;\ \ \ \textcolor{comment}{//\ writing\ type}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#define\ WSWAP\ HToLE32}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ VP8L\_WRITER\_BYTES\ \ \ \ 4\ \ \ }\textcolor{comment}{//\ sizeof(vp8l\_wtype\_t)}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#define\ VP8L\_WRITER\_BITS\ \ \ \ \ 32\ \ }\textcolor{comment}{//\ 8\ *\ sizeof(vp8l\_wtype\_t)}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ VP8L\_WRITER\_MAX\_BITS\ 64\ \ }\textcolor{comment}{//\ 8\ *\ sizeof(vp8l\_atype\_t)}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00081\ \textcolor{keyword}{typedef}\ uint32\_t\ vp8l\_atype\_t;}
+\DoxyCodeLine{00082\ \textcolor{keyword}{typedef}\ uint16\_t\ vp8l\_wtype\_t;}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#define\ WSWAP\ HToLE16}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#define\ VP8L\_WRITER\_BYTES\ \ \ \ 2}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ VP8L\_WRITER\_BITS\ \ \ \ \ 16}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ VP8L\_WRITER\_MAX\_BITS\ 32}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00090\ \ \ vp8l\_atype\_t\ bits\_;\ \ \ \textcolor{comment}{//\ bit\ accumulator}}
+\DoxyCodeLine{00091\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ used\_;\ \ \ \textcolor{comment}{//\ number\ of\ bits\ used\ in\ accumulator}}
+\DoxyCodeLine{00092\ \ \ uint8\_t*\ \ \ \ \ buf\_;\ \ \ \ \textcolor{comment}{//\ start\ of\ buffer}}
+\DoxyCodeLine{00093\ \ \ uint8\_t*\ \ \ \ \ cur\_;\ \ \ \ \textcolor{comment}{//\ current\ write\ position}}
+\DoxyCodeLine{00094\ \ \ uint8\_t*\ \ \ \ \ end\_;\ \ \ \ \textcolor{comment}{//\ end\ of\ buffer}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \textcolor{comment}{//\ After\ all\ bits\ are\ written\ (VP8LBitWriterFinish()),\ the\ caller\ must\ observe}}
+\DoxyCodeLine{00097\ \ \ \textcolor{comment}{//\ the\ state\ of\ error\_.\ A\ value\ of\ 1\ indicates\ that\ a\ memory\ allocation}}
+\DoxyCodeLine{00098\ \ \ \textcolor{comment}{//\ failure\ has\ happened\ during\ bit\ writing.\ A\ value\ of\ 0\ indicates\ successful}}
+\DoxyCodeLine{00099\ \ \ \textcolor{comment}{//\ writing\ of\ bits.}}
+\DoxyCodeLine{00100\ \ \ \textcolor{keywordtype}{int}\ error\_;}
+\DoxyCodeLine{00101\ \}\ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}};}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{size\_t}\ VP8LBitWriterNumBytes(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw)\ \{}
+\DoxyCodeLine{00104\ \ \ \textcolor{keywordflow}{return}\ (bw-\/>cur\_\ -\/\ bw-\/>buf\_)\ +\ ((bw-\/>used\_\ +\ 7)\ >>\ 3);}
+\DoxyCodeLine{00105\ \}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ memory\ allocation\ error.}}
+\DoxyCodeLine{00108\ \textcolor{keywordtype}{int}\ VP8LBitWriterInit(\mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw,\ \textcolor{keywordtype}{size\_t}\ expected\_size);}
+\DoxyCodeLine{00109\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ memory\ allocation\ error.}}
+\DoxyCodeLine{00110\ \textcolor{keywordtype}{int}\ VP8LBitWriterClone(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ src,}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ dst);}
+\DoxyCodeLine{00112\ \textcolor{comment}{//\ Finalize\ the\ bitstream\ coding.\ Returns\ a\ pointer\ to\ the\ internal\ buffer.}}
+\DoxyCodeLine{00113\ uint8\_t*\ VP8LBitWriterFinish(\mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw);}
+\DoxyCodeLine{00114\ \textcolor{comment}{//\ Release\ any\ pending\ memory\ and\ zeroes\ the\ object.}}
+\DoxyCodeLine{00115\ \textcolor{keywordtype}{void}\ VP8LBitWriterWipeOut(\mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw);}
+\DoxyCodeLine{00116\ \textcolor{comment}{//\ Resets\ the\ cursor\ of\ the\ BitWriter\ bw\ to\ when\ it\ was\ like\ in\ bw\_init.}}
+\DoxyCodeLine{00117\ \textcolor{keywordtype}{void}\ VP8LBitWriterReset(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw\_init,}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw);}
+\DoxyCodeLine{00119\ \textcolor{comment}{//\ Swaps\ the\ memory\ held\ by\ two\ BitWriters.}}
+\DoxyCodeLine{00120\ \textcolor{keywordtype}{void}\ VP8LBitWriterSwap(\mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ src,\ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ dst);}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{comment}{//\ Internal\ function\ for\ VP8LPutBits\ flushing\ 32\ bits\ from\ the\ written\ state.}}
+\DoxyCodeLine{00123\ \textcolor{keywordtype}{void}\ VP8LPutBitsFlushBits(\mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw);}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{//\ PutBits\ internal\ function\ used\ in\ the\ 16\ bit\ vp8l\_wtype\_t\ case.}}
+\DoxyCodeLine{00126\ \textcolor{keywordtype}{void}\ VP8LPutBitsInternal(\mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw,\ uint32\_t\ bits,\ \textcolor{keywordtype}{int}\ n\_bits);}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{comment}{//\ This\ function\ writes\ bits\ into\ bytes\ in\ increasing\ addresses\ (little\ endian),}}
+\DoxyCodeLine{00129\ \textcolor{comment}{//\ and\ within\ a\ byte\ least-\/significant-\/bit\ first.}}
+\DoxyCodeLine{00130\ \textcolor{comment}{//\ This\ function\ can\ write\ up\ to\ 32\ bits\ in\ one\ go,\ but\ VP8LBitReader\ can\ only}}
+\DoxyCodeLine{00131\ \textcolor{comment}{//\ read\ 24\ bits\ max\ (VP8L\_MAX\_NUM\_BIT\_READ).}}
+\DoxyCodeLine{00132\ \textcolor{comment}{//\ VP8LBitWriter's\ error\_\ flag\ is\ set\ in\ case\ of\ \ memory\ allocation\ error.}}
+\DoxyCodeLine{00133\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8LPutBits(\mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw,}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ bits,\ \textcolor{keywordtype}{int}\ n\_bits)\ \{}
+\DoxyCodeLine{00135\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}(vp8l\_wtype\_t)\ ==\ 4)\ \{}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\_bits\ >\ 0)\ \{}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (bw-\/>used\_\ >=\ 32)\ \{}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ VP8LPutBitsFlushBits(bw);}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ bw-\/>bits\_\ |=\ (vp8l\_atype\_t)bits\ <<\ bw-\/>used\_;}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ bw-\/>used\_\ +=\ n\_bits;}
+\DoxyCodeLine{00142\ \ \ \ \ \}}
+\DoxyCodeLine{00143\ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00144\ \ \ \ \ VP8LPutBitsInternal(bw,\ bits,\ n\_bits);}
+\DoxyCodeLine{00145\ \ \ \}}
+\DoxyCodeLine{00146\ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00151\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_UTILS\_BIT\_WRITER\_UTILS\_H\_}}
+
+\end{DoxyCode}

@@ -1,0 +1,653 @@
+.TH "md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_usage \- Examples 
+.PP
+The \fC\fIws\fP\fP folder countains many interactive programs for chat, \fCfile transfers\fP, \fCcurl like\fP http clients, demonstrating client and server usage\&.
+.SH "Windows note"
+.PP
+To use the network system on Windows, you need to initialize it once with \fIWSAStartup()\fP and clean it up with \fIWSACleanup()\fP\&. We have helpers for that which you can use, see below\&. This init would typically take place in your main function\&.
+.PP
+.PP
+.nf
+#include <ixwebsocket/IXNetSystem\&.h>
+
+int main()
+{
+    ix::initNetSystem();
+
+    \&.\&.\&.
+
+    ix::uninitNetSystem();
+    return 0;
+}
+.fi
+.PP
+.SH "WebSocket client API"
+.PP
+.PP
+.nf
+#include <ixwebsocket/IXWebSocket\&.h>
+
+\&.\&.\&.
+
+// Our websocket object
+ix::WebSocket webSocket;
+
+std::string url("ws://localhost:8080/");
+webSocket\&.setUrl(url);
+
+// Optional heart beat, sent every 45 seconds when there is not any traffic
+// to make sure that load balancers do not kill an idle connection\&.
+webSocket\&.setPingInterval(45);
+
+// Per message deflate connection is enabled by default\&. You can tweak its parameters or disable it
+webSocket\&.disablePerMessageDeflate();
+
+// Setup a callback to be fired when a message or an event (open, close, error) is received
+webSocket\&.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
+    {
+        if (msg\->type == ix::WebSocketMessageType::Message)
+        {
+            std::cout << msg\->str << std::endl;
+        }
+    }
+);
+
+// Now that our callback is setup, we can start our background thread and receive messages
+webSocket\&.start();
+
+// Send a message to the server (default to TEXT mode)
+webSocket\&.send("hello world");
+
+// The message can be sent in BINARY mode (useful if you send MsgPack data for example)
+webSocket\&.sendBinary("some serialized binary data");
+
+// \&.\&.\&. finally \&.\&.\&.
+
+// Stop the connection
+webSocket\&.stop()
+.fi
+.PP
+.SS "Sending messages"
+\fCWebSocketSendInfo result = websocket\&.send('foo')\fP will send a message\&.
+.PP
+If the connection was closed, sending will fail, and the success field of the result object will be set to false\&. There could also be a compression error in which case the compressError field will be set to true\&. The payloadSize field and wireSize fields will tell you respectively how much bytes the message weight, and how many bytes were sent on the wire (potentially compressed + counting the message header (a few bytes)\&.
+.PP
+There is an optional progress callback that can be passed in as the second argument\&. If a message is large it will be fragmented into chunks which will be sent independantly\&. Everytime the we can write a fragment into the OS network cache, the callback will be invoked\&. If a user wants to cancel a slow send, false should be returned from within the callback\&.
+.PP
+Here is an example code snippet copied from the ws send sub-command\&. Each fragment weights 32K, so the total integer is the wireSize divided by 32K\&. As an example if you are sending 32M of data, uncompressed, total will be 1000\&. current will be set to 0 for the first fragment, then 1, 2 etc\&.\&.\&.
+.PP
+.PP
+.nf
+auto result =
+    _webSocket\&.sendBinary(serializedMsg, [this, throttle](int current, int total) \-> bool {
+        spdlog::info("ws_send: Step {} out of {}", current + 1, total);
+
+        if (throttle)
+        {
+            std::chrono::duration<double, std::milli> duration(10);
+            std::this_thread::sleep_for(duration);
+        }
+
+        return _connected;
+    });
+.fi
+.PP
+.PP
+The \fCsend()\fP and \fCsendText()\fP methods check that the string contains only valid UTF-8 characters\&. If you know that the string is a valid UTF-8 string you can skip that step and use the \fCsendUtf8Text\fP method instead\&.
+.PP
+With the IXWebSocketSendData overloads of \fCsendUtf8Text\fP and \fCsendBinary\fP it is possible to not only send std::string but also \fCstd::vector<char>\fP, \fCstd::vector<uint8_t>\fP and \fCchar*\fP\&.
+.PP
+.PP
+.nf
+std::vector<uint8_t> data({1, 2, 3, 4});
+auto result = webSocket\&.sendBinary(data);
+
+const char* text = "Hello World!";
+result = webSocket\&.sendUtf8Text(IXWebSocketSendData(text, strlen(text)));
+.fi
+.PP
+.SS "ReadyState"
+\fCgetReadyState()\fP returns the state of the connection\&. There are 4 possible states\&.
+.PP
+.IP "1." 4
+ReadyState::Connecting - The connection is not yet open\&.
+.IP "2." 4
+ReadyState::Open - The connection is open and ready to communicate\&.
+.IP "3." 4
+ReadyState::Closing - The connection is in the process of closing\&.
+.IP "4." 4
+ReadyState::Closed - The connection is closed or could not be opened\&.
+.PP
+.SS "Open and Close notifications"
+The onMessage event will be fired when the connection is opened or closed\&. This is similar to the \fCJavaScript browser API\fP, which has \fCopen\fP and \fCclose\fP events notification that can be registered with the browser \fCaddEventListener\fP\&.
+.PP
+.PP
+.nf
+webSocket\&.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
+    {
+        if (msg\->type == ix::WebSocketMessageType::Open)
+        {
+            std::cout << "send greetings" << std::endl;
+
+            // Headers can be inspected (pairs of string/string)
+            std::cout << "Handshake Headers:" << std::endl;
+            for (auto it : msg\->headers)
+            {
+                std::cout << it\&.first << ": " << it\&.second << std::endl;
+            }
+        }
+        else if (msg\->type == ix::WebSocketMessageType::Close)
+        {
+            std::cout << "disconnected" << std::endl;
+
+            // The server can send an explicit code and reason for closing\&.
+            // This data can be accessed through the closeInfo object\&.
+            std::cout << msg\->closeInfo\&.code << std::endl;
+            std::cout << msg\->closeInfo\&.reason << std::endl;
+        }
+    }
+);
+.fi
+.PP
+.SS "Error notification"
+\fBA\fP message will be fired when there is an error with the connection\&. The message type will be \fCix::WebSocketMessageType::Error\fP\&. Multiple fields will be available on the event to describe the error\&.
+.PP
+.PP
+.nf
+webSocket\&.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
+    {
+        if (msg\->type == ix::WebSocketMessageType::Error)
+        {
+            std::stringstream ss;
+            ss << "Error: "         << msg\->errorInfo\&.reason      << std::endl;
+            ss << "#retries: "      << msg\->errorInfo\&.retries     << std::endl;
+            ss << "Wait time(ms): " << msg\->errorInfo\&.wait_time   << std::endl;
+            ss << "HTTP Status: "   << msg\->errorInfo\&.http_status << std::endl;
+            std::cout << ss\&.str() << std::endl;
+        }
+    }
+);
+.fi
+.PP
+.SS "start, stop"
+.IP "1." 4
+\fCwebsocket\&.start()\fP connect to the remote server and starts the message receiving background thread\&.
+.IP "2." 4
+\fCwebsocket\&.stop()\fP disconnect from the remote server and closes the background thread\&.
+.PP
+.SS "Configuring the remote url"
+The url can be set and queried after a websocket object has been created\&. You will have to call \fCstop\fP and \fCstart\fP if you want to disconnect and connect to that new url\&.
+.PP
+.PP
+.nf
+std::string url("wss://example\&.com");
+websocket\&.configure(url);
+.fi
+.PP
+.SS "Ping/Pong support"
+Ping/pong messages are used to implement keep-alive\&. 2 message types exists to identify ping and pong messages\&. Note that when a ping message is received, a pong is instantly send back as requested by the WebSocket spec\&.
+.PP
+.PP
+.nf
+webSocket\&.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
+    {
+        if (msg\->type == ix::WebSocketMessageType::Ping ||
+            msg\->type == ix::WebSocketMessageType::Pong)
+        {
+            std::cout << "pong data: " << msg\->str << std::endl;
+        }
+    }
+);
+.fi
+.PP
+.PP
+\fBA\fP ping message can be sent to the server, with an optional data string\&.
+.PP
+.PP
+.nf
+websocket\&.ping("ping data, optional (empty string is ok): limited to 125 bytes long");
+.fi
+.PP
+.SS "Heartbeat\&."
+You can configure an optional heart beat / keep-alive, sent every 45 seconds when there is no any traffic to make sure that load balancers do not kill an idle connection\&.
+.PP
+.PP
+.nf
+webSocket\&.setPingInterval(45);
+.fi
+.PP
+.SS "Supply extra HTTP headers\&."
+You can set extra \fBHTTP\fP headers to be sent during the WebSocket handshake\&.
+.PP
+.PP
+.nf
+WebSocketHttpHeaders headers;
+headers["foo"] = "bar";
+webSocket\&.setExtraHeaders(headers);
+.fi
+.PP
+.SS "Subprotocols"
+You can specify subprotocols to be set during the WebSocket handshake\&. For more info you can refer to \fCthis doc\fP\&.
+.PP
+.PP
+.nf
+webSocket\&.addSubprotocol("appProtocol\-v1");
+webSocket\&.addSubprotocol("appProtocol\-v2");
+.fi
+.PP
+.PP
+The protocol that the server did accept is available in the open info \fCprotocol\fP field\&.
+.PP
+.PP
+.nf
+std::cout << "protocol: " << msg\->openInfo\&.protocol << std::endl;
+.fi
+.PP
+.SS "Automatic reconnection"
+Automatic reconnection kicks in when the connection is disconnected without the user consent\&. This feature is on by default and can be turned off\&.
+.PP
+.PP
+.nf
+webSocket\&.enableAutomaticReconnection();  // turn on
+webSocket\&.disableAutomaticReconnection(); // turn off
+bool enabled = webSocket\&.isAutomaticReconnectionEnabled(); // query state
+.fi
+.PP
+.PP
+The technique to calculate wait time is called \fCexponential backoff\fP\&. Here are the default waiting times between attempts (from connecting with \fCws connect ws://foo\&.com\fP)
+.PP
+.PP
+.nf
+> Connection error: Got bad status connecting to foo\&.com, status: 301, HTTP Status line: HTTP/1\&.1 301 Moved Permanently
+
+#retries: 1
+Wait time(ms): 100
+#retries: 2
+Wait time(ms): 200
+#retries: 3
+Wait time(ms): 400
+#retries: 4
+Wait time(ms): 800
+#retries: 5
+Wait time(ms): 1600
+#retries: 6
+Wait time(ms): 3200
+#retries: 7
+Wait time(ms): 6400
+#retries: 8
+Wait time(ms): 10000
+.fi
+.PP
+.PP
+The waiting time is capped by default at 10s between 2 attempts, but that value can be changed and queried\&. The minimum waiting time can also be set\&.
+.PP
+.PP
+.nf
+webSocket\&.setMaxWaitBetweenReconnectionRetries(5 * 1000); // 5000ms = 5s
+uint32_t m = webSocket\&.getMaxWaitBetweenReconnectionRetries();
+
+webSocket\&.setMinWaitBetweenReconnectionRetries(1000); // 1000ms = 1s
+uint32_t m = webSocket\&.getMinWaitBetweenReconnectionRetries();
+.fi
+.PP
+.SH "Handshake timeout"
+.PP
+You can control how long to wait until timing out while waiting for the websocket handshake to be performed\&.
+.PP
+.PP
+.nf
+int handshakeTimeoutSecs = 1;
+setHandshakeTimeout(handshakeTimeoutSecs);
+.fi
+.PP
+.SH "WebSocket server API"
+.PP
+.SS "Legacy api"
+This api was actually changed to take a weak_ptr<WebSocket> as the first argument to setOnConnectionCallback ; previously it would take a shared_ptr<WebSocket> which was creating cycles and then memory leaks problems\&.
+.PP
+.PP
+.nf
+#include <ixwebsocket/IXWebSocketServer\&.h>
+
+\&.\&.\&.
+
+// Run a server on localhost at a given port\&.
+// Bound host name, max connections and listen backlog can also be passed in as parameters\&.
+ix::WebSocketServer server(port);
+
+server\&.setOnConnectionCallback(
+    [&server](std::weak_ptr<WebSocket> webSocket,
+              std::shared_ptr<ConnectionState> connectionState)
+    {
+        std::cout << "Remote ip: " << connectionState\->remoteIp << std::endl;
+
+        auto ws = webSocket\&.lock();
+        if (ws)
+        {
+            ws\->setOnMessageCallback(
+                [webSocket, connectionState, &server](const ix::WebSocketMessagePtr msg)
+                {
+                    if (msg\->type == ix::WebSocketMessageType::Open)
+                    {
+                        std::cout << "New connection" << std::endl;
+
+                        // A connection state object is available, and has a default id
+                        // You can subclass ConnectionState and pass an alternate factory
+                        // to override it\&. It is useful if you want to store custom
+                        // attributes per connection (authenticated bool flag, attributes, etc\&.\&.\&.)
+                        std::cout << "id: " << connectionState\->getId() << std::endl;
+
+                        // The uri the client did connect to\&.
+                        std::cout << "Uri: " << msg\->openInfo\&.uri << std::endl;
+
+                        std::cout << "Headers:" << std::endl;
+                        for (auto it : msg\->openInfo\&.headers)
+                        {
+                            std::cout << it\&.first << ": " << it\&.second << std::endl;
+                        }
+                    }
+                    else if (msg\->type == ix::WebSocketMessageType::Message)
+                    {
+                        // For an echo server, we just send back to the client whatever was received by the server
+                        // All connected clients are available in an std::set\&. See the broadcast cpp example\&.
+                        // Second parameter tells whether we are sending the message in binary or text mode\&.
+                        // Here we send it in the same mode as it was received\&.
+                        auto ws = webSocket\&.lock();
+                        if (ws)
+                        {
+                            ws\->send(msg\->str, msg\->binary);
+                        }
+                    }
+                }
+            }
+        );
+    }
+);
+
+auto res = server\&.listen();
+if (!res\&.first)
+{
+    // Error handling
+    return 1;
+}
+
+// Per message deflate connection is enabled by default\&. It can be disabled
+// which might be helpful when running on low power devices such as a Rasbery Pi
+server\&.disablePerMessageDeflate();
+
+// Run the server in the background\&. Server can be stoped by calling server\&.stop()
+server\&.start();
+
+// Block until server\&.stop() is called\&.
+server\&.wait();
+.fi
+.PP
+.SS "New api"
+The new API does not require to use 2 nested callbacks, which is a bit annoying\&. The real fix is that there was a memory leak due to a shared_ptr cycle, due to passing down a shared_ptr<WebSocket> down to the callbacks\&.
+.PP
+The webSocket reference is guaranteed to be always valid ; by design the callback will never be invoked with a null webSocket object\&.
+.PP
+.PP
+.nf
+#include <ixwebsocket/IXWebSocketServer\&.h>
+
+\&.\&.\&.
+
+// Run a server on localhost at a given port\&.
+// Bound host name, max connections and listen backlog can also be passed in as parameters\&.
+ix::WebSocketServer server(port);
+
+server\&.setOnClientMessageCallback([](std::shared_ptr<ix::ConnectionState> connectionState, ix::WebSocket & webSocket, const ix::WebSocketMessagePtr & msg) {
+    // The ConnectionState object contains information about the connection,
+    // at this point only the client ip address and the port\&.
+    std::cout << "Remote ip: " << connectionState\->getRemoteIp() << std::endl;
+
+    if (msg\->type == ix::WebSocketMessageType::Open)
+    {
+        std::cout << "New connection" << std::endl;
+
+        // A connection state object is available, and has a default id
+        // You can subclass ConnectionState and pass an alternate factory
+        // to override it\&. It is useful if you want to store custom
+        // attributes per connection (authenticated bool flag, attributes, etc\&.\&.\&.)
+        std::cout << "id: " << connectionState\->getId() << std::endl;
+
+        // The uri the client did connect to\&.
+        std::cout << "Uri: " << msg\->openInfo\&.uri << std::endl;
+
+        std::cout << "Headers:" << std::endl;
+        for (auto it : msg\->openInfo\&.headers)
+        {
+            std::cout << "\\t" << it\&.first << ": " << it\&.second << std::endl;
+        }
+    }
+    else if (msg\->type == ix::WebSocketMessageType::Message)
+    {
+        // For an echo server, we just send back to the client whatever was received by the server
+        // All connected clients are available in an std::set\&. See the broadcast cpp example\&.
+        // Second parameter tells whether we are sending the message in binary or text mode\&.
+        // Here we send it in the same mode as it was received\&.
+        std::cout << "Received: " << msg\->str << std::endl;
+
+        webSocket\&.send(msg\->str, msg\->binary);
+    }
+});
+
+auto res = server\&.listen();
+if (!res\&.first)
+{
+    // Error handling
+    return 1;
+}
+
+// Per message deflate connection is enabled by default\&. It can be disabled
+// which might be helpful when running on low power devices such as a Rasbery Pi
+server\&.disablePerMessageDeflate();
+
+// Run the server in the background\&. Server can be stoped by calling server\&.stop()
+server\&.start();
+
+// Block until server\&.stop() is called\&.
+server\&.wait();
+.fi
+.PP
+.SH "HTTP client API"
+.PP
+.PP
+.nf
+#include <ixwebsocket/IXHttpClient\&.h>
+
+\&.\&.\&.
+
+//
+// Preparation
+//
+HttpClient httpClient;
+HttpRequestArgsPtr args = httpClient\&.createRequest();
+
+// Custom headers can be set
+WebSocketHttpHeaders headers;
+headers["Foo"] = "bar";
+args\->extraHeaders = headers;
+
+// Timeout options
+args\->connectTimeout = connectTimeout;
+args\->transferTimeout = transferTimeout;
+
+// Redirect options
+args\->followRedirects = followRedirects;
+args\->maxRedirects = maxRedirects;
+
+// Misc
+args\->compress = compress; // Enable gzip compression
+args\->verbose = verbose;
+args\->logger = [](const std::string& msg)
+{
+    std::cout << msg;
+};
+
+//
+// Synchronous Request
+//
+HttpResponsePtr out;
+std::string url = "https://www\&.google\&.com";
+
+// HEAD request
+out = httpClient\&.head(url, args);
+
+// GET request
+out = httpClient\&.get(url, args);
+
+// POST request with parameters
+HttpParameters httpParameters;
+httpParameters["foo"] = "bar";
+
+// HTTP form data can be passed in as well, for multi\-part upload of files
+HttpFormDataParameters httpFormDataParameters;
+httpParameters["baz"] = "booz";
+
+out = httpClient\&.post(url, httpParameters, httpFormDataParameters, args);
+
+// POST request with a body
+out = httpClient\&.post(url, std::string("foo=bar"), args);
+
+// PUT and PATCH are available too\&.
+
+//
+// Result
+//
+auto statusCode = response\->statusCode; // Can be HttpErrorCode::Ok, HttpErrorCode::UrlMalformed, etc\&.\&.\&.
+auto errorCode = response\->errorCode; // 200, 404, etc\&.\&.\&.
+auto responseHeaders = response\->headers; // All the headers in a special case\-insensitive unordered_map of (string, string)
+auto body = response\->body; // All the bytes from the response as an std::string
+auto errorMsg = response\->errorMsg; // Descriptive error message in case of failure
+auto uploadSize = response\->uploadSize; // Byte count of uploaded data
+auto downloadSize = response\->downloadSize; // Byte count of downloaded data
+
+//
+// Asynchronous Request
+//
+bool async = true;
+HttpClient httpClient(async);
+auto args = httpClient\&.createRequest(url, HttpClient::kGet);
+
+// If you define a chunk callback it will be called repeteadly with the
+// incoming data\&. This allows to process data on the go or write it to disk
+// instead of accumulating the data in memory\&.
+args\&.onChunkCallback = [](const std::string& data)
+{
+    // process data
+};
+
+// Push the request to a queue,
+bool ok = httpClient\&.performRequest(args, [](const HttpResponsePtr& response)
+    {
+        // This callback execute in a background thread\&. Make sure you uses appropriate protection such as mutex
+        auto statusCode = response\->statusCode; // acess results
+
+        // response\->body is empty if onChunkCallback was used
+    }
+);
+
+// ok will be false if your httpClient is not async
+
+// A request in progress can be cancelled by setting the cancel flag\&. It does nothing if the request already completed\&.
+args\->cancel = true;
+.fi
+.PP
+.PP
+See this \fCissue\fP for links about uploading files with \fBHTTP\fP multipart\&.
+.SH "HTTP server API"
+.PP
+.PP
+.nf
+#include <ixwebsocket/IXHttpServer\&.h>
+
+ix::HttpServer server(port, hostname);
+
+auto res = server\&.listen();
+if (!res\&.first)
+{
+    std::cerr << res\&.second << std::endl;
+    return 1;
+}
+
+server\&.start();
+server\&.wait();
+.fi
+.PP
+.PP
+If you want to handle how requests are processed, implement the setOnConnectionCallback callback, which takes an HttpRequestPtr as input, and returns an HttpResponsePtr\&. You can look at HttpServer::setDefaultConnectionCallback for a slightly more advanced callback example\&.
+.PP
+.PP
+.nf
+setOnConnectionCallback(
+    [this](HttpRequestPtr request,
+           std::shared_ptr<ConnectionState> connectionState) \-> HttpResponsePtr
+    {
+        // Build a string for the response
+        std::stringstream ss;
+        ss << connectionState\->getRemoteIp();
+           << " "
+           << request\->method
+           << " "
+           << request\->uri;
+
+        std::string content = ss\&.str();
+
+        return std::make_shared<HttpResponse>(200, "OK",
+                                              HttpErrorCode::Ok,
+                                              WebSocketHttpHeaders(),
+                                              content);
+}
+.fi
+.PP
+.SH "TLS support and configuration"
+.PP
+To leverage TLS features, the library must be compiled with the option \fCUSE_TLS=1\fP\&.
+.PP
+If you are using OpenSSL, try to be on a version higher than 1\&.1\&.x as there there are thread safety problems with 1\&.0\&.x\&.
+.PP
+Then, secure sockets are automatically used when connecting to a \fCwss://*\fP url\&.
+.PP
+Additional TLS options can be configured by passing a \fC\fBix::SocketTLSOptions\fP\fP instance to the \fCsetTLSOptions\fP on \fC\fBix::WebSocket\fP\fP (or \fC\fBix::WebSocketServer\fP\fP or \fC\fBix::HttpServer\fP\fP)
+.PP
+.PP
+.nf
+webSocket\&.setTLSOptions({
+    \&.certFile = "path/to/cert/file\&.pem",
+    \&.keyFile = "path/to/key/file\&.pem",
+    \&.caFile = "path/to/trust/bundle/file\&.pem", // as a file, or in memory buffer in PEM format
+    \&.tls = true // required in server mode
+});
+.fi
+.PP
+.PP
+Specifying \fCcertFile\fP and \fCkeyFile\fP configures the certificate that will be used to communicate with TLS peers\&.
+.PP
+On a client, this is only necessary for connecting to servers that require a client certificate\&.
+.PP
+On a server, this is necessary for TLS support\&.
+.PP
+Specifying \fCcaFile\fP configures the trusted roots bundle file (in PEM format) that will be used to verify peer certificates\&.
+.IP "\(bu" 2
+The special value of \fCSYSTEM\fP (the default) indicates that the system-configured trust bundle should be used; this is generally what you want when connecting to any publicly exposed API/server\&.
+.IP "\(bu" 2
+The special value of \fCNONE\fP can be used to disable peer verification; this is only recommended to rule out certificate verification when testing connectivity\&.
+.IP "\(bu" 2
+If the value contain the special value \fC-----BEGIN CERTIFICATE-----\fP, the value will be read from memory, and not from a file\&. This is convenient on platforms like Android where reading / writing to the file system can be challenging without proper permissions, or without knowing the location of a temp directory\&.
+.PP
+.PP
+For a client, specifying \fCcaFile\fP can be used if connecting to a server that uses a self-signed cert, or when using a custom CA in an internal environment\&.
+.PP
+For a server, specifying \fCcaFile\fP implies that:
+.IP "1." 4
+You require clients to present a certificate
+.PP
+.IP "1." 4
+It must be signed by one of the trusted roots in the file 
+.PP
+

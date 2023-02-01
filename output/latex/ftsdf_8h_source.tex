@@ -1,0 +1,103 @@
+\hypertarget{ftsdf_8h_source}{}\doxysection{ftsdf.\+h}
+\label{ftsdf_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/sdf/ftsdf.h@{AseSprite/aseprite/third\_party/freetype2/src/sdf/ftsdf.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftsdf.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Signed\ Distance\ Field\ support\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2020-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Written\ by\ Anuj\ Verma.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#ifndef\ FTSDF\_H\_}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ FTSDF\_H\_}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <ft2build.h>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ FT\_CONFIG\_CONFIG\_H}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <freetype/ftimage.h>}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{/*\ common\ properties\ and\ function\ */}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ "{}ftsdfcommon.h"{}}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ *\ @struct:}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ *\ \ \ SDF\_Raster\_Params}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ *\ @description:}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ *\ \ \ This\ struct\ must\ be\ passed\ to\ the\ raster\ render\ function}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ *\ \ \ @FT\_Raster\_RenderFunc\ instead\ of\ @FT\_Raster\_Params\ because\ the}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ *\ \ \ rasterizer\ requires\ some\ additional\ information\ to\ render\ properly.}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ *\ @fields:}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ \ *\ \ \ root\ ::}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ native\ raster\ parameters\ structure.}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ *\ \ \ spread\ ::}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ *\ \ \ \ \ This\ is\ an\ essential\ parameter/property\ required\ by\ the\ renderer.}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ *\ \ \ \ \ `spread`\ defines\ the\ maximum\ unsigned\ value\ that\ is\ present\ in\ the}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ *\ \ \ \ \ final\ SDF\ output.\ \ For\ the\ default\ value\ check\ file}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ *\ \ \ \ \ `ftsdfcommon.h`.}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ *\ \ \ flip\_sign\ ::}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ *\ \ \ \ \ By\ default\ positive\ values\ indicate\ positions\ inside\ of\ contours,}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ *\ \ \ \ \ i.e.,\ filled\ by\ a\ contour.\ \ If\ this\ property\ is\ true\ then\ that}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ *\ \ \ \ \ output\ will\ be\ the\ opposite\ of\ the\ default,\ i.e.,\ negative\ values}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ *\ \ \ \ \ indicate\ positions\ inside\ of\ contours.}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ *\ \ \ flip\_y\ ::}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Setting\ this\ parameter\ to\ true\ maked\ the\ output\ image\ flipped}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *\ \ \ \ \ along\ the\ y-\/axis.}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *\ \ \ overlaps\ ::}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *\ \ \ \ \ Set\ this\ to\ true\ to\ generate\ SDF\ for\ glyphs\ having\ overlapping}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *\ \ \ \ \ contours.\ \ The\ overlapping\ support\ is\ limited\ to\ glyphs\ that\ do\ not}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *\ \ \ \ \ have\ self-\/intersecting\ contours.\ \ Also,\ removing\ overlaps\ require\ a}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ *\ \ \ \ \ considerable\ amount\ of\ extra\ memory;\ additionally,\ it\ will\ not\ work}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ *\ \ \ \ \ if\ generating\ SDF\ from\ bitmap.}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ *\ @note:}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ *\ \ \ All\ properties\ are\ valid\ for\ both\ the\ 'sdf'\ and\ 'bsdf'\ renderers;\ the}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ *\ \ \ exception\ is\ `overlaps`,\ which\ gets\ ignored\ by\ the\ 'bsdf'\ renderer.}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00075\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_s_d_f___raster___params__}{SDF\_Raster\_Params\_}}}
+\DoxyCodeLine{00076\ \ \ \{}
+\DoxyCodeLine{00077\ \ \ \ \ \mbox{\hyperlink{struct_f_t___raster___params__}{FT\_Raster\_Params}}\ \ root;}
+\DoxyCodeLine{00078\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ spread;}
+\DoxyCodeLine{00079\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ flip\_sign;}
+\DoxyCodeLine{00080\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ flip\_y;}
+\DoxyCodeLine{00081\ \ \ \ \ FT\_Bool\ \ \ \ \ \ \ \ \ \ \ overlaps;}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \}\ SDF\_Raster\_Params;}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{comment}{/*\ rasterizer\ to\ convert\ outline\ to\ SDF\ */}}
+\DoxyCodeLine{00087\ \ \ FT\_EXPORT\_VAR(\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___raster___funcs__}{FT\_Raster\_Funcs}}\ )\ \ ft\_sdf\_raster;}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \textcolor{comment}{/*\ rasterizer\ to\ convert\ bitmap\ to\ SDF\ */}}
+\DoxyCodeLine{00090\ \ \ FT\_EXPORT\_VAR(\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_f_t___raster___funcs__}{FT\_Raster\_Funcs}}\ )\ \ ft\_bitmap\_sdf\_raster;}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ FT\_END\_HEADER}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTSDF\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

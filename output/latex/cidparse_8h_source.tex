@@ -1,0 +1,136 @@
+\hypertarget{cidparse_8h_source}{}\doxysection{cidparse.\+h}
+\label{cidparse_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/cid/cidparse.h@{AseSprite/aseprite/third\_party/freetype2/src/cid/cidparse.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ cidparse.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ CID-\/keyed\ Type1\ parser\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ CIDPARSE\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ CIDPARSE\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <freetype/internal/t1types.h>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <freetype/internal/ftstream.h>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ <freetype/internal/psaux.h>}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ \ *\ @Struct:}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ *\ \ \ CID\_Parser}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ *\ @Description:}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ \ *\ \ \ A\ CID\_Parser\ is\ an\ object\ used\ to\ parse\ a\ Type\ 1\ fonts\ very}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ *\ \ \ quickly.}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ *\ @Fields:}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ *\ \ \ root\ ::}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ root\ PS\_ParserRec\ fields.}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ \ *\ \ \ stream\ ::}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ current\ input\ stream.}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ *\ \ \ postscript\ ::}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ pointer\ to\ the\ data\ to\ be\ parsed.}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ *\ \ \ postscript\_len\ ::}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ length\ of\ the\ data\ to\ be\ parsed.}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ *\ \ \ data\_offset\ ::}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ start\ position\ of\ the\ binary\ data\ (i.e.,\ the}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ *\ \ \ \ \ end\ of\ the\ data\ to\ be\ parsed.}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ *\ \ \ binary\_length\ ::}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ length\ of\ the\ data\ after\ the\ `StartData'}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ *\ \ \ \ \ command\ if\ the\ data\ format\ is\ hexadecimal.}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ *\ \ \ cid\ ::}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ *\ \ \ \ \ A\ structure\ which\ holds\ the\ information\ about}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ *\ \ \ \ \ the\ current\ font.}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ *\ \ \ num\_dict\ ::}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ *\ \ \ \ \ The\ number\ of\ font\ dictionaries.}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00068\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_i_d___parser__}{CID\_Parser\_}}}
+\DoxyCodeLine{00069\ \ \ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \mbox{\hyperlink{struct_p_s___parser_rec__}{PS\_ParserRec}}\ \ root;}
+\DoxyCodeLine{00071\ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ stream;}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ FT\_Byte*\ \ \ \ \ \ postscript;}
+\DoxyCodeLine{00074\ \ \ \ \ FT\_ULong\ \ \ \ \ \ postscript\_len;}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ FT\_ULong\ \ \ \ \ \ data\_offset;}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ FT\_ULong\ \ \ \ \ \ binary\_length;}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \ \ \mbox{\hyperlink{struct_c_i_d___face_info_rec__}{CID\_FaceInfo}}\ \ cid;}
+\DoxyCodeLine{00081\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ num\_dict;}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \}\ CID\_Parser;}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00087\ \ \ cid\_parser\_new(\ CID\_Parser*\ \ \ \ parser,}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___stream_rec__}{FT\_Stream}}\ \ \ \ \ \ stream,}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}},}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_p_s_aux___service_rec__}{PSAux\_Service}}\ \ psaux\ );}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00093\ \ \ cid\_parser\_done(\ CID\_Parser*\ \ parser\ );}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ \ \ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ PARSING\ ROUTINES}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ cid\_parser\_skip\_spaces(\ p\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.skip\_spaces(\ \&(p)-\/>root\ )}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#define\ cid\_parser\_skip\_PS\_token(\ p\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.skip\_PS\_token(\ \&(p)-\/>root\ )}}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#define\ cid\_parser\_to\_int(\ p\ )\ \ \ \ \ \ \ (p)-\/>root.funcs.to\_int(\ \&(p)-\/>root\ )}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#define\ cid\_parser\_to\_fixed(\ p,\ t\ )\ \ (p)-\/>root.funcs.to\_fixed(\ \&(p)-\/>root,\ t\ )}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#define\ cid\_parser\_to\_coord\_array(\ p,\ m,\ c\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.to\_coord\_array(\ \&(p)-\/>root,\ m,\ c\ )}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#define\ cid\_parser\_to\_fixed\_array(\ p,\ m,\ f,\ t\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.to\_fixed\_array(\ \&(p)-\/>root,\ m,\ f,\ t\ )}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#define\ cid\_parser\_to\_token(\ p,\ t\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.to\_token(\ \&(p)-\/>root,\ t\ )}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#define\ cid\_parser\_to\_token\_array(\ p,\ t,\ m,\ c\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.to\_token\_array(\ \&(p)-\/>root,\ t,\ m,\ c\ )}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#define\ cid\_parser\_load\_field(\ p,\ f,\ o\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.load\_field(\ \&(p)-\/>root,\ f,\ o,\ 0,\ 0\ )}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#define\ cid\_parser\_load\_field\_table(\ p,\ f,\ o\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ (p)-\/>root.funcs.load\_field\_table(\ \&(p)-\/>root,\ f,\ o,\ 0,\ 0\ )}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ FT\_END\_HEADER}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ CIDPARSE\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

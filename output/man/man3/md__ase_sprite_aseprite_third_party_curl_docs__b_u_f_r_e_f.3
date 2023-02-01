@@ -1,0 +1,76 @@
+.TH "md__ase_sprite_aseprite_third_party_curl_docs__b_u_f_r_e_f" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_curl_docs__b_u_f_r_e_f \- bufref 
+.PP
+This is an internal module for handling buffer references\&. \fBA\fP referenced buffer is associated with its destructor function that is implicitly called when the reference is invalidated\&. Once referenced, a buffer cannot be reallocated\&.
+.PP
+\fBA\fP data length is stored within the reference for binary data handling purpose; it is not used by the bufref API\&.
+.PP
+The \fCstruct bufref\fP is used to hold data referencing a buffer\&. The members of that structure \fBMUST NOT\fP be accessed or modified without using the dedicated bufref API\&.
+.SH "init"
+.PP
+.PP
+.nf
+void Curl_bufref_init(struct bufref *br);
+.fi
+.PP
+.PP
+Initialises a \fCbufref\fP structure\&. This function \fBMUST\fP be called before any other operation is performed on the structure\&.
+.PP
+Upon completion, the referenced buffer is \fCNULL\fP and length is zero\&.
+.PP
+This function may also be called to bypass referenced buffer destruction while invalidating the current reference\&.
+.SH "free"
+.PP
+.PP
+.nf
+void Curl_bufref_free(struct bufref *br);
+.fi
+.PP
+.PP
+Destroys the previously referenced buffer using its destructor and reinitialises the structure for a possible subsequent reuse\&.
+.SH "set"
+.PP
+.PP
+.nf
+void Curl_bufref_set(struct bufref *br, const void *buffer, size_t length,
+                     void (*destructor)(void *));
+.fi
+.PP
+.PP
+Releases the previously referenced buffer, then assigns the new \fCbuffer\fP to the structure, associated with its \fCdestructor\fP function\&. The later can be specified as \fCNULL\fP: this will be the case when the referenced buffer is static\&.
+.PP
+if \fCbuffer\fP is NULL, \fClength\fPmust be zero\&.
+.SH "memdup"
+.PP
+.PP
+.nf
+CURLcode Curl_bufref_memdup(struct bufref *br, const void *data, size_t length);
+.fi
+.PP
+.PP
+Releases the previously referenced buffer, then duplicates the \fClength\fP-byte \fCdata\fP into a buffer allocated via \fCmalloc()\fP and references the latter associated with destructor \fCcurl_free()\fP\&.
+.PP
+An additional trailing byte is allocated and set to zero as a possible string zero-terminator; it is not counted in the stored length\&.
+.PP
+Returns \fCCURLE_OK\fP if successful, else \fCCURLE_OUT_OF_MEMORY\fP\&.
+.SH "ptr"
+.PP
+.PP
+.nf
+const unsigned char *Curl_bufref_ptr(const struct bufref *br);
+.fi
+.PP
+.PP
+Returns a \fCconst unsigned char *\fP to the referenced buffer\&.
+.SH "len"
+.PP
+.PP
+.nf
+size_t Curl_bufref_len(const struct bufref *br);
+.fi
+.PP
+.PP
+Returns the stored length of the referenced buffer\&. 

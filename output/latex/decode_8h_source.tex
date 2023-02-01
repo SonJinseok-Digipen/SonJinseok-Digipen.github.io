@@ -1,0 +1,509 @@
+\hypertarget{decode_8h_source}{}\doxysection{decode.\+h}
+\label{decode_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/webp/decode.h@{AseSprite/aseprite/third\_party/libwebp/src/webp/decode.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2010\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ \ Main\ decoding\ functions\ for\ WebP\ images.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_WEBP\_DECODE\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_WEBP\_DECODE\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}./types.h"{}}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00020\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ WEBP\_DECODER\_ABI\_VERSION\ 0x0209\ \ \ \ }\textcolor{comment}{//\ MAJOR(8b)\ +\ MINOR(8b)}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{comment}{//\ Note:\ forward\ declaring\ enumerations\ is\ not\ allowed\ in\ (strict)\ C\ and\ C++,}}
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ the\ types\ are\ left\ here\ for\ reference.}}
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ typedef\ enum\ VP8StatusCode\ VP8StatusCode;}}
+\DoxyCodeLine{00028\ \textcolor{comment}{//\ typedef\ enum\ WEBP\_CSP\_MODE\ WEBP\_CSP\_MODE;}}
+\DoxyCodeLine{00029\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_r_g_b_a_buffer}{WebPRGBABuffer}}\ \mbox{\hyperlink{struct_web_p_r_g_b_a_buffer}{WebPRGBABuffer}};}
+\DoxyCodeLine{00030\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_y_u_v_a_buffer}{WebPYUVABuffer}}\ \mbox{\hyperlink{struct_web_p_y_u_v_a_buffer}{WebPYUVABuffer}};}
+\DoxyCodeLine{00031\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}\ \mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}};}
+\DoxyCodeLine{00032\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}};}
+\DoxyCodeLine{00033\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_bitstream_features}{WebPBitstreamFeatures}}\ \mbox{\hyperlink{struct_web_p_bitstream_features}{WebPBitstreamFeatures}};}
+\DoxyCodeLine{00034\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_decoder_options}{WebPDecoderOptions}}\ \mbox{\hyperlink{struct_web_p_decoder_options}{WebPDecoderOptions}};}
+\DoxyCodeLine{00035\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_decoder_config}{WebPDecoderConfig}}\ \mbox{\hyperlink{struct_web_p_decoder_config}{WebPDecoderConfig}};}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ Return\ the\ decoder's\ version\ number,\ packed\ in\ hexadecimal\ using\ 8bits\ for}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ each\ of\ major/minor/revision.\ E.g:\ v2.5.7\ is\ 0x020507.}}
+\DoxyCodeLine{00039\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPGetDecoderVersion(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{comment}{//\ Retrieve\ basic\ header\ information:\ width,\ height.}}
+\DoxyCodeLine{00042\ \textcolor{comment}{//\ This\ function\ will\ also\ validate\ the\ header,\ returning\ true\ on\ success,}}
+\DoxyCodeLine{00043\ \textcolor{comment}{//\ false\ otherwise.\ '*width'\ and\ '*height'\ are\ only\ valid\ on\ successful\ return.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{//\ Pointers\ 'width'\ and\ 'height'\ can\ be\ passed\ NULL\ if\ deemed\ irrelevant.}}
+\DoxyCodeLine{00045\ \textcolor{comment}{//\ Note:\ The\ following\ chunk\ sequences\ (before\ the\ raw\ VP8/VP8L\ data)\ are}}
+\DoxyCodeLine{00046\ \textcolor{comment}{//\ considered\ valid\ by\ this\ function:}}
+\DoxyCodeLine{00047\ \textcolor{comment}{//\ RIFF\ +\ VP8(L)}}
+\DoxyCodeLine{00048\ \textcolor{comment}{//\ RIFF\ +\ VP8X\ +\ (optional\ chunks)\ +\ VP8(L)}}
+\DoxyCodeLine{00049\ \textcolor{comment}{//\ ALPH\ +\ VP8\ <-\/-\/\ Not\ a\ valid\ WebP\ format:\ only\ allowed\ for\ internal\ purpose.}}
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ VP8(L)\ \ \ \ \ <-\/-\/\ Not\ a\ valid\ WebP\ format:\ only\ allowed\ for\ internal\ purpose.}}
+\DoxyCodeLine{00051\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPGetInfo(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{comment}{//\ Decodes\ WebP\ images\ pointed\ to\ by\ 'data'\ and\ returns\ RGBA\ samples,\ along}}
+\DoxyCodeLine{00055\ \textcolor{comment}{//\ with\ the\ dimensions\ in\ *width\ and\ *height.\ The\ ordering\ of\ samples\ in}}
+\DoxyCodeLine{00056\ \textcolor{comment}{//\ memory\ is\ R,\ G,\ B,\ A,\ R,\ G,\ B,\ A...\ in\ scan\ order\ (endian-\/independent).}}
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ The\ returned\ pointer\ should\ be\ deleted\ calling\ WebPFree().}}
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ Returns\ NULL\ in\ case\ of\ error.}}
+\DoxyCodeLine{00059\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeRGBA(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{comment}{//\ Same\ as\ WebPDecodeRGBA,\ but\ returning\ A,\ R,\ G,\ B,\ A,\ R,\ G,\ B...\ ordered\ data.}}
+\DoxyCodeLine{00063\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeARGB(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{comment}{//\ Same\ as\ WebPDecodeRGBA,\ but\ returning\ B,\ G,\ R,\ A,\ B,\ G,\ R,\ A...\ ordered\ data.}}
+\DoxyCodeLine{00067\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeBGRA(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{comment}{//\ Same\ as\ WebPDecodeRGBA,\ but\ returning\ R,\ G,\ B,\ R,\ G,\ B...\ ordered\ data.}}
+\DoxyCodeLine{00071\ \textcolor{comment}{//\ If\ the\ bitstream\ contains\ transparency,\ it\ is\ ignored.}}
+\DoxyCodeLine{00072\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeRGB(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{comment}{//\ Same\ as\ WebPDecodeRGB,\ but\ returning\ B,\ G,\ R,\ B,\ G,\ R...\ ordered\ data.}}
+\DoxyCodeLine{00076\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeBGR(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{//\ Decode\ WebP\ images\ pointed\ to\ by\ 'data'\ to\ Y'UV\ format(*).\ The\ pointer}}
+\DoxyCodeLine{00081\ \textcolor{comment}{//\ returned\ is\ the\ Y\ samples\ buffer.\ Upon\ return,\ *u\ and\ *v\ will\ point\ to}}
+\DoxyCodeLine{00082\ \textcolor{comment}{//\ the\ U\ and\ V\ chroma\ data.\ These\ U\ and\ V\ buffers\ need\ NOT\ be\ passed\ to}}
+\DoxyCodeLine{00083\ \textcolor{comment}{//\ WebPFree(),\ unlike\ the\ returned\ Y\ luma\ one.\ The\ dimension\ of\ the\ U\ and\ V}}
+\DoxyCodeLine{00084\ \textcolor{comment}{//\ planes\ are\ both\ (*width\ +\ 1)\ /\ 2\ and\ (*height\ +\ 1)/\ 2.}}
+\DoxyCodeLine{00085\ \textcolor{comment}{//\ Upon\ return,\ the\ Y\ buffer\ has\ a\ stride\ returned\ as\ '*stride',\ while\ U\ and\ V}}
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ have\ a\ common\ stride\ returned\ as\ '*uv\_stride'.}}
+\DoxyCodeLine{00087\ \textcolor{comment}{//\ Return\ NULL\ in\ case\ of\ error.}}
+\DoxyCodeLine{00088\ \textcolor{comment}{//\ (*)\ Also\ named\ Y'CbCr.\ See:\ http://en.wikipedia.org/wiki/YCbCr}}
+\DoxyCodeLine{00089\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeYUV(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height,}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t**\ u,\ uint8\_t**\ v,}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ stride,\ \textcolor{keywordtype}{int}*\ uv\_stride);}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \textcolor{comment}{//\ These\ five\ functions\ are\ variants\ of\ the\ above\ ones,\ that\ decode\ the\ image}}
+\DoxyCodeLine{00095\ \textcolor{comment}{//\ directly\ into\ a\ pre-\/allocated\ buffer\ 'output\_buffer'.\ The\ maximum\ storage}}
+\DoxyCodeLine{00096\ \textcolor{comment}{//\ available\ in\ this\ buffer\ is\ indicated\ by\ 'output\_buffer\_size'.\ If\ this}}
+\DoxyCodeLine{00097\ \textcolor{comment}{//\ storage\ is\ not\ sufficient\ (or\ an\ error\ occurred),\ NULL\ is\ returned.}}
+\DoxyCodeLine{00098\ \textcolor{comment}{//\ Otherwise,\ output\_buffer\ is\ returned,\ for\ convenience.}}
+\DoxyCodeLine{00099\ \textcolor{comment}{//\ The\ parameter\ 'output\_stride'\ specifies\ the\ distance\ (in\ bytes)}}
+\DoxyCodeLine{00100\ \textcolor{comment}{//\ between\ scanlines.\ Hence,\ output\_buffer\_size\ is\ expected\ to\ be\ at\ least}}
+\DoxyCodeLine{00101\ \textcolor{comment}{//\ output\_stride\ x\ picture-\/height.}}
+\DoxyCodeLine{00102\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeRGBAInto(}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00104\ \ \ \ \ uint8\_t*\ output\_buffer,\ \textcolor{keywordtype}{size\_t}\ output\_buffer\_size,\ \textcolor{keywordtype}{int}\ output\_stride);}
+\DoxyCodeLine{00105\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeARGBInto(}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00107\ \ \ \ \ uint8\_t*\ output\_buffer,\ \textcolor{keywordtype}{size\_t}\ output\_buffer\_size,\ \textcolor{keywordtype}{int}\ output\_stride);}
+\DoxyCodeLine{00108\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeBGRAInto(}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00110\ \ \ \ \ uint8\_t*\ output\_buffer,\ \textcolor{keywordtype}{size\_t}\ output\_buffer\_size,\ \textcolor{keywordtype}{int}\ output\_stride);}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{//\ RGB\ and\ BGR\ variants.\ Here\ too\ the\ transparency\ information,\ if\ present,}}
+\DoxyCodeLine{00113\ \textcolor{comment}{//\ will\ be\ dropped\ and\ ignored.}}
+\DoxyCodeLine{00114\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeRGBInto(}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00116\ \ \ \ \ uint8\_t*\ output\_buffer,\ \textcolor{keywordtype}{size\_t}\ output\_buffer\_size,\ \textcolor{keywordtype}{int}\ output\_stride);}
+\DoxyCodeLine{00117\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeBGRInto(}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00119\ \ \ \ \ uint8\_t*\ output\_buffer,\ \textcolor{keywordtype}{size\_t}\ output\_buffer\_size,\ \textcolor{keywordtype}{int}\ output\_stride);}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{comment}{//\ WebPDecodeYUVInto()\ is\ a\ variant\ of\ WebPDecodeYUV()\ that\ operates\ directly}}
+\DoxyCodeLine{00122\ \textcolor{comment}{//\ into\ pre-\/allocated\ luma/chroma\ plane\ buffers.\ This\ function\ requires\ the}}
+\DoxyCodeLine{00123\ \textcolor{comment}{//\ strides\ to\ be\ passed:\ one\ for\ the\ luma\ plane\ and\ one\ for\ each\ of\ the}}
+\DoxyCodeLine{00124\ \textcolor{comment}{//\ chroma\ ones.\ The\ size\ of\ each\ plane\ buffer\ is\ passed\ as\ 'luma\_size',}}
+\DoxyCodeLine{00125\ \textcolor{comment}{//\ 'u\_size'\ and\ 'v\_size'\ respectively.}}
+\DoxyCodeLine{00126\ \textcolor{comment}{//\ Pointer\ to\ the\ luma\ plane\ ('*luma')\ is\ returned\ or\ NULL\ if\ an\ error\ occurred}}
+\DoxyCodeLine{00127\ \textcolor{comment}{//\ during\ decoding\ (or\ because\ some\ buffers\ were\ found\ to\ be\ too\ small).}}
+\DoxyCodeLine{00128\ WEBP\_EXTERN\ uint8\_t*\ WebPDecodeYUVInto(}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00130\ \ \ \ \ uint8\_t*\ luma,\ \textcolor{keywordtype}{size\_t}\ luma\_size,\ \textcolor{keywordtype}{int}\ luma\_stride,}
+\DoxyCodeLine{00131\ \ \ \ \ uint8\_t*\ u,\ \textcolor{keywordtype}{size\_t}\ u\_size,\ \textcolor{keywordtype}{int}\ u\_stride,}
+\DoxyCodeLine{00132\ \ \ \ \ uint8\_t*\ v,\ \textcolor{keywordtype}{size\_t}\ v\_size,\ \textcolor{keywordtype}{int}\ v\_stride);}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00135\ \textcolor{comment}{//\ Output\ colorspaces\ and\ buffer}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{comment}{//\ Colorspaces}}
+\DoxyCodeLine{00138\ \textcolor{comment}{//\ Note:\ the\ naming\ describes\ the\ byte-\/ordering\ of\ packed\ samples\ in\ memory.}}
+\DoxyCodeLine{00139\ \textcolor{comment}{//\ For\ instance,\ MODE\_BGRA\ relates\ to\ samples\ ordered\ as\ B,G,R,A,B,G,R,A,...}}
+\DoxyCodeLine{00140\ \textcolor{comment}{//\ Non-\/capital\ names\ (e.g.:MODE\_Argb)\ relates\ to\ pre-\/multiplied\ RGB\ channels.}}
+\DoxyCodeLine{00141\ \textcolor{comment}{//\ RGBA-\/4444\ and\ RGB-\/565\ colorspaces\ are\ represented\ by\ following\ byte-\/order:}}
+\DoxyCodeLine{00142\ \textcolor{comment}{//\ RGBA-\/4444:\ [r3\ r2\ r1\ r0\ g3\ g2\ g1\ g0],\ [b3\ b2\ b1\ b0\ a3\ a2\ a1\ a0],\ ...}}
+\DoxyCodeLine{00143\ \textcolor{comment}{//\ RGB-\/565:\ [r4\ r3\ r2\ r1\ r0\ g5\ g4\ g3],\ [g2\ g1\ g0\ b4\ b3\ b2\ b1\ b0],\ ...}}
+\DoxyCodeLine{00144\ \textcolor{comment}{//\ In\ the\ case\ WEBP\_SWAP\_16BITS\_CSP\ is\ defined,\ the\ bytes\ are\ swapped\ for}}
+\DoxyCodeLine{00145\ \textcolor{comment}{//\ these\ two\ modes:}}
+\DoxyCodeLine{00146\ \textcolor{comment}{//\ RGBA-\/4444:\ [b3\ b2\ b1\ b0\ a3\ a2\ a1\ a0],\ [r3\ r2\ r1\ r0\ g3\ g2\ g1\ g0],\ ...}}
+\DoxyCodeLine{00147\ \textcolor{comment}{//\ RGB-\/565:\ [g2\ g1\ g0\ b4\ b3\ b2\ b1\ b0],\ [r4\ r3\ r2\ r1\ r0\ g5\ g4\ g3],\ ...}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WEBP\_CSP\_MODE\ \{}
+\DoxyCodeLine{00150\ \ \ MODE\_RGB\ =\ 0,\ MODE\_RGBA\ =\ 1,}
+\DoxyCodeLine{00151\ \ \ MODE\_BGR\ =\ 2,\ MODE\_BGRA\ =\ 3,}
+\DoxyCodeLine{00152\ \ \ MODE\_ARGB\ =\ 4,\ MODE\_RGBA\_4444\ =\ 5,}
+\DoxyCodeLine{00153\ \ \ MODE\_RGB\_565\ =\ 6,}
+\DoxyCodeLine{00154\ \ \ \textcolor{comment}{//\ RGB-\/premultiplied\ transparent\ modes\ (alpha\ value\ is\ preserved)}}
+\DoxyCodeLine{00155\ \ \ MODE\_rgbA\ =\ 7,}
+\DoxyCodeLine{00156\ \ \ MODE\_bgrA\ =\ 8,}
+\DoxyCodeLine{00157\ \ \ MODE\_Argb\ =\ 9,}
+\DoxyCodeLine{00158\ \ \ MODE\_rgbA\_4444\ =\ 10,}
+\DoxyCodeLine{00159\ \ \ \textcolor{comment}{//\ YUV\ modes\ must\ come\ after\ RGB\ ones.}}
+\DoxyCodeLine{00160\ \ \ MODE\_YUV\ =\ 11,\ MODE\_YUVA\ =\ 12,\ \ \textcolor{comment}{//\ yuv\ 4:2:0}}
+\DoxyCodeLine{00161\ \ \ MODE\_LAST\ =\ 13}
+\DoxyCodeLine{00162\ \}\ WEBP\_CSP\_MODE;}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{comment}{//\ Some\ useful\ macros:}}
+\DoxyCodeLine{00165\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPIsPremultipliedMode(WEBP\_CSP\_MODE\ mode)\ \{}
+\DoxyCodeLine{00166\ \ \ \textcolor{keywordflow}{return}\ (mode\ ==\ MODE\_rgbA\ ||\ mode\ ==\ MODE\_bgrA\ ||\ mode\ ==\ MODE\_Argb\ ||}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ mode\ ==\ MODE\_rgbA\_4444);}
+\DoxyCodeLine{00168\ \}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPIsAlphaMode(WEBP\_CSP\_MODE\ mode)\ \{}
+\DoxyCodeLine{00171\ \ \ \textcolor{keywordflow}{return}\ (mode\ ==\ MODE\_RGBA\ ||\ mode\ ==\ MODE\_BGRA\ ||\ mode\ ==\ MODE\_ARGB\ ||}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ mode\ ==\ MODE\_RGBA\_4444\ ||\ mode\ ==\ MODE\_YUVA\ ||}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ WebPIsPremultipliedMode(mode));}
+\DoxyCodeLine{00174\ \}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPIsRGBMode(WEBP\_CSP\_MODE\ mode)\ \{}
+\DoxyCodeLine{00177\ \ \ \textcolor{keywordflow}{return}\ (mode\ <\ MODE\_YUV);}
+\DoxyCodeLine{00178\ \}}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00181\ \textcolor{comment}{//\ WebPDecBuffer:\ Generic\ structure\ for\ describing\ the\ output\ sample\ buffer.}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_r_g_b_a_buffer}{WebPRGBABuffer}}\ \{\ \ \ \ \textcolor{comment}{//\ view\ as\ RGBA}}
+\DoxyCodeLine{00184\ \ \ uint8\_t*\ rgba;\ \ \ \ \textcolor{comment}{//\ pointer\ to\ RGBA\ samples}}
+\DoxyCodeLine{00185\ \ \ \textcolor{keywordtype}{int}\ stride;\ \ \ \ \ \ \ \textcolor{comment}{//\ stride\ in\ bytes\ from\ one\ scanline\ to\ the\ next.}}
+\DoxyCodeLine{00186\ \ \ \textcolor{keywordtype}{size\_t}\ size;\ \ \ \ \ \ \textcolor{comment}{//\ total\ size\ of\ the\ *rgba\ buffer.}}
+\DoxyCodeLine{00187\ \};}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_y_u_v_a_buffer}{WebPYUVABuffer}}\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ view\ as\ YUVA}}
+\DoxyCodeLine{00190\ \ \ uint8\_t*\ y,\ *u,\ *v,\ *\mbox{\hyperlink{structa}{a}};\ \ \ \ \ \textcolor{comment}{//\ pointer\ to\ luma,\ chroma\ U/V,\ alpha\ samples}}
+\DoxyCodeLine{00191\ \ \ \textcolor{keywordtype}{int}\ y\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ luma\ stride}}
+\DoxyCodeLine{00192\ \ \ \textcolor{keywordtype}{int}\ u\_stride,\ v\_stride;\ \ \ \ \ \textcolor{comment}{//\ chroma\ strides}}
+\DoxyCodeLine{00193\ \ \ \textcolor{keywordtype}{int}\ a\_stride;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ alpha\ stride}}
+\DoxyCodeLine{00194\ \ \ \textcolor{keywordtype}{size\_t}\ y\_size;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ luma\ plane\ size}}
+\DoxyCodeLine{00195\ \ \ \textcolor{keywordtype}{size\_t}\ u\_size,\ v\_size;\ \ \ \ \ \ \textcolor{comment}{//\ chroma\ planes\ size}}
+\DoxyCodeLine{00196\ \ \ \textcolor{keywordtype}{size\_t}\ a\_size;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ alpha-\/plane\ size}}
+\DoxyCodeLine{00197\ \};}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{comment}{//\ Output\ buffer}}
+\DoxyCodeLine{00200\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}\ \{}
+\DoxyCodeLine{00201\ \ \ WEBP\_CSP\_MODE\ colorspace;\ \ \textcolor{comment}{//\ Colorspace.}}
+\DoxyCodeLine{00202\ \ \ \textcolor{keywordtype}{int}\ width,\ height;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Dimensions.}}
+\DoxyCodeLine{00203\ \ \ \textcolor{keywordtype}{int}\ is\_external\_memory;\ \ \ \ \textcolor{comment}{//\ If\ non-\/zero,\ 'internal\_memory'\ pointer\ is\ not}}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ used.\ If\ value\ is\ '2'\ or\ more,\ the\ external}}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ memory\ is\ considered\ 'slow'\ and\ multiple}}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ read/write\ will\ be\ avoided.}}
+\DoxyCodeLine{00207\ \ \ \textcolor{keyword}{union\ }\{}
+\DoxyCodeLine{00208\ \ \ \ \ \mbox{\hyperlink{struct_web_p_r_g_b_a_buffer}{WebPRGBABuffer}}\ RGBA;}
+\DoxyCodeLine{00209\ \ \ \ \ \mbox{\hyperlink{struct_web_p_y_u_v_a_buffer}{WebPYUVABuffer}}\ YUVA;}
+\DoxyCodeLine{00210\ \ \ \}\ u;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Nameless\ union\ of\ buffer\ parameters.}}
+\DoxyCodeLine{00211\ \ \ uint32\_t\ \ \ \ \ \ \ pad[4];\ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ uint8\_t*\ private\_memory;\ \ \ \textcolor{comment}{//\ Internally\ allocated\ memory\ (only\ when}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ is\_external\_memory\ is\ 0).\ Should\ not\ be\ used}}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ externally,\ but\ accessed\ via\ the\ buffer\ union.}}
+\DoxyCodeLine{00216\ \};}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00219\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPInitDecBufferInternal(\mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \textcolor{comment}{//\ Initialize\ the\ structure\ as\ empty.\ Must\ be\ called\ before\ any\ other\ use.}}
+\DoxyCodeLine{00222\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ version\ mismatch}}
+\DoxyCodeLine{00223\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPInitDecBuffer(\mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}*\ \mbox{\hyperlink{classbuffer}{buffer}})\ \{}
+\DoxyCodeLine{00224\ \ \ \textcolor{keywordflow}{return}\ WebPInitDecBufferInternal(\mbox{\hyperlink{classbuffer}{buffer}},\ WEBP\_DECODER\_ABI\_VERSION);}
+\DoxyCodeLine{00225\ \}}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \textcolor{comment}{//\ Free\ any\ memory\ associated\ with\ the\ buffer.\ Must\ always\ be\ called\ last.}}
+\DoxyCodeLine{00228\ \textcolor{comment}{//\ Note:\ doesn't\ free\ the\ 'buffer'\ structure\ itself.}}
+\DoxyCodeLine{00229\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPFreeDecBuffer(\mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}*\ \mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00230\ }
+\DoxyCodeLine{00231\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00232\ \textcolor{comment}{//\ Enumeration\ of\ the\ status\ codes}}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ VP8StatusCode\ \{}
+\DoxyCodeLine{00235\ \ \ VP8\_STATUS\_OK\ =\ 0,}
+\DoxyCodeLine{00236\ \ \ VP8\_STATUS\_OUT\_OF\_MEMORY,}
+\DoxyCodeLine{00237\ \ \ VP8\_STATUS\_INVALID\_PARAM,}
+\DoxyCodeLine{00238\ \ \ VP8\_STATUS\_BITSTREAM\_ERROR,}
+\DoxyCodeLine{00239\ \ \ VP8\_STATUS\_UNSUPPORTED\_FEATURE,}
+\DoxyCodeLine{00240\ \ \ VP8\_STATUS\_SUSPENDED,}
+\DoxyCodeLine{00241\ \ \ VP8\_STATUS\_USER\_ABORT,}
+\DoxyCodeLine{00242\ \ \ VP8\_STATUS\_NOT\_ENOUGH\_DATA}
+\DoxyCodeLine{00243\ \}\ VP8StatusCode;}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00246\ \textcolor{comment}{//\ Incremental\ decoding}}
+\DoxyCodeLine{00247\ \textcolor{comment}{//}}
+\DoxyCodeLine{00248\ \textcolor{comment}{//\ This\ API\ allows\ streamlined\ decoding\ of\ partial\ data.}}
+\DoxyCodeLine{00249\ \textcolor{comment}{//\ Picture\ can\ be\ incrementally\ decoded\ as\ data\ become\ available\ thanks\ to\ the}}
+\DoxyCodeLine{00250\ \textcolor{comment}{//\ WebPIDecoder\ object.\ This\ object\ can\ be\ left\ in\ a\ SUSPENDED\ state\ if\ the}}
+\DoxyCodeLine{00251\ \textcolor{comment}{//\ picture\ is\ only\ partially\ decoded,\ pending\ additional\ input.}}
+\DoxyCodeLine{00252\ \textcolor{comment}{//\ Code\ example:}}
+\DoxyCodeLine{00253\ \textcolor{comment}{//}}
+\DoxyCodeLine{00254\ \textcolor{comment}{//\ \ \ WebPInitDecBuffer(\&output\_buffer);}}
+\DoxyCodeLine{00255\ \textcolor{comment}{//\ \ \ output\_buffer.colorspace\ =\ mode;}}
+\DoxyCodeLine{00256\ \textcolor{comment}{//\ \ \ ...}}
+\DoxyCodeLine{00257\ \textcolor{comment}{//\ \ \ WebPIDecoder*\ idec\ =\ WebPINewDecoder(\&output\_buffer);}}
+\DoxyCodeLine{00258\ \textcolor{comment}{//\ \ \ while\ (additional\_data\_is\_available)\ \{}}
+\DoxyCodeLine{00259\ \textcolor{comment}{//\ \ \ \ \ //\ ...\ (get\ additional\ data\ in\ some\ new\_data[]\ buffer)}}
+\DoxyCodeLine{00260\ \textcolor{comment}{//\ \ \ \ \ status\ =\ WebPIAppend(idec,\ new\_data,\ new\_data\_size);}}
+\DoxyCodeLine{00261\ \textcolor{comment}{//\ \ \ \ \ if\ (status\ !=\ VP8\_STATUS\_OK\ \&\&\ status\ !=\ VP8\_STATUS\_SUSPENDED)\ \{}}
+\DoxyCodeLine{00262\ \textcolor{comment}{//\ \ \ \ \ \ \ break;\ \ \ \ //\ an\ error\ occurred.}}
+\DoxyCodeLine{00263\ \textcolor{comment}{//\ \ \ \ \ \}}}
+\DoxyCodeLine{00264\ \textcolor{comment}{//}}
+\DoxyCodeLine{00265\ \textcolor{comment}{//\ \ \ \ \ //\ The\ above\ call\ decodes\ the\ current\ available\ buffer.}}
+\DoxyCodeLine{00266\ \textcolor{comment}{//\ \ \ \ \ //\ Part\ of\ the\ image\ can\ now\ be\ refreshed\ by\ calling}}
+\DoxyCodeLine{00267\ \textcolor{comment}{//\ \ \ \ \ //\ WebPIDecGetRGB()/WebPIDecGetYUVA()\ etc.}}
+\DoxyCodeLine{00268\ \textcolor{comment}{//\ \ \ \}}}
+\DoxyCodeLine{00269\ \textcolor{comment}{//\ \ \ WebPIDelete(idec);}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \textcolor{comment}{//\ Creates\ a\ new\ incremental\ decoder\ with\ the\ supplied\ buffer\ parameter.}}
+\DoxyCodeLine{00272\ \textcolor{comment}{//\ This\ output\_buffer\ can\ be\ passed\ NULL,\ in\ which\ case\ a\ default\ output\ buffer}}
+\DoxyCodeLine{00273\ \textcolor{comment}{//\ is\ used\ (with\ MODE\_RGB).\ Otherwise,\ an\ internal\ reference\ to\ 'output\_buffer'}}
+\DoxyCodeLine{00274\ \textcolor{comment}{//\ is\ kept,\ which\ means\ that\ the\ lifespan\ of\ 'output\_buffer'\ must\ be\ larger\ than}}
+\DoxyCodeLine{00275\ \textcolor{comment}{//\ that\ of\ the\ returned\ WebPIDecoder\ object.}}
+\DoxyCodeLine{00276\ \textcolor{comment}{//\ The\ supplied\ 'output\_buffer'\ content\ MUST\ NOT\ be\ changed\ between\ calls\ to}}
+\DoxyCodeLine{00277\ \textcolor{comment}{//\ WebPIAppend()\ or\ WebPIUpdate()\ unless\ 'output\_buffer.is\_external\_memory'\ is}}
+\DoxyCodeLine{00278\ \textcolor{comment}{//\ not\ set\ to\ 0.\ In\ such\ a\ case,\ it\ is\ allowed\ to\ modify\ the\ pointers,\ size\ and}}
+\DoxyCodeLine{00279\ \textcolor{comment}{//\ stride\ of\ output\_buffer.u.RGBA\ or\ output\_buffer.u.YUVA,\ provided\ they\ remain}}
+\DoxyCodeLine{00280\ \textcolor{comment}{//\ within\ valid\ bounds.}}
+\DoxyCodeLine{00281\ \textcolor{comment}{//\ All\ other\ fields\ of\ WebPDecBuffer\ MUST\ remain\ constant\ between\ calls.}}
+\DoxyCodeLine{00282\ \textcolor{comment}{//\ Returns\ NULL\ if\ the\ allocation\ failed.}}
+\DoxyCodeLine{00283\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ WebPINewDecoder(\mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}*\ output\_buffer);}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \textcolor{comment}{//\ This\ function\ allocates\ and\ initializes\ an\ incremental-\/decoder\ object,\ which}}
+\DoxyCodeLine{00286\ \textcolor{comment}{//\ will\ output\ the\ RGB/A\ samples\ specified\ by\ 'csp'\ into\ a\ preallocated}}
+\DoxyCodeLine{00287\ \textcolor{comment}{//\ buffer\ 'output\_buffer'.\ The\ size\ of\ this\ buffer\ is\ at\ least}}
+\DoxyCodeLine{00288\ \textcolor{comment}{//\ 'output\_buffer\_size'\ and\ the\ stride\ (distance\ in\ bytes\ between\ two\ scanlines)}}
+\DoxyCodeLine{00289\ \textcolor{comment}{//\ is\ specified\ by\ 'output\_stride'.}}
+\DoxyCodeLine{00290\ \textcolor{comment}{//\ Additionally,\ output\_buffer\ can\ be\ passed\ NULL\ in\ which\ case\ the\ output}}
+\DoxyCodeLine{00291\ \textcolor{comment}{//\ buffer\ will\ be\ allocated\ automatically\ when\ the\ decoding\ starts.\ The}}
+\DoxyCodeLine{00292\ \textcolor{comment}{//\ colorspace\ 'csp'\ is\ taken\ into\ account\ for\ allocating\ this\ buffer.\ All\ other}}
+\DoxyCodeLine{00293\ \textcolor{comment}{//\ parameters\ are\ ignored.}}
+\DoxyCodeLine{00294\ \textcolor{comment}{//\ Returns\ NULL\ if\ the\ allocation\ failed,\ or\ if\ some\ parameters\ are\ invalid.}}
+\DoxyCodeLine{00295\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ WebPINewRGB(}
+\DoxyCodeLine{00296\ \ \ \ \ WEBP\_CSP\_MODE\ csp,}
+\DoxyCodeLine{00297\ \ \ \ \ uint8\_t*\ output\_buffer,\ \textcolor{keywordtype}{size\_t}\ output\_buffer\_size,\ \textcolor{keywordtype}{int}\ output\_stride);}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \textcolor{comment}{//\ This\ function\ allocates\ and\ initializes\ an\ incremental-\/decoder\ object,\ which}}
+\DoxyCodeLine{00300\ \textcolor{comment}{//\ will\ output\ the\ raw\ luma/chroma\ samples\ into\ a\ preallocated\ planes\ if}}
+\DoxyCodeLine{00301\ \textcolor{comment}{//\ supplied.\ The\ luma\ plane\ is\ specified\ by\ its\ pointer\ 'luma',\ its\ size}}
+\DoxyCodeLine{00302\ \textcolor{comment}{//\ 'luma\_size'\ and\ its\ stride\ 'luma\_stride'.\ Similarly,\ the\ chroma-\/u\ plane}}
+\DoxyCodeLine{00303\ \textcolor{comment}{//\ is\ specified\ by\ the\ 'u',\ 'u\_size'\ and\ 'u\_stride'\ parameters,\ and\ the\ chroma-\/v}}
+\DoxyCodeLine{00304\ \textcolor{comment}{//\ plane\ by\ 'v'\ and\ 'v\_size'.\ And\ same\ for\ the\ alpha-\/plane.\ The\ 'a'\ pointer}}
+\DoxyCodeLine{00305\ \textcolor{comment}{//\ can\ be\ pass\ NULL\ in\ case\ one\ is\ not\ interested\ in\ the\ transparency\ plane.}}
+\DoxyCodeLine{00306\ \textcolor{comment}{//\ Conversely,\ 'luma'\ can\ be\ passed\ NULL\ if\ no\ preallocated\ planes\ are\ supplied.}}
+\DoxyCodeLine{00307\ \textcolor{comment}{//\ In\ this\ case,\ the\ output\ buffer\ will\ be\ automatically\ allocated\ (using}}
+\DoxyCodeLine{00308\ \textcolor{comment}{//\ MODE\_YUVA)\ when\ decoding\ starts.\ All\ parameters\ are\ then\ ignored.}}
+\DoxyCodeLine{00309\ \textcolor{comment}{//\ Returns\ NULL\ if\ the\ allocation\ failed\ or\ if\ a\ parameter\ is\ invalid.}}
+\DoxyCodeLine{00310\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ WebPINewYUVA(}
+\DoxyCodeLine{00311\ \ \ \ \ uint8\_t*\ luma,\ \textcolor{keywordtype}{size\_t}\ luma\_size,\ \textcolor{keywordtype}{int}\ luma\_stride,}
+\DoxyCodeLine{00312\ \ \ \ \ uint8\_t*\ u,\ \textcolor{keywordtype}{size\_t}\ u\_size,\ \textcolor{keywordtype}{int}\ u\_stride,}
+\DoxyCodeLine{00313\ \ \ \ \ uint8\_t*\ v,\ \textcolor{keywordtype}{size\_t}\ v\_size,\ \textcolor{keywordtype}{int}\ v\_stride,}
+\DoxyCodeLine{00314\ \ \ \ \ uint8\_t*\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{size\_t}\ a\_size,\ \textcolor{keywordtype}{int}\ a\_stride);}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \textcolor{comment}{//\ Deprecated\ version\ of\ the\ above,\ without\ the\ alpha\ plane.}}
+\DoxyCodeLine{00317\ \textcolor{comment}{//\ Kept\ for\ backward\ compatibility.}}
+\DoxyCodeLine{00318\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ WebPINewYUV(}
+\DoxyCodeLine{00319\ \ \ \ \ uint8\_t*\ luma,\ \textcolor{keywordtype}{size\_t}\ luma\_size,\ \textcolor{keywordtype}{int}\ luma\_stride,}
+\DoxyCodeLine{00320\ \ \ \ \ uint8\_t*\ u,\ \textcolor{keywordtype}{size\_t}\ u\_size,\ \textcolor{keywordtype}{int}\ u\_stride,}
+\DoxyCodeLine{00321\ \ \ \ \ uint8\_t*\ v,\ \textcolor{keywordtype}{size\_t}\ v\_size,\ \textcolor{keywordtype}{int}\ v\_stride);}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ \textcolor{comment}{//\ Deletes\ the\ WebPIDecoder\ object\ and\ associated\ memory.\ Must\ always\ be\ called}}
+\DoxyCodeLine{00324\ \textcolor{comment}{//\ if\ WebPINewDecoder,\ WebPINewRGB\ or\ WebPINewYUV\ succeeded.}}
+\DoxyCodeLine{00325\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPIDelete(\mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ idec);}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \textcolor{comment}{//\ Copies\ and\ decodes\ the\ next\ available\ data.\ Returns\ VP8\_STATUS\_OK\ when}}
+\DoxyCodeLine{00328\ \textcolor{comment}{//\ the\ image\ is\ successfully\ decoded.\ Returns\ VP8\_STATUS\_SUSPENDED\ when\ more}}
+\DoxyCodeLine{00329\ \textcolor{comment}{//\ data\ is\ expected.\ Returns\ error\ in\ other\ cases.}}
+\DoxyCodeLine{00330\ WEBP\_EXTERN\ VP8StatusCode\ WebPIAppend(}
+\DoxyCodeLine{00331\ \ \ \ \ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ idec,\ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size);}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \textcolor{comment}{//\ A\ variant\ of\ the\ above\ function\ to\ be\ used\ when\ data\ buffer\ contains}}
+\DoxyCodeLine{00334\ \textcolor{comment}{//\ partial\ data\ from\ the\ beginning.\ In\ this\ case\ data\ buffer\ is\ not\ copied}}
+\DoxyCodeLine{00335\ \textcolor{comment}{//\ to\ the\ internal\ memory.}}
+\DoxyCodeLine{00336\ \textcolor{comment}{//\ Note\ that\ the\ value\ of\ the\ 'data'\ pointer\ can\ change\ between\ calls\ to}}
+\DoxyCodeLine{00337\ \textcolor{comment}{//\ WebPIUpdate,\ for\ instance\ when\ the\ data\ buffer\ is\ resized\ to\ fit\ larger\ data.}}
+\DoxyCodeLine{00338\ WEBP\_EXTERN\ VP8StatusCode\ WebPIUpdate(}
+\DoxyCodeLine{00339\ \ \ \ \ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ idec,\ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size);}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \textcolor{comment}{//\ Returns\ the\ RGB/A\ image\ decoded\ so\ far.\ Returns\ NULL\ if\ output\ params}}
+\DoxyCodeLine{00342\ \textcolor{comment}{//\ are\ not\ initialized\ yet.\ The\ RGB/A\ output\ type\ corresponds\ to\ the\ colorspace}}
+\DoxyCodeLine{00343\ \textcolor{comment}{//\ specified\ during\ call\ to\ WebPINewDecoder()\ or\ WebPINewRGB().}}
+\DoxyCodeLine{00344\ \textcolor{comment}{//\ *last\_y\ is\ the\ index\ of\ last\ decoded\ row\ in\ raster\ scan\ order.\ Some\ pointers}}
+\DoxyCodeLine{00345\ \textcolor{comment}{//\ (*last\_y,\ *width\ etc.)\ can\ be\ NULL\ if\ corresponding\ information\ is\ not}}
+\DoxyCodeLine{00346\ \textcolor{comment}{//\ needed.\ The\ values\ in\ these\ pointers\ are\ only\ valid\ on\ successful\ (non-\/NULL)}}
+\DoxyCodeLine{00347\ \textcolor{comment}{//\ return.}}
+\DoxyCodeLine{00348\ WEBP\_EXTERN\ uint8\_t*\ WebPIDecGetRGB(}
+\DoxyCodeLine{00349\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ idec,\ \textcolor{keywordtype}{int}*\ last\_y,}
+\DoxyCodeLine{00350\ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height,\ \textcolor{keywordtype}{int}*\ stride);}
+\DoxyCodeLine{00351\ }
+\DoxyCodeLine{00352\ \textcolor{comment}{//\ Same\ as\ above\ function\ to\ get\ a\ YUVA\ image.\ Returns\ pointer\ to\ the\ luma}}
+\DoxyCodeLine{00353\ \textcolor{comment}{//\ plane\ or\ NULL\ in\ case\ of\ error.\ If\ there\ is\ no\ alpha\ information}}
+\DoxyCodeLine{00354\ \textcolor{comment}{//\ the\ alpha\ pointer\ '*a'\ will\ be\ returned\ NULL.}}
+\DoxyCodeLine{00355\ WEBP\_EXTERN\ uint8\_t*\ WebPIDecGetYUVA(}
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ idec,\ \textcolor{keywordtype}{int}*\ last\_y,}
+\DoxyCodeLine{00357\ \ \ \ \ uint8\_t**\ u,\ uint8\_t**\ v,\ uint8\_t**\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00358\ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height,\ \textcolor{keywordtype}{int}*\ stride,\ \textcolor{keywordtype}{int}*\ uv\_stride,\ \textcolor{keywordtype}{int}*\ a\_stride);}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \textcolor{comment}{//\ Deprecated\ alpha-\/less\ version\ of\ WebPIDecGetYUVA():\ it\ will\ ignore\ the}}
+\DoxyCodeLine{00361\ \textcolor{comment}{//\ alpha\ information\ (if\ present).\ Kept\ for\ backward\ compatibility.}}
+\DoxyCodeLine{00362\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint8\_t*\ WebPIDecGetYUV(}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ idec,\ \textcolor{keywordtype}{int}*\ last\_y,\ uint8\_t**\ u,\ uint8\_t**\ v,}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height,\ \textcolor{keywordtype}{int}*\ stride,\ \textcolor{keywordtype}{int}*\ uv\_stride)\ \{}
+\DoxyCodeLine{00365\ \ \ \textcolor{keywordflow}{return}\ WebPIDecGetYUVA(idec,\ last\_y,\ u,\ v,\ NULL,\ width,\ height,}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stride,\ uv\_stride,\ NULL);}
+\DoxyCodeLine{00367\ \}}
+\DoxyCodeLine{00368\ }
+\DoxyCodeLine{00369\ \textcolor{comment}{//\ Generic\ call\ to\ retrieve\ information\ about\ the\ displayable\ area.}}
+\DoxyCodeLine{00370\ \textcolor{comment}{//\ If\ non\ NULL,\ the\ left/right/width/height\ pointers\ are\ filled\ with\ the\ visible}}
+\DoxyCodeLine{00371\ \textcolor{comment}{//\ rectangular\ area\ so\ far.}}
+\DoxyCodeLine{00372\ \textcolor{comment}{//\ Returns\ NULL\ in\ case\ the\ incremental\ decoder\ object\ is\ in\ an\ invalid\ state.}}
+\DoxyCodeLine{00373\ \textcolor{comment}{//\ Otherwise\ returns\ the\ pointer\ to\ the\ internal\ representation.\ This\ structure}}
+\DoxyCodeLine{00374\ \textcolor{comment}{//\ is\ read-\/only,\ tied\ to\ WebPIDecoder's\ lifespan\ and\ should\ not\ be\ modified.}}
+\DoxyCodeLine{00375\ WEBP\_EXTERN\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}*\ WebPIDecodedArea(}
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ idec,\ \textcolor{keywordtype}{int}*\ left,\ \textcolor{keywordtype}{int}*\ top,\ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00377\ }
+\DoxyCodeLine{00378\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00379\ \textcolor{comment}{//\ Advanced\ decoding\ parametrization}}
+\DoxyCodeLine{00380\ \textcolor{comment}{//}}
+\DoxyCodeLine{00381\ \textcolor{comment}{//\ \ Code\ sample\ for\ using\ the\ advanced\ decoding\ API}}
+\DoxyCodeLine{00382\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00383\ \textcolor{comment}{\ \ \ \ \ //\ A)\ Init\ a\ configuration\ object}}
+\DoxyCodeLine{00384\ \textcolor{comment}{\ \ \ \ \ WebPDecoderConfig\ config;}}
+\DoxyCodeLine{00385\ \textcolor{comment}{\ \ \ \ \ CHECK(WebPInitDecoderConfig(\&config));}}
+\DoxyCodeLine{00386\ \textcolor{comment}{}}
+\DoxyCodeLine{00387\ \textcolor{comment}{\ \ \ \ \ //\ B)\ optional:\ retrieve\ the\ bitstream's\ features.}}
+\DoxyCodeLine{00388\ \textcolor{comment}{\ \ \ \ \ CHECK(WebPGetFeatures(data,\ data\_size,\ \&config.input)\ ==\ VP8\_STATUS\_OK);}}
+\DoxyCodeLine{00389\ \textcolor{comment}{}}
+\DoxyCodeLine{00390\ \textcolor{comment}{\ \ \ \ \ //\ C)\ Adjust\ 'config',\ if\ needed}}
+\DoxyCodeLine{00391\ \textcolor{comment}{\ \ \ \ \ config.no\_fancy\_upsampling\ =\ 1;}}
+\DoxyCodeLine{00392\ \textcolor{comment}{\ \ \ \ \ config.output.colorspace\ =\ MODE\_BGRA;}}
+\DoxyCodeLine{00393\ \textcolor{comment}{\ \ \ \ \ //\ etc.}}
+\DoxyCodeLine{00394\ \textcolor{comment}{}}
+\DoxyCodeLine{00395\ \textcolor{comment}{\ \ \ \ \ //\ Note\ that\ you\ can\ also\ make\ config.output\ point\ to\ an\ externally}}
+\DoxyCodeLine{00396\ \textcolor{comment}{\ \ \ \ \ //\ supplied\ memory\ buffer,\ provided\ it's\ big\ enough\ to\ store\ the\ decoded}}
+\DoxyCodeLine{00397\ \textcolor{comment}{\ \ \ \ \ //\ picture.\ Otherwise,\ config.output\ will\ just\ be\ used\ to\ allocate\ memory}}
+\DoxyCodeLine{00398\ \textcolor{comment}{\ \ \ \ \ //\ and\ store\ the\ decoded\ picture.}}
+\DoxyCodeLine{00399\ \textcolor{comment}{}}
+\DoxyCodeLine{00400\ \textcolor{comment}{\ \ \ \ \ //\ D)\ Decode!}}
+\DoxyCodeLine{00401\ \textcolor{comment}{\ \ \ \ \ CHECK(WebPDecode(data,\ data\_size,\ \&config)\ ==\ VP8\_STATUS\_OK);}}
+\DoxyCodeLine{00402\ \textcolor{comment}{}}
+\DoxyCodeLine{00403\ \textcolor{comment}{\ \ \ \ \ //\ E)\ Decoded\ image\ is\ now\ in\ config.output\ (and\ config.output.u.RGBA)}}
+\DoxyCodeLine{00404\ \textcolor{comment}{}}
+\DoxyCodeLine{00405\ \textcolor{comment}{\ \ \ \ \ //\ F)\ Reclaim\ memory\ allocated\ in\ config's\ object.\ It's\ safe\ to\ call}}
+\DoxyCodeLine{00406\ \textcolor{comment}{\ \ \ \ \ //\ this\ function\ even\ if\ the\ memory\ is\ external\ and\ wasn't\ allocated}}
+\DoxyCodeLine{00407\ \textcolor{comment}{\ \ \ \ \ //\ by\ WebPDecode().}}
+\DoxyCodeLine{00408\ \textcolor{comment}{\ \ \ \ \ WebPFreeDecBuffer(\&config.output);}}
+\DoxyCodeLine{00409\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \textcolor{comment}{//\ Features\ gathered\ from\ the\ bitstream}}
+\DoxyCodeLine{00412\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_bitstream_features}{WebPBitstreamFeatures}}\ \{}
+\DoxyCodeLine{00413\ \ \ \textcolor{keywordtype}{int}\ width;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Width\ in\ pixels,\ as\ read\ from\ the\ bitstream.}}
+\DoxyCodeLine{00414\ \ \ \textcolor{keywordtype}{int}\ height;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Height\ in\ pixels,\ as\ read\ from\ the\ bitstream.}}
+\DoxyCodeLine{00415\ \ \ \textcolor{keywordtype}{int}\ has\_alpha;\ \ \ \ \ \ \textcolor{comment}{//\ True\ if\ the\ bitstream\ contains\ an\ alpha\ channel.}}
+\DoxyCodeLine{00416\ \ \ \textcolor{keywordtype}{int}\ has\_animation;\ \ \textcolor{comment}{//\ True\ if\ the\ bitstream\ is\ an\ animation.}}
+\DoxyCodeLine{00417\ \ \ \textcolor{keywordtype}{int}\ format;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0\ =\ undefined\ (/mixed),\ 1\ =\ lossy,\ 2\ =\ lossless}}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \ \ uint32\_t\ pad[5];\ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00420\ \};}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00423\ WEBP\_EXTERN\ VP8StatusCode\ WebPGetFeaturesInternal(}
+\DoxyCodeLine{00424\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*,\ \textcolor{keywordtype}{size\_t},\ \mbox{\hyperlink{struct_web_p_bitstream_features}{WebPBitstreamFeatures}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \textcolor{comment}{//\ Retrieve\ features\ from\ the\ bitstream.\ The\ *features\ structure\ is\ filled}}
+\DoxyCodeLine{00427\ \textcolor{comment}{//\ with\ information\ gathered\ from\ the\ bitstream.}}
+\DoxyCodeLine{00428\ \textcolor{comment}{//\ Returns\ VP8\_STATUS\_OK\ when\ the\ features\ are\ successfully\ retrieved.\ Returns}}
+\DoxyCodeLine{00429\ \textcolor{comment}{//\ VP8\_STATUS\_NOT\_ENOUGH\_DATA\ when\ more\ data\ is\ needed\ to\ retrieve\ the}}
+\DoxyCodeLine{00430\ \textcolor{comment}{//\ features\ from\ headers.\ Returns\ error\ in\ other\ cases.}}
+\DoxyCodeLine{00431\ \textcolor{comment}{//\ Note:\ The\ following\ chunk\ sequences\ (before\ the\ raw\ VP8/VP8L\ data)\ are}}
+\DoxyCodeLine{00432\ \textcolor{comment}{//\ considered\ valid\ by\ this\ function:}}
+\DoxyCodeLine{00433\ \textcolor{comment}{//\ RIFF\ +\ VP8(L)}}
+\DoxyCodeLine{00434\ \textcolor{comment}{//\ RIFF\ +\ VP8X\ +\ (optional\ chunks)\ +\ VP8(L)}}
+\DoxyCodeLine{00435\ \textcolor{comment}{//\ ALPH\ +\ VP8\ <-\/-\/\ Not\ a\ valid\ WebP\ format:\ only\ allowed\ for\ internal\ purpose.}}
+\DoxyCodeLine{00436\ \textcolor{comment}{//\ VP8(L)\ \ \ \ \ <-\/-\/\ Not\ a\ valid\ WebP\ format:\ only\ allowed\ for\ internal\ purpose.}}
+\DoxyCodeLine{00437\ \textcolor{keyword}{static}\ WEBP\_INLINE\ VP8StatusCode\ WebPGetFeatures(}
+\DoxyCodeLine{00438\ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00439\ \ \ \ \ \mbox{\hyperlink{struct_web_p_bitstream_features}{WebPBitstreamFeatures}}*\ features)\ \{}
+\DoxyCodeLine{00440\ \ \ \textcolor{keywordflow}{return}\ WebPGetFeaturesInternal(\mbox{\hyperlink{structdata}{data}},\ data\_size,\ features,}
+\DoxyCodeLine{00441\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WEBP\_DECODER\_ABI\_VERSION);}
+\DoxyCodeLine{00442\ \}}
+\DoxyCodeLine{00443\ }
+\DoxyCodeLine{00444\ \textcolor{comment}{//\ Decoding\ options}}
+\DoxyCodeLine{00445\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_decoder_options}{WebPDecoderOptions}}\ \{}
+\DoxyCodeLine{00446\ \ \ \textcolor{keywordtype}{int}\ bypass\_filtering;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ true,\ skip\ the\ in-\/loop\ filtering}}
+\DoxyCodeLine{00447\ \ \ \textcolor{keywordtype}{int}\ no\_fancy\_upsampling;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ true,\ use\ faster\ pointwise\ upsampler}}
+\DoxyCodeLine{00448\ \ \ \textcolor{keywordtype}{int}\ use\_cropping;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ true,\ cropping\ is\ applied\ \_first\_}}
+\DoxyCodeLine{00449\ \ \ \textcolor{keywordtype}{int}\ crop\_left,\ crop\_top;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ top-\/left\ position\ for\ cropping.}}
+\DoxyCodeLine{00450\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Will\ be\ snapped\ to\ even\ values.}}
+\DoxyCodeLine{00451\ \ \ \textcolor{keywordtype}{int}\ crop\_width,\ crop\_height;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ dimension\ of\ the\ cropping\ area}}
+\DoxyCodeLine{00452\ \ \ \textcolor{keywordtype}{int}\ use\_scaling;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ true,\ scaling\ is\ applied\ \_afterward\_}}
+\DoxyCodeLine{00453\ \ \ \textcolor{keywordtype}{int}\ scaled\_width,\ scaled\_height;\ \ \ \ \textcolor{comment}{//\ final\ resolution}}
+\DoxyCodeLine{00454\ \ \ \textcolor{keywordtype}{int}\ use\_threads;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ true,\ use\ multi-\/threaded\ decoding}}
+\DoxyCodeLine{00455\ \ \ \textcolor{keywordtype}{int}\ dithering\_strength;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ dithering\ strength\ (0=Off,\ 100=full)}}
+\DoxyCodeLine{00456\ \ \ \textcolor{keywordtype}{int}\ flip;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ if\ true,\ flip\ output\ vertically}}
+\DoxyCodeLine{00457\ \ \ \textcolor{keywordtype}{int}\ alpha\_dithering\_strength;\ \ \ \ \ \ \ \textcolor{comment}{//\ alpha\ dithering\ strength\ in\ [0..100]}}
+\DoxyCodeLine{00458\ }
+\DoxyCodeLine{00459\ \ \ uint32\_t\ pad[5];\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00460\ \};}
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \textcolor{comment}{//\ Main\ object\ storing\ the\ configuration\ for\ advanced\ decoding.}}
+\DoxyCodeLine{00463\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_decoder_config}{WebPDecoderConfig}}\ \{}
+\DoxyCodeLine{00464\ \ \ \mbox{\hyperlink{struct_web_p_bitstream_features}{WebPBitstreamFeatures}}\ \mbox{\hyperlink{structinput}{input}};\ \ \textcolor{comment}{//\ Immutable\ bitstream\ features\ (optional)}}
+\DoxyCodeLine{00465\ \ \ \mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}\ output;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Output\ buffer\ (can\ point\ to\ external\ mem)}}
+\DoxyCodeLine{00466\ \ \ \mbox{\hyperlink{struct_web_p_decoder_options}{WebPDecoderOptions}}\ options;\ \ \ \textcolor{comment}{//\ Decoding\ options}}
+\DoxyCodeLine{00467\ \};}
+\DoxyCodeLine{00468\ }
+\DoxyCodeLine{00469\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00470\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPInitDecoderConfigInternal(\mbox{\hyperlink{struct_web_p_decoder_config}{WebPDecoderConfig}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00471\ }
+\DoxyCodeLine{00472\ \textcolor{comment}{//\ Initialize\ the\ configuration\ as\ empty.\ This\ function\ must\ always\ be}}
+\DoxyCodeLine{00473\ \textcolor{comment}{//\ called\ first,\ unless\ WebPGetFeatures()\ is\ to\ be\ called.}}
+\DoxyCodeLine{00474\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ mismatched\ version.}}
+\DoxyCodeLine{00475\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPInitDecoderConfig(\mbox{\hyperlink{struct_web_p_decoder_config}{WebPDecoderConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}})\ \{}
+\DoxyCodeLine{00476\ \ \ \textcolor{keywordflow}{return}\ WebPInitDecoderConfigInternal(\mbox{\hyperlink{structconfig__s}{config}},\ WEBP\_DECODER\_ABI\_VERSION);}
+\DoxyCodeLine{00477\ \}}
+\DoxyCodeLine{00478\ }
+\DoxyCodeLine{00479\ \textcolor{comment}{//\ Instantiate\ a\ new\ incremental\ decoder\ object\ with\ the\ requested}}
+\DoxyCodeLine{00480\ \textcolor{comment}{//\ configuration.\ The\ bitstream\ can\ be\ passed\ using\ 'data'\ and\ 'data\_size'}}
+\DoxyCodeLine{00481\ \textcolor{comment}{//\ parameter,\ in\ which\ case\ the\ features\ will\ be\ parsed\ and\ stored\ into}}
+\DoxyCodeLine{00482\ \textcolor{comment}{//\ config-\/>input.\ Otherwise,\ 'data'\ can\ be\ NULL\ and\ no\ parsing\ will\ occur.}}
+\DoxyCodeLine{00483\ \textcolor{comment}{//\ Note\ that\ 'config'\ can\ be\ NULL\ too,\ in\ which\ case\ a\ default\ configuration}}
+\DoxyCodeLine{00484\ \textcolor{comment}{//\ is\ used.\ If\ 'config'\ is\ not\ NULL,\ it\ must\ outlive\ the\ WebPIDecoder\ object}}
+\DoxyCodeLine{00485\ \textcolor{comment}{//\ as\ some\ references\ to\ its\ fields\ will\ be\ used.\ No\ internal\ copy\ of\ 'config'}}
+\DoxyCodeLine{00486\ \textcolor{comment}{//\ is\ made.}}
+\DoxyCodeLine{00487\ \textcolor{comment}{//\ The\ return\ WebPIDecoder\ object\ must\ always\ be\ deleted\ calling\ WebPIDelete().}}
+\DoxyCodeLine{00488\ \textcolor{comment}{//\ Returns\ NULL\ in\ case\ of\ error\ (and\ config-\/>status\ will\ then\ reflect}}
+\DoxyCodeLine{00489\ \textcolor{comment}{//\ the\ error\ condition,\ if\ available).}}
+\DoxyCodeLine{00490\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_i_decoder}{WebPIDecoder}}*\ WebPIDecode(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00491\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_web_p_decoder_config}{WebPDecoderConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}});}
+\DoxyCodeLine{00492\ }
+\DoxyCodeLine{00493\ \textcolor{comment}{//\ Non-\/incremental\ version.\ This\ version\ decodes\ the\ full\ data\ at\ once,\ taking}}
+\DoxyCodeLine{00494\ \textcolor{comment}{//\ 'config'\ into\ account.\ Returns\ decoding\ status\ (which\ should\ be\ VP8\_STATUS\_OK}}
+\DoxyCodeLine{00495\ \textcolor{comment}{//\ if\ the\ decoding\ was\ successful).\ Note\ that\ 'config'\ cannot\ be\ NULL.}}
+\DoxyCodeLine{00496\ WEBP\_EXTERN\ VP8StatusCode\ WebPDecode(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size,}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_web_p_decoder_config}{WebPDecoderConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}});}
+\DoxyCodeLine{00498\ }
+\DoxyCodeLine{00499\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00500\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00501\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00502\ }
+\DoxyCodeLine{00503\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_WEBP\_DECODE\_H\_}}
+
+\end{DoxyCode}

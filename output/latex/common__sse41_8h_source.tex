@@ -1,0 +1,138 @@
+\hypertarget{common__sse41_8h_source}{}\doxysection{common\+\_\+sse41.\+h}
+\label{common__sse41_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dsp/common\_sse41.h@{AseSprite/aseprite/third\_party/libwebp/src/dsp/common\_sse41.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2016\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ SSE4\ code\ common\ to\ several\ files.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Vincent\ Rabaud\ (vrabaud@google.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DSP\_COMMON\_SSE41\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_COMMON\_SSE41\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00018\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_SSE41)}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <smmintrin.h>}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00025\ \textcolor{comment}{//\ Channel\ mixing.}}
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ Shuffles\ the\ input\ buffer\ as\ A0\ 0\ 0\ A1\ 0\ 0\ A2\ ...}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ WEBP\_SSE41\_SHUFF(OUT,\ IN0,\ IN1)\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ OUT\#\#0\ =\ \_mm\_shuffle\_epi8(*IN0,\ shuff0);\ \(\backslash\)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ OUT\#\#1\ =\ \_mm\_shuffle\_epi8(*IN0,\ shuff1);\ \(\backslash\)}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ OUT\#\#2\ =\ \_mm\_shuffle\_epi8(*IN0,\ shuff2);\ \(\backslash\)}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\ \ OUT\#\#3\ =\ \_mm\_shuffle\_epi8(*IN1,\ shuff0);\ \(\backslash\)}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\ \ OUT\#\#4\ =\ \_mm\_shuffle\_epi8(*IN1,\ shuff1);\ \(\backslash\)}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ OUT\#\#5\ =\ \_mm\_shuffle\_epi8(*IN1,\ shuff2);}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ Pack\ the\ planar\ buffers}}
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ rrrr...\ rrrr...\ gggg...\ gggg...\ bbbb...\ bbbb....}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ triplet\ by\ triplet\ in\ the\ output\ buffer\ rgb\ as\ rgbrgbrgbrgb\ ...}}
+\DoxyCodeLine{00038\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8PlanarTo24b\_SSE41(}
+\DoxyCodeLine{00039\ \ \ \ \ \_\_m128i*\ \textcolor{keyword}{const}\ in0,\ \_\_m128i*\ \textcolor{keyword}{const}\ in1,\ \_\_m128i*\ \textcolor{keyword}{const}\ in2,}
+\DoxyCodeLine{00040\ \ \ \ \ \_\_m128i*\ \textcolor{keyword}{const}\ in3,\ \_\_m128i*\ \textcolor{keyword}{const}\ in4,\ \_\_m128i*\ \textcolor{keyword}{const}\ in5)\ \{}
+\DoxyCodeLine{00041\ \ \ \_\_m128i\ R0,\ R1,\ R2,\ R3,\ R4,\ R5;}
+\DoxyCodeLine{00042\ \ \ \_\_m128i\ G0,\ G1,\ G2,\ G3,\ G4,\ G5;}
+\DoxyCodeLine{00043\ \ \ \_\_m128i\ B0,\ B1,\ B2,\ B3,\ B4,\ B5;}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{comment}{//\ Process\ R.}}
+\DoxyCodeLine{00046\ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff0\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ 5,\ -\/1,\ -\/1,\ 4,\ -\/1,\ -\/1,\ 3,\ -\/1,\ -\/1,\ 2,\ -\/1,\ -\/1,\ 1,\ -\/1,\ -\/1,\ 0);}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff1\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ -\/1,\ 10,\ -\/1,\ -\/1,\ 9,\ -\/1,\ -\/1,\ 8,\ -\/1,\ -\/1,\ 7,\ -\/1,\ -\/1,\ 6,\ -\/1,\ -\/1);}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff2\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00052\ \ \ \ \ \ -\/1,\ -\/1,\ 15,\ -\/1,\ -\/1,\ 14,\ -\/1,\ -\/1,\ 13,\ -\/1,\ -\/1,\ 12,\ -\/1,\ -\/1,\ 11,\ -\/1);}
+\DoxyCodeLine{00053\ \ \ \ \ WEBP\_SSE41\_SHUFF(R,\ in0,\ in1)}
+\DoxyCodeLine{00054\ \ \ \}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \textcolor{comment}{//\ Process\ G.}}
+\DoxyCodeLine{00057\ \ \ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//\ Same\ as\ before,\ just\ shifted\ to\ the\ left\ by\ one\ and\ including\ the\ right}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{comment}{//\ padding.}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff0\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ -\/1,\ -\/1,\ 4,\ -\/1,\ -\/1,\ 3,\ -\/1,\ -\/1,\ 2,\ -\/1,\ -\/1,\ 1,\ -\/1,\ -\/1,\ 0,\ -\/1);}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff1\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ 10,\ -\/1,\ -\/1,\ 9,\ -\/1,\ -\/1,\ 8,\ -\/1,\ -\/1,\ 7,\ -\/1,\ -\/1,\ 6,\ -\/1,\ -\/1,\ 5);}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff2\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00065\ \ \ \ \ \ -\/1,\ 15,\ -\/1,\ -\/1,\ 14,\ -\/1,\ -\/1,\ 13,\ -\/1,\ -\/1,\ 12,\ -\/1,\ -\/1,\ 11,\ -\/1,\ -\/1);}
+\DoxyCodeLine{00066\ \ \ \ \ WEBP\_SSE41\_SHUFF(G,\ in2,\ in3)}
+\DoxyCodeLine{00067\ \ \ \}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \textcolor{comment}{//\ Process\ B.}}
+\DoxyCodeLine{00070\ \ \ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff0\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ -\/1,\ 4,\ -\/1,\ -\/1,\ 3,\ -\/1,\ -\/1,\ 2,\ -\/1,\ -\/1,\ 1,\ -\/1,\ -\/1,\ 0,\ -\/1,\ -\/1);}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff1\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ -\/1,\ -\/1,\ 9,\ -\/1,\ -\/1,\ 8,\ -\/1,\ -\/1,\ 7,\ -\/1,\ -\/1,\ 6,\ -\/1,\ -\/1,\ 5,\ -\/1);}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff2\ =\ \_mm\_set\_epi8(}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ 15,\ -\/1,\ -\/1,\ 14,\ -\/1,\ -\/1,\ 13,\ -\/1,\ -\/1,\ 12,\ -\/1,\ -\/1,\ 11,\ -\/1,\ -\/1,\ 10);}
+\DoxyCodeLine{00077\ \ \ \ \ WEBP\_SSE41\_SHUFF(B,\ in4,\ in5)}
+\DoxyCodeLine{00078\ \ \ \}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ \textcolor{comment}{//\ OR\ the\ different\ channels.}}
+\DoxyCodeLine{00081\ \ \ \{}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ RG0\ =\ \_mm\_or\_si128(R0,\ G0);}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ RG1\ =\ \_mm\_or\_si128(R1,\ G1);}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ RG2\ =\ \_mm\_or\_si128(R2,\ G2);}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ RG3\ =\ \_mm\_or\_si128(R3,\ G3);}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ RG4\ =\ \_mm\_or\_si128(R4,\ G4);}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keyword}{const}\ \_\_m128i\ RG5\ =\ \_mm\_or\_si128(R5,\ G5);}
+\DoxyCodeLine{00088\ \ \ \ \ *in0\ =\ \_mm\_or\_si128(RG0,\ B0);}
+\DoxyCodeLine{00089\ \ \ \ \ *in1\ =\ \_mm\_or\_si128(RG1,\ B1);}
+\DoxyCodeLine{00090\ \ \ \ \ *in2\ =\ \_mm\_or\_si128(RG2,\ B2);}
+\DoxyCodeLine{00091\ \ \ \ \ *in3\ =\ \_mm\_or\_si128(RG3,\ B3);}
+\DoxyCodeLine{00092\ \ \ \ \ *in4\ =\ \_mm\_or\_si128(RG4,\ B4);}
+\DoxyCodeLine{00093\ \ \ \ \ *in5\ =\ \_mm\_or\_si128(RG5,\ B5);}
+\DoxyCodeLine{00094\ \ \ \}}
+\DoxyCodeLine{00095\ \}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#undef\ WEBP\_SSE41\_SHUFF}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{comment}{//\ Convert\ four\ packed\ four-\/channel\ buffers\ like\ argbargbargbargb...\ into\ the}}
+\DoxyCodeLine{00100\ \textcolor{comment}{//\ split\ channels\ aaaaa\ ...\ rrrr\ ...\ gggg\ ....\ bbbbb\ ......}}
+\DoxyCodeLine{00101\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8L32bToPlanar\_SSE41(\_\_m128i*\ \textcolor{keyword}{const}\ in0,}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_m128i*\ \textcolor{keyword}{const}\ in1,}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_m128i*\ \textcolor{keyword}{const}\ in2,}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_m128i*\ \textcolor{keyword}{const}\ in3)\ \{}
+\DoxyCodeLine{00105\ \ \ \textcolor{comment}{//\ aaaarrrrggggbbbb}}
+\DoxyCodeLine{00106\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ shuff0\ =}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \_mm\_set\_epi8(15,\ 11,\ 7,\ 3,\ 14,\ 10,\ 6,\ 2,\ 13,\ 9,\ 5,\ 1,\ 12,\ 8,\ 4,\ 0);}
+\DoxyCodeLine{00108\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ A0\ =\ \_mm\_shuffle\_epi8(*in0,\ shuff0);}
+\DoxyCodeLine{00109\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ A1\ =\ \_mm\_shuffle\_epi8(*in1,\ shuff0);}
+\DoxyCodeLine{00110\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ A2\ =\ \_mm\_shuffle\_epi8(*in2,\ shuff0);}
+\DoxyCodeLine{00111\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ A3\ =\ \_mm\_shuffle\_epi8(*in3,\ shuff0);}
+\DoxyCodeLine{00112\ \ \ \textcolor{comment}{//\ A0A1R0R1}}
+\DoxyCodeLine{00113\ \ \ \textcolor{comment}{//\ G0G1B0B1}}
+\DoxyCodeLine{00114\ \ \ \textcolor{comment}{//\ A2A3R2R3}}
+\DoxyCodeLine{00115\ \ \ \textcolor{comment}{//\ G0G1B0B1}}
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ B0\ =\ \_mm\_unpacklo\_epi32(A0,\ A1);}
+\DoxyCodeLine{00117\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ B1\ =\ \_mm\_unpackhi\_epi32(A0,\ A1);}
+\DoxyCodeLine{00118\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ B2\ =\ \_mm\_unpacklo\_epi32(A2,\ A3);}
+\DoxyCodeLine{00119\ \ \ \textcolor{keyword}{const}\ \_\_m128i\ B3\ =\ \_mm\_unpackhi\_epi32(A2,\ A3);}
+\DoxyCodeLine{00120\ \ \ *in3\ =\ \_mm\_unpacklo\_epi64(B0,\ B2);}
+\DoxyCodeLine{00121\ \ \ *in2\ =\ \_mm\_unpackhi\_epi64(B0,\ B2);}
+\DoxyCodeLine{00122\ \ \ *in1\ =\ \_mm\_unpacklo\_epi64(B1,\ B3);}
+\DoxyCodeLine{00123\ \ \ *in0\ =\ \_mm\_unpackhi\_epi64(B1,\ B3);}
+\DoxyCodeLine{00124\ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_USE\_SSE41}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00129\ \}\ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DSP\_COMMON\_SSE41\_H\_}}
+
+\end{DoxyCode}

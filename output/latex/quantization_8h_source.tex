@@ -1,0 +1,81 @@
+\hypertarget{quantization_8h_source}{}\doxysection{quantization.\+h}
+\label{quantization_8h_source}\index{AseSprite/aseprite/src/render/quantization.h@{AseSprite/aseprite/src/render/quantization.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ Rener\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2019-\/2021\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (c)\ 2001-\/2017\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ RENDER\_QUANTIZATION\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ RENDER\_QUANTIZATION\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}doc/frame.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}doc/pixel\_format.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}doc/rgbmap\_algorithm.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}render/color\_histogram.h"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00020\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00021\ \ \ \textcolor{keyword}{class\ }Palette;}
+\DoxyCodeLine{00022\ \ \ \textcolor{keyword}{class\ }RgbMap;}
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{class\ }Sprite;}
+\DoxyCodeLine{00024\ \}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{namespace\ }render\ \{}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{class\ }Dithering;}
+\DoxyCodeLine{00028\ \ \ \textcolor{keyword}{class\ }TaskDelegate;}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classrender_1_1_palette_optimizer}{PaletteOptimizer}}\ \{}
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keywordtype}{void}\ feedWithImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ image,}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ withAlpha);}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{void}\ feedWithImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ image,}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\&\ bounds,}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ withAlpha);}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordtype}{void}\ feedWithRgbaColor(doc::color\_t\ color);}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{void}\ calculate(\mbox{\hyperlink{classdoc_1_1_palette}{doc::Palette}}*\ palette,\ \textcolor{keywordtype}{int}\ maskIndex);}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keywordtype}{bool}\ isHighPrecision()\ \{\ \textcolor{keywordflow}{return}\ m\_histogram.isHighPrecision();\ \}}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordtype}{int}\ highPrecisionSize()\ \{\ \textcolor{keywordflow}{return}\ m\_histogram.highPrecisionSize();\ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00043\ \ \ \ \ \mbox{\hyperlink{classrender_1_1_color_histogram}{render::ColorHistogram<5,\ 6,\ 5,\ 5>}}\ m\_histogram;}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_withAlpha\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00045\ \ \ \};}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \textcolor{comment}{//\ Creates\ a\ new\ palette\ suitable\ to\ quantize\ the\ given\ RGB\ sprite\ to\ Indexed\ color.}}
+\DoxyCodeLine{00048\ \ \ \mbox{\hyperlink{classdoc_1_1_palette}{doc::Palette}}*\ create\_palette\_from\_sprite(}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_sprite}{doc::Sprite}}*\ sprite,}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{const}\ doc::frame\_t\ fromFrame,}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{const}\ doc::frame\_t\ toFrame,}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ withAlpha,}
+\DoxyCodeLine{00053\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_palette}{doc::Palette}}*\ newPalette,\ \textcolor{comment}{//\ Can\ be\ NULL\ to\ create\ a\ new\ palette}}
+\DoxyCodeLine{00054\ \ \ \ \ \mbox{\hyperlink{classrender_1_1_task_delegate}{TaskDelegate}}*\ delegate,}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ newBlend,}
+\DoxyCodeLine{00056\ \ \ \ \ RgbMapAlgorithm\ mapAlgo,}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ calculateWithTransparent\ =\ \textcolor{keyword}{true});}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \textcolor{comment}{//\ Changes\ the\ image\ pixel\ format.\ The\ dithering\ method\ is\ used\ only}}
+\DoxyCodeLine{00060\ \ \ \textcolor{comment}{//\ when\ you\ want\ to\ convert\ from\ RGB\ to\ Indexed.}}
+\DoxyCodeLine{00061\ \ \ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ convert\_pixel\_format(}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ src,}
+\DoxyCodeLine{00063\ \ \ \ \ \mbox{\hyperlink{classdoc_1_1_image}{doc::Image}}*\ dst,\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Can\ be\ NULL\ to\ create\ a\ new\ image}}
+\DoxyCodeLine{00064\ \ \ \ \ doc::PixelFormat\ pixelFormat,}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classrender_1_1_dithering}{render::Dithering}}\&\ dithering,}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{doc::RgbMap}}*\ rgbmap,}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{doc::Palette}}*\ palette,}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{bool}\ is\_background,}
+\DoxyCodeLine{00069\ \ \ \ \ doc::color\_t\ new\_mask\_color,}
+\DoxyCodeLine{00070\ \ \ \ \ doc::rgba\_to\_graya\_func\ toGray\ =\ \textcolor{keyword}{nullptr},}
+\DoxyCodeLine{00071\ \ \ \ \ \mbox{\hyperlink{classrender_1_1_task_delegate}{TaskDelegate}}*\ delegate\ =\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \}\ \textcolor{comment}{//\ namespace\ render}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

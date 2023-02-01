@@ -1,0 +1,80 @@
+.TH "md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r \- Hyper 
+.PP
+Hyper is a separate \fBHTTP\fP library written in Rust\&. curl can be told to use this library as a backend to deal with \fBHTTP\fP\&.
+.SH "Experimental!"
+.PP
+Hyper support in curl is considered \fBEXPERIMENTAL\fP until further notice\&. It needs to be explicitly enabled at build-time\&.
+.PP
+Further development and tweaking of the Hyper backend support in curl will happen in in the master branch using pull-requests, just like ordinary changes\&.
+.SH "Hyper version"
+.PP
+The C API for Hyper is brand new and is still under development\&.
+.SH "build curl with hyper"
+.PP
+Build hyper and enable the C API: 
+.PP
+.nf
+ % git clone https://github\&.com/hyperium/hyper
+ % cd hyper
+ % RUSTFLAGS='--cfg hyper_unstable_ffi' cargo build --features client,http1,http2,ffi
+
+.fi
+.PP
+ Build curl to use hyper's C API: 
+.PP
+.nf
+ % git clone https://github\&.com/curl/curl
+ % cd curl
+ % \&./buildconf
+ % \&./configure --with-hyper=<hyper dir>
+ % make
+
+.fi
+.PP
+ 
+.SH "using Hyper internally"
+.PP
+Hyper is a low level \fBHTTP\fP transport library\&. curl itself provides all \fBHTTP\fP headers and Hyper provides all received headers back to curl\&.
+.PP
+Therefore, most of the 'header logic' in curl as in responding to and acting on specific input and output headers are done the same way in curl code\&.
+.PP
+The API in Hyper delivers received \fBHTTP\fP headers as (cleaned up) name=value pairs, making it impossible for curl to know the exact byte representation over the wire with Hyper\&.
+.SS "Limitations"
+The hyper backend doesn't support
+.PP
+.IP "\(bu" 2
+\fCCURLOPT_IGNORE_CONTENT_LENGTH\fP
+.IP "\(bu" 2
+\fBRTSP\fP
+.PP
+.SS "Remaining issues"
+This backend is still not feature complete with the native backend\&. Areas that still need attention and verification include:
+.PP
+.IP "\(bu" 2
+multiplexed HTTP/2
+.IP "\(bu" 2
+h2 Upgrade:
+.IP "\(bu" 2
+pausing transfers
+.IP "\(bu" 2
+co-exist with a HTTP/3 build
+.IP "\(bu" 2
+receiving HTTP/1 trailers
+.IP "\(bu" 2
+sending HTTP/1 trailers
+.IP "\(bu" 2
+accept-encoding
+.IP "\(bu" 2
+transfer encoding
+.IP "\(bu" 2
+alt-svc
+.IP "\(bu" 2
+hsts
+.IP "\(bu" 2
+DoH (\fC#6389\fP) 
+.PP
+

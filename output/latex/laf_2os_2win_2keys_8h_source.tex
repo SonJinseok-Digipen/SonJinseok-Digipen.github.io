@@ -1,0 +1,79 @@
+\hypertarget{laf_2os_2win_2keys_8h_source}{}\doxysection{keys.\+h}
+\label{laf_2os_2win_2keys_8h_source}\index{AseSprite/aseprite/laf/os/win/keys.h@{AseSprite/aseprite/laf/os/win/keys.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ LAF\ OS\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2012-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ OS\_WIN\_VK\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ OS\_WIN\_VK\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <windows.h>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}base/base.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}base/debug.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}os/keys.h"{}}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }os\ \{}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \ \ KeyScancode\ win32vk\_to\_scancode(\textcolor{keywordtype}{int}\ vk);}
+\DoxyCodeLine{00020\ \ \ KeyModifiers\ get\_modifiers\_from\_last\_win32\_message();}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classos_1_1_vk_to_unicode}{VkToUnicode}}\ \{}
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \ \ \mbox{\hyperlink{classos_1_1_vk_to_unicode}{VkToUnicode}}()\ :\ m\_size(0)\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ m\_ok\ =\ (GetKeyboardState(\&m\_keystate[0])\ ?\ \textcolor{keyword}{true}:\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00026\ \ \ \ \ \}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{void}\ toUnicode(\textcolor{keywordtype}{int}\ vk,\ \textcolor{keywordtype}{int}\ scancode)\ \{}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \textcolor{comment}{//\ ToUnicode\ returns\ several\ characters\ inside\ the\ buffer\ in}}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \textcolor{comment}{//\ case\ that\ a\ dead-\/key\ wasn't\ combined\ with\ the\ next\ pressed}}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \textcolor{comment}{//\ character.}}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ m\_size\ =}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ ToUnicode(vk,\ scancode,\ m\_keystate,\ m\_buffer,}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{sizeof}(m\_buffer)/\textcolor{keyword}{sizeof}(m\_buffer[0]),\ 0);}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \textcolor{comment}{//\ If\ there\ is\ a\ control\ key\ pressed,\ we'll\ try\ to\ get\ the}}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \textcolor{comment}{//\ unicode\ character\ turning\ control/shift\ off.}}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_size\ ==\ 0\ ||}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \ \ (m\_size\ ==\ 1\ \&\&\ m\_buffer[0]\ ==\ 0\ \&\&}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ m\_keystate[VK\_CONTROL]\ |\ m\_keystate[VK\_LCONTROL]\ |\ m\_keystate[VK\_RCONTROL]))\ \{}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ m\_keystate[VK\_SHIFT]\ =\ m\_keystate[VK\_LSHIFT]\ =\ m\_keystate[VK\_RSHIFT]\ =\ 0;}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ m\_keystate[VK\_CONTROL]\ =\ m\_keystate[VK\_LCONTROL]\ =\ m\_keystate[VK\_RCONTROL]\ =\ 0;}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ m\_size\ =}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ ToUnicode(vk,\ scancode,\ m\_keystate,\ m\_buffer,}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{sizeof}(m\_buffer)/\textcolor{keyword}{sizeof}(m\_buffer[0]),\ 0);}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00047\ \ \ \ \ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{operator}\ bool()\ \{\ \textcolor{keywordflow}{return}\ m\_ok;\ \}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{int}\ size()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ ABS(m\_size);\ \}}
+\DoxyCodeLine{00051\ \ \ \ \ LPCWSTR\ begin()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_buffer;\ \}}
+\DoxyCodeLine{00052\ \ \ \ \ LPCWSTR\ end()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_buffer+size();\ \}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{int}\ operator[](\textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ i)\ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ ASSERT(i\ >=\ 0\ \&\&\ i\ <\ size());}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_buffer[i];}
+\DoxyCodeLine{00057\ \ \ \ \ \}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{comment}{//\ ToUnicode()\ returns\ -\/1\ if\ there\ is\ dead\ key\ waiting}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{bool}\ isDeadKey()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_size\ ==\ -\/1);}
+\DoxyCodeLine{00062\ \ \ \ \ \}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_ok;}
+\DoxyCodeLine{00066\ \ \ \ \ BYTE\ m\_keystate[256];}
+\DoxyCodeLine{00067\ \ \ \ \ WCHAR\ m\_buffer[8];}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{int}\ m\_size;}
+\DoxyCodeLine{00069\ \ \ \};}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \}\ \textcolor{comment}{//\ namespace\ os}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

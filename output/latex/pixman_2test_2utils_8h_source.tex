@@ -1,0 +1,301 @@
+\hypertarget{pixman_2test_2utils_8h_source}{}\doxysection{utils.\+h}
+\label{pixman_2test_2utils_8h_source}\index{AseSprite/aseprite/third\_party/pixman/test/utils.h@{AseSprite/aseprite/third\_party/pixman/test/utils.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifdef\ HAVE\_CONFIG\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#include\ <config.h>}}
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}pixman-\/private.h"{}}\ \textcolor{comment}{/*\ For\ 'inline'\ definition\ */}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}utils-\/prng.h"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ snprintf\ \_snprintf}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#define\ strcasecmp\ \_stricmp}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ ARRAY\_LENGTH(A)\ ((int)\ (sizeof\ (A)\ /\ sizeof\ ((A)\ [0])))}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{comment}{/*\ A\ primitive\ pseudorandom\ number\ generator,}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ taken\ from\ POSIX.1-\/2001\ example}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structprng__t}{prng\_t}}\ prng\_state\_data;}
+\DoxyCodeLine{00021\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structprng__t}{prng\_t}}\ *prng\_state;}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#ifdef\ USE\_OPENMP}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#pragma\ omp\ threadprivate(prng\_state\_data)}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#pragma\ omp\ threadprivate(prng\_state)}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ uint32\_t}
+\DoxyCodeLine{00028\ prng\_rand\ (\textcolor{keywordtype}{void})}
+\DoxyCodeLine{00029\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordflow}{return}\ prng\_rand\_r\ (prng\_state);}
+\DoxyCodeLine{00031\ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00034\ prng\_srand\ (uint32\_t\ seed)}
+\DoxyCodeLine{00035\ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordflow}{if}\ (!prng\_state)}
+\DoxyCodeLine{00037\ \ \ \ \ \{}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Without\ setting\ a\ seed,\ PRNG\ does\ not\ work\ properly\ (is\ just}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ returning\ zeros).\ So\ we\ only\ initialize\ the\ pointer\ here\ to}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ make\ sure\ that\ 'prng\_srand'\ is\ always\ called\ before\ any}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ other\ 'prng\_*'\ function.\ The\ wrongdoers\ violating\ this\ order}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ will\ get\ a\ segfault.\ */}}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ prng\_state\ =\ \&prng\_state\_data;}
+\DoxyCodeLine{00044\ \ \ \ \ \}}
+\DoxyCodeLine{00045\ \ \ \ \ prng\_srand\_r\ (prng\_state,\ seed);}
+\DoxyCodeLine{00046\ \}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ uint32\_t}
+\DoxyCodeLine{00049\ prng\_rand\_n\ (\textcolor{keywordtype}{int}\ max)}
+\DoxyCodeLine{00050\ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordflow}{return}\ prng\_rand\ ()\ \%\ max;}
+\DoxyCodeLine{00052\ \}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00055\ prng\_randmemset\ (\textcolor{keywordtype}{void}\ *\mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keywordtype}{size\_t}\ size,\ prng\_randmemset\_flags\_t\ flags)}
+\DoxyCodeLine{00056\ \{}
+\DoxyCodeLine{00057\ \ \ \ \ prng\_randmemset\_r\ (prng\_state,\ \mbox{\hyperlink{classbuffer}{buffer}},\ size,\ flags);}
+\DoxyCodeLine{00058\ \}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{comment}{/*\ CRC\ 32\ computation}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00062\ uint32\_t}
+\DoxyCodeLine{00063\ compute\_crc32\ (uint32\_t\ \ \ \ in\_crc32,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{structbuf}{buf}},}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \ \ \ \ \ buf\_len);}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ uint32\_t}
+\DoxyCodeLine{00068\ compute\_crc32\_for\_image\ (uint32\_t\ \ \ \ \ \ \ \ in\_crc32,}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image);}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{comment}{/*\ Print\ the\ image\ in\ hexadecimal\ */}}
+\DoxyCodeLine{00072\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00073\ print\_image\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image);}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{comment}{/*\ Returns\ TRUE\ if\ running\ on\ a\ little\ endian\ system}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00077\ \textcolor{keyword}{static}\ force\_inline\ pixman\_bool\_t}
+\DoxyCodeLine{00078\ is\_little\_endian\ (\textcolor{keywordtype}{void})}
+\DoxyCodeLine{00079\ \{}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ endian\_check\_var\ =\ 1;}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordflow}{return}\ *(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *)\&endian\_check\_var\ ==\ 1;}
+\DoxyCodeLine{00082\ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{/*\ perform\ endian\ conversion\ of\ pixel\ data}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00086\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00087\ image\_endian\_swap\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *img);}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#if\ defined\ (HAVE\_MPROTECT)\ \&\&\ defined\ (HAVE\_GETPAGESIZE)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\ \ \ \ defined\ (HAVE\_SYS\_MMAN\_H)\ \&\&\ defined\ (HAVE\_MMAP)}}
+\DoxyCodeLine{00091\ \textcolor{comment}{/*\ fence\_malloc\ and\ friends\ have\ working\ fence\ implementation.}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ *\ Without\ this,\ fence\_malloc\ still\ allocs\ but\ does\ not\ catch}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ *\ out-\/of-\/bounds\ accesses.}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#define\ FENCE\_MALLOC\_ACTIVE\ 1}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#define\ FENCE\_MALLOC\_ACTIVE\ 0}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{comment}{/*\ Allocate\ memory\ that\ is\ bounded\ by\ protected\ pages,}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ *\ so\ that\ out-\/of-\/bounds\ access\ will\ cause\ segfaults}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00103\ \textcolor{keywordtype}{void}\ *}
+\DoxyCodeLine{00104\ fence\_malloc\ (int64\_t\ len);}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00107\ fence\_free\ (\textcolor{keywordtype}{void}\ *\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *}
+\DoxyCodeLine{00110\ fence\_image\_create\_bits\ (pixman\_format\_code\_t\ format,}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ min\_width,}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ stride\_fence);}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{comment}{/*\ Return\ the\ page\ size\ if\ FENCE\_MALLOC\_ACTIVE,\ or\ zero\ otherwise\ */}}
+\DoxyCodeLine{00116\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}}
+\DoxyCodeLine{00117\ fence\_get\_page\_size\ ();}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{comment}{/*\ Generate\ n\_bytes\ random\ bytes\ in\ fence\_malloced\ memory\ */}}
+\DoxyCodeLine{00120\ uint8\_t\ *}
+\DoxyCodeLine{00121\ make\_random\_bytes\ (\textcolor{keywordtype}{int}\ n\_bytes);}
+\DoxyCodeLine{00122\ \textcolor{keywordtype}{float}\ *}
+\DoxyCodeLine{00123\ make\_random\_floats\ (\textcolor{keywordtype}{int}\ n\_bytes);}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{/*\ Return\ current\ time\ in\ seconds\ */}}
+\DoxyCodeLine{00126\ \textcolor{keywordtype}{double}}
+\DoxyCodeLine{00127\ gettime\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ uint32\_t}
+\DoxyCodeLine{00130\ get\_random\_seed\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{comment}{/*\ main\ body\ of\ the\ fuzzer\ test\ */}}
+\DoxyCodeLine{00133\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00134\ fuzzer\_test\_main\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *test\_name,}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ default\_number\_of\_iterations,}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ expected\_checksum,}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ (*test\_function)(\textcolor{keywordtype}{int}\ testnum,\ \textcolor{keywordtype}{int}\ verbose),}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ argc,}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *argv[]);}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00142\ fail\_after\ (\textcolor{keywordtype}{int}\ seconds,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *msg);}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \textcolor{comment}{/*\ If\ possible,\ enable\ traps\ for\ floating\ point\ exceptions\ */}}
+\DoxyCodeLine{00145\ \textcolor{keywordtype}{void}\ enable\_divbyzero\_exceptions(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00146\ \textcolor{keywordtype}{void}\ enable\_invalid\_exceptions(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{comment}{/*\ Converts\ a8r8g8b8\ pixels\ to\ pixels\ that}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ *\ \ -\/\ are\ not\ premultiplied,}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ *\ \ -\/\ are\ stored\ in\ this\ order\ in\ memory:\ R,\ G,\ B,\ A,\ regardless\ of}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ *\ \ \ \ the\ endianness\ of\ the\ computer.}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ *\ It\ is\ allowed\ for\ @src\ and\ @dst\ to\ point\ to\ the\ same\ memory\ buffer.}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00154\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00155\ a8r8g8b8\_to\_rgba\_np\ (uint32\_t\ *dst,\ uint32\_t\ *src,\ \textcolor{keywordtype}{int}\ n\_pixels);}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ pixman\_bool\_t}
+\DoxyCodeLine{00158\ write\_png\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *filename);}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00161\ draw\_checkerboard\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ check\_size,}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ color1,\ uint32\_t\ color2);}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \textcolor{comment}{/*\ A\ pair\ of\ macros\ which\ can\ help\ to\ detect\ corruption\ of}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ *\ floating\ point\ registers\ after\ a\ function\ call.\ This\ may}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ *\ happen\ if\ \_mm\_empty()\ call\ is\ forgotten\ in\ MMX/SSE2\ fast}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ *\ path\ code,\ or\ ARM\ NEON\ assembly\ optimized\ function\ forgets}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ *\ to\ save/restore\ d8-\/d15\ registers\ before\ use.}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#define\ FLOAT\_REGS\_CORRUPTION\_DETECTOR\_START()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant1\ =\ 123451;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant2\ =\ 123452;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant3\ =\ 123453;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant4\ =\ 123454;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant5\ =\ 123455;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant6\ =\ 123456;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant7\ =\ 123457;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ \ \ static\ volatile\ double\ frcd\_volatile\_constant8\ =\ 123458;\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable1\ =\ frcd\_volatile\_constant1;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable2\ =\ frcd\_volatile\_constant2;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable3\ =\ frcd\_volatile\_constant3;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable4\ =\ frcd\_volatile\_constant4;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable5\ =\ frcd\_volatile\_constant5;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable6\ =\ frcd\_volatile\_constant6;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable7\ =\ frcd\_volatile\_constant7;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\ \ \ \ double\ frcd\_canary\_variable8\ =\ frcd\_volatile\_constant8;}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#define\ FLOAT\_REGS\_CORRUPTION\_DETECTOR\_FINISH()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable1\ ==\ frcd\_volatile\_constant1);\ \(\backslash\)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable2\ ==\ frcd\_volatile\_constant2);\ \(\backslash\)}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable3\ ==\ frcd\_volatile\_constant3);\ \(\backslash\)}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable4\ ==\ frcd\_volatile\_constant4);\ \(\backslash\)}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable5\ ==\ frcd\_volatile\_constant5);\ \(\backslash\)}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable6\ ==\ frcd\_volatile\_constant6);\ \(\backslash\)}}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable7\ ==\ frcd\_volatile\_constant7);\ \(\backslash\)}}
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\ \ \ \ assert\ (frcd\_canary\_variable8\ ==\ frcd\_volatile\_constant8);}}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \textcolor{comment}{/*\ Try\ to\ get\ an\ aligned\ memory\ chunk\ */}}
+\DoxyCodeLine{00201\ \textcolor{keywordtype}{void}\ *}
+\DoxyCodeLine{00202\ aligned\_malloc\ (\textcolor{keywordtype}{size\_t}\ align,\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \textcolor{keywordtype}{double}}
+\DoxyCodeLine{00205\ convert\_srgb\_to\_linear\ (\textcolor{keywordtype}{double}\ component);}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{keywordtype}{double}}
+\DoxyCodeLine{00208\ convert\_linear\_to\_srgb\ (\textcolor{keywordtype}{double}\ component);}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00211\ initialize\_palette\ (\mbox{\hyperlink{structpixman__indexed}{pixman\_indexed\_t}}\ *palette,\ uint32\_t\ depth,\ \textcolor{keywordtype}{int}\ is\_rgb);}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ pixman\_format\_code\_t}
+\DoxyCodeLine{00214\ format\_from\_string\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *s);}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00217\ list\_formats\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00220\ list\_operators\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \textcolor{keywordtype}{void}\ list\_dithers\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ pixman\_op\_t}
+\DoxyCodeLine{00225\ operator\_from\_string\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *s);}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ pixman\_dither\_t}
+\DoxyCodeLine{00228\ dither\_from\_string\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *s);}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *}
+\DoxyCodeLine{00231\ operator\_name\ (pixman\_op\_t\ op);}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *}
+\DoxyCodeLine{00234\ format\_name\ (pixman\_format\_code\_t\ format);}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *}
+\DoxyCodeLine{00237\ dither\_name\ (pixman\_dither\_t\ dither);}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00240\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{keywordtype}{double}\ r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00242\ \}\ \mbox{\hyperlink{structcolor__t}{color\_t}};}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00245\ do\_composite\ (pixman\_op\_t\ op,}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *src,}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *mask,}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *dst,}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *result,}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ component\_alpha);}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00253\ round\_color\ (pixman\_format\_code\_t\ format,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *color);}
+\DoxyCodeLine{00254\ }
+\DoxyCodeLine{00255\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00256\ \{}
+\DoxyCodeLine{00257\ \ \ \ \ pixman\_format\_code\_t\ format;}
+\DoxyCodeLine{00258\ \ \ \ \ uint32\_t\ am,\ rm,\ gm,\ bm;}
+\DoxyCodeLine{00259\ \ \ \ \ uint32\_t\ as,\ rs,\ gs,\ bs;}
+\DoxyCodeLine{00260\ \ \ \ \ uint32\_t\ aw,\ rw,\ gw,\ bw;}
+\DoxyCodeLine{00261\ \ \ \ \ \textcolor{keywordtype}{float}\ ad,\ rd,\ gd,\ bd;}
+\DoxyCodeLine{00262\ \}\ \mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}};}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00265\ pixel\_checker\_init\ (\mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}},\ pixman\_format\_code\_t\ format);}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00268\ pixel\_checker\_allow\_dither\ (\mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}});}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00271\ pixel\_checker\_split\_pixel\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}},\ uint32\_t\ pixel,}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{int}\ *r,\ \textcolor{keywordtype}{int}\ *g,\ \textcolor{keywordtype}{int}\ *b);}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00275\ pixel\_checker\_get\_max\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}},\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *color,}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{int}\ *r,\ \textcolor{keywordtype}{int}\ *g,\ \textcolor{keywordtype}{int}\ *b);}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00279\ pixel\_checker\_get\_min\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}},\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *color,}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{int}\ *r,\ \textcolor{keywordtype}{int}\ *g,\ \textcolor{keywordtype}{int}\ *b);}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ pixman\_bool\_t}
+\DoxyCodeLine{00283\ pixel\_checker\_check\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}},}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ pixel,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *color);}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00287\ pixel\_checker\_convert\_pixel\_to\_color\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}},}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ pixel,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *color);}
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00291\ pixel\_checker\_get\_masks\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixel__checker__t}{pixel\_checker\_t}}\ *\mbox{\hyperlink{structchecker}{checker}},}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ *am,}
+\DoxyCodeLine{00293\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ *rm,}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ *gm,}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ *bm);}
+
+\end{DoxyCode}

@@ -1,0 +1,536 @@
+\hypertarget{mux_8h_source}{}\doxysection{mux.\+h}
+\label{mux_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/webp/mux.h@{AseSprite/aseprite/third\_party/libwebp/src/webp/mux.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2011\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ \ RIFF\ container\ manipulation\ and\ encoding\ for\ WebP\ images.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Authors:\ Urvang\ (urvang@google.com)}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ Vikas\ (vikasa@google.com)}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ WEBP\_WEBP\_MUX\_H\_}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#define\ WEBP\_WEBP\_MUX\_H\_}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}./mux\_types.h"{}}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00021\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ WEBP\_MUX\_ABI\_VERSION\ 0x0108\ \ \ \ \ \ \ \ }\textcolor{comment}{//\ MAJOR(8b)\ +\ MINOR(8b)}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ Mux\ API}}
+\DoxyCodeLine{00028\ \textcolor{comment}{//}}
+\DoxyCodeLine{00029\ \textcolor{comment}{//\ This\ API\ allows\ manipulation\ of\ WebP\ container\ images\ containing\ features}}
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ like\ color\ profile,\ metadata,\ animation.}}
+\DoxyCodeLine{00031\ \textcolor{comment}{//}}
+\DoxyCodeLine{00032\ \textcolor{comment}{//\ Code\ Example\#1:\ Create\ a\ WebPMux\ object\ with\ image\ data,\ color\ profile\ and}}
+\DoxyCodeLine{00033\ \textcolor{comment}{//\ XMP\ metadata.}}
+\DoxyCodeLine{00034\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ int\ copy\_data\ =\ 0;}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ WebPMux*\ mux\ =\ WebPMuxNew();}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ //\ ...\ (Prepare\ image\ data).}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ WebPMuxSetImage(mux,\ \&image,\ copy\_data);}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ //\ ...\ (Prepare\ ICCP\ color\ profile\ data).}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ WebPMuxSetChunk(mux,\ "{}ICCP"{},\ \&icc\_profile,\ copy\_data);}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ //\ ...\ (Prepare\ XMP\ metadata).}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ \ WebPMuxSetChunk(mux,\ "{}XMP\ "{},\ \&xmp,\ copy\_data);}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ //\ Get\ data\ from\ mux\ in\ WebP\ RIFF\ format.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ WebPMuxAssemble(mux,\ \&output\_data);}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ WebPMuxDelete(mux);}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ \ //\ ...\ (Consume\ output\_data;\ e.g.\ write\ output\_data.bytes\ to\ file).}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ WebPDataClear(\&output\_data);}}
+\DoxyCodeLine{00048\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ Code\ Example\#2:\ Get\ image\ and\ color\ profile\ data\ from\ a\ WebP\ file.}}
+\DoxyCodeLine{00051\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ int\ copy\_data\ =\ 0;}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ //\ ...\ (Read\ data\ from\ file).}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ WebPMux*\ mux\ =\ WebPMuxCreate(\&data,\ copy\_data);}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ WebPMuxGetFrame(mux,\ 1,\ \&image);}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ //\ ...\ (Consume\ image;\ e.g.\ call\ WebPDecode()\ to\ decode\ the\ data).}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ WebPMuxGetChunk(mux,\ "{}ICCP"{},\ \&icc\_profile);}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ //\ ...\ (Consume\ icc\_data).}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ WebPMuxDelete(mux);}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ WebPFree(data);}}
+\DoxyCodeLine{00061\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{comment}{//\ Note:\ forward\ declaring\ enumerations\ is\ not\ allowed\ in\ (strict)\ C\ and\ C++,}}
+\DoxyCodeLine{00064\ \textcolor{comment}{//\ the\ types\ are\ left\ here\ for\ reference.}}
+\DoxyCodeLine{00065\ \textcolor{comment}{//\ typedef\ enum\ WebPMuxError\ WebPMuxError;}}
+\DoxyCodeLine{00066\ \textcolor{comment}{//\ typedef\ enum\ WebPChunkId\ WebPChunkId;}}
+\DoxyCodeLine{00067\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_mux}{WebPMux}}\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}};\ \ \ \textcolor{comment}{//\ main\ opaque\ object.}}
+\DoxyCodeLine{00068\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_mux_frame_info}{WebPMuxFrameInfo}}\ \mbox{\hyperlink{struct_web_p_mux_frame_info}{WebPMuxFrameInfo}};}
+\DoxyCodeLine{00069\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_mux_anim_params}{WebPMuxAnimParams}}\ \mbox{\hyperlink{struct_web_p_mux_anim_params}{WebPMuxAnimParams}};}
+\DoxyCodeLine{00070\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_encoder_options}{WebPAnimEncoderOptions}}\ \mbox{\hyperlink{struct_web_p_anim_encoder_options}{WebPAnimEncoderOptions}};}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{comment}{//\ Error\ codes}}
+\DoxyCodeLine{00073\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPMuxError\ \{}
+\DoxyCodeLine{00074\ \ \ WEBP\_MUX\_OK\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ \ 1,}
+\DoxyCodeLine{00075\ \ \ WEBP\_MUX\_NOT\_FOUND\ \ \ \ \ \ \ \ \ \ =\ \ 0,}
+\DoxyCodeLine{00076\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ \ \ =\ -\/1,}
+\DoxyCodeLine{00077\ \ \ WEBP\_MUX\_BAD\_DATA\ \ \ \ \ \ \ \ \ \ \ =\ -\/2,}
+\DoxyCodeLine{00078\ \ \ WEBP\_MUX\_MEMORY\_ERROR\ \ \ \ \ \ \ =\ -\/3,}
+\DoxyCodeLine{00079\ \ \ WEBP\_MUX\_NOT\_ENOUGH\_DATA\ \ \ \ =\ -\/4}
+\DoxyCodeLine{00080\ \}\ WebPMuxError;}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{//\ IDs\ for\ different\ types\ of\ chunks.}}
+\DoxyCodeLine{00083\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ WebPChunkId\ \{}
+\DoxyCodeLine{00084\ \ \ WEBP\_CHUNK\_VP8X,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ VP8X}}
+\DoxyCodeLine{00085\ \ \ WEBP\_CHUNK\_ICCP,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ ICCP}}
+\DoxyCodeLine{00086\ \ \ WEBP\_CHUNK\_ANIM,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ ANIM}}
+\DoxyCodeLine{00087\ \ \ WEBP\_CHUNK\_ANMF,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ ANMF}}
+\DoxyCodeLine{00088\ \ \ WEBP\_CHUNK\_DEPRECATED,\ \ \textcolor{comment}{//\ (deprecated\ from\ FRGM)}}
+\DoxyCodeLine{00089\ \ \ WEBP\_CHUNK\_ALPHA,\ \ \ \ \ \ \ \textcolor{comment}{//\ ALPH}}
+\DoxyCodeLine{00090\ \ \ WEBP\_CHUNK\_IMAGE,\ \ \ \ \ \ \ \textcolor{comment}{//\ VP8/VP8L}}
+\DoxyCodeLine{00091\ \ \ WEBP\_CHUNK\_EXIF,\ \ \ \ \ \ \ \ \textcolor{comment}{//\ EXIF}}
+\DoxyCodeLine{00092\ \ \ WEBP\_CHUNK\_XMP,\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ XMP}}
+\DoxyCodeLine{00093\ \ \ WEBP\_CHUNK\_UNKNOWN,\ \ \ \ \ \textcolor{comment}{//\ Other\ chunks.}}
+\DoxyCodeLine{00094\ \ \ WEBP\_CHUNK\_NIL}
+\DoxyCodeLine{00095\ \}\ WebPChunkId;}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{comment}{//\ Returns\ the\ version\ number\ of\ the\ mux\ library,\ packed\ in\ hexadecimal\ using}}
+\DoxyCodeLine{00100\ \textcolor{comment}{//\ 8bits\ for\ each\ of\ major/minor/revision.\ E.g:\ v2.5.7\ is\ 0x020507.}}
+\DoxyCodeLine{00101\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPGetMuxVersion(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00104\ \textcolor{comment}{//\ Life\ of\ a\ Mux\ object}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00107\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ WebPNewInternal(\textcolor{keywordtype}{int});}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{comment}{//\ Creates\ an\ empty\ mux\ object.}}
+\DoxyCodeLine{00110\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00111\ \textcolor{comment}{//\ \ \ A\ pointer\ to\ the\ newly\ created\ empty\ mux\ object.}}
+\DoxyCodeLine{00112\ \textcolor{comment}{//\ \ \ Or\ NULL\ in\ case\ of\ memory\ error.}}
+\DoxyCodeLine{00113\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ WebPMuxNew(\textcolor{keywordtype}{void})\ \{}
+\DoxyCodeLine{00114\ \ \ \textcolor{keywordflow}{return}\ WebPNewInternal(WEBP\_MUX\_ABI\_VERSION);}
+\DoxyCodeLine{00115\ \}}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \textcolor{comment}{//\ Deletes\ the\ mux\ object.}}
+\DoxyCodeLine{00118\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00119\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ to\ be\ deleted}}
+\DoxyCodeLine{00120\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPMuxDelete(\mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux);}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00123\ \textcolor{comment}{//\ Mux\ creation.}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point}}
+\DoxyCodeLine{00126\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ WebPMuxCreateInternal(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*,\ \textcolor{keywordtype}{int},\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \textcolor{comment}{//\ Creates\ a\ mux\ object\ from\ raw\ data\ given\ in\ WebP\ RIFF\ format.}}
+\DoxyCodeLine{00129\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00130\ \textcolor{comment}{//\ \ \ bitstream\ -\/\ (in)\ the\ bitstream\ data\ in\ WebP\ RIFF\ format}}
+\DoxyCodeLine{00131\ \textcolor{comment}{//\ \ \ copy\_data\ -\/\ (in)\ value\ 1\ indicates\ given\ data\ WILL\ be\ copied\ to\ the\ mux}}
+\DoxyCodeLine{00132\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ object\ and\ value\ 0\ indicates\ data\ will\ NOT\ be\ copied.}}
+\DoxyCodeLine{00133\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00134\ \textcolor{comment}{//\ \ \ A\ pointer\ to\ the\ mux\ object\ created\ from\ given\ data\ -\/\ on\ success.}}
+\DoxyCodeLine{00135\ \textcolor{comment}{//\ \ \ NULL\ -\/\ In\ case\ of\ invalid\ data\ or\ memory\ error.}}
+\DoxyCodeLine{00136\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ WebPMuxCreate(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ bitstream,}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ copy\_data)\ \{}
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordflow}{return}\ WebPMuxCreateInternal(bitstream,\ copy\_data,\ WEBP\_MUX\_ABI\_VERSION);}
+\DoxyCodeLine{00139\ \}}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00142\ \textcolor{comment}{//\ Non-\/image\ chunks.}}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \textcolor{comment}{//\ Note:\ Only\ non-\/image\ related\ chunks\ should\ be\ managed\ through\ chunk\ APIs.}}
+\DoxyCodeLine{00145\ \textcolor{comment}{//\ (Image\ related\ chunks\ are:\ "{}ANMF"{},\ "{}VP8\ "{},\ "{}VP8L"{}\ and\ "{}ALPH"{}).}}
+\DoxyCodeLine{00146\ \textcolor{comment}{//\ To\ add,\ get\ and\ delete\ images,\ use\ WebPMuxSetImage(),\ WebPMuxPushFrame(),}}
+\DoxyCodeLine{00147\ \textcolor{comment}{//\ WebPMuxGetFrame()\ and\ WebPMuxDeleteFrame().}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{comment}{//\ Adds\ a\ chunk\ with\ id\ 'fourcc'\ and\ data\ 'chunk\_data'\ in\ the\ mux\ object.}}
+\DoxyCodeLine{00150\ \textcolor{comment}{//\ Any\ existing\ chunk(s)\ with\ the\ same\ id\ will\ be\ removed.}}
+\DoxyCodeLine{00151\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00152\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ to\ which\ the\ chunk\ is\ to\ be\ added}}
+\DoxyCodeLine{00153\ \textcolor{comment}{//\ \ \ fourcc\ -\/\ (in)\ a\ character\ array\ containing\ the\ fourcc\ of\ the\ given\ chunk;}}
+\DoxyCodeLine{00154\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ e.g.,\ "{}ICCP"{},\ "{}XMP\ "{},\ "{}EXIF"{}\ etc.}}
+\DoxyCodeLine{00155\ \textcolor{comment}{//\ \ \ chunk\_data\ -\/\ (in)\ the\ chunk\ data\ to\ be\ added}}
+\DoxyCodeLine{00156\ \textcolor{comment}{//\ \ \ copy\_data\ -\/\ (in)\ value\ 1\ indicates\ given\ data\ WILL\ be\ copied\ to\ the\ mux}}
+\DoxyCodeLine{00157\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ object\ and\ value\ 0\ indicates\ data\ will\ NOT\ be\ copied.}}
+\DoxyCodeLine{00158\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00159\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux,\ fourcc\ or\ chunk\_data\ is\ NULL}}
+\DoxyCodeLine{00160\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ or\ if\ fourcc\ corresponds\ to\ an\ image\ chunk.}}
+\DoxyCodeLine{00161\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_MEMORY\_ERROR\ -\/\ on\ memory\ allocation\ error.}}
+\DoxyCodeLine{00162\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00163\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxSetChunk(}
+\DoxyCodeLine{00164\ \ \ \ \ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ fourcc[4],\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ \mbox{\hyperlink{structchunk__data}{chunk\_data}},}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keywordtype}{int}\ copy\_data);}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \textcolor{comment}{//\ Gets\ a\ reference\ to\ the\ data\ of\ the\ chunk\ with\ id\ 'fourcc'\ in\ the\ mux\ object.}}
+\DoxyCodeLine{00168\ \textcolor{comment}{//\ The\ caller\ should\ NOT\ free\ the\ returned\ data.}}
+\DoxyCodeLine{00169\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00170\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in)\ object\ from\ which\ the\ chunk\ data\ is\ to\ be\ fetched}}
+\DoxyCodeLine{00171\ \textcolor{comment}{//\ \ \ fourcc\ -\/\ (in)\ a\ character\ array\ containing\ the\ fourcc\ of\ the\ chunk;}}
+\DoxyCodeLine{00172\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ e.g.,\ "{}ICCP"{},\ "{}XMP\ "{},\ "{}EXIF"{}\ etc.}}
+\DoxyCodeLine{00173\ \textcolor{comment}{//\ \ \ chunk\_data\ -\/\ (out)\ returned\ chunk\ data}}
+\DoxyCodeLine{00174\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00175\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux,\ fourcc\ or\ chunk\_data\ is\ NULL}}
+\DoxyCodeLine{00176\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ or\ if\ fourcc\ corresponds\ to\ an\ image\ chunk.}}
+\DoxyCodeLine{00177\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_NOT\_FOUND\ -\/\ If\ mux\ does\ not\ contain\ a\ chunk\ with\ the\ given\ id.}}
+\DoxyCodeLine{00178\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00179\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxGetChunk(}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ fourcc[4],\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ \mbox{\hyperlink{structchunk__data}{chunk\_data}});}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \textcolor{comment}{//\ Deletes\ the\ chunk\ with\ the\ given\ 'fourcc'\ from\ the\ mux\ object.}}
+\DoxyCodeLine{00183\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00184\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ from\ which\ the\ chunk\ is\ to\ be\ deleted}}
+\DoxyCodeLine{00185\ \textcolor{comment}{//\ \ \ fourcc\ -\/\ (in)\ a\ character\ array\ containing\ the\ fourcc\ of\ the\ chunk;}}
+\DoxyCodeLine{00186\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ e.g.,\ "{}ICCP"{},\ "{}XMP\ "{},\ "{}EXIF"{}\ etc.}}
+\DoxyCodeLine{00187\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00188\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ or\ fourcc\ is\ NULL}}
+\DoxyCodeLine{00189\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ or\ if\ fourcc\ corresponds\ to\ an\ image\ chunk.}}
+\DoxyCodeLine{00190\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_NOT\_FOUND\ -\/\ If\ mux\ does\ not\ contain\ a\ chunk\ with\ the\ given\ fourcc.}}
+\DoxyCodeLine{00191\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00192\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxDeleteChunk(}
+\DoxyCodeLine{00193\ \ \ \ \ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ fourcc[4]);}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00196\ \textcolor{comment}{//\ Images.}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \textcolor{comment}{//\ Encapsulates\ data\ about\ a\ single\ frame.}}
+\DoxyCodeLine{00199\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_mux_frame_info}{WebPMuxFrameInfo}}\ \{}
+\DoxyCodeLine{00200\ \ \ \mbox{\hyperlink{struct_web_p_data}{WebPData}}\ \ \ \ bitstream;\ \ \textcolor{comment}{//\ image\ data:\ can\ be\ a\ raw\ VP8/VP8L\ bitstream}}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ or\ a\ single-\/image\ WebP\ file.}}
+\DoxyCodeLine{00202\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ x\_offset;\ \ \ \textcolor{comment}{//\ x-\/offset\ of\ the\ frame.}}
+\DoxyCodeLine{00203\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ y\_offset;\ \ \ \textcolor{comment}{//\ y-\/offset\ of\ the\ frame.}}
+\DoxyCodeLine{00204\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ duration;\ \ \ \textcolor{comment}{//\ duration\ of\ the\ frame\ (in\ milliseconds).}}
+\DoxyCodeLine{00205\ }
+\DoxyCodeLine{00206\ \ \ WebPChunkId\ id;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ frame\ type:\ should\ be\ one\ of\ WEBP\_CHUNK\_ANMF}}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ or\ WEBP\_CHUNK\_IMAGE}}
+\DoxyCodeLine{00208\ \ \ WebPMuxAnimDispose\ dispose\_method;\ \ \textcolor{comment}{//\ Disposal\ method\ for\ the\ frame.}}
+\DoxyCodeLine{00209\ \ \ WebPMuxAnimBlend\ \ \ blend\_method;\ \ \ \ \textcolor{comment}{//\ Blend\ operation\ for\ the\ frame.}}
+\DoxyCodeLine{00210\ \ \ uint32\_t\ \ \ \ pad[1];\ \ \ \ \ \textcolor{comment}{//\ padding\ for\ later\ use}}
+\DoxyCodeLine{00211\ \};}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \textcolor{comment}{//\ Sets\ the\ (non-\/animated)\ image\ in\ the\ mux\ object.}}
+\DoxyCodeLine{00214\ \textcolor{comment}{//\ Note:\ Any\ existing\ images\ (including\ frames)\ will\ be\ removed.}}
+\DoxyCodeLine{00215\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00216\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ in\ which\ the\ image\ is\ to\ be\ set}}
+\DoxyCodeLine{00217\ \textcolor{comment}{//\ \ \ bitstream\ -\/\ (in)\ can\ be\ a\ raw\ VP8/VP8L\ bitstream\ or\ a\ single-\/image}}
+\DoxyCodeLine{00218\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WebP\ file\ (non-\/animated)}}
+\DoxyCodeLine{00219\ \textcolor{comment}{//\ \ \ copy\_data\ -\/\ (in)\ value\ 1\ indicates\ given\ data\ WILL\ be\ copied\ to\ the\ mux}}
+\DoxyCodeLine{00220\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ object\ and\ value\ 0\ indicates\ data\ will\ NOT\ be\ copied.}}
+\DoxyCodeLine{00221\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00222\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ is\ NULL\ or\ bitstream\ is\ NULL.}}
+\DoxyCodeLine{00223\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_MEMORY\_ERROR\ -\/\ on\ memory\ allocation\ error.}}
+\DoxyCodeLine{00224\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00225\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxSetImage(}
+\DoxyCodeLine{00226\ \ \ \ \ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ bitstream,\ \textcolor{keywordtype}{int}\ copy\_data);}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \textcolor{comment}{//\ Adds\ a\ frame\ at\ the\ end\ of\ the\ mux\ object.}}
+\DoxyCodeLine{00229\ \textcolor{comment}{//\ Notes:\ (1)\ frame.id\ should\ be\ WEBP\_CHUNK\_ANMF}}
+\DoxyCodeLine{00230\ \textcolor{comment}{//\ \ \ \ \ \ \ \ (2)\ For\ setting\ a\ non-\/animated\ image,\ use\ WebPMuxSetImage()\ instead.}}
+\DoxyCodeLine{00231\ \textcolor{comment}{//\ \ \ \ \ \ \ \ (3)\ Type\ of\ frame\ being\ pushed\ must\ be\ same\ as\ the\ frames\ in\ mux.}}
+\DoxyCodeLine{00232\ \textcolor{comment}{//\ \ \ \ \ \ \ \ (4)\ As\ WebP\ only\ supports\ even\ offsets,\ any\ odd\ offset\ will\ be\ snapped}}
+\DoxyCodeLine{00233\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ to\ an\ even\ location\ using:\ offset\ \&=\ \string~1}}
+\DoxyCodeLine{00234\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00235\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ to\ which\ the\ frame\ is\ to\ be\ added}}
+\DoxyCodeLine{00236\ \textcolor{comment}{//\ \ \ frame\ -\/\ (in)\ frame\ data.}}
+\DoxyCodeLine{00237\ \textcolor{comment}{//\ \ \ copy\_data\ -\/\ (in)\ value\ 1\ indicates\ given\ data\ WILL\ be\ copied\ to\ the\ mux}}
+\DoxyCodeLine{00238\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ object\ and\ value\ 0\ indicates\ data\ will\ NOT\ be\ copied.}}
+\DoxyCodeLine{00239\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00240\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ or\ frame\ is\ NULL}}
+\DoxyCodeLine{00241\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ or\ if\ content\ of\ 'frame'\ is\ invalid.}}
+\DoxyCodeLine{00242\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_MEMORY\_ERROR\ -\/\ on\ memory\ allocation\ error.}}
+\DoxyCodeLine{00243\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00244\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxPushFrame(}
+\DoxyCodeLine{00245\ \ \ \ \ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux_frame_info}{WebPMuxFrameInfo}}*\ frame,\ \textcolor{keywordtype}{int}\ copy\_data);}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \textcolor{comment}{//\ Gets\ the\ nth\ frame\ from\ the\ mux\ object.}}
+\DoxyCodeLine{00248\ \textcolor{comment}{//\ The\ content\ of\ 'frame-\/>bitstream'\ is\ allocated\ using\ WebPMalloc(),\ and\ NOT}}
+\DoxyCodeLine{00249\ \textcolor{comment}{//\ owned\ by\ the\ 'mux'\ object.\ It\ MUST\ be\ deallocated\ by\ the\ caller\ by\ calling}}
+\DoxyCodeLine{00250\ \textcolor{comment}{//\ WebPDataClear().}}
+\DoxyCodeLine{00251\ \textcolor{comment}{//\ nth=0\ has\ a\ special\ meaning\ -\/\ last\ position.}}
+\DoxyCodeLine{00252\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00253\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in)\ object\ from\ which\ the\ info\ is\ to\ be\ fetched}}
+\DoxyCodeLine{00254\ \textcolor{comment}{//\ \ \ nth\ -\/\ (in)\ index\ of\ the\ frame\ in\ the\ mux\ object}}
+\DoxyCodeLine{00255\ \textcolor{comment}{//\ \ \ frame\ -\/\ (out)\ data\ of\ the\ returned\ frame}}
+\DoxyCodeLine{00256\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00257\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ or\ frame\ is\ NULL.}}
+\DoxyCodeLine{00258\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_NOT\_FOUND\ -\/\ if\ there\ are\ less\ than\ nth\ frames\ in\ the\ mux\ object.}}
+\DoxyCodeLine{00259\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_BAD\_DATA\ -\/\ if\ nth\ frame\ chunk\ in\ mux\ is\ invalid.}}
+\DoxyCodeLine{00260\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_MEMORY\_ERROR\ -\/\ on\ memory\ allocation\ error.}}
+\DoxyCodeLine{00261\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00262\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxGetFrame(}
+\DoxyCodeLine{00263\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ uint32\_t\ nth,\ \mbox{\hyperlink{struct_web_p_mux_frame_info}{WebPMuxFrameInfo}}*\ frame);}
+\DoxyCodeLine{00264\ }
+\DoxyCodeLine{00265\ \textcolor{comment}{//\ Deletes\ a\ frame\ from\ the\ mux\ object.}}
+\DoxyCodeLine{00266\ \textcolor{comment}{//\ nth=0\ has\ a\ special\ meaning\ -\/\ last\ position.}}
+\DoxyCodeLine{00267\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00268\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ from\ which\ a\ frame\ is\ to\ be\ deleted}}
+\DoxyCodeLine{00269\ \textcolor{comment}{//\ \ \ nth\ -\/\ (in)\ The\ position\ from\ which\ the\ frame\ is\ to\ be\ deleted}}
+\DoxyCodeLine{00270\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00271\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ is\ NULL.}}
+\DoxyCodeLine{00272\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_NOT\_FOUND\ -\/\ If\ there\ are\ less\ than\ nth\ frames\ in\ the\ mux\ object}}
+\DoxyCodeLine{00273\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ before\ deletion.}}
+\DoxyCodeLine{00274\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00275\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxDeleteFrame(\mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ uint32\_t\ nth);}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00278\ \textcolor{comment}{//\ Animation.}}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \textcolor{comment}{//\ Animation\ parameters.}}
+\DoxyCodeLine{00281\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_mux_anim_params}{WebPMuxAnimParams}}\ \{}
+\DoxyCodeLine{00282\ \ \ uint32\_t\ bgcolor;\ \ \textcolor{comment}{//\ Background\ color\ of\ the\ canvas\ stored\ (in\ MSB\ order)\ as:}}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Bits\ 00\ to\ 07:\ Alpha.}}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Bits\ 08\ to\ 15:\ Red.}}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Bits\ 16\ to\ 23:\ Green.}}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Bits\ 24\ to\ 31:\ Blue.}}
+\DoxyCodeLine{00287\ \ \ \textcolor{keywordtype}{int}\ loop\_count;\ \ \ \ \textcolor{comment}{//\ Number\ of\ times\ to\ repeat\ the\ animation\ [0\ =\ infinite].}}
+\DoxyCodeLine{00288\ \};}
+\DoxyCodeLine{00289\ }
+\DoxyCodeLine{00290\ \textcolor{comment}{//\ Sets\ the\ animation\ parameters\ in\ the\ mux\ object.\ Any\ existing\ ANIM\ chunks}}
+\DoxyCodeLine{00291\ \textcolor{comment}{//\ will\ be\ removed.}}
+\DoxyCodeLine{00292\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00293\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ in\ which\ ANIM\ chunk\ is\ to\ be\ set/added}}
+\DoxyCodeLine{00294\ \textcolor{comment}{//\ \ \ params\ -\/\ (in)\ animation\ parameters.}}
+\DoxyCodeLine{00295\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00296\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ or\ params\ is\ NULL.}}
+\DoxyCodeLine{00297\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_MEMORY\_ERROR\ -\/\ on\ memory\ allocation\ error.}}
+\DoxyCodeLine{00298\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00299\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxSetAnimationParams(}
+\DoxyCodeLine{00300\ \ \ \ \ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux_anim_params}{WebPMuxAnimParams}}*\ params);}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \textcolor{comment}{//\ Gets\ the\ animation\ parameters\ from\ the\ mux\ object.}}
+\DoxyCodeLine{00303\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00304\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in)\ object\ from\ which\ the\ animation\ parameters\ to\ be\ fetched}}
+\DoxyCodeLine{00305\ \textcolor{comment}{//\ \ \ params\ -\/\ (out)\ animation\ parameters\ extracted\ from\ the\ ANIM\ chunk}}
+\DoxyCodeLine{00306\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00307\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ or\ params\ is\ NULL.}}
+\DoxyCodeLine{00308\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_NOT\_FOUND\ -\/\ if\ ANIM\ chunk\ is\ not\ present\ in\ mux\ object.}}
+\DoxyCodeLine{00309\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00310\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxGetAnimationParams(}
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,\ \mbox{\hyperlink{struct_web_p_mux_anim_params}{WebPMuxAnimParams}}*\ params);}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00314\ \textcolor{comment}{//\ Misc\ Utilities.}}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \textcolor{comment}{//\ Sets\ the\ canvas\ size\ for\ the\ mux\ object.\ The\ width\ and\ height\ can\ be}}
+\DoxyCodeLine{00317\ \textcolor{comment}{//\ specified\ explicitly\ or\ left\ as\ zero\ (0,\ 0).}}
+\DoxyCodeLine{00318\ \textcolor{comment}{//\ *\ When\ width\ and\ height\ are\ specified\ explicitly,\ then\ this\ frame\ bound\ is}}
+\DoxyCodeLine{00319\ \textcolor{comment}{//\ \ \ enforced\ during\ subsequent\ calls\ to\ WebPMuxAssemble()\ and\ an\ error\ is}}
+\DoxyCodeLine{00320\ \textcolor{comment}{//\ \ \ reported\ if\ any\ animated\ frame\ does\ not\ completely\ fit\ within\ the\ canvas.}}
+\DoxyCodeLine{00321\ \textcolor{comment}{//\ *\ When\ unspecified\ (0,\ 0),\ the\ constructed\ canvas\ will\ get\ the\ frame\ bounds}}
+\DoxyCodeLine{00322\ \textcolor{comment}{//\ \ \ from\ the\ bounding-\/box\ over\ all\ frames\ after\ calling\ WebPMuxAssemble().}}
+\DoxyCodeLine{00323\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00324\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in)\ object\ to\ which\ the\ canvas\ size\ is\ to\ be\ set}}
+\DoxyCodeLine{00325\ \textcolor{comment}{//\ \ \ width\ -\/\ (in)\ canvas\ width}}
+\DoxyCodeLine{00326\ \textcolor{comment}{//\ \ \ height\ -\/\ (in)\ canvas\ height}}
+\DoxyCodeLine{00327\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00328\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ is\ NULL;\ or}}
+\DoxyCodeLine{00329\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width\ or\ height\ are\ invalid\ or\ out\ of\ bounds}}
+\DoxyCodeLine{00330\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00331\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxSetCanvasSize(\mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \textcolor{comment}{//\ Gets\ the\ canvas\ size\ from\ the\ mux\ object.}}
+\DoxyCodeLine{00335\ \textcolor{comment}{//\ Note:\ This\ method\ assumes\ that\ the\ VP8X\ chunk,\ if\ present,\ is\ up-\/to-\/date.}}
+\DoxyCodeLine{00336\ \textcolor{comment}{//\ That\ is,\ the\ mux\ object\ hasn't\ been\ modified\ since\ the\ last\ call\ to}}
+\DoxyCodeLine{00337\ \textcolor{comment}{//\ WebPMuxAssemble()\ or\ WebPMuxCreate().}}
+\DoxyCodeLine{00338\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00339\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in)\ object\ from\ which\ the\ canvas\ size\ is\ to\ be\ fetched}}
+\DoxyCodeLine{00340\ \textcolor{comment}{//\ \ \ width\ -\/\ (out)\ canvas\ width}}
+\DoxyCodeLine{00341\ \textcolor{comment}{//\ \ \ height\ -\/\ (out)\ canvas\ height}}
+\DoxyCodeLine{00342\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00343\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux,\ width\ or\ height\ is\ NULL.}}
+\DoxyCodeLine{00344\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_BAD\_DATA\ -\/\ if\ VP8X/VP8/VP8L\ chunk\ or\ canvas\ size\ is\ invalid.}}
+\DoxyCodeLine{00345\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00346\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxGetCanvasSize(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,}
+\DoxyCodeLine{00347\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ width,\ \textcolor{keywordtype}{int}*\ height);}
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \textcolor{comment}{//\ Gets\ the\ feature\ flags\ from\ the\ mux\ object.}}
+\DoxyCodeLine{00350\ \textcolor{comment}{//\ Note:\ This\ method\ assumes\ that\ the\ VP8X\ chunk,\ if\ present,\ is\ up-\/to-\/date.}}
+\DoxyCodeLine{00351\ \textcolor{comment}{//\ That\ is,\ the\ mux\ object\ hasn't\ been\ modified\ since\ the\ last\ call\ to}}
+\DoxyCodeLine{00352\ \textcolor{comment}{//\ WebPMuxAssemble()\ or\ WebPMuxCreate().}}
+\DoxyCodeLine{00353\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00354\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in)\ object\ from\ which\ the\ features\ are\ to\ be\ fetched}}
+\DoxyCodeLine{00355\ \textcolor{comment}{//\ \ \ flags\ -\/\ (out)\ the\ flags\ specifying\ which\ features\ are\ present\ in\ the}}
+\DoxyCodeLine{00356\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ mux\ object.\ This\ will\ be\ an\ OR\ of\ various\ flag\ values.}}
+\DoxyCodeLine{00357\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ Enum\ 'WebPFeatureFlags'\ can\ be\ used\ to\ test\ individual\ flag\ values.}}
+\DoxyCodeLine{00358\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00359\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ or\ flags\ is\ NULL.}}
+\DoxyCodeLine{00360\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_BAD\_DATA\ -\/\ if\ VP8X/VP8/VP8L\ chunk\ or\ canvas\ size\ is\ invalid.}}
+\DoxyCodeLine{00361\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00362\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxGetFeatures(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ flags);}
+\DoxyCodeLine{00364\ }
+\DoxyCodeLine{00365\ \textcolor{comment}{//\ Gets\ number\ of\ chunks\ with\ the\ given\ 'id'\ in\ the\ mux\ object.}}
+\DoxyCodeLine{00366\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00367\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in)\ object\ from\ which\ the\ info\ is\ to\ be\ fetched}}
+\DoxyCodeLine{00368\ \textcolor{comment}{//\ \ \ id\ -\/\ (in)\ chunk\ id\ specifying\ the\ type\ of\ chunk}}
+\DoxyCodeLine{00369\ \textcolor{comment}{//\ \ \ num\_elements\ -\/\ (out)\ number\ of\ chunks\ with\ the\ given\ chunk\ id}}
+\DoxyCodeLine{00370\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00371\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux,\ or\ num\_elements\ is\ NULL.}}
+\DoxyCodeLine{00372\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00373\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxNumChunks(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WebPChunkId\ \textcolor{keywordtype}{id},\ \textcolor{keywordtype}{int}*\ num\_elements);}
+\DoxyCodeLine{00375\ }
+\DoxyCodeLine{00376\ \textcolor{comment}{//\ Assembles\ all\ chunks\ in\ WebP\ RIFF\ format\ and\ returns\ in\ 'assembled\_data'.}}
+\DoxyCodeLine{00377\ \textcolor{comment}{//\ This\ function\ also\ validates\ the\ mux\ object.}}
+\DoxyCodeLine{00378\ \textcolor{comment}{//\ Note:\ The\ content\ of\ 'assembled\_data'\ will\ be\ ignored\ and\ overwritten.}}
+\DoxyCodeLine{00379\ \textcolor{comment}{//\ Also,\ the\ content\ of\ 'assembled\_data'\ is\ allocated\ using\ WebPMalloc(),\ and}}
+\DoxyCodeLine{00380\ \textcolor{comment}{//\ NOT\ owned\ by\ the\ 'mux'\ object.\ It\ MUST\ be\ deallocated\ by\ the\ caller\ by}}
+\DoxyCodeLine{00381\ \textcolor{comment}{//\ calling\ WebPDataClear().\ It's\ always\ safe\ to\ call\ WebPDataClear()\ upon}}
+\DoxyCodeLine{00382\ \textcolor{comment}{//\ return,\ even\ in\ case\ of\ error.}}
+\DoxyCodeLine{00383\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00384\ \textcolor{comment}{//\ \ \ mux\ -\/\ (in/out)\ object\ whose\ chunks\ are\ to\ be\ assembled}}
+\DoxyCodeLine{00385\ \textcolor{comment}{//\ \ \ assembled\_data\ -\/\ (out)\ assembled\ WebP\ data}}
+\DoxyCodeLine{00386\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00387\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_BAD\_DATA\ -\/\ if\ mux\ object\ is\ invalid.}}
+\DoxyCodeLine{00388\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_INVALID\_ARGUMENT\ -\/\ if\ mux\ or\ assembled\_data\ is\ NULL.}}
+\DoxyCodeLine{00389\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_MEMORY\_ERROR\ -\/\ on\ memory\ allocation\ error.}}
+\DoxyCodeLine{00390\ \textcolor{comment}{//\ \ \ WEBP\_MUX\_OK\ -\/\ on\ success.}}
+\DoxyCodeLine{00391\ WEBP\_EXTERN\ WebPMuxError\ WebPMuxAssemble(\mbox{\hyperlink{struct_web_p_mux}{WebPMux}}*\ mux,}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ assembled\_data);}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00395\ \textcolor{comment}{//\ WebPAnimEncoder\ API}}
+\DoxyCodeLine{00396\ \textcolor{comment}{//}}
+\DoxyCodeLine{00397\ \textcolor{comment}{//\ This\ API\ allows\ encoding\ (possibly)\ animated\ WebP\ images.}}
+\DoxyCodeLine{00398\ \textcolor{comment}{//}}
+\DoxyCodeLine{00399\ \textcolor{comment}{//\ Code\ Example:}}
+\DoxyCodeLine{00400\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00401\ \textcolor{comment}{\ \ WebPAnimEncoderOptions\ enc\_options;}}
+\DoxyCodeLine{00402\ \textcolor{comment}{\ \ WebPAnimEncoderOptionsInit(\&enc\_options);}}
+\DoxyCodeLine{00403\ \textcolor{comment}{\ \ //\ Tune\ 'enc\_options'\ as\ needed.}}
+\DoxyCodeLine{00404\ \textcolor{comment}{\ \ WebPAnimEncoder*\ enc\ =\ WebPAnimEncoderNew(width,\ height,\ \&enc\_options);}}
+\DoxyCodeLine{00405\ \textcolor{comment}{\ \ while(<there\ are\ more\ frames>)\ \{}}
+\DoxyCodeLine{00406\ \textcolor{comment}{\ \ \ \ WebPConfig\ config;}}
+\DoxyCodeLine{00407\ \textcolor{comment}{\ \ \ \ WebPConfigInit(\&config);}}
+\DoxyCodeLine{00408\ \textcolor{comment}{\ \ \ \ //\ Tune\ 'config'\ as\ needed.}}
+\DoxyCodeLine{00409\ \textcolor{comment}{\ \ \ \ WebPAnimEncoderAdd(enc,\ frame,\ timestamp\_ms,\ \&config);}}
+\DoxyCodeLine{00410\ \textcolor{comment}{\ \ \}}}
+\DoxyCodeLine{00411\ \textcolor{comment}{\ \ WebPAnimEncoderAdd(enc,\ NULL,\ timestamp\_ms,\ NULL);}}
+\DoxyCodeLine{00412\ \textcolor{comment}{\ \ WebPAnimEncoderAssemble(enc,\ webp\_data);}}
+\DoxyCodeLine{00413\ \textcolor{comment}{\ \ WebPAnimEncoderDelete(enc);}}
+\DoxyCodeLine{00414\ \textcolor{comment}{\ \ //\ Write\ the\ 'webp\_data'\ to\ a\ file,\ or\ re-\/mux\ it\ further.}}
+\DoxyCodeLine{00415\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}}\ \mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}};\ \ \textcolor{comment}{//\ Main\ opaque\ object.}}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \textcolor{comment}{//\ Forward\ declarations.\ Defined\ in\ encode.h.}}
+\DoxyCodeLine{00420\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_picture}{WebPPicture}};}
+\DoxyCodeLine{00421\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_config}{WebPConfig}};}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \textcolor{comment}{//\ Global\ options.}}
+\DoxyCodeLine{00424\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_web_p_anim_encoder_options}{WebPAnimEncoderOptions}}\ \{}
+\DoxyCodeLine{00425\ \ \ \mbox{\hyperlink{struct_web_p_mux_anim_params}{WebPMuxAnimParams}}\ anim\_params;\ \ \textcolor{comment}{//\ Animation\ parameters.}}
+\DoxyCodeLine{00426\ \ \ \textcolor{keywordtype}{int}\ minimize\_size;\ \ \ \ \textcolor{comment}{//\ If\ true,\ minimize\ the\ output\ size\ (slow).\ Implicitly}}
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ disables\ key-\/frame\ insertion.}}
+\DoxyCodeLine{00428\ \ \ \textcolor{keywordtype}{int}\ kmin;}
+\DoxyCodeLine{00429\ \ \ \textcolor{keywordtype}{int}\ kmax;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Minimum\ and\ maximum\ distance\ between\ consecutive\ key}}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ frames\ in\ the\ output.\ The\ library\ may\ insert\ some\ key}}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ frames\ as\ needed\ to\ satisfy\ this\ criteria.}}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Note\ that\ these\ conditions\ should\ hold:\ kmax\ >\ kmin}}
+\DoxyCodeLine{00433\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ and\ kmin\ >=\ kmax\ /\ 2\ +\ 1.\ Also,\ if\ kmax\ <=\ 0,\ then}}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ key-\/frame\ insertion\ is\ disabled;\ and\ if\ kmax\ ==\ 1,}}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ then\ all\ frames\ will\ be\ key-\/frames\ (kmin\ value\ does}}
+\DoxyCodeLine{00436\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ not\ matter\ for\ these\ special\ cases).}}
+\DoxyCodeLine{00437\ \ \ \textcolor{keywordtype}{int}\ allow\_mixed;\ \ \ \ \ \ \textcolor{comment}{//\ If\ true,\ use\ mixed\ compression\ mode;\ may\ choose}}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ either\ lossy\ and\ lossless\ for\ each\ frame.}}
+\DoxyCodeLine{00439\ \ \ \textcolor{keywordtype}{int}\ verbose;\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ true,\ print\ info\ and\ warning\ messages\ to\ stderr.}}
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00441\ \ \ uint32\_t\ padding[4];\ \ \textcolor{comment}{//\ Padding\ for\ later\ use.}}
+\DoxyCodeLine{00442\ \};}
+\DoxyCodeLine{00443\ }
+\DoxyCodeLine{00444\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point.}}
+\DoxyCodeLine{00445\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPAnimEncoderOptionsInitInternal(}
+\DoxyCodeLine{00446\ \ \ \ \ \mbox{\hyperlink{struct_web_p_anim_encoder_options}{WebPAnimEncoderOptions}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00447\ }
+\DoxyCodeLine{00448\ \textcolor{comment}{//\ Should\ always\ be\ called,\ to\ initialize\ a\ fresh\ WebPAnimEncoderOptions}}
+\DoxyCodeLine{00449\ \textcolor{comment}{//\ structure\ before\ modification.\ Returns\ false\ in\ case\ of\ version\ mismatch.}}
+\DoxyCodeLine{00450\ \textcolor{comment}{//\ WebPAnimEncoderOptionsInit()\ must\ have\ succeeded\ before\ using\ the}}
+\DoxyCodeLine{00451\ \textcolor{comment}{//\ 'enc\_options'\ object.}}
+\DoxyCodeLine{00452\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ WebPAnimEncoderOptionsInit(}
+\DoxyCodeLine{00453\ \ \ \ \ \mbox{\hyperlink{struct_web_p_anim_encoder_options}{WebPAnimEncoderOptions}}*\ enc\_options)\ \{}
+\DoxyCodeLine{00454\ \ \ \textcolor{keywordflow}{return}\ WebPAnimEncoderOptionsInitInternal(enc\_options,\ WEBP\_MUX\_ABI\_VERSION);}
+\DoxyCodeLine{00455\ \}}
+\DoxyCodeLine{00456\ }
+\DoxyCodeLine{00457\ \textcolor{comment}{//\ Internal,\ version-\/checked,\ entry\ point.}}
+\DoxyCodeLine{00458\ WEBP\_EXTERN\ \mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}}*\ WebPAnimEncoderNewInternal(}
+\DoxyCodeLine{00459\ \ \ \ \ \textcolor{keywordtype}{int},\ \textcolor{keywordtype}{int},\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_anim_encoder_options}{WebPAnimEncoderOptions}}*,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00460\ }
+\DoxyCodeLine{00461\ \textcolor{comment}{//\ Creates\ and\ initializes\ a\ WebPAnimEncoder\ object.}}
+\DoxyCodeLine{00462\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00463\ \textcolor{comment}{//\ \ \ width/height\ -\/\ (in)\ canvas\ width\ and\ height\ of\ the\ animation.}}
+\DoxyCodeLine{00464\ \textcolor{comment}{//\ \ \ enc\_options\ -\/\ (in)\ encoding\ options;\ can\ be\ passed\ NULL\ to\ pick}}
+\DoxyCodeLine{00465\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reasonable\ defaults.}}
+\DoxyCodeLine{00466\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00467\ \textcolor{comment}{//\ \ \ A\ pointer\ to\ the\ newly\ created\ WebPAnimEncoder\ object.}}
+\DoxyCodeLine{00468\ \textcolor{comment}{//\ \ \ Or\ NULL\ in\ case\ of\ memory\ error.}}
+\DoxyCodeLine{00469\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}}*\ WebPAnimEncoderNew(}
+\DoxyCodeLine{00470\ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_anim_encoder_options}{WebPAnimEncoderOptions}}*\ enc\_options)\ \{}
+\DoxyCodeLine{00471\ \ \ \textcolor{keywordflow}{return}\ WebPAnimEncoderNewInternal(width,\ height,\ enc\_options,}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ WEBP\_MUX\_ABI\_VERSION);}
+\DoxyCodeLine{00473\ \}}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \textcolor{comment}{//\ Optimize\ the\ given\ frame\ for\ WebP,\ encode\ it\ and\ add\ it\ to\ the}}
+\DoxyCodeLine{00476\ \textcolor{comment}{//\ WebPAnimEncoder\ object.}}
+\DoxyCodeLine{00477\ \textcolor{comment}{//\ The\ last\ call\ to\ 'WebPAnimEncoderAdd'\ should\ be\ with\ frame\ =\ NULL,\ which}}
+\DoxyCodeLine{00478\ \textcolor{comment}{//\ indicates\ that\ no\ more\ frames\ are\ to\ be\ added.\ This\ call\ is\ also\ used\ to}}
+\DoxyCodeLine{00479\ \textcolor{comment}{//\ determine\ the\ duration\ of\ the\ last\ frame.}}
+\DoxyCodeLine{00480\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00481\ \textcolor{comment}{//\ \ \ enc\ -\/\ (in/out)\ object\ to\ which\ the\ frame\ is\ to\ be\ added.}}
+\DoxyCodeLine{00482\ \textcolor{comment}{//\ \ \ frame\ -\/\ (in/out)\ frame\ data\ in\ ARGB\ or\ YUV(A)\ format.\ If\ it\ is\ in\ YUV(A)}}
+\DoxyCodeLine{00483\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ format,\ it\ will\ be\ converted\ to\ ARGB,\ which\ incurs\ a\ small\ loss.}}
+\DoxyCodeLine{00484\ \textcolor{comment}{//\ \ \ timestamp\_ms\ -\/\ (in)\ timestamp\ of\ this\ frame\ in\ milliseconds.}}
+\DoxyCodeLine{00485\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Duration\ of\ a\ frame\ would\ be\ calculated\ as}}
+\DoxyCodeLine{00486\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}timestamp\ of\ next\ frame\ -\/\ timestamp\ of\ this\ frame"{}.}}
+\DoxyCodeLine{00487\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Hence,\ timestamps\ should\ be\ in\ non-\/decreasing\ order.}}
+\DoxyCodeLine{00488\ \textcolor{comment}{//\ \ \ config\ -\/\ (in)\ encoding\ options;\ can\ be\ passed\ NULL\ to\ pick}}
+\DoxyCodeLine{00489\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ \ \ \ reasonable\ defaults.}}
+\DoxyCodeLine{00490\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00491\ \textcolor{comment}{//\ \ \ On\ error,\ returns\ false\ and\ frame-\/>error\_code\ is\ set\ appropriately.}}
+\DoxyCodeLine{00492\ \textcolor{comment}{//\ \ \ Otherwise,\ returns\ true.}}
+\DoxyCodeLine{00493\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPAnimEncoderAdd(}
+\DoxyCodeLine{00494\ \ \ \ \ \mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}}*\ enc,\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ frame,\ \textcolor{keywordtype}{int}\ timestamp\_ms,}
+\DoxyCodeLine{00495\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \mbox{\hyperlink{structconfig__s}{config}});}
+\DoxyCodeLine{00496\ }
+\DoxyCodeLine{00497\ \textcolor{comment}{//\ Assemble\ all\ frames\ added\ so\ far\ into\ a\ WebP\ bitstream.}}
+\DoxyCodeLine{00498\ \textcolor{comment}{//\ This\ call\ should\ be\ preceded\ by\ \ a\ call\ to\ 'WebPAnimEncoderAdd'\ with}}
+\DoxyCodeLine{00499\ \textcolor{comment}{//\ frame\ =\ NULL;\ if\ not,\ the\ duration\ of\ the\ last\ frame\ will\ be\ internally}}
+\DoxyCodeLine{00500\ \textcolor{comment}{//\ estimated.}}
+\DoxyCodeLine{00501\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00502\ \textcolor{comment}{//\ \ \ enc\ -\/\ (in/out)\ object\ from\ which\ the\ frames\ are\ to\ be\ assembled.}}
+\DoxyCodeLine{00503\ \textcolor{comment}{//\ \ \ webp\_data\ -\/\ (out)\ generated\ WebP\ bitstream.}}
+\DoxyCodeLine{00504\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00505\ \textcolor{comment}{//\ \ \ True\ on\ success.}}
+\DoxyCodeLine{00506\ WEBP\_EXTERN\ \textcolor{keywordtype}{int}\ WebPAnimEncoderAssemble(\mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}}*\ enc,}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_web_p_data}{WebPData}}*\ webp\_data);}
+\DoxyCodeLine{00508\ }
+\DoxyCodeLine{00509\ \textcolor{comment}{//\ Get\ error\ string\ corresponding\ to\ the\ most\ recent\ call\ using\ 'enc'.\ The}}
+\DoxyCodeLine{00510\ \textcolor{comment}{//\ returned\ string\ is\ owned\ by\ 'enc'\ and\ is\ valid\ only\ until\ the\ next\ call\ to}}
+\DoxyCodeLine{00511\ \textcolor{comment}{//\ WebPAnimEncoderAdd()\ or\ WebPAnimEncoderAssemble()\ or\ WebPAnimEncoderDelete().}}
+\DoxyCodeLine{00512\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00513\ \textcolor{comment}{//\ \ \ enc\ -\/\ (in/out)\ object\ from\ which\ the\ error\ string\ is\ to\ be\ fetched.}}
+\DoxyCodeLine{00514\ \textcolor{comment}{//\ Returns:}}
+\DoxyCodeLine{00515\ \textcolor{comment}{//\ \ \ NULL\ if\ 'enc'\ is\ NULL.\ Otherwise,\ returns\ the\ error\ string\ if\ the\ last\ call}}
+\DoxyCodeLine{00516\ \textcolor{comment}{//\ \ \ to\ 'enc'\ had\ an\ error,\ or\ an\ empty\ string\ if\ the\ last\ call\ was\ a\ success.}}
+\DoxyCodeLine{00517\ WEBP\_EXTERN\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ WebPAnimEncoderGetError(\mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}}*\ enc);}
+\DoxyCodeLine{00518\ }
+\DoxyCodeLine{00519\ \textcolor{comment}{//\ Deletes\ the\ WebPAnimEncoder\ object.}}
+\DoxyCodeLine{00520\ \textcolor{comment}{//\ Parameters:}}
+\DoxyCodeLine{00521\ \textcolor{comment}{//\ \ \ enc\ -\/\ (in/out)\ object\ to\ be\ deleted}}
+\DoxyCodeLine{00522\ WEBP\_EXTERN\ \textcolor{keywordtype}{void}\ WebPAnimEncoderDelete(\mbox{\hyperlink{struct_web_p_anim_encoder}{WebPAnimEncoder}}*\ enc);}
+\DoxyCodeLine{00523\ }
+\DoxyCodeLine{00524\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00525\ }
+\DoxyCodeLine{00526\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00527\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00528\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00529\ }
+\DoxyCodeLine{00530\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_WEBP\_MUX\_H\_}}
+
+\end{DoxyCode}

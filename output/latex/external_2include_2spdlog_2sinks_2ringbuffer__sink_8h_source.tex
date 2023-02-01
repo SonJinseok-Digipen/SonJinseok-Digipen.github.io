@@ -1,0 +1,80 @@
+\hypertarget{external_2include_2spdlog_2sinks_2ringbuffer__sink_8h_source}{}\doxysection{ringbuffer\+\_\+sink.\+h}
+\label{external_2include_2spdlog_2sinks_2ringbuffer__sink_8h_source}\index{Tengu/external/include/spdlog/sinks/ringbuffer\_sink.h@{Tengu/external/include/spdlog/sinks/ringbuffer\_sink.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}spdlog/sinks/base\_sink.h"{}}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}spdlog/details/circular\_q.h"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}spdlog/details/log\_msg\_buffer.h"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}spdlog/details/null\_mutex.h"{}}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00016\ \textcolor{keyword}{namespace\ }sinks\ \{}
+\DoxyCodeLine{00017\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ Ring\ buffer\ sink}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00020\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Mutex>}
+\DoxyCodeLine{00021\ \textcolor{keyword}{class\ }ringbuffer\_sink\ final\ :\ \textcolor{keyword}{public}\ base\_sink<Mutex>}
+\DoxyCodeLine{00022\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{explicit}\ ringbuffer\_sink(\textcolor{keywordtype}{size\_t}\ n\_items)}
+\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ :\ q\_\{n\_items\}}
+\DoxyCodeLine{00026\ \ \ \ \ \{\}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \ \ \ \ std::vector<details::log\_msg\_buffer>\ last\_raw(\textcolor{keywordtype}{size\_t}\ lim\ =\ 0)}
+\DoxyCodeLine{00029\ \ \ \ \ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ std::lock\_guard<Mutex>\ lock(base\_sink<Mutex>::mutex\_);}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ items\_available\ =\ q\_.size();}
+\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ n\_items\ =\ lim\ >\ 0\ ?\ (std::min)(lim,\ items\_available)\ :\ items\_available;}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ std::vector<details::log\_msg\_buffer>\ ret;}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ ret.reserve(n\_items);}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ i\ =\ (items\_available\ -\/\ n\_items);\ i\ <\ items\_available;\ i++)}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \ \ \ \ ret.push\_back(q\_.at(i));}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00040\ \ \ \ \ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ std::vector<std::string>\ last\_formatted(\textcolor{keywordtype}{size\_t}\ lim\ =\ 0)}
+\DoxyCodeLine{00043\ \ \ \ \ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ std::lock\_guard<Mutex>\ lock(base\_sink<Mutex>::mutex\_);}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ items\_available\ =\ q\_.size();}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \textcolor{keyword}{auto}\ n\_items\ =\ lim\ >\ 0\ ?\ (std::min)(lim,\ items\_available)\ :\ items\_available;}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ std::vector<std::string>\ ret;}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ ret.reserve(n\_items);}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ i\ =\ (items\_available\ -\/\ n\_items);\ i\ <\ items\_available;\ i++)}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ memory\_buf\_t\ formatted;}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ base\_sink<Mutex>::formatter\_-\/>format(q\_.at(i),\ formatted);}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ ret.push\_back(std::move(SPDLOG\_BUF\_TO\_STRING(formatted)));}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00056\ \ \ \ \ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{void}\ sink\_it\_(\textcolor{keyword}{const}\ details::log\_msg\ \&msg)\textcolor{keyword}{\ override}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{\ \ \ \ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ q\_.push\_back(details::log\_msg\_buffer\{msg\});}
+\DoxyCodeLine{00062\ \ \ \ \ \}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keywordtype}{void}\ flush\_()\textcolor{keyword}{\ override\ }\{\}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00066\ \ \ \ \ details::circular\_q<details::log\_msg\_buffer>\ q\_;}
+\DoxyCodeLine{00067\ \};}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{using\ }ringbuffer\_sink\_mt\ =\ ringbuffer\_sink<std::mutex>;}
+\DoxyCodeLine{00070\ \textcolor{keyword}{using\ }ringbuffer\_sink\_st\ =\ ringbuffer\_sink<details::null\_mutex>;}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \}\ \textcolor{comment}{//\ namespace\ sinks}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

@@ -1,0 +1,128 @@
+\hypertarget{_tengu_2bin_2x64_2_debug_2_tengu_2external_2include_2spdlog_2details_2thread__pool_8h_source}{}\doxysection{thread\+\_\+pool.\+h}
+\label{_tengu_2bin_2x64_2_debug_2_tengu_2external_2include_2spdlog_2details_2thread__pool_8h_source}\index{Tengu/bin/x64/Debug/Tengu/external/include/spdlog/details/thread\_pool.h@{Tengu/bin/x64/Debug/Tengu/external/include/spdlog/details/thread\_pool.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <spdlog/details/log\_msg\_buffer.h>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ <spdlog/details/mpmc\_blocking\_q.h>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ <spdlog/details/os.h>}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <chrono>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <thread>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00017\ \textcolor{keyword}{class\ }async\_logger;}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }details\ \{}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{using\ }async\_logger\_ptr\ =\ std::shared\_ptr<spdlog::async\_logger>;}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{enum\ class}\ async\_msg\_type}
+\DoxyCodeLine{00024\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ \mbox{\hyperlink{structlog}{log}},}
+\DoxyCodeLine{00026\ \ \ \ \ flush,}
+\DoxyCodeLine{00027\ \ \ \ \ terminate}
+\DoxyCodeLine{00028\ \};}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ Async\ msg\ to\ move\ to/from\ the\ queue}}
+\DoxyCodeLine{00031\ \textcolor{comment}{//\ Movable\ only.\ should\ never\ be\ copied}}
+\DoxyCodeLine{00032\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ :\ \mbox{\hyperlink{classspdlog_1_1details_1_1log__msg__buffer}{log\_msg\_buffer}}}
+\DoxyCodeLine{00033\ \{}
+\DoxyCodeLine{00034\ \ \ \ \ async\_msg\_type\ msg\_type\{async\_msg\_type::log\};}
+\DoxyCodeLine{00035\ \ \ \ \ async\_logger\_ptr\ worker\_ptr;}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00038\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{\string~async\_msg}}()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{comment}{//\ should\ only\ be\ moved\ in\ or\ out\ of\ the\ queue..}}
+\DoxyCodeLine{00041\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{comment}{//\ support\ for\ vs2013\ move}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#if\ defined(\_MSC\_VER)\ \&\&\ \_MSC\_VER\ <=\ 1800}}
+\DoxyCodeLine{00045\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}(\mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&\&other)}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{classspdlog_1_1details_1_1log__msg__buffer}{log\_msg\_buffer}}(std::move(other))}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ ,\ msg\_type(other.msg\_type)}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ ,\ worker\_ptr(std::move(other.worker\_ptr))}
+\DoxyCodeLine{00049\ \ \ \ \ \{\}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&operator=(\mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&\&other)}
+\DoxyCodeLine{00052\ \ \ \ \ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ *\textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classspdlog_1_1details_1_1log__msg__buffer}{log\_msg\_buffer}}\ *\textcolor{keyword}{>}(\textcolor{keyword}{this})\ =\ std::move(other);}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ msg\_type\ =\ other.msg\_type;}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ worker\_ptr\ =\ std::move(other.worker\_ptr);}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00057\ \ \ \ \ \}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{//\ (\_MSC\_VER)\ \&\&\ \_MSC\_VER\ <=\ 1800}}
+\DoxyCodeLine{00059\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}(\mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00060\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&operator=(\mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&\&)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ construct\ from\ log\_msg\ with\ given\ type}}
+\DoxyCodeLine{00064\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}(async\_logger\_ptr\ \&\&worker,\ async\_msg\_type\ the\_type,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structspdlog_1_1details_1_1log__msg}{details::log\_msg}}\ \&m)}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{classspdlog_1_1details_1_1log__msg__buffer}{log\_msg\_buffer}}\{m\}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ ,\ msg\_type\{the\_type\}}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ ,\ worker\_ptr\{std::move(worker)\}}
+\DoxyCodeLine{00068\ \ \ \ \ \{\}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}(async\_logger\_ptr\ \&\&worker,\ async\_msg\_type\ the\_type)}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{classspdlog_1_1details_1_1log__msg__buffer}{log\_msg\_buffer}}\{\}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ ,\ msg\_type\{the\_type\}}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ ,\ worker\_ptr\{std::move(worker)\}}
+\DoxyCodeLine{00074\ \ \ \ \ \{\}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}(async\_msg\_type\ the\_type)}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ :\ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\{\textcolor{keyword}{nullptr},\ the\_type\}}
+\DoxyCodeLine{00078\ \ \ \ \ \{\}}
+\DoxyCodeLine{00079\ \};}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{keyword}{class\ }SPDLOG\_API\ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}}
+\DoxyCodeLine{00082\ \{}
+\DoxyCodeLine{00083\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{item\_type}}\ =\ \mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}};}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{classspdlog_1_1details_1_1mpmc__blocking__queue}{q\_type}}\ =\ \mbox{\hyperlink{classspdlog_1_1details_1_1mpmc__blocking__queue}{details::mpmc\_blocking\_queue<item\_type>}};}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}(\textcolor{keywordtype}{size\_t}\ q\_max\_items,\ \textcolor{keywordtype}{size\_t}\ threads\_n,\ std::function<\textcolor{keywordtype}{void}()>\ on\_thread\_start,\ std::function<\textcolor{keywordtype}{void}()>\ on\_thread\_stop);}
+\DoxyCodeLine{00088\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}(\textcolor{keywordtype}{size\_t}\ q\_max\_items,\ \textcolor{keywordtype}{size\_t}\ threads\_n,\ std::function<\textcolor{keywordtype}{void}()>\ on\_thread\_start);}
+\DoxyCodeLine{00089\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}(\textcolor{keywordtype}{size\_t}\ q\_max\_items,\ \textcolor{keywordtype}{size\_t}\ threads\_n);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ message\ all\ threads\ to\ terminate\ gracefully\ and\ join\ them}}
+\DoxyCodeLine{00092\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{\string~thread\_pool}}();}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}\ \&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00095\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}\ \&operator=(\mbox{\hyperlink{classspdlog_1_1details_1_1thread__pool}{thread\_pool}}\ \&\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{void}\ post\_log(async\_logger\_ptr\ \&\&worker\_ptr,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structspdlog_1_1details_1_1log__msg}{details::log\_msg}}\ \&msg,\ async\_overflow\_policy\ overflow\_policy);}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{void}\ post\_flush(async\_logger\_ptr\ \&\&worker\_ptr,\ async\_overflow\_policy\ overflow\_policy);}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ overrun\_counter();}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{void}\ reset\_overrun\_counter();}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ queue\_size();}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00104\ \ \ \ \ \mbox{\hyperlink{classspdlog_1_1details_1_1mpmc__blocking__queue}{q\_type}}\ q\_;}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ std::vector<std::thread>\ threads\_;}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordtype}{void}\ post\_async\_msg\_(\mbox{\hyperlink{structspdlog_1_1details_1_1async__msg}{async\_msg}}\ \&\&new\_msg,\ async\_overflow\_policy\ overflow\_policy);}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{void}\ worker\_loop\_();}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{comment}{//\ process\ next\ message\ in\ the\ queue}}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{comment}{//\ return\ true\ if\ this\ thread\ should\ still\ be\ active\ (while\ no\ terminate\ msg}}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{comment}{//\ was\ received)}}
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordtype}{bool}\ process\_next\_msg\_();}
+\DoxyCodeLine{00115\ \};}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \}\ \textcolor{comment}{//\ namespace\ details}}
+\DoxyCodeLine{00118\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#ifdef\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#\ \ \ \ include\ "{}thread\_pool-\/inl.h"{}}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

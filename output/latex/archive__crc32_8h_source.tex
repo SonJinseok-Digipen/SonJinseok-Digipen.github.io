@@ -1,0 +1,89 @@
+\hypertarget{archive__crc32_8h_source}{}\doxysection{archive\+\_\+crc32.\+h}
+\label{archive__crc32_8h_source}\index{AseSprite/aseprite/third\_party/libarchive/libarchive/archive\_crc32.h@{AseSprite/aseprite/third\_party/libarchive/libarchive/archive\_crc32.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ (c)\ 2009\ Joerg\ \ Sonnenberger}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ All\ rights\ reserved.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ Redistribution\ and\ use\ in\ source\ and\ binary\ forms,\ with\ or\ without}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ modification,\ are\ permitted\ provided\ that\ the\ following\ conditions}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ are\ met:}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ 1.\ Redistributions\ of\ source\ code\ must\ retain\ the\ above\ copyright}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ 2.\ Redistributions\ in\ binary\ form\ must\ reproduce\ the\ above\ copyright}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer\ in\ the}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ \ \ \ documentation\ and/or\ other\ materials\ provided\ with\ the\ distribution.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ THIS\ SOFTWARE\ IS\ PROVIDED\ BY\ THE\ AUTHOR(S)\ ``AS\ IS''\ AND\ ANY\ EXPRESS\ OR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IMPLIED\ WARRANTIES,\ INCLUDING,\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ OF\ MERCHANTABILITY\ AND\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ ARE\ DISCLAIMED.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ AUTHOR(S)\ BE\ LIABLE\ FOR\ ANY\ DIRECT,\ INDIRECT,}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ INCIDENTAL,\ SPECIAL,\ EXEMPLARY,\ OR\ CONSEQUENTIAL\ DAMAGES\ (INCLUDING,\ BUT}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ NOT\ LIMITED\ TO,\ PROCUREMENT\ OF\ SUBSTITUTE\ GOODS\ OR\ SERVICES;\ LOSS\ OF\ USE,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ DATA,\ OR\ PROFITS;\ OR\ BUSINESS\ INTERRUPTION)\ HOWEVER\ CAUSED\ AND\ ON\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ THEORY\ OF\ LIABILITY,\ WHETHER\ IN\ CONTRACT,\ STRICT\ LIABILITY,\ OR\ TORT}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ (INCLUDING\ NEGLIGENCE\ OR\ OTHERWISE)\ ARISING\ IN\ ANY\ WAY\ OUT\ OF\ THE\ USE\ OF}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ THIS\ SOFTWARE,\ EVEN\ IF\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH\ DAMAGE.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ \$FreeBSD:\ head/lib/libarchive/archive\_crc32.h\ 201102\ 2009-\/12-\/28\ 03:11:36Z\ kientzle\ \$}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#ifndef\ ARCHIVE\_CRC32\_H}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ ARCHIVE\_CRC32\_H}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#ifndef\ \_\_LIBARCHIVE\_BUILD}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#error\ This\ header\ is\ only\ to\ be\ used\ internally\ to\ libarchive.}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ When\ zlib\ is\ unavailable,\ we\ should\ still\ be\ able\ to\ validate}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ uncompressed\ zip\ archives.\ \ That\ requires\ us\ to\ be\ able\ to\ compute}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ the\ CRC32\ check\ value.\ \ This\ is\ a\ drop-\/in\ compatible\ replacement}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ for\ crc32()\ from\ zlib.\ \ It's\ slower\ than\ the\ zlib\ implementation,}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ but\ still\ pretty\ fast:\ This\ runs\ about\ 300MB/s\ on\ my\ 3GHz\ P4}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ compared\ to\ about\ 800MB/s\ for\ the\ zlib\ implementation.}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00043\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}}
+\DoxyCodeLine{00044\ crc32(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ crc,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_p,\ \textcolor{keywordtype}{size\_t}\ len)}
+\DoxyCodeLine{00045\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ crc2,\ b,\ i;}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *p\ =\ \_p;}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{volatile}\ \textcolor{keywordtype}{int}\ crc\_tbl\_inited\ =\ 0;}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ crc\_tbl[256];}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordflow}{if}\ (!crc\_tbl\_inited)\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (b\ =\ 0;\ b\ <\ 256;\ ++b)\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ crc2\ =\ b;}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 8;\ i\ >\ 0;\ -\/-\/i)\ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (crc2\ \&\ 1)}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ crc2\ =\ (crc2\ >>\ 1)\ \string^\ 0xedb88320UL;}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \ \ \ }
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ crc2\ =\ (crc2\ >>\ 1);}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ crc\_tbl[b]\ =\ crc2;}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ crc\_tbl\_inited\ =\ 1;}
+\DoxyCodeLine{00063\ \ \ \ \ \}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ crc\ =\ crc\ \string^\ 0xffffffffUL;}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{comment}{/*\ A\ use\ of\ this\ loop\ is\ about\ 20\%\ -\/\ 30\%\ faster\ than}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ \ \ *\ no\ use\ version\ in\ any\ optimization\ option\ of\ gcc.\ \ */}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordflow}{for}\ (;len\ >=\ 8;\ len\ -\/=\ 8)\ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00077\ \ \ \ \ \}}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordflow}{while}\ (len-\/-\/)}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ crc\ =\ crc\_tbl[(crc\ \string^\ *p++)\ \&\ 0xff]\ \string^\ (crc\ >>\ 8);}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordflow}{return}\ (crc\ \string^\ 0xffffffffUL);}
+\DoxyCodeLine{00081\ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,101 @@
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1440}{}\doxysubsection{CMake}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1440}
+CMakefiles for the library and the examples are available. This library has few dependencies, so it is possible to just add the source files into your project. Otherwise the usual way will suffice.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{mkdir\ build\ \#\ make\ a\ build\ dir\ so\ that\ you\ can\ build\ out\ of\ tree.}
+\DoxyCodeLine{cd\ build}
+\DoxyCodeLine{cmake\ -\/DUSE\_TLS=1\ ..}
+\DoxyCodeLine{make\ -\/j}
+\DoxyCodeLine{make\ install\ \#\ will\ install\ to\ /usr/local\ on\ Unix,\ on\ macOS\ it\ is\ a\ good\ idea\ to\ sudo\ chown\ -\/R\ `whoami`:staff\ /usr/local}
+
+\end{DoxyCode}
+
+
+Headers and a static library will be installed to the target dir. There is a unittest which can be executed by typing {\ttfamily make test}.
+
+Options for building\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily -\/DBUILD\+\_\+\+SHARED\+\_\+\+LIBS=ON} will build the unittest as a shared libary instead of a static library, which is the default
+\item {\ttfamily -\/DUSE\+\_\+\+ZLIB=1} will enable zlib support, required for http client + server + websocket per message deflate extension
+\item {\ttfamily -\/DUSE\+\_\+\+TLS=1} will enable TLS support
+\item {\ttfamily -\/DUSE\+\_\+\+OPEN\+\_\+\+SSL=1} will use \href{https://www.openssl.org/}{\texttt{ openssl}} for the TLS support (default on Linux and Windows). When using a custom version of openssl (say a prebuilt version, odd runtime problems can happens, as in \#319, and special cmake trickery will be required (see this \href{https://github.com/machinezone/IXWebSocket/issues/175\#issuecomment-620231032}{\texttt{ comment}})
+\item {\ttfamily -\/DUSE\+\_\+\+MBED\+\_\+\+TLS=1} will use \href{https://tls.mbed.org/}{\texttt{ mbedlts}} for the TLS support
+\item {\ttfamily -\/DUSE\+\_\+\+WS=1} will build the ws interactive command line tool
+\item {\ttfamily -\/DUSE\+\_\+\+TEST=1} will build the unittest
+\end{DoxyItemize}
+
+If you are on Windows, look at the \href{https://github.com/machinezone/IXWebSocket/blob/master/appveyor.yml}{\texttt{ appveyor}} file (not maintained much though) or rather the \href{https://github.com/machinezone/IXWebSocket/blob/master/.github/workflows/unittest_windows.yml}{\texttt{ github actions}} which have instructions for building dependencies.
+
+It is also possible to externally include the project, so that everything is fetched over the wire when you build like so\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{ExternalProject\_Add(}
+\DoxyCodeLine{\ \ \ \ IXWebSocket}
+\DoxyCodeLine{\ \ \ \ GIT\_REPOSITORY\ https://github.com/machinezone/IXWebSocket.git}
+\DoxyCodeLine{\ \ \ \ ...}
+\DoxyCodeLine{)}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1441}{}\doxysubsection{vcpkg}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1441}
+It is possible to get IXWeb\+Socket through Microsoft \href{https://github.com/microsoft/vcpkg}{\texttt{ vcpkg}}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{vcpkg\ install\ ixwebsocket}
+
+\end{DoxyCode}
+ To use the installed package within a cmake project, use the following\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{set(CMAKE\_TOOLCHAIN\_FILE\ "{}\$ENV\{VCPKG\_ROOT\}/scripts/buildsystems/vcpkg.cmake"{}\ CACHE\ STRING\ "{}"{})\ \#\ this\ is\ super\ important\ in\ order\ for\ cmake\ to\ include\ the\ vcpkg\ search/lib\ paths!}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\ find\ library\ and\ its\ headers}
+\DoxyCodeLine{find\_path(IXWEBSOCKET\_INCLUDE\_DIR\ ixwebsocket/IXWebSocket.h)}
+\DoxyCodeLine{find\_library(IXWEBSOCKET\_LIBRARY\ ixwebsocket)}
+\DoxyCodeLine{\#\ include\ headers}
+\DoxyCodeLine{include\_directories(\$\{IXWEBSOCKET\_INCLUDE\_DIR\})}
+\DoxyCodeLine{\#\ ...}
+\DoxyCodeLine{target\_link\_libraries(\$\{PROJECT\_NAME\}\ ...\ \$\{IXWEBSOCKET\_LIBRARY\})\ \#\ Cmake\ will\ automatically\ fail\ the\ generation\ if\ the\ lib\ was\ not\ found,\ i.e\ is\ set\ to\ NOTFOUNS}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1442}{}\doxysubsection{Conan}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1442}
+\href{https://bintray.com/conan/conan-center/ixwebsocket\%3A_/_latestVersion}{\texttt{ }}
+
+Conan is currently supported through a recipe in \href{https://github.com/conan-io/conan-center-index/tree/master/recipes/ixwebsocket}{\texttt{ Conan Center}} (\href{https://bintray.com/conan/conan-center/ixwebsocket\%3A_}{\texttt{ Bintray entry}}).
+
+Package reference
+
+
+\begin{DoxyItemize}
+\item Conan 1.\+21.\+0 and up\+: {\ttfamily ixwebsocket/7.\+9.\+2}
+\item Earlier versions\+: {\ttfamily ixwebsocket/7.\+9.\+2@\+\_\+/\+\_\+}
+\end{DoxyItemize}
+
+Note that the version listed here might not be the latest one. See Bintray or the recipe itself for the latest version. If you\textquotesingle{}re migrating from the previous, custom Bintray remote, note that the package reference {\itshape has} to be lower-\/case.\hypertarget{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1443}{}\doxysubsection{Docker}\label{md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_build_autotoc_md1443}
+There is a Dockerfile for running the unittest on Linux, and to run the {\ttfamily ws} tool. It is also available on the docker registry.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{docker\ run\ docker.pkg.github.com/machinezone/ixwebsocket/ws:latest\ -\/-\/help}
+
+\end{DoxyCode}
+
+
+To use docker-\/compose you must make a docker container first.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\$\ make\ docker}
+\DoxyCodeLine{...}
+\DoxyCodeLine{\$\ docker\ compose\ up\ \&}
+\DoxyCodeLine{...}
+\DoxyCodeLine{\$\ docker\ exec\ -\/it\ ixwebsocket\_ws\_1\ bash}
+\DoxyCodeLine{app@ca2340eb9106:\string~\$\ ws\ -\/-\/help}
+\DoxyCodeLine{ws\ is\ a\ websocket\ tool}
+\DoxyCodeLine{...}
+
+\end{DoxyCode}
+ 

@@ -1,0 +1,433 @@
+\hypertarget{hb-sanitize_8hh_source}{}\doxysection{hb-\/sanitize.hh}
+\label{hb-sanitize_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/sanitize.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/sanitize.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2007,2008,2009,2010\ \ Red\ Hat,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012,2018\ \ Google,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ Red\ Hat\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#ifndef\ HB\_SANITIZE\_HH}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ HB\_SANITIZE\_HH}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/blob.hh"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb-\/dispatch.hh"{}}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ Sanitize}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ ===\ Introduction\ ===}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ The\ sanitize\ machinery\ is\ at\ the\ core\ of\ our\ zero-\/cost\ font\ loading.\ \ We}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ mmap()\ font\ file\ into\ memory\ and\ create\ a\ blob\ out\ of\ it.\ \ Font\ subtables}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ are\ returned\ as\ a\ readonly\ sub-\/blob\ of\ the\ main\ font\ blob.\ \ These\ table}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ blobs\ are\ then\ sanitized\ before\ use,\ to\ ensure\ invalid\ memory\ access\ does}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *\ not\ happen.\ \ The\ toplevel\ sanitize\ API\ use\ is\ like,\ eg.\ to\ load\ the\ 'head'}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ table:}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ \ \ hb\_blob\_t\ *head\_blob\ =\ hb\_sanitize\_context\_t\ ().reference\_table<OT::head>\ (face);}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ The\ blob\ then\ can\ be\ converted\ to\ a\ head\ table\ struct\ with:}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *\ \ \ const\ head\ *head\_table\ =\ head\_blob-\/>as<head>\ ();}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *\ What\ the\ reference\_table\ does\ is,\ to\ call\ hb\_face\_reference\_table()\ to\ load}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ *\ the\ table\ blob,\ sanitize\ it\ and\ return\ either\ the\ sanitized\ blob,\ or\ empty}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ *\ blob\ if\ sanitization\ failed.\ \ The\ blob-\/>as()\ function\ returns\ the\ null}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ object\ of\ its\ template\ type\ argument\ if\ the\ blob\ is\ empty.\ \ Otherwise,\ it}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ *\ just\ casts\ the\ blob\ contents\ to\ the\ desired\ type.}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ *\ Sanitizing\ a\ blob\ of\ data\ with\ a\ type\ T\ works\ as\ follows\ (with\ minor}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ *\ simplification):}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ *\ \ \ -\/\ Cast\ blob\ content\ to\ T*,\ call\ sanitize()\ method\ of\ it,}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ *\ \ \ -\/\ If\ sanitize\ succeeded,\ return\ blob.}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ *\ \ \ -\/\ Otherwise,\ if\ blob\ is\ not\ writable,\ try\ making\ it\ writable,}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ *\ \ \ \ \ or\ copy\ if\ cannot\ be\ made\ writable\ in-\/place,}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ *\ \ \ -\/\ Call\ sanitize()\ again.\ \ Return\ blob\ if\ sanitize\ succeeded.}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ *\ \ \ -\/\ Return\ empty\ blob\ otherwise.}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ *\ ===\ The\ sanitize()\ contract\ ===}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00075\ \textcolor{comment}{\ *\ The\ sanitize()\ method\ of\ each\ object\ type\ shall\ return\ true\ if\ it's\ safe\ to}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ *\ call\ other\ methods\ of\ the\ object,\ and\ \%false\ otherwise.}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ *\ Note\ that\ what\ sanitize()\ checks\ for\ might\ align\ with\ what\ the\ specification}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ *\ describes\ as\ valid\ table\ data,\ but\ does\ not\ have\ to\ be.\ \ In\ particular,\ we}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ *\ do\ NOT\ want\ to\ be\ pedantic\ and\ concern\ ourselves\ with\ validity\ checks\ that}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ *\ are\ irrelevant\ to\ our\ use\ of\ the\ table.\ \ On\ the\ contrary,\ we\ want\ to\ be}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ *\ lenient\ with\ error\ handling\ and\ accept\ invalid\ data\ to\ the\ extent\ that\ it}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ *\ does\ not\ impose\ extra\ burden\ on\ us.}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ *\ Based\ on\ the\ sanitize\ contract,\ one\ can\ see\ that\ what\ we\ check\ for\ depends}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ *\ on\ how\ we\ use\ the\ data\ in\ other\ table\ methods.\ \ Ie.\ if\ other\ table\ methods}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ *\ assume\ that\ offsets\ do\ NOT\ point\ out\ of\ the\ table\ data\ block,\ then\ that's}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ *\ something\ sanitize()\ must\ check\ for\ (GSUB/GPOS/GDEF/etc\ work\ this\ way).\ \ On}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ *\ the\ other\ hand,\ if\ other\ methods\ do\ such\ checks\ themselves,\ then\ sanitize()}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ *\ does\ not\ have\ to\ bother\ with\ them\ (glyf/local\ work\ this\ way).\ \ The\ choice}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ *\ depends\ on\ the\ table\ structure\ and\ sanitize()\ performance.\ \ For\ example,\ to}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ *\ check\ glyf/loca\ offsets\ in\ sanitize()\ would\ cost\ O(num-\/glyphs).\ \ We\ try\ hard}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ *\ to\ avoid\ such\ costs\ during\ font\ loading.\ \ By\ postponing\ such\ checks\ to\ the}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ *\ actual\ glyph\ loading,\ we\ reduce\ the\ sanitize\ cost\ to\ O(1)\ and\ total\ runtime}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ *\ cost\ to\ O(used-\/glyphs).\ \ As\ such,\ this\ is\ preferred.}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ *\ The\ same\ argument\ can\ be\ made\ re\ GSUB/GPOS/GDEF,\ but\ there,\ the\ table}}
+\DoxyCodeLine{00098\ \textcolor{comment}{\ *\ structure\ is\ so\ complicated\ that\ by\ checking\ all\ offsets\ at\ sanitize()\ time,}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ *\ we\ make\ the\ code\ much\ simpler\ in\ other\ methods,\ as\ offsets\ and\ referenced}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ *\ objects\ do\ not\ need\ to\ be\ validated\ at\ each\ use\ site.}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{comment}{/*\ This\ limits\ sanitizing\ time\ on\ really\ broken\ fonts.\ */}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#ifndef\ HB\_SANITIZE\_MAX\_EDITS}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ HB\_SANITIZE\_MAX\_EDITS\ 32}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#ifndef\ HB\_SANITIZE\_MAX\_OPS\_FACTOR}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#define\ HB\_SANITIZE\_MAX\_OPS\_FACTOR\ 64}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#ifndef\ HB\_SANITIZE\_MAX\_OPS\_MIN}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#define\ HB\_SANITIZE\_MAX\_OPS\_MIN\ 16384}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#ifndef\ HB\_SANITIZE\_MAX\_OPS\_MAX}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#define\ HB\_SANITIZE\_MAX\_OPS\_MAX\ 0x3FFFFFFF}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#ifndef\ HB\_SANITIZE\_MAX\_SUBTABLES}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ HB\_SANITIZE\_MAX\_SUBTABLES\ 0x4000}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ :}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__dispatch__context__t}{hb\_dispatch\_context\_t}}<hb\_sanitize\_context\_t,\ bool,\ HB\_DEBUG\_SANITIZE>}
+\DoxyCodeLine{00122\ \{}
+\DoxyCodeLine{00123\ \ \ \mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ ()\ :}
+\DoxyCodeLine{00124\ \ \ \ \ start\ (\textcolor{keyword}{nullptr}),\ end\ (\textcolor{keyword}{nullptr}),}
+\DoxyCodeLine{00125\ \ \ \ \ max\_ops\ (0),\ max\_subtables\ (0),}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ recursion\_depth\ (0),}
+\DoxyCodeLine{00127\ \ \ \ \ writable\ (\textcolor{keyword}{false}),\ edit\_count\ (0),}
+\DoxyCodeLine{00128\ \ \ \ \ blob\ (\textcolor{keyword}{nullptr}),}
+\DoxyCodeLine{00129\ \ \ \ \ num\_glyphs\ (65536),}
+\DoxyCodeLine{00130\ \ \ \ \ num\_glyphs\_set\ (\textcolor{keyword}{false})\ \{\}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *get\_name\ ()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{stringliteral}{"{}SANITIZE"{}};\ \}}
+\DoxyCodeLine{00133\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ F>}
+\DoxyCodeLine{00134\ \ \ \textcolor{keywordtype}{bool}\ may\_dispatch\ (\textcolor{keyword}{const}\ T\ *obj\ HB\_UNUSED,\ \textcolor{keyword}{const}\ F\ *format)}
+\DoxyCodeLine{00135\ \ \ \{\ \textcolor{keywordflow}{return}\ format-\/>sanitize\ (\textcolor{keyword}{this});\ \}}
+\DoxyCodeLine{00136\ \ \ \textcolor{keyword}{static}\ return\_t\ default\_return\_value\ ()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00137\ \ \ \textcolor{keyword}{static}\ return\_t\ no\_dispatch\_return\_value\ ()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};\ \}}
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordtype}{bool}\ stop\_sublookup\_iteration\ (\textcolor{keyword}{const}\ return\_t\ r)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !r;\ \}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \textcolor{keywordtype}{bool}\ visit\_subtables\ (\textcolor{keywordtype}{unsigned}\ count)}
+\DoxyCodeLine{00141\ \ \ \{}
+\DoxyCodeLine{00142\ \ \ \ \ max\_subtables\ +=\ count;}
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{keywordflow}{return}\ max\_subtables\ <\ HB\_SANITIZE\_MAX\_SUBTABLES;}
+\DoxyCodeLine{00144\ \ \ \}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00147\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ ...Ts>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00148\ \ \ \_dispatch\ (\textcolor{keyword}{const}\ T\ \&obj,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<1>}},\ Ts\&\&...\ ds)\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00149\ \ \ (\ obj.sanitize\ (\textcolor{keyword}{this},\ std::forward<Ts>\ (ds)...)\ )}
+\DoxyCodeLine{00150\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ ...Ts>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00151\ \ \ \_dispatch\ (\textcolor{keyword}{const}\ T\ \&obj,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<0>}},\ Ts\&\&...\ ds)\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00152\ \ \ (\ obj.dispatch\ (\textcolor{keyword}{this},\ std::forward<Ts>\ (ds)...)\ )}
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00154\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ ...Ts>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00155\ \ \ dispatch\ (\textcolor{keyword}{const}\ T\ \&obj,\ Ts\&\&...\ ds)\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00156\ \ \ (\ \_dispatch\ (obj,\ hb\_prioritize,\ std::forward<Ts>\ (ds)...)\ )}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \textcolor{keywordtype}{void}\ init\ (\mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *b)}
+\DoxyCodeLine{00160\ \ \ \{}
+\DoxyCodeLine{00161\ \ \ \ \ this-\/>blob\ =\ hb\_blob\_reference\ (b);}
+\DoxyCodeLine{00162\ \ \ \ \ this-\/>writable\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00163\ \ \ \}}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \textcolor{keywordtype}{void}\ set\_num\_glyphs\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_glyphs\_)}
+\DoxyCodeLine{00166\ \ \ \{}
+\DoxyCodeLine{00167\ \ \ \ \ num\_glyphs\ =\ num\_glyphs\_;}
+\DoxyCodeLine{00168\ \ \ \ \ num\_glyphs\_set\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00169\ \ \ \}}
+\DoxyCodeLine{00170\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_num\_glyphs\ ()\ \{\ \textcolor{keywordflow}{return}\ num\_glyphs;\ \}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \textcolor{keywordtype}{void}\ set\_max\_ops\ (\textcolor{keywordtype}{int}\ max\_ops\_)\ \{\ max\_ops\ =\ max\_ops\_;\ \}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00175\ \ \ \textcolor{keywordtype}{void}\ set\_object\ (\textcolor{keyword}{const}\ T\ *obj)}
+\DoxyCodeLine{00176\ \ \ \{}
+\DoxyCodeLine{00177\ \ \ \ \ reset\_object\ ();}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keywordflow}{if}\ (!obj)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *obj\_start\ =\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ obj;}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (obj\_start\ <\ this-\/>start\ ||\ this-\/>end\ <=\ obj\_start))}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ this-\/>start\ =\ this-\/>end\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00185\ \ \ \ \ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ this-\/>start\ =\ obj\_start;}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ this-\/>end\ \ \ =\ obj\_start\ +\ hb\_min\ (\textcolor{keywordtype}{size\_t}\ (this-\/>end\ -\/\ obj\_start),\ obj-\/>get\_size\ ());}
+\DoxyCodeLine{00188\ \ \ \ \ \}}
+\DoxyCodeLine{00189\ \ \ \}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \textcolor{keywordtype}{void}\ reset\_object\ ()}
+\DoxyCodeLine{00192\ \ \ \{}
+\DoxyCodeLine{00193\ \ \ \ \ this-\/>start\ =\ this-\/>blob-\/>data;}
+\DoxyCodeLine{00194\ \ \ \ \ this-\/>end\ =\ this-\/>start\ +\ this-\/>blob-\/>length;}
+\DoxyCodeLine{00195\ \ \ \ \ assert\ (this-\/>start\ <=\ this-\/>end);\ \textcolor{comment}{/*\ Must\ not\ overflow.\ */}}
+\DoxyCodeLine{00196\ \ \ \}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \textcolor{keywordtype}{void}\ start\_processing\ ()}
+\DoxyCodeLine{00199\ \ \ \{}
+\DoxyCodeLine{00200\ \ \ \ \ reset\_object\ ();}
+\DoxyCodeLine{00201\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (hb\_unsigned\_mul\_overflows\ (this-\/>end\ -\/\ this-\/>start,\ HB\_SANITIZE\_MAX\_OPS\_FACTOR)))}
+\DoxyCodeLine{00202\ \ \ \ \ \ \ this-\/>max\_ops\ =\ HB\_SANITIZE\_MAX\_OPS\_MAX;}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ this-\/>max\_ops\ =\ hb\_clamp\ ((\textcolor{keywordtype}{unsigned})\ (this-\/>end\ -\/\ this-\/>start)\ *\ HB\_SANITIZE\_MAX\_OPS\_FACTOR,}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{unsigned})\ HB\_SANITIZE\_MAX\_OPS\_MIN,}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{unsigned})\ HB\_SANITIZE\_MAX\_OPS\_MAX);}
+\DoxyCodeLine{00207\ \ \ \ \ this-\/>edit\_count\ =\ 0;}
+\DoxyCodeLine{00208\ \ \ \ \ this-\/>debug\_depth\ =\ 0;}
+\DoxyCodeLine{00209\ \ \ \ \ this-\/>recursion\_depth\ =\ 0;}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \ \ DEBUG\_MSG\_LEVEL\ (SANITIZE,\ start,\ 0,\ +1,}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}start\ [\%p..\%p]\ (\%lu\ bytes)"{}},}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>start,\ this-\/>end,}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long})\ (this-\/>end\ -\/\ this-\/>start));}
+\DoxyCodeLine{00215\ \ \ \}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \textcolor{keywordtype}{void}\ end\_processing\ ()}
+\DoxyCodeLine{00218\ \ \ \{}
+\DoxyCodeLine{00219\ \ \ \ \ DEBUG\_MSG\_LEVEL\ (SANITIZE,\ this-\/>start,\ 0,\ -\/1,}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}end\ [\%p..\%p]\ \%u\ edit\ requests"{}},}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>start,\ this-\/>end,\ this-\/>edit\_count);}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \ \ hb\_blob\_destroy\ (this-\/>blob);}
+\DoxyCodeLine{00224\ \ \ \ \ this-\/>blob\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00225\ \ \ \ \ this-\/>start\ =\ this-\/>end\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00226\ \ \ \}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \textcolor{keywordtype}{unsigned}\ get\_edit\_count\ ()\ \{\ \textcolor{keywordflow}{return}\ edit\_count;\ \}}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \ \ \textcolor{keywordtype}{bool}\ check\_range\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *base,}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00232\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *p\ =\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ base;}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keywordtype}{bool}\ ok\ =\ !len\ ||}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ (this-\/>start\ <=\ p\ \&\&}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ p\ <=\ this-\/>end\ \&\&}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{unsigned}\ int)\ (this-\/>end\ -\/\ p)\ >=\ len\ \&\&}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ (this-\/>max\_ops\ -\/=\ len)\ >\ 0);}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \ \ \ \ DEBUG\_MSG\_LEVEL\ (SANITIZE,\ p,\ this-\/>debug\_depth+1,\ 0,}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}check\_range\ [\%p..\%p]"{}}}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\ (\%d\ bytes)\ in\ [\%p..\%p]\ -\/>\ \%s"{}},}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ \ \ \ \ \ \ \ p,\ p\ +\ len,\ len,}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>start,\ this-\/>end,}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ \ \ \ ok\ ?\ \textcolor{stringliteral}{"{}OK"{}}\ :\ \textcolor{stringliteral}{"{}OUT-\/OF-\/RANGE"{}});}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordflow}{return}\ likely\ (ok);}
+\DoxyCodeLine{00248\ \ \ \}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00251\ \ \ \textcolor{keywordtype}{bool}\ check\_range\ (\textcolor{keyword}{const}\ T\ *base,}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00254\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00255\ \ \ \ \ \textcolor{keywordflow}{return}\ !hb\_unsigned\_mul\_overflows\ (\mbox{\hyperlink{structa}{a}},\ b)\ \&\&}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \ this-\/>check\_range\ (base,\ \mbox{\hyperlink{structa}{a}}\ *\ b);}
+\DoxyCodeLine{00257\ \ \ \}}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00260\ \ \ \textcolor{keywordtype}{bool}\ check\_range\ (\textcolor{keyword}{const}\ T\ *base,}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b,}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00264\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00265\ \ \ \ \ \textcolor{keywordflow}{return}\ !hb\_unsigned\_mul\_overflows\ (\mbox{\hyperlink{structa}{a}},\ b)\ \&\&}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \ this-\/>check\_range\ (base,\ \mbox{\hyperlink{structa}{a}}\ *\ b,\ c);}
+\DoxyCodeLine{00267\ \ \ \}}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00270\ \ \ \textcolor{keywordtype}{bool}\ check\_array\ (\textcolor{keyword}{const}\ T\ *base,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00271\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00272\ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>check\_range\ (base,\ len,\ \mbox{\hyperlink{struct__hb__static__size}{hb\_static\_size}}\ (T));}
+\DoxyCodeLine{00273\ \ \ \}}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00276\ \ \ \textcolor{keywordtype}{bool}\ check\_array\ (\textcolor{keyword}{const}\ T\ *base,}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00279\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>check\_range\ (base,\ \mbox{\hyperlink{structa}{a}},\ b,\ \mbox{\hyperlink{struct__hb__static__size}{hb\_static\_size}}\ (T));}
+\DoxyCodeLine{00281\ \ \ \}}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \ \ \textcolor{keywordtype}{bool}\ check\_start\_recursion\ (\textcolor{keywordtype}{int}\ max\_depth)}
+\DoxyCodeLine{00284\ \ \ \{}
+\DoxyCodeLine{00285\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (recursion\_depth\ >=\ max\_depth))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordflow}{return}\ ++recursion\_depth;}
+\DoxyCodeLine{00287\ \ \ \}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \ \ \textcolor{keywordtype}{bool}\ end\_recursion\ (\textcolor{keywordtype}{bool}\ result)}
+\DoxyCodeLine{00290\ \ \ \{}
+\DoxyCodeLine{00291\ \ \ \ \ recursion\_depth-\/-\/;}
+\DoxyCodeLine{00292\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{00293\ \ \ \}}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00296\ \ \ \textcolor{keywordtype}{bool}\ check\_struct\ (\textcolor{keyword}{const}\ Type\ *obj)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00297\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ likely\ (this-\/>check\_range\ (obj,\ obj-\/>min\_size));\ \}}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \ \ \textcolor{keywordtype}{bool}\ may\_edit\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *base,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len)}
+\DoxyCodeLine{00300\ \ \ \{}
+\DoxyCodeLine{00301\ \ \ \ \ \textcolor{keywordflow}{if}\ (this-\/>edit\_count\ >=\ HB\_SANITIZE\_MAX\_EDITS)}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *p\ =\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ base;}
+\DoxyCodeLine{00305\ \ \ \ \ this-\/>edit\_count++;}
+\DoxyCodeLine{00306\ }
+\DoxyCodeLine{00307\ \ \ \ \ DEBUG\_MSG\_LEVEL\ (SANITIZE,\ p,\ this-\/>debug\_depth+1,\ 0,}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}may\_edit(\%u)\ [\%p..\%p]\ (\%d\ bytes)\ in\ [\%p..\%p]\ -\/>\ \%s"{}},}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ this-\/>edit\_count,}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ p,\ p\ +\ len,\ len,}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ this-\/>start,\ this-\/>end,}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ this-\/>writable\ ?\ \textcolor{stringliteral}{"{}GRANTED"{}}\ :\ \textcolor{stringliteral}{"{}DENIED"{}});}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>writable;}
+\DoxyCodeLine{00315\ \ \ \}}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ ValueType>}
+\DoxyCodeLine{00318\ \ \ \textcolor{keywordtype}{bool}\ try\_set\ (\textcolor{keyword}{const}\ Type\ *obj,\ \textcolor{keyword}{const}\ ValueType\ \&v)}
+\DoxyCodeLine{00319\ \ \ \{}
+\DoxyCodeLine{00320\ \ \ \ \ \textcolor{keywordflow}{if}\ (this-\/>may\_edit\ (obj,\ \mbox{\hyperlink{struct__hb__static__size}{hb\_static\_size}}\ (Type)))}
+\DoxyCodeLine{00321\ \ \ \ \ \{}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ *\ \textcolor{keyword}{const\_cast<}Type\ *\textcolor{keyword}{>}\ (obj)\ =\ v;}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00324\ \ \ \ \ \}}
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00326\ \ \ \}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00329\ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *sanitize\_blob\ (\mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *blob)}
+\DoxyCodeLine{00330\ \ \ \{}
+\DoxyCodeLine{00331\ \ \ \ \ \textcolor{keywordtype}{bool}\ sane;}
+\DoxyCodeLine{00332\ }
+\DoxyCodeLine{00333\ \ \ \ \ init\ (blob);}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \ \ retry:}
+\DoxyCodeLine{00336\ \ \ \ \ DEBUG\_MSG\_FUNC\ (SANITIZE,\ start,\ \textcolor{stringliteral}{"{}start"{}});}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \ \ \ \ start\_processing\ ();}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!start))}
+\DoxyCodeLine{00341\ \ \ \ \ \{}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ end\_processing\ ();}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ blob;}
+\DoxyCodeLine{00344\ \ \ \ \ \}}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \ \ \ \ Type\ *t\ =\ \textcolor{keyword}{reinterpret\_cast<}Type\ *\textcolor{keyword}{>}\ (\textcolor{keyword}{const\_cast<}\textcolor{keywordtype}{char}\ *\textcolor{keyword}{>}\ (start));}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \ \ \ \ sane\ =\ t-\/>sanitize\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00349\ \ \ \ \ \textcolor{keywordflow}{if}\ (sane)}
+\DoxyCodeLine{00350\ \ \ \ \ \{}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (edit\_count)}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00353\ \ \ \ \ DEBUG\_MSG\_FUNC\ (SANITIZE,\ start,\ \textcolor{stringliteral}{"{}passed\ first\ round\ with\ \%d\ edits;\ going\ for\ second\ round"{}},\ edit\_count);}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \ \ \ \ \textcolor{comment}{/*\ sanitize\ again\ to\ ensure\ no\ toe-\/stepping\ */}}
+\DoxyCodeLine{00356\ \ \ \ \ edit\_count\ =\ 0;}
+\DoxyCodeLine{00357\ \ \ \ \ sane\ =\ t-\/>sanitize\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00358\ \ \ \ \ \textcolor{keywordflow}{if}\ (edit\_count)\ \{}
+\DoxyCodeLine{00359\ \ \ \ \ \ \ DEBUG\_MSG\_FUNC\ (SANITIZE,\ start,\ \textcolor{stringliteral}{"{}requested\ \%d\ edits\ in\ second\ round;\ FAILLING"{}},\ edit\_count);}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ sane\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00361\ \ \ \ \ \}}
+\DoxyCodeLine{00362\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00363\ \ \ \ \ \}}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00365\ \ \ \ \ \{}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (edit\_count\ \&\&\ !writable)\ \{}
+\DoxyCodeLine{00367\ \ \ \ \ start\ =\ hb\_blob\_get\_data\_writable\ (blob,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00368\ \ \ \ \ end\ =\ start\ +\ blob-\/>length;}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \ \ \ \ \textcolor{keywordflow}{if}\ (start)}
+\DoxyCodeLine{00371\ \ \ \ \ \{}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ writable\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \textcolor{comment}{/*\ ok,\ we\ made\ it\ writable\ by\ relocating.\ \ try\ again\ */}}
+\DoxyCodeLine{00374\ \ \ \ \ \ \ DEBUG\_MSG\_FUNC\ (SANITIZE,\ start,\ \textcolor{stringliteral}{"{}retry"{}});}
+\DoxyCodeLine{00375\ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ retry;}
+\DoxyCodeLine{00376\ \ \ \ \ \}}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00378\ \ \ \ \ \}}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \ \ \ \ end\_processing\ ();}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \ \ \ \ DEBUG\_MSG\_FUNC\ (SANITIZE,\ start,\ sane\ ?\ \textcolor{stringliteral}{"{}PASSED"{}}\ :\ \textcolor{stringliteral}{"{}FAILED"{}});}
+\DoxyCodeLine{00383\ \ \ \ \ \textcolor{keywordflow}{if}\ (sane)}
+\DoxyCodeLine{00384\ \ \ \ \ \{}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ hb\_blob\_make\_immutable\ (blob);}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ blob;}
+\DoxyCodeLine{00387\ \ \ \ \ \}}
+\DoxyCodeLine{00388\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00389\ \ \ \ \ \{}
+\DoxyCodeLine{00390\ \ \ \ \ \ \ hb\_blob\_destroy\ (blob);}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ hb\_blob\_get\_empty\ ();}
+\DoxyCodeLine{00392\ \ \ \ \ \}}
+\DoxyCodeLine{00393\ \ \ \}}
+\DoxyCodeLine{00394\ }
+\DoxyCodeLine{00395\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00396\ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *reference\_table\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ *face,\ hb\_tag\_t\ tableTag\ =\ Type::tableTag)}
+\DoxyCodeLine{00397\ \ \ \{}
+\DoxyCodeLine{00398\ \ \ \ \ \textcolor{keywordflow}{if}\ (!num\_glyphs\_set)}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ set\_num\_glyphs\ (hb\_face\_get\_glyph\_count\ (face));}
+\DoxyCodeLine{00400\ \ \ \ \ \textcolor{keywordflow}{return}\ sanitize\_blob<Type>\ (hb\_face\_reference\_table\ (face,\ tableTag));}
+\DoxyCodeLine{00401\ \ \ \}}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *start,\ *end;}
+\DoxyCodeLine{00404\ \ \ \textcolor{keyword}{mutable}\ \textcolor{keywordtype}{int}\ max\_ops,\ max\_subtables;}
+\DoxyCodeLine{00405\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00406\ \ \ \textcolor{keywordtype}{int}\ recursion\_depth;}
+\DoxyCodeLine{00407\ \ \ \textcolor{keywordtype}{bool}\ writable;}
+\DoxyCodeLine{00408\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ edit\_count;}
+\DoxyCodeLine{00409\ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *blob;}
+\DoxyCodeLine{00410\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_glyphs;}
+\DoxyCodeLine{00411\ \ \ \textcolor{keywordtype}{bool}\ \ num\_glyphs\_set;}
+\DoxyCodeLine{00412\ \};}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__sanitize__with__object__t}{hb\_sanitize\_with\_object\_t}}}
+\DoxyCodeLine{00415\ \{}
+\DoxyCodeLine{00416\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00417\ \ \ \mbox{\hyperlink{structhb__sanitize__with__object__t}{hb\_sanitize\_with\_object\_t}}\ (\mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ *c,\ \textcolor{keyword}{const}\ T\&\ obj)\ :\ c\ (c)}
+\DoxyCodeLine{00418\ \ \ \{\ c-\/>set\_object\ (obj);\ \}}
+\DoxyCodeLine{00419\ \ \ \mbox{\hyperlink{structhb__sanitize__with__object__t}{\string~hb\_sanitize\_with\_object\_t}}\ ()}
+\DoxyCodeLine{00420\ \ \ \{\ c-\/>reset\_object\ ();\ \}}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00423\ \ \ \mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ *c;}
+\DoxyCodeLine{00424\ \};}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_SANITIZE\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

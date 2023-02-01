@@ -1,0 +1,189 @@
+.TH "md__ase_sprite_aseprite_third_party_simpleini__r_e_a_d_m_e" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party_simpleini__r_e_a_d_m_e \- simpleini 
+.PP
+\fC\fP
+.PP
+\fBA\fP cross-platform library that provides a simple API to read and write INI-style configuration files\&. It supports data files in ASCII, MBCS and Unicode\&. It is designed explicitly to be portable to any platform and has been tested on Windows, WinCE and Linux\&. Released as open-source and free using the MIT licence\&.
+.SH "Feature Summary"
+.PP
+.IP "\(bu" 2
+MIT Licence allows free use in all software (including GPL and commercial)
+.IP "\(bu" 2
+multi-platform (Windows 95/98/ME/NT/2K/XP/2003, Windows CE, Linux, Unix)
+.IP "\(bu" 2
+loading and saving of INI-style configuration files
+.IP "\(bu" 2
+configuration files can have any newline format on all platforms
+.IP "\(bu" 2
+liberal acceptance of file format
+.IP "  \(bu" 4
+key/values with no section
+.IP "  \(bu" 4
+removal of whitespace around sections, keys and values
+.PP
+
+.IP "\(bu" 2
+support for multi-line values (values with embedded newline characters)
+.IP "\(bu" 2
+optional support for multiple keys with the same name
+.IP "\(bu" 2
+optional case-insensitive sections and keys (for ASCII characters only)
+.IP "\(bu" 2
+saves files with sections and keys in the same order as they were loaded
+.IP "\(bu" 2
+preserves comments on the file, section and keys where possible\&.
+.IP "\(bu" 2
+supports both char or wchar_t programming interfaces
+.IP "\(bu" 2
+supports both MBCS (system locale) and UTF-8 file encodings
+.IP "\(bu" 2
+system locale does not need to be UTF-8 on Linux/Unix to load UTF-8 file
+.IP "\(bu" 2
+support for non-ASCII characters in section, keys, values and comments
+.IP "\(bu" 2
+support for non-standard character types or file encodings via user-written converter classes
+.IP "\(bu" 2
+support for adding/modifying values programmatically
+.IP "\(bu" 2
+compiles cleanly in the following compilers:
+.IP "  \(bu" 4
+Windows/VC6 (warning level 3)
+.IP "  \(bu" 4
+Windows/VC\&.NET 2003 (warning level 4)
+.IP "  \(bu" 4
+Windows/VC 2005 (warning level 4)
+.IP "  \(bu" 4
+Linux/gcc (-Wall)
+.IP "  \(bu" 4
+Windows/MinGW GCC
+.PP
+
+.PP
+.SH "Documentation"
+.PP
+Full documentation of the interface is available in doxygen format\&.
+.SH "Examples"
+.PP
+These snippets are included with the distribution in the file snippets\&.cpp\&.
+.SS "SIMPLE USAGE"
+.PP
+.nf
+ {c++}
+CSimpleIniA ini;
+ini\&.SetUnicode();
+ini\&.LoadFile("myfile\&.ini");
+const char * pVal = ini\&.GetValue("section", "key", "default");
+ini\&.SetValue("section", "key", "newvalue");
+.fi
+.PP
+.SS "LOADING DATA"
+.PP
+.nf
+ {c++}
+// load from a data file
+CSimpleIniA ini(a_bIsUtf8, a_bUseMultiKey, a_bUseMultiLine);
+SI_Error rc = ini\&.LoadFile(a_pszFile);
+if (rc < 0) return false;
+
+// load from a string
+std::string strData;
+rc = ini\&.LoadData(strData\&.c_str(), strData\&.size());
+if (rc < 0) return false;
+.fi
+.PP
+.SS "GETTING SECTIONS AND KEYS"
+.PP
+.nf
+ {c++}
+// get all sections
+CSimpleIniA::TNamesDepend sections;
+ini\&.GetAllSections(sections);
+
+// get all keys in a section
+CSimpleIniA::TNamesDepend keys;
+ini\&.GetAllKeys("section\-name", keys);
+.fi
+.PP
+.SS "GETTING VALUES"
+.PP
+.nf
+ {c++}
+// get the value of a key
+const char * pszValue = ini\&.GetValue("section\-name", 
+    "key\-name", NULL /*default*/);
+
+// get the value of a key which may have multiple 
+// values\&. If bHasMultipleValues is true, then just 
+// one value has been returned
+bool bHasMultipleValues;
+pszValue = ini\&.GetValue("section\-name", "key\-name", 
+    NULL /*default*/, &amp;bHasMultipleValues);
+
+// get all values of a key with multiple values
+CSimpleIniA::TNamesDepend values;
+ini\&.GetAllValues("section\-name", "key\-name", values);
+
+// sort the values into the original load order
+values\&.sort(CSimpleIniA::Entry::LoadOrder());
+
+// output all of the items
+CSimpleIniA::TNamesDepend::const_iterator i;
+for (i = values\&.begin(); i != values\&.end(); ++i) { 
+    printf("key\-name = '%s'\\n", i\->pItem);
+}
+.fi
+.PP
+.SS "MODIFYING DATA"
+.PP
+.nf
+ {c++}
+// adding a new section
+rc = ini\&.SetValue("new\-section", NULL, NULL);
+if (rc < 0) return false;
+printf("section: %s\\n", rc == SI_INSERTED ? 
+    "inserted" : "updated");
+
+// adding a new key ("new\-section" will be added 
+// automatically if it doesn't already exist)
+rc = ini\&.SetValue("new\-section", "new\-key", "value");
+if (rc < 0) return false;
+printf("key: %s\\n", rc == SI_INSERTED ? 
+    "inserted" : "updated");
+
+// changing the value of a key
+rc = ini\&.SetValue("section", "key", "updated\-value");
+if (rc < 0) return false;
+printf("key: %s\\n", rc == SI_INSERTED ? 
+    "inserted" : "updated");
+.fi
+.PP
+.SS "DELETING DATA"
+.PP
+.nf
+ {c++}
+// deleting a key from a section\&. Optionally the entire
+// section may be deleted if it is now empty\&.
+ini\&.Delete("section\-name", "key\-name", 
+    true /*delete the section if empty*/);
+
+// deleting an entire section and all keys in it
+ini\&.Delete("section\-name", NULL);
+.fi
+.PP
+.SS "SAVING DATA"
+.PP
+.nf
+ {c++}
+// save the data to a string
+rc = ini\&.Save(strData);
+if (rc < 0) return false;
+
+// save the data back to the file
+rc = ini\&.SaveFile(a_pszFile);
+if (rc < 0) return false;
+.fi
+.PP
+ 

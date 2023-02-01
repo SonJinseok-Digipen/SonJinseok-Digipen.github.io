@@ -1,0 +1,97 @@
+\hypertarget{gif__lib__private_8h_source}{}\doxysection{gif\+\_\+lib\+\_\+private.\+h}
+\label{gif__lib__private_8h_source}\index{AseSprite/aseprite/third\_party/giflib/gif\_lib\_private.h@{AseSprite/aseprite/third\_party/giflib/gif\_lib\_private.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{}}
+\DoxyCodeLine{00003\ \textcolor{comment}{gif\_lib\_private.h\ -\/\ internal\ giflib\ routines\ and\ structures}}
+\DoxyCodeLine{00004\ \textcolor{comment}{}}
+\DoxyCodeLine{00005\ \textcolor{comment}{SPDX-\/License-\/Identifier:\ MIT}}
+\DoxyCodeLine{00006\ \textcolor{comment}{}}
+\DoxyCodeLine{00007\ \textcolor{comment}{****************************************************************************/}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#ifndef\ \_GIF\_LIB\_PRIVATE\_H}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ \_GIF\_LIB\_PRIVATE\_H}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}gif\_lib.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}gif\_hash.h"{}}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#if\ !defined(\_WIN32)\ ||\ !defined(\_MSC\_VER)}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\ \ \ \ \#include\ <unistd.h>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_open\ \ \ open}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_close\ \ close}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_fdopen\ fdopen}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_unlink\ unlink}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifdef\ \_WIN32}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\ \ \ \ \#include\ <io.h>}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\ \ \ \ \#ifdef\ \_MSC\_VER}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_open\ \ \ \_open}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_close\ \ \_close}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_fdopen\ \_fdopen}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\ \ \ \ \#define\ posix\_unlink\ \_unlink}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\ \ \ \ \#endif}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\ \ \ \ \#include\ <sys/types.h>}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_WIN32\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#ifndef\ SIZE\_MAX}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ \#define\ SIZE\_MAX\ \ \ \ \ UINTPTR\_MAX}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ EXTENSION\_INTRODUCER\ \ \ \ \ \ 0x21}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ DESCRIPTOR\_INTRODUCER\ \ \ \ \ 0x2c}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ TERMINATOR\_INTRODUCER\ \ \ \ \ 0x3b}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ LZ\_MAX\_CODE\ \ \ \ \ \ \ \ \ 4095\ \ \ \ }\textcolor{comment}{/*\ Biggest\ code\ possible\ in\ 12\ bits.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ LZ\_BITS\ \ \ \ \ \ \ \ \ \ \ \ \ 12}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ FLUSH\_OUTPUT\ \ \ \ \ \ \ \ 4096\ \ \ \ }\textcolor{comment}{/*\ Impossible\ code,\ to\ signal\ flush.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ FIRST\_CODE\ \ \ \ \ \ \ \ \ \ 4097\ \ \ \ }\textcolor{comment}{/*\ Impossible\ code,\ to\ signal\ first.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ NO\_SUCH\_CODE\ \ \ \ \ \ \ \ 4098\ \ \ \ }\textcolor{comment}{/*\ Impossible\ code,\ to\ signal\ empty.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ FILE\_STATE\_WRITE\ \ \ \ 0x01}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ FILE\_STATE\_SCREEN\ \ \ 0x02}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ FILE\_STATE\_IMAGE\ \ \ \ 0x04}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ FILE\_STATE\_READ\ \ \ \ \ 0x08}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ IS\_READABLE(Private)\ \ \ \ (Private-\/>FileState\ \&\ FILE\_STATE\_READ)}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ IS\_WRITEABLE(Private)\ \ \ (Private-\/>FileState\ \&\ FILE\_STATE\_WRITE)}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_gif_file_private_type}{GifFilePrivateType}}\ \{}
+\DoxyCodeLine{00060\ \ \ \ \ GifWord\ FileState,\ FileHandle,\ \ \textcolor{comment}{/*\ Where\ all\ this\ data\ goes\ to!\ */}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ BitsPerPixel,\ \ \ \ \ \textcolor{comment}{/*\ Bits\ per\ pixel\ (Codes\ uses\ at\ least\ this\ +\ 1).\ */}}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ ClearCode,\ \ \ \textcolor{comment}{/*\ The\ CLEAR\ LZ\ code.\ */}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ EOFCode,\ \ \ \ \ \textcolor{comment}{/*\ The\ EOF\ LZ\ code.\ */}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ RunningCode,\ \textcolor{comment}{/*\ The\ next\ code\ algorithm\ can\ generate.\ */}}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ RunningBits,\ \textcolor{comment}{/*\ The\ number\ of\ bits\ required\ to\ represent\ RunningCode.\ */}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ MaxCode1,\ \ \ \ \textcolor{comment}{/*\ 1\ bigger\ than\ max.\ possible\ code,\ in\ RunningBits\ bits.\ */}}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ LastCode,\ \ \ \ \textcolor{comment}{/*\ The\ code\ before\ the\ current\ code.\ */}}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ CrntCode,\ \ \ \ \textcolor{comment}{/*\ Current\ algorithm\ code.\ */}}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ StackPtr,\ \ \ \ \textcolor{comment}{/*\ For\ character\ stack\ (see\ below).\ */}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ CrntShiftState;\ \ \ \ \textcolor{comment}{/*\ Number\ of\ bits\ in\ CrntShiftDWord.\ */}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ CrntShiftDWord;\ \ \ \textcolor{comment}{/*\ For\ bytes\ decomposition\ into\ codes.\ */}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ PixelCount;\ \ \ \textcolor{comment}{/*\ Number\ of\ pixels\ in\ image.\ */}}
+\DoxyCodeLine{00073\ \ \ \ \ FILE\ *File;\ \ \ \ \textcolor{comment}{/*\ File\ as\ stream.\ */}}
+\DoxyCodeLine{00074\ \ \ \ \ InputFunc\ Read;\ \ \ \ \ \textcolor{comment}{/*\ function\ to\ read\ gif\ input\ (TVT)\ */}}
+\DoxyCodeLine{00075\ \ \ \ \ OutputFunc\ Write;\ \ \ \textcolor{comment}{/*\ function\ to\ write\ gif\ output\ (MRB)\ */}}
+\DoxyCodeLine{00076\ \ \ \ \ GifByteType\ Buf[256];\ \ \ \textcolor{comment}{/*\ Compressed\ input\ is\ buffered\ here.\ */}}
+\DoxyCodeLine{00077\ \ \ \ \ GifByteType\ Stack[LZ\_MAX\_CODE];\ \textcolor{comment}{/*\ Decoded\ pixels\ are\ stacked\ here.\ */}}
+\DoxyCodeLine{00078\ \ \ \ \ GifByteType\ Suffix[LZ\_MAX\_CODE\ +\ 1];\ \ \ \ \textcolor{comment}{/*\ So\ we\ can\ trace\ the\ codes.\ */}}
+\DoxyCodeLine{00079\ \ \ \ \ GifPrefixType\ Prefix[LZ\_MAX\_CODE\ +\ 1];}
+\DoxyCodeLine{00080\ \ \ \ \ \mbox{\hyperlink{struct_gif_hash_table_type}{GifHashTableType}}\ *HashTable;}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{bool}\ gif89;}
+\DoxyCodeLine{00082\ \}\ \mbox{\hyperlink{struct_gif_file_private_type}{GifFilePrivateType}};}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#ifndef\ HAVE\_REALLOCARRAY}}
+\DoxyCodeLine{00085\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ *openbsd\_reallocarray(\textcolor{keywordtype}{void}\ *optr,\ \textcolor{keywordtype}{size\_t}\ nmemb,\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ reallocarray\ openbsd\_reallocarray}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_GIF\_LIB\_PRIVATE\_H\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{/*\ end\ */}}
+
+\end{DoxyCode}

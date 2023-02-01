@@ -1,0 +1,498 @@
+\hypertarget{third__party_2curl_2tests_2libtest_2test_8h_source}{}\doxysection{test.\+h}
+\label{third__party_2curl_2tests_2libtest_2test_8h_source}\index{AseSprite/aseprite/third\_party/curl/tests/libtest/test.h@{AseSprite/aseprite/third\_party/curl/tests/libtest/test.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1998\ -\/\ 2020,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{comment}{/*\ !checksrc!\ disable\ ASSIGNWITHINCONDITION\ 14\ */}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{comment}{/*\ Now\ include\ the\ curl\_setup.h\ file\ from\ libcurl's\ private\ libdir\ (the\ source}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ \ version,\ but\ that\ might\ include\ "{}curl\_config.h"{}\ from\ the\ build\ dir\ so\ we}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ \ need\ both\ of\ them\ in\ the\ include\ path),\ so\ that\ we\ get\ good\ in-\/depth}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ \ \ knowledge\ about\ the\ system\ we're\ building\ this\ on\ */}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ CURL\_NO\_OLDIES}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}curl\_setup.h"{}}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ <curl/curl.h>}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#ifdef\ HAVE\_SYS\_SELECT\_H}}
+\DoxyCodeLine{00037\ \textcolor{comment}{/*\ since\ so\ many\ tests\ use\ select(),\ we\ can\ just\ as\ well\ include\ it\ here\ */}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#include\ <sys/select.h>}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#elif\ defined(HAVE\_UNISTD\_H)}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#include\ <unistd.h>}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#ifdef\ TPF}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#\ \ include\ "{}select.h"{}}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#include\ "{}curl\_printf.h"{}}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ test\_setopt(A,B,C)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\ \ if((res\ =\ curl\_easy\_setopt((A),\ (B),\ (C)))\ !=\ CURLE\_OK)\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ test\_multi\_setopt(A,B,C)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\ \ if((res\ =\ curl\_multi\_setopt((A),\ (B),\ (C)))\ !=\ CURLE\_OK)\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ *libtest\_arg2;\ \textcolor{comment}{/*\ set\ by\ first.c\ to\ the\ argv[2]\ or\ NULL\ */}}
+\DoxyCodeLine{00058\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ *libtest\_arg3;\ \textcolor{comment}{/*\ set\ by\ first.c\ to\ the\ argv[3]\ or\ NULL\ */}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \textcolor{comment}{/*\ argc\ and\ argv\ as\ passed\ in\ to\ the\ main()\ function\ */}}
+\DoxyCodeLine{00061\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ test\_argc;}
+\DoxyCodeLine{00062\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ **test\_argv;}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{keyword}{extern}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtimeval}{timeval}}\ tv\_test\_start;\ \textcolor{comment}{/*\ for\ test\ timing\ */}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ select\_wrapper(\textcolor{keywordtype}{int}\ nfds,\ fd\_set\ *rd,\ fd\_set\ *wr,\ fd\_set\ *exc,}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structtimeval}{timeval}}\ *tv);}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{void}\ wait\_ms(\textcolor{keywordtype}{int}\ ms);\ \textcolor{comment}{/*\ wait\ this\ many\ milliseconds\ */}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structtest}{test}}(\textcolor{keywordtype}{char}\ *URL);\ \textcolor{comment}{/*\ the\ actual\ test\ function\ provided\ by\ each}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ individual\ libXXX.c\ file\ */}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{char}\ *hexdump(\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keywordtype}{size\_t}\ len);}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#ifdef\ UNITTESTS}}
+\DoxyCodeLine{00077\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ unitfail;}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00081\ \textcolor{comment}{**\ TEST\_ERR\_*\ values\ must\ be\ greater\ than\ CURL\_LAST\ CURLcode\ in\ order}}
+\DoxyCodeLine{00082\ \textcolor{comment}{**\ to\ avoid\ confusion\ with\ any\ CURLcode\ or\ CURLMcode.\ These\ TEST\_ERR\_*}}
+\DoxyCodeLine{00083\ \textcolor{comment}{**\ codes\ are\ returned\ to\ signal\ test\ specific\ situations\ and\ should}}
+\DoxyCodeLine{00084\ \textcolor{comment}{**\ not\ get\ mixed\ with\ CURLcode\ or\ CURLMcode\ values.}}
+\DoxyCodeLine{00085\ \textcolor{comment}{**}}
+\DoxyCodeLine{00086\ \textcolor{comment}{**\ For\ portability\ reasons\ TEST\_ERR\_*\ values\ should\ be\ less\ than\ 127.}}
+\DoxyCodeLine{00087\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_MAJOR\_BAD\ \ \ \ \ (CURLcode)\ 126}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_RUNS\_FOREVER\ \ (CURLcode)\ 125}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_EASY\_INIT\ \ \ \ \ (CURLcode)\ 124}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_MULTI\ \ \ \ \ \ \ \ \ (CURLcode)\ 123}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_NUM\_HANDLES\ \ \ (CURLcode)\ 122}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_SELECT\ \ \ \ \ \ \ \ (CURLcode)\ 121}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_SUCCESS\ \ \ \ \ \ \ (CURLcode)\ 120}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_FAILURE\ \ \ \ \ \ \ (CURLcode)\ 119}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_USAGE\ \ \ \ \ \ \ \ \ (CURLcode)\ 118}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_FOPEN\ \ \ \ \ \ \ \ \ (CURLcode)\ 117}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_FSTAT\ \ \ \ \ \ \ \ \ (CURLcode)\ 116}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#define\ TEST\_ERR\_BAD\_TIMEOUT\ \ \ (CURLcode)\ 115}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00103\ \textcolor{comment}{**\ Macros\ for\ test\ source\ code\ readability/maintainability.}}
+\DoxyCodeLine{00104\ \textcolor{comment}{**}}
+\DoxyCodeLine{00105\ \textcolor{comment}{**\ All\ of\ the\ following\ macros\ require\ that\ an\ int\ data\ type\ 'res'\ variable}}
+\DoxyCodeLine{00106\ \textcolor{comment}{**\ exists\ in\ scope\ where\ macro\ is\ used,\ and\ that\ it\ has\ been\ initialized\ to}}
+\DoxyCodeLine{00107\ \textcolor{comment}{**\ zero\ before\ the\ macro\ is\ used.}}
+\DoxyCodeLine{00108\ \textcolor{comment}{**}}
+\DoxyCodeLine{00109\ \textcolor{comment}{**\ exe\_*\ and\ chk\_*\ macros\ are\ helper\ macros\ not\ intended\ to\ be\ used\ from}}
+\DoxyCodeLine{00110\ \textcolor{comment}{**\ outside\ of\ this\ header\ file.\ Arguments\ 'Y'\ and\ 'Z'\ of\ these\ represent}}
+\DoxyCodeLine{00111\ \textcolor{comment}{**\ source\ code\ file\ and\ line\ number,\ while\ Arguments\ 'A',\ 'B',\ etc,\ are}}
+\DoxyCodeLine{00112\ \textcolor{comment}{**\ the\ arguments\ used\ to\ actually\ call\ a\ libcurl\ function.}}
+\DoxyCodeLine{00113\ \textcolor{comment}{**}}
+\DoxyCodeLine{00114\ \textcolor{comment}{**\ All\ easy\_*\ and\ multi\_*\ macros\ call\ a\ libcurl\ function\ and\ evaluate\ if}}
+\DoxyCodeLine{00115\ \textcolor{comment}{**\ the\ function\ has\ succeeded\ or\ failed.\ When\ the\ function\ succeeds\ 'res'}}
+\DoxyCodeLine{00116\ \textcolor{comment}{**\ variable\ is\ not\ set\ nor\ cleared\ and\ program\ continues\ normal\ flow.\ On}}
+\DoxyCodeLine{00117\ \textcolor{comment}{**\ the\ other\ hand\ if\ function\ fails\ 'res'\ variable\ is\ set\ and\ a\ jump\ to}}
+\DoxyCodeLine{00118\ \textcolor{comment}{**\ label\ 'test\_cleanup'\ is\ performed.}}
+\DoxyCodeLine{00119\ \textcolor{comment}{**}}
+\DoxyCodeLine{00120\ \textcolor{comment}{**\ Every\ easy\_*\ and\ multi\_*\ macros\ have\ a\ res\_easy\_*\ and\ res\_multi\_*\ macro}}
+\DoxyCodeLine{00121\ \textcolor{comment}{**\ counterpart\ that\ operates\ in\ the\ same\ way\ with\ the\ exception\ that\ no}}
+\DoxyCodeLine{00122\ \textcolor{comment}{**\ jump\ takes\ place\ in\ case\ of\ failure.\ res\_easy\_*\ and\ res\_multi\_*\ macros}}
+\DoxyCodeLine{00123\ \textcolor{comment}{**\ should\ be\ immediately\ followed\ by\ checking\ if\ 'res'\ variable\ has\ been}}
+\DoxyCodeLine{00124\ \textcolor{comment}{**\ set.}}
+\DoxyCodeLine{00125\ \textcolor{comment}{**}}
+\DoxyCodeLine{00126\ \textcolor{comment}{**\ 'res'\ variable\ when\ set\ will\ hold\ a\ CURLcode,\ CURLMcode,\ or\ any\ of\ the}}
+\DoxyCodeLine{00127\ \textcolor{comment}{**\ TEST\_ERR\_*\ values\ defined\ above.\ It\ is\ advisable\ to\ return\ this\ value}}
+\DoxyCodeLine{00128\ \textcolor{comment}{**\ as\ test\ result.}}
+\DoxyCodeLine{00129\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ exe\_easy\_init(A,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\ \ if(((A)\ =\ curl\_easy\_init())\ ==\ NULL)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_easy\_init()\ failed\(\backslash\)n"{}},\ (Y),\ (Z));\ \(\backslash\)}
+\DoxyCodeLine{00136\ \ \ \ \ res\ =\ TEST\_ERR\_EASY\_INIT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00137\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00138\ \}\ while(0)}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#define\ res\_easy\_init(A)\ \(\backslash\)}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\ \ exe\_easy\_init((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#define\ chk\_easy\_init(A,Y,Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ exe\_easy\_init((A),\ (Y),\ (Z));\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\#define\ easy\_init(A)\ \(\backslash\)}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\ \ chk\_easy\_init((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#define\ exe\_multi\_init(A,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\ \ if(((A)\ =\ curl\_multi\_init())\ ==\ NULL)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_init()\ failed\(\backslash\)n"{}},\ (Y),\ (Z));\ \(\backslash\)}
+\DoxyCodeLine{00157\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00158\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00159\ \}\ while(0)}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#define\ res\_multi\_init(A)\ \(\backslash\)}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\ \ exe\_multi\_init((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#define\ chk\_multi\_init(A,Y,Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\ \ exe\_multi\_init((A),\ (Y),\ (Z));\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#define\ multi\_init(A)\ \(\backslash\)}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\ \ chk\_multi\_init((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#define\ exe\_easy\_setopt(A,B,C,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\ \ CURLcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_easy\_setopt((A),\ (B),\ (C)))\ !=\ CURLE\_OK)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_easy\_setopt()\ failed,\ "{}}\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_easy\_strerror(ec));\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00181\ \ \ \ \ res\ =\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00182\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00183\ \}\ while(0)}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#define\ res\_easy\_setopt(A,\ B,\ C)\ \(\backslash\)}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\ \ exe\_easy\_setopt((A),\ (B),\ (C),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\#define\ chk\_easy\_setopt(A,\ B,\ C,\ Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\ \ exe\_easy\_setopt((A),\ (B),\ (C),\ (Y),\ (Z));\ \(\backslash\)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#define\ easy\_setopt(A,\ B,\ C)\ \(\backslash\)}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\ \ chk\_easy\_setopt((A),\ (B),\ (C),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#define\ exe\_multi\_setopt(A,\ B,\ C,\ Y,\ Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_setopt((A),\ (B),\ (C)))\ !=\ CURLM\_OK)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_setopt()\ failed,\ "{}}\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00205\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00206\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00207\ \}\ while(0)}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#define\ res\_multi\_setopt(A,B,C)\ \(\backslash\)}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\ \ exe\_multi\_setopt((A),\ (B),\ (C),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#define\ chk\_multi\_setopt(A,B,C,Y,Z)\ do\ \{\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\ \ exe\_multi\_setopt((A),\ (B),\ (C),\ (Y),\ (Z));\ \(\backslash\)}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\#define\ multi\_setopt(A,B,C)\ \(\backslash\)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\ \ chk\_multi\_setopt((A),\ (B),\ (C),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\#define\ exe\_multi\_add\_handle(A,B,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_add\_handle((A),\ (B)))\ !=\ CURLM\_OK)\ \{\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_add\_handle()\ failed,\ "{}}\ \(\backslash\)}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00229\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00230\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00231\ \}\ while(0)}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\#define\ res\_multi\_add\_handle(A,\ B)\ \(\backslash\)}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\ \ exe\_multi\_add\_handle((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\#define\ chk\_multi\_add\_handle(A,\ B,\ Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\ \ exe\_multi\_add\_handle((A),\ (B),\ (Y),\ (Z));\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\#define\ multi\_add\_handle(A,\ B)\ \(\backslash\)}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\ \ chk\_multi\_add\_handle((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\#define\ exe\_multi\_remove\_handle(A,B,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_remove\_handle((A),\ (B)))\ !=\ CURLM\_OK)\ \{\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_remove\_handle()\ failed,\ "{}}\ \(\backslash\)}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00252\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00253\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00254\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00255\ \}\ while(0)}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\#define\ res\_multi\_remove\_handle(A,\ B)\ \(\backslash\)}}
+\DoxyCodeLine{00258\ \textcolor{preprocessor}{\ \ exe\_multi\_remove\_handle((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\#define\ chk\_multi\_remove\_handle(A,\ B,\ Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\ \ exe\_multi\_remove\_handle((A),\ (B),\ (Y),\ (Z));\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00262\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00264\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\#define\ multi\_remove\_handle(A,\ B)\ \(\backslash\)}}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\ \ chk\_multi\_remove\_handle((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\#define\ exe\_multi\_perform(A,B,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_perform((A),\ (B)))\ !=\ CURLM\_OK)\ \{\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_perform()\ failed,\ "{}}\ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00277\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00278\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00279\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00280\ \ \ else\ if(*((B))\ <\ 0)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00281\ \ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_perform()\ succeeded,\ "{}\ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ \ \ \ \ \ \ "{}but\ returned\ invalid\ running\_handles\ value\ (\%d)\(\backslash\)n"{},\ \(\backslash\)}
+\DoxyCodeLine{00283\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)*((B)));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00284\ \ \ \ \ res\ =\ TEST\_ERR\_NUM\_HANDLES;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00285\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00286\ \}\ while(0)}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \textcolor{preprocessor}{\#define\ res\_multi\_perform(A,\ B)\ \(\backslash\)}}
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\ \ exe\_multi\_perform((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \textcolor{preprocessor}{\#define\ chk\_multi\_perform(A,\ B,\ Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\ \ exe\_multi\_perform((A),\ (B),\ (Y),\ (Z));\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00293\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00296\ }
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\#define\ multi\_perform(A,B)\ \(\backslash\)}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\ \ chk\_multi\_perform((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00301\ }
+\DoxyCodeLine{00302\ \textcolor{preprocessor}{\#define\ exe\_multi\_fdset(A,\ B,\ C,\ D,\ E,\ Y,\ Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00303\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00304\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_fdset((A),\ (B),\ (C),\ (D),\ (E)))\ !=\ CURLM\_OK)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00305\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_fdset()\ failed,\ "{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00308\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00309\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00310\ \ \ else\ if(*((E))\ <\ -\/1)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00311\ \ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_fdset()\ succeeded,\ "{}\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \ \ \ \ \ \ "{}but\ returned\ invalid\ max\_fd\ value\ (\%d)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)*((E)));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00314\ \ \ \ \ res\ =\ TEST\_ERR\_NUM\_HANDLES;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00315\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00316\ \}\ while(0)}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\#define\ res\_multi\_fdset(A,\ B,\ C,\ D,\ E)\ \(\backslash\)}}
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\ \ exe\_multi\_fdset((A),\ (B),\ (C),\ (D),\ (E),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\#define\ chk\_multi\_fdset(A,\ B,\ C,\ D,\ E,\ Y,\ Z)\ do\ \{\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00322\ \textcolor{preprocessor}{\ \ \ \ exe\_multi\_fdset((A),\ (B),\ (C),\ (D),\ (E),\ (Y),\ (Z));\ \(\backslash\)}}
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\ \ \ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00324\ \textcolor{preprocessor}{\ \ \ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\ \ \}\ while(0)}}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \textcolor{preprocessor}{\#define\ multi\_fdset(A,\ B,\ C,\ D,\ E)\ \(\backslash\)}}
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\ \ chk\_multi\_fdset((A),\ (B),\ (C),\ (D),\ (E),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00331\ }
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\#define\ exe\_multi\_timeout(A,B,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_timeout((A),\ (B)))\ !=\ CURLM\_OK)\ \{\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_timeout()\ failed,\ "{}}\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00336\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00338\ \ \ \ \ res\ =\ TEST\_ERR\_BAD\_TIMEOUT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00339\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00340\ \ \ else\ if(*((B))\ <\ -\/1L)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00341\ \ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_timeout()\ succeeded,\ "{}\ \(\backslash\)}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \ \ \ \ "{}but\ returned\ invalid\ timeout\ value\ (\%ld)\(\backslash\)n"{},\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (long)*((B)));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00344\ \ \ \ \ res\ =\ TEST\_ERR\_BAD\_TIMEOUT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00345\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00346\ \}\ while(0)}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \textcolor{preprocessor}{\#define\ res\_multi\_timeout(A,\ B)\ \(\backslash\)}}
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\ \ exe\_multi\_timeout((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\#define\ chk\_multi\_timeout(A,\ B,\ Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00352\ \textcolor{preprocessor}{\ \ \ \ exe\_multi\_timeout((A),\ (B),\ (Y),\ (Z));\ \(\backslash\)}}
+\DoxyCodeLine{00353\ \textcolor{preprocessor}{\ \ \ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00354\ \textcolor{preprocessor}{\ \ \ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00355\ \textcolor{preprocessor}{\ \ \}\ while(0)}}
+\DoxyCodeLine{00356\ }
+\DoxyCodeLine{00357\ \textcolor{preprocessor}{\#define\ multi\_timeout(A,\ B)\ \(\backslash\)}}
+\DoxyCodeLine{00358\ \textcolor{preprocessor}{\ \ chk\_multi\_timeout((A),\ (B),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \textcolor{preprocessor}{\#define\ exe\_multi\_poll(A,B,C,D,E,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00364\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_poll((A),\ (B),\ (C),\ (D),\ (E)))\ !=\ CURLM\_OK)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00365\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_poll()\ failed,\ "{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00368\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00369\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00370\ \ \ else\ if(*((E))\ <\ 0)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00371\ \ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_poll()\ succeeded,\ "{}\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00372\ \ \ \ \ \ \ \ \ \ \ \ \ "{}but\ returned\ invalid\ numfds\ value\ (\%d)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00373\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)*((E)));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00374\ \ \ \ \ res\ =\ TEST\_ERR\_NUM\_HANDLES;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00375\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00376\ \}\ while(0)}
+\DoxyCodeLine{00377\ }
+\DoxyCodeLine{00378\ \textcolor{preprocessor}{\#define\ res\_multi\_poll(A,\ B,\ C,\ D,\ E)\ \(\backslash\)}}
+\DoxyCodeLine{00379\ \textcolor{preprocessor}{\ \ exe\_multi\_poll((A),\ (B),\ (C),\ (D),\ (E),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \textcolor{preprocessor}{\#define\ chk\_multi\_poll(A,\ B,\ C,\ D,\ E,\ Y,\ Z)\ do\ \{\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00382\ \textcolor{preprocessor}{\ \ exe\_multi\_poll((A),\ (B),\ (C),\ (D),\ (E),\ (Y),\ (Z));\ \(\backslash\)}}
+\DoxyCodeLine{00383\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00384\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00385\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00386\ }
+\DoxyCodeLine{00387\ \textcolor{preprocessor}{\#define\ multi\_poll(A,\ B,\ C,\ D,\ E)\ \(\backslash\)}}
+\DoxyCodeLine{00388\ \textcolor{preprocessor}{\ \ chk\_multi\_poll((A),\ (B),\ (C),\ (D),\ (E),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \textcolor{preprocessor}{\#define\ exe\_multi\_wakeup(A,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00393\ \textcolor{preprocessor}{\ \ CURLMcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00394\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_multi\_wakeup((A)))\ !=\ CURLM\_OK)\ \{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00395\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_multi\_wakeup()\ failed,\ "{}}\ \(\backslash\)}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_multi\_strerror(ec));\ \(\backslash\)}
+\DoxyCodeLine{00398\ \ \ \ \ res\ =\ TEST\_ERR\_MULTI;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00399\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00400\ \}\ while(0)}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \textcolor{preprocessor}{\#define\ res\_multi\_wakeup(A)\ \(\backslash\)}}
+\DoxyCodeLine{00403\ \textcolor{preprocessor}{\ \ exe\_multi\_wakeup((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00404\ }
+\DoxyCodeLine{00405\ \textcolor{preprocessor}{\#define\ chk\_multi\_wakeup(A,\ Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00406\ \textcolor{preprocessor}{\ \ exe\_multi\_wakeup((A),\ (Y),\ (Z));\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00407\ \textcolor{preprocessor}{\ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00408\ \textcolor{preprocessor}{\ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00409\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \textcolor{preprocessor}{\#define\ multi\_wakeup(A)\ \(\backslash\)}}
+\DoxyCodeLine{00412\ \textcolor{preprocessor}{\ \ chk\_multi\_wakeup((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ \textcolor{preprocessor}{\#define\ exe\_select\_test(A,\ B,\ C,\ D,\ E,\ Y,\ Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00417\ \textcolor{preprocessor}{\ \ \ \ int\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00418\ \textcolor{preprocessor}{\ \ \ \ if(select\_wrapper((A),\ (B),\ (C),\ (D),\ (E))\ ==\ -\/1)\ \{\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00419\ \textcolor{preprocessor}{\ \ \ \ \ \ ec\ =\ SOCKERRNO;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00420\ \textcolor{preprocessor}{\ \ \ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ select()\ failed,\ with\ "{}}\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00421\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}errno\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ ec,\ strerror(ec));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ res\ =\ TEST\_ERR\_SELECT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00424\ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00425\ \ \ \}\ while(0)}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \textcolor{preprocessor}{\#define\ res\_select\_test(A,\ B,\ C,\ D,\ E)\ \(\backslash\)}}
+\DoxyCodeLine{00428\ \textcolor{preprocessor}{\ \ exe\_select\_test((A),\ (B),\ (C),\ (D),\ (E),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00429\ }
+\DoxyCodeLine{00430\ \textcolor{preprocessor}{\#define\ chk\_select\_test(A,\ B,\ C,\ D,\ E,\ Y,\ Z)\ do\ \{\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00431\ \textcolor{preprocessor}{\ \ \ \ exe\_select\_test((A),\ (B),\ (C),\ (D),\ (E),\ (Y),\ (Z));\ \(\backslash\)}}
+\DoxyCodeLine{00432\ \textcolor{preprocessor}{\ \ \ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00433\ \textcolor{preprocessor}{\ \ \ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00434\ \textcolor{preprocessor}{\ \ \}\ while(0)}}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \textcolor{preprocessor}{\#define\ select\_test(A,\ B,\ C,\ D,\ E)\ \(\backslash\)}}
+\DoxyCodeLine{00437\ \textcolor{preprocessor}{\ \ chk\_select\_test((A),\ (B),\ (C),\ (D),\ (E),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00440\ }
+\DoxyCodeLine{00441\ \textcolor{preprocessor}{\#define\ start\_test\_timing()\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00442\ \textcolor{preprocessor}{\ \ tv\_test\_start\ =\ tutil\_tvnow();\ \(\backslash\)}}
+\DoxyCodeLine{00443\ \textcolor{preprocessor}{\}\ while(0)}}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \textcolor{preprocessor}{\#define\ exe\_test\_timedout(Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00446\ \textcolor{preprocessor}{\ \ if(tutil\_tvdiff(tutil\_tvnow(),\ tv\_test\_start)\ >\ TEST\_HANG\_TIMEOUT)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00447\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ ABORTING\ TEST,\ since\ it\ seems\ "{}}\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ "{}that\ it\ would\ have\ run\ forever.\(\backslash\)n"{},\ (Y),\ (Z));\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00449\ \ \ \ \ res\ =\ TEST\_ERR\_RUNS\_FOREVER;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00450\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00451\ \}\ while(0)}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \textcolor{preprocessor}{\#define\ res\_test\_timedout()\ \(\backslash\)}}
+\DoxyCodeLine{00454\ \textcolor{preprocessor}{\ \ exe\_test\_timedout((\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00455\ }
+\DoxyCodeLine{00456\ \textcolor{preprocessor}{\#define\ chk\_test\_timedout(Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00457\ \textcolor{preprocessor}{\ \ \ \ exe\_test\_timedout(Y,\ Z);\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00458\ \textcolor{preprocessor}{\ \ \ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00459\ \textcolor{preprocessor}{\ \ \ \ \ \ goto\ test\_cleanup;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00460\ \textcolor{preprocessor}{\ \ \}\ while(0)}}
+\DoxyCodeLine{00461\ }
+\DoxyCodeLine{00462\ \textcolor{preprocessor}{\#define\ abort\_on\_test\_timeout()\ \(\backslash\)}}
+\DoxyCodeLine{00463\ \textcolor{preprocessor}{\ \ chk\_test\_timedout((\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00464\ }
+\DoxyCodeLine{00465\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \textcolor{preprocessor}{\#define\ exe\_global\_init(A,Y,Z)\ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00468\ \textcolor{preprocessor}{\ \ CURLcode\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00469\ \textcolor{preprocessor}{\ \ if((ec\ =\ curl\_global\_init((A)))\ !=\ CURLE\_OK)\ \{\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00470\ \textcolor{preprocessor}{\ \ \ \ fprintf(stderr,\ "{}\%s:\%d\ curl\_global\_init()\ failed,\ "{}}\ \(\backslash\)}
+\DoxyCodeLine{00471\ \ \ \ \ \ \ \ \ \ \ \ \ "{}with\ code\ \%d\ (\%s)\(\backslash\)n"{},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ \ \ \ \ (Y),\ (Z),\ (int)ec,\ curl\_easy\_strerror(ec));\ \(\backslash\)}
+\DoxyCodeLine{00473\ \ \ \ \ res\ =\ ec;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00474\ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{00475\ \}\ while(0)}
+\DoxyCodeLine{00476\ }
+\DoxyCodeLine{00477\ \textcolor{preprocessor}{\#define\ res\_global\_init(A)\ \(\backslash\)}}
+\DoxyCodeLine{00478\ \textcolor{preprocessor}{\ \ exe\_global\_init((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00479\ }
+\DoxyCodeLine{00480\ \textcolor{preprocessor}{\#define\ chk\_global\_init(A,\ Y,\ Z)\ do\ \{\ \(\backslash\)}}
+\DoxyCodeLine{00481\ \textcolor{preprocessor}{\ \ \ \ exe\_global\_init((A),\ (Y),\ (Z));\ \ \ \(\backslash\)}}
+\DoxyCodeLine{00482\ \textcolor{preprocessor}{\ \ \ \ if(res)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00483\ \textcolor{preprocessor}{\ \ \ \ \ \ return\ res;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00484\ \textcolor{preprocessor}{\ \ \}\ while(0)}}
+\DoxyCodeLine{00485\ }
+\DoxyCodeLine{00486\ \textcolor{comment}{/*\ global\_init()\ is\ different\ than\ other\ macros.\ In\ case\ of}}
+\DoxyCodeLine{00487\ \textcolor{comment}{\ \ \ failure\ it\ 'return's\ instead\ of\ going\ to\ 'test\_cleanup'.\ */}}
+\DoxyCodeLine{00488\ }
+\DoxyCodeLine{00489\ \textcolor{preprocessor}{\#define\ global\_init(A)\ \(\backslash\)}}
+\DoxyCodeLine{00490\ \textcolor{preprocessor}{\ \ chk\_global\_init((A),\ (\_\_FILE\_\_),\ (\_\_LINE\_\_))}}
+\DoxyCodeLine{00491\ }
+\DoxyCodeLine{00492\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+
+\end{DoxyCode}

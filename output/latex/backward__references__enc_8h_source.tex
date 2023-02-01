@@ -1,0 +1,246 @@
+\hypertarget{backward__references__enc_8h_source}{}\doxysection{backward\+\_\+references\+\_\+enc.\+h}
+\label{backward__references__enc_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/enc/backward\_references\_enc.h@{AseSprite/aseprite/third\_party/libwebp/src/enc/backward\_references\_enc.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Author:\ Jyrki\ Alakuijala\ (jyrki@google.com)}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#ifndef\ WEBP\_ENC\_BACKWARD\_REFERENCES\_ENC\_H\_}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ WEBP\_ENC\_BACKWARD\_REFERENCES\_ENC\_H\_}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}src/webp/encode.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}src/webp/format\_constants.h"{}}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00023\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ The\ maximum\ allowed\ limit\ is\ 11.}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ MAX\_COLOR\_CACHE\_BITS\ 10}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ PixOrCopy}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{enum}\ Mode\ \{}
+\DoxyCodeLine{00033\ \ \ kLiteral,}
+\DoxyCodeLine{00034\ \ \ kCacheIdx,}
+\DoxyCodeLine{00035\ \ \ kCopy,}
+\DoxyCodeLine{00036\ \ \ kNone}
+\DoxyCodeLine{00037\ \};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00040\ \ \ \textcolor{comment}{//\ mode\ as\ uint8\_t\ to\ make\ the\ memory\ layout\ to\ be\ exactly\ 8\ bytes.}}
+\DoxyCodeLine{00041\ \ \ uint8\_t\ mode;}
+\DoxyCodeLine{00042\ \ \ uint16\_t\ len;}
+\DoxyCodeLine{00043\ \ \ uint32\_t\ argb\_or\_distance;}
+\DoxyCodeLine{00044\ \}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}};}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}\ PixOrCopyCreateCopy(uint32\_t\ distance,}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint16\_t\ len)\ \{}
+\DoxyCodeLine{00048\ \ \ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}\ retval;}
+\DoxyCodeLine{00049\ \ \ retval.mode\ =\ kCopy;}
+\DoxyCodeLine{00050\ \ \ retval.argb\_or\_distance\ =\ distance;}
+\DoxyCodeLine{00051\ \ \ retval.len\ =\ len;}
+\DoxyCodeLine{00052\ \ \ \textcolor{keywordflow}{return}\ retval;}
+\DoxyCodeLine{00053\ \}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}\ PixOrCopyCreateCacheIdx(\textcolor{keywordtype}{int}\ idx)\ \{}
+\DoxyCodeLine{00056\ \ \ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}\ retval;}
+\DoxyCodeLine{00057\ \ \ assert(idx\ >=\ 0);}
+\DoxyCodeLine{00058\ \ \ assert(idx\ <\ (1\ <<\ MAX\_COLOR\_CACHE\_BITS));}
+\DoxyCodeLine{00059\ \ \ retval.mode\ =\ kCacheIdx;}
+\DoxyCodeLine{00060\ \ \ retval.argb\_or\_distance\ =\ idx;}
+\DoxyCodeLine{00061\ \ \ retval.len\ =\ 1;}
+\DoxyCodeLine{00062\ \ \ \textcolor{keywordflow}{return}\ retval;}
+\DoxyCodeLine{00063\ \}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}\ PixOrCopyCreateLiteral(uint32\_t\ argb)\ \{}
+\DoxyCodeLine{00066\ \ \ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}\ retval;}
+\DoxyCodeLine{00067\ \ \ retval.mode\ =\ kLiteral;}
+\DoxyCodeLine{00068\ \ \ retval.argb\_or\_distance\ =\ argb;}
+\DoxyCodeLine{00069\ \ \ retval.len\ =\ 1;}
+\DoxyCodeLine{00070\ \ \ \textcolor{keywordflow}{return}\ retval;}
+\DoxyCodeLine{00071\ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ PixOrCopyIsLiteral(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ p)\ \{}
+\DoxyCodeLine{00074\ \ \ \textcolor{keywordflow}{return}\ (p-\/>mode\ ==\ kLiteral);}
+\DoxyCodeLine{00075\ \}}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ PixOrCopyIsCacheIdx(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ p)\ \{}
+\DoxyCodeLine{00078\ \ \ \textcolor{keywordflow}{return}\ (p-\/>mode\ ==\ kCacheIdx);}
+\DoxyCodeLine{00079\ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ PixOrCopyIsCopy(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ p)\ \{}
+\DoxyCodeLine{00082\ \ \ \textcolor{keywordflow}{return}\ (p-\/>mode\ ==\ kCopy);}
+\DoxyCodeLine{00083\ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ PixOrCopyLiteral(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ p,}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ component)\ \{}
+\DoxyCodeLine{00087\ \ \ assert(p-\/>mode\ ==\ kLiteral);}
+\DoxyCodeLine{00088\ \ \ \textcolor{keywordflow}{return}\ (p-\/>argb\_or\_distance\ >>\ (component\ *\ 8))\ \&\ 0xff;}
+\DoxyCodeLine{00089\ \}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ PixOrCopyLength(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ p)\ \{}
+\DoxyCodeLine{00092\ \ \ \textcolor{keywordflow}{return}\ p-\/>len;}
+\DoxyCodeLine{00093\ \}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ PixOrCopyCacheIdx(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ p)\ \{}
+\DoxyCodeLine{00096\ \ \ assert(p-\/>mode\ ==\ kCacheIdx);}
+\DoxyCodeLine{00097\ \ \ assert(p-\/>argb\_or\_distance\ <\ (1U\ <<\ MAX\_COLOR\_CACHE\_BITS));}
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordflow}{return}\ p-\/>argb\_or\_distance;}
+\DoxyCodeLine{00099\ \}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{keyword}{static}\ WEBP\_INLINE\ uint32\_t\ PixOrCopyDistance(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ \textcolor{keyword}{const}\ p)\ \{}
+\DoxyCodeLine{00102\ \ \ assert(p-\/>mode\ ==\ kCopy);}
+\DoxyCodeLine{00103\ \ \ \textcolor{keywordflow}{return}\ p-\/>argb\_or\_distance;}
+\DoxyCodeLine{00104\ \}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00107\ \textcolor{comment}{//\ VP8LHashChain}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#define\ HASH\_BITS\ 18}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#define\ HASH\_SIZE\ (1\ <<\ HASH\_BITS)}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{//\ If\ you\ change\ this,\ you\ need\ MAX\_LENGTH\_BITS\ +\ WINDOW\_SIZE\_BITS\ <=\ 32\ as\ it}}
+\DoxyCodeLine{00113\ \textcolor{comment}{//\ is\ used\ in\ VP8LHashChain.}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#define\ MAX\_LENGTH\_BITS\ 12}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ WINDOW\_SIZE\_BITS\ 20}}
+\DoxyCodeLine{00116\ \textcolor{comment}{//\ We\ want\ the\ max\ value\ to\ be\ attainable\ and\ stored\ in\ MAX\_LENGTH\_BITS\ bits.}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ MAX\_LENGTH\ ((1\ <<\ MAX\_LENGTH\_BITS)\ -\/\ 1)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#if\ MAX\_LENGTH\_BITS\ +\ WINDOW\_SIZE\_BITS\ >\ 32}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#error\ "{}MAX\_LENGTH\_BITS\ +\ WINDOW\_SIZE\_BITS\ >\ 32"{}}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}\ \mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}};}
+\DoxyCodeLine{00123\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}\ \{}
+\DoxyCodeLine{00124\ \ \ \textcolor{comment}{//\ The\ 20\ most\ significant\ bits\ contain\ the\ offset\ at\ which\ the\ best\ match}}
+\DoxyCodeLine{00125\ \ \ \textcolor{comment}{//\ is\ found.\ These\ 20\ bits\ are\ the\ limit\ defined\ by\ GetWindowSizeForHashChain}}
+\DoxyCodeLine{00126\ \ \ \textcolor{comment}{//\ (through\ WINDOW\_SIZE\ =\ 1<<20).}}
+\DoxyCodeLine{00127\ \ \ \textcolor{comment}{//\ The\ lower\ 12\ bits\ contain\ the\ length\ of\ the\ match.\ The\ 12\ bit\ limit\ is}}
+\DoxyCodeLine{00128\ \ \ \textcolor{comment}{//\ defined\ in\ MaxFindCopyLength\ with\ MAX\_LENGTH=4096.}}
+\DoxyCodeLine{00129\ \ \ uint32\_t*\ offset\_length\_;}
+\DoxyCodeLine{00130\ \ \ \textcolor{comment}{//\ This\ is\ the\ maximum\ size\ of\ the\ hash\_chain\ that\ can\ be\ constructed.}}
+\DoxyCodeLine{00131\ \ \ \textcolor{comment}{//\ Typically\ this\ is\ the\ pixel\ count\ (width\ x\ height)\ for\ a\ given\ image.}}
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordtype}{int}\ size\_;}
+\DoxyCodeLine{00133\ \};}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{comment}{//\ Must\ be\ called\ first,\ to\ set\ size.}}
+\DoxyCodeLine{00136\ \textcolor{keywordtype}{int}\ VP8LHashChainInit(\mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}*\ \textcolor{keyword}{const}\ p,\ \textcolor{keywordtype}{int}\ size);}
+\DoxyCodeLine{00137\ \textcolor{comment}{//\ Pre-\/compute\ the\ best\ matches\ for\ argb.}}
+\DoxyCodeLine{00138\ \textcolor{keywordtype}{int}\ VP8LHashChainFill(\mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}*\ \textcolor{keyword}{const}\ p,\ \textcolor{keywordtype}{int}\ quality,}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ argb,\ \textcolor{keywordtype}{int}\ xsize,\ \textcolor{keywordtype}{int}\ ysize,}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ low\_effort);}
+\DoxyCodeLine{00141\ \textcolor{keywordtype}{void}\ VP8LHashChainClear(\mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}*\ \textcolor{keyword}{const}\ p);\ \ \textcolor{comment}{//\ release\ memory}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8LHashChainFindOffset(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}*\ \textcolor{keyword}{const}\ p,}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ base\_position)\ \{}
+\DoxyCodeLine{00145\ \ \ \textcolor{keywordflow}{return}\ p-\/>offset\_length\_[base\_position]\ >>\ MAX\_LENGTH\_BITS;}
+\DoxyCodeLine{00146\ \}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8LHashChainFindLength(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}*\ \textcolor{keyword}{const}\ p,}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ base\_position)\ \{}
+\DoxyCodeLine{00150\ \ \ \textcolor{keywordflow}{return}\ p-\/>offset\_length\_[base\_position]\ \&\ ((1U\ <<\ MAX\_LENGTH\_BITS)\ -\/\ 1);}
+\DoxyCodeLine{00151\ \}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8LHashChainFindCopy(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}*\ \textcolor{keyword}{const}\ p,}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ base\_position,}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ offset\_ptr,}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ length\_ptr)\ \{}
+\DoxyCodeLine{00157\ \ \ *offset\_ptr\ =\ VP8LHashChainFindOffset(p,\ base\_position);}
+\DoxyCodeLine{00158\ \ \ *length\_ptr\ =\ VP8LHashChainFindLength(p,\ base\_position);}
+\DoxyCodeLine{00159\ \}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00162\ \textcolor{comment}{//\ VP8LBackwardRefs\ (block-\/based\ backward-\/references\ storage)}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{comment}{//\ maximum\ number\ of\ reference\ blocks\ the\ image\ will\ be\ segmented\ into}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\#define\ MAX\_REFS\_BLOCK\_PER\_IMAGE\ 16}}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_pix_or_copy_block}{PixOrCopyBlock}}\ \mbox{\hyperlink{struct_pix_or_copy_block}{PixOrCopyBlock}};\ \ \ \textcolor{comment}{//\ forward\ declaration}}
+\DoxyCodeLine{00168\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}\ \mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}};}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \textcolor{comment}{//\ Container\ for\ blocks\ chain}}
+\DoxyCodeLine{00171\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}\ \{}
+\DoxyCodeLine{00172\ \ \ \textcolor{keywordtype}{int}\ block\_size\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ common\ block-\/size}}
+\DoxyCodeLine{00173\ \ \ \textcolor{keywordtype}{int}\ error\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ set\ to\ true\ if\ some\ memory\ error\ occurred}}
+\DoxyCodeLine{00174\ \ \ \mbox{\hyperlink{struct_pix_or_copy_block}{PixOrCopyBlock}}*\ refs\_;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ list\ of\ currently\ used\ blocks}}
+\DoxyCodeLine{00175\ \ \ \mbox{\hyperlink{struct_pix_or_copy_block}{PixOrCopyBlock}}**\ tail\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ for\ list\ recycling}}
+\DoxyCodeLine{00176\ \ \ \mbox{\hyperlink{struct_pix_or_copy_block}{PixOrCopyBlock}}*\ free\_blocks\_;\ \ \textcolor{comment}{//\ free-\/list}}
+\DoxyCodeLine{00177\ \ \ \mbox{\hyperlink{struct_pix_or_copy_block}{PixOrCopyBlock}}*\ last\_block\_;\ \ \ \textcolor{comment}{//\ used\ for\ adding\ new\ refs\ (internal)}}
+\DoxyCodeLine{00178\ \};}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \textcolor{comment}{//\ Initialize\ the\ object.\ 'block\_size'\ is\ the\ common\ block\ size\ to\ store}}
+\DoxyCodeLine{00181\ \textcolor{comment}{//\ references\ (typically,\ width\ *\ height\ /\ MAX\_REFS\_BLOCK\_PER\_IMAGE).}}
+\DoxyCodeLine{00182\ \textcolor{keywordtype}{void}\ VP8LBackwardRefsInit(\mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}*\ \textcolor{keyword}{const}\ refs,\ \textcolor{keywordtype}{int}\ block\_size);}
+\DoxyCodeLine{00183\ \textcolor{comment}{//\ Release\ memory\ for\ backward\ references.}}
+\DoxyCodeLine{00184\ \textcolor{keywordtype}{void}\ VP8LBackwardRefsClear(\mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}*\ \textcolor{keyword}{const}\ refs);}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \textcolor{comment}{//\ Cursor\ for\ iterating\ on\ references\ content}}
+\DoxyCodeLine{00187\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00188\ \ \ \textcolor{comment}{//\ public:}}
+\DoxyCodeLine{00189\ \ \ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ cur\_pos;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ current\ position}}
+\DoxyCodeLine{00190\ \ \ \textcolor{comment}{//\ private:}}
+\DoxyCodeLine{00191\ \ \ \mbox{\hyperlink{struct_pix_or_copy_block}{PixOrCopyBlock}}*\ cur\_block\_;\ \ \ \textcolor{comment}{//\ current\ block\ in\ the\ refs\ list}}
+\DoxyCodeLine{00192\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_pix_or_copy}{PixOrCopy}}*\ last\_pos\_;\ \ \ \textcolor{comment}{//\ sentinel\ for\ switching\ to\ next\ block}}
+\DoxyCodeLine{00193\ \}\ \mbox{\hyperlink{struct_v_p8_l_refs_cursor}{VP8LRefsCursor}};}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{comment}{//\ Returns\ a\ cursor\ positioned\ at\ the\ beginning\ of\ the\ references\ list.}}
+\DoxyCodeLine{00196\ \mbox{\hyperlink{struct_v_p8_l_refs_cursor}{VP8LRefsCursor}}\ VP8LRefsCursorInit(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}*\ \textcolor{keyword}{const}\ refs);}
+\DoxyCodeLine{00197\ \textcolor{comment}{//\ Returns\ true\ if\ cursor\ is\ pointing\ at\ a\ valid\ position.}}
+\DoxyCodeLine{00198\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8LRefsCursorOk(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_refs_cursor}{VP8LRefsCursor}}*\ \textcolor{keyword}{const}\ c)\ \{}
+\DoxyCodeLine{00199\ \ \ \textcolor{keywordflow}{return}\ (c-\/>cur\_pos\ !=\ NULL);}
+\DoxyCodeLine{00200\ \}}
+\DoxyCodeLine{00201\ \textcolor{comment}{//\ Move\ to\ next\ block\ of\ references.\ Internal,\ not\ to\ be\ called\ directly.}}
+\DoxyCodeLine{00202\ \textcolor{keywordtype}{void}\ VP8LRefsCursorNextBlock(\mbox{\hyperlink{struct_v_p8_l_refs_cursor}{VP8LRefsCursor}}*\ \textcolor{keyword}{const}\ c);}
+\DoxyCodeLine{00203\ \textcolor{comment}{//\ Move\ to\ next\ position,\ or\ NULL.\ Should\ not\ be\ called\ if\ !VP8LRefsCursorOk().}}
+\DoxyCodeLine{00204\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{void}\ VP8LRefsCursorNext(\mbox{\hyperlink{struct_v_p8_l_refs_cursor}{VP8LRefsCursor}}*\ \textcolor{keyword}{const}\ c)\ \{}
+\DoxyCodeLine{00205\ \ \ assert(c\ !=\ NULL);}
+\DoxyCodeLine{00206\ \ \ assert(VP8LRefsCursorOk(c));}
+\DoxyCodeLine{00207\ \ \ \textcolor{keywordflow}{if}\ (++c-\/>cur\_pos\ ==\ c-\/>last\_pos\_)\ VP8LRefsCursorNextBlock(c);}
+\DoxyCodeLine{00208\ \}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00211\ \textcolor{comment}{//\ Main\ entry\ points}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \textcolor{keyword}{enum}\ VP8LLZ77Type\ \{}
+\DoxyCodeLine{00214\ \ \ kLZ77Standard\ =\ 1,}
+\DoxyCodeLine{00215\ \ \ kLZ77RLE\ =\ 2,}
+\DoxyCodeLine{00216\ \ \ kLZ77Box\ =\ 4}
+\DoxyCodeLine{00217\ \};}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \textcolor{comment}{//\ Evaluates\ best\ possible\ backward\ references\ for\ specified\ quality.}}
+\DoxyCodeLine{00220\ \textcolor{comment}{//\ The\ input\ cache\_bits\ to\ 'VP8LGetBackwardReferences'\ sets\ the\ maximum\ cache}}
+\DoxyCodeLine{00221\ \textcolor{comment}{//\ bits\ to\ use\ (passing\ 0\ implies\ disabling\ the\ local\ color\ cache).}}
+\DoxyCodeLine{00222\ \textcolor{comment}{//\ The\ optimal\ cache\ bits\ is\ evaluated\ and\ set\ for\ the\ *cache\_bits\_best}}
+\DoxyCodeLine{00223\ \textcolor{comment}{//\ parameter\ with\ the\ matching\ refs\_best.}}
+\DoxyCodeLine{00224\ \textcolor{comment}{//\ If\ do\_no\_cache\ ==\ 0,\ refs\ is\ an\ array\ of\ 2\ values\ and\ the\ best}}
+\DoxyCodeLine{00225\ \textcolor{comment}{//\ VP8LBackwardRefs\ is\ put\ in\ the\ first\ element.}}
+\DoxyCodeLine{00226\ \textcolor{comment}{//\ If\ do\_no\_cache\ !=\ 0,\ refs\ is\ an\ array\ of\ 3\ values\ and\ the\ best}}
+\DoxyCodeLine{00227\ \textcolor{comment}{//\ VP8LBackwardRefs\ is\ put\ in\ the\ first\ element,\ the\ best\ value\ with\ no-\/cache\ in}}
+\DoxyCodeLine{00228\ \textcolor{comment}{//\ the\ second\ element.}}
+\DoxyCodeLine{00229\ \textcolor{comment}{//\ In\ both\ cases,\ the\ last\ element\ is\ used\ as\ temporary\ internally.}}
+\DoxyCodeLine{00230\ WebPEncodingError\ VP8LGetBackwardReferences(}
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keyword}{const}\ uint32\_t*\ \textcolor{keyword}{const}\ argb,\ \textcolor{keywordtype}{int}\ quality,}
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keywordtype}{int}\ low\_effort,\ \textcolor{keywordtype}{int}\ lz77\_types\_to\_try,\ \textcolor{keywordtype}{int}\ cache\_bits\_max,\ \textcolor{keywordtype}{int}\ do\_no\_cache,}
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}*\ \textcolor{keyword}{const}\ hash\_chain,\ \mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}*\ \textcolor{keyword}{const}\ refs,}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keywordtype}{int}*\ \textcolor{keyword}{const}\ cache\_bits\_best);}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00237\ \}}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_ENC\_BACKWARD\_REFERENCES\_ENC\_H\_}}
+
+\end{DoxyCode}

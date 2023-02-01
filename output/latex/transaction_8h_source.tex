@@ -1,0 +1,128 @@
+\hypertarget{transaction_8h_source}{}\doxysection{transaction.\+h}
+\label{transaction_8h_source}\index{AseSprite/aseprite/src/app/transaction.h@{AseSprite/aseprite/src/app/transaction.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_TRANSACTION\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_TRANSACTION\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/cmd\_transaction.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/doc\_observer.h"{}}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_cmd}{Cmd}};}
+\DoxyCodeLine{00020\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00021\ \ \ \textcolor{keyword}{class\ }DocRange;}
+\DoxyCodeLine{00022\ \ \ \textcolor{keyword}{class\ }DocUndo;}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \textcolor{keyword}{enum}\ Modification\ \{}
+\DoxyCodeLine{00025\ \ \ \ \ ModifyDocument,\ \ \ \ \ \ \textcolor{comment}{//\ This\ item\ changes\ the\ "{}saved\ status"{}\ of\ the\ document.}}
+\DoxyCodeLine{00026\ \ \ \ \ DoesntModifyDocument\ \textcolor{comment}{//\ This\ item\ doesn't\ modify\ the\ document.}}
+\DoxyCodeLine{00027\ \ \ \};}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \textcolor{comment}{//\ High-\/level\ class\ to\ group\ a\ set\ of\ commands\ to\ modify\ the}}
+\DoxyCodeLine{00030\ \ \ \textcolor{comment}{//\ document\ atomically,\ with\ enough\ information\ to\ rollback\ the}}
+\DoxyCodeLine{00031\ \ \ \textcolor{comment}{//\ whole\ operation\ if\ something\ fails\ (e.g.\ an\ exceptions\ is\ thrown)}}
+\DoxyCodeLine{00032\ \ \ \textcolor{comment}{//\ in\ the\ middle\ of\ the\ procedure.}}
+\DoxyCodeLine{00033\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00034\ \ \ \textcolor{comment}{//\ This\ class\ is\ a\ DocObserver\ because\ it\ listen\ and\ accumulates\ the}}
+\DoxyCodeLine{00035\ \ \ \textcolor{comment}{//\ changes\ in\ the\ Doc\ (m\_changes),\ and\ when\ the\ transaction\ ends,\ it}}
+\DoxyCodeLine{00036\ \ \ \textcolor{comment}{//\ processes\ those\ changes\ as\ UI\ updates\ (so\ widgets\ are}}
+\DoxyCodeLine{00037\ \ \ \textcolor{comment}{//\ invalidated/updated\ correctly\ to\ show\ the\ new\ Doc\ state).}}
+\DoxyCodeLine{00038\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00039\ \ \ \textcolor{comment}{//\ You\ have\ to\ wrap\ every\ call\ to\ an\ transaction\ with\ a}}
+\DoxyCodeLine{00040\ \ \ \textcolor{comment}{//\ ContextWriter.\ The\ preferred\ usage\ is\ as\ follows:}}
+\DoxyCodeLine{00041\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00042\ \ \ \textcolor{comment}{//\ \{}}
+\DoxyCodeLine{00043\ \ \ \textcolor{comment}{//\ \ \ ContextWriter\ writer(context);}}
+\DoxyCodeLine{00044\ \ \ \textcolor{comment}{//\ \ \ Transaction\ transaction(context,\ "{}My\ big\ operation"{});}}
+\DoxyCodeLine{00045\ \ \ \textcolor{comment}{//\ \ \ ...}}
+\DoxyCodeLine{00046\ \ \ \textcolor{comment}{//\ \ \ transaction.commit();}}
+\DoxyCodeLine{00047\ \ \ \textcolor{comment}{//\ \}}}
+\DoxyCodeLine{00048\ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00049\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1_doc_observer}{DocObserver}}\ \{}
+\DoxyCodeLine{00050\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{//\ Starts\ a\ undoable\ sequence\ of\ operations\ in\ a\ transaction\ that}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{comment}{//\ can\ be\ committed\ or\ rollbacked.\ \ All\ the\ operations\ will\ be}}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{comment}{//\ grouped\ in\ the\ sprite's\ undo\ as\ an\ atomic\ operation.}}
+\DoxyCodeLine{00054\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_transaction}{Transaction}}(}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ doc,}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ label,}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ Modification\ mod\ =\ ModifyDocument);}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1_transaction}{\string~Transaction}}();}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{comment}{//\ Can\ be\ used\ to\ change\ the\ new\ document\ range\ resulting\ from}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{comment}{//\ executing\ this\ transaction.\ This\ range\ can\ be\ used\ then\ in}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ undo/redo\ operations\ to\ restore\ the\ Timeline\ selection/range.}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{void}\ setNewDocRange(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1_doc_range}{DocRange}}\&\ range);}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{comment}{//\ This\ must\ be\ called\ to\ commit\ all\ the\ changes,\ so\ the\ undo\ will}}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{comment}{//\ be\ finally\ added\ in\ the\ sprite.}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{comment}{//\ If\ you\ don't\ use\ this\ routine,\ all\ the\ changes\ will\ be\ discarded}}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{comment}{//\ (if\ the\ sprite's\ undo\ was\ enabled\ when\ the\ Transaction\ was}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{comment}{//\ created).}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{comment}{//\ WARNING:\ This\ must\ be\ called\ from\ the\ main\ UI\ thread,\ because}}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{comment}{//\ it\ will\ generate\ a\ DocUndo::add()\ which\ triggers\ a}}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{//\ DocUndoObserver::onAddUndoState()\ notification,\ which}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{comment}{//\ updates\ the\ Undo\ History\ window\ UI.}}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{void}\ commit();}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{comment}{//\ Discard\ everything\ that\ was\ added\ so\ far.\ We\ can\ start}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{comment}{//\ executing\ new\ Cmds\ again.}}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{void}\ rollbackAndStartAgain();}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//\ Executes\ the\ given\ command\ and\ tries\ to\ add\ it\ to\ the\ container}}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{comment}{//\ of\ executed\ commands\ (m\_cmds).}}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{comment}{//\ If\ some\ of\ these\ operations\ fails,\ the\ given\ "{}cmd"{}\ will\ be}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{comment}{//\ deleted\ anyway.}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//}}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ the\ future\ we\ should\ refactor\ this\ using\ unique}}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//\ \ \ \ \ \ pointers-\/like\ structure\ only}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{void}\ execute(\mbox{\hyperlink{classapp_1_1_cmd}{Cmd}}*\ cmd);}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_cmd_transaction}{CmdTransaction}}*\ cmds()\ \{\ \textcolor{keywordflow}{return}\ m\_cmds;\ \}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{comment}{//\ List\ of\ changes\ during\ the\ execution\ of\ this\ transaction}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keyword}{enum\ class}\ Changes\ \{}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ kNone\ =\ 0,}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \textcolor{comment}{//\ The\ selection\ has\ changed\ so\ we\ have\ to\ re-\/generate\ the}}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \textcolor{comment}{//\ boundary\ segments.}}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ kSelection\ =\ 1,}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \textcolor{comment}{//\ The\ color\ palette\ or\ color\ space\ has\ changed.}}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ kColorChange\ =\ 2}
+\DoxyCodeLine{00104\ \ \ \ \ \};}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{void}\ rollback(\mbox{\hyperlink{classapp_1_1_cmd_transaction}{CmdTransaction}}*\ newCmds);}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{comment}{//\ DocObserver\ impl}}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{void}\ onSelectionChanged(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keywordtype}{void}\ onColorSpaceChanged(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{void}\ onPaletteChanged(\mbox{\hyperlink{classapp_1_1_doc_event}{DocEvent}}\&\ ev)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ m\_ctx;}
+\DoxyCodeLine{00114\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc}{Doc}}*\ m\_doc;}
+\DoxyCodeLine{00115\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_undo}{DocUndo}}*\ m\_undo;}
+\DoxyCodeLine{00116\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_cmd_transaction}{CmdTransaction}}*\ m\_cmds;}
+\DoxyCodeLine{00117\ \ \ \ \ Changes\ m\_changes;}
+\DoxyCodeLine{00118\ \ \ \};}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

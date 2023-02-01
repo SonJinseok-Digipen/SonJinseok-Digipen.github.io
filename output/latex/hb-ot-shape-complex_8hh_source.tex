@@ -1,0 +1,406 @@
+\hypertarget{hb-ot-shape-complex_8hh_source}{}\doxysection{hb-\/ot-\/shape-\/complex.hh}
+\label{hb-ot-shape-complex_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/shape-\/complex.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/shape-\/complex.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2010,2011,2012\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_OT\_SHAPE\_COMPLEX\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_OT\_SHAPE\_COMPLEX\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/layout.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/shape.hh"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/shape-\/normalize.hh"{}}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{/*\ buffer\ var\ allocations,\ used\ by\ complex\ shapers\ */}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ complex\_var\_u8\_category()\ \ \ var2.u8[2]}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ complex\_var\_u8\_auxiliary()\ \ var2.u8[3]}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ HB\_OT\_SHAPE\_COMPLEX\_MAX\_COMBINING\_MARKS\ 32}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{enum}\ hb\_ot\_shape\_zero\_width\_marks\_type\_t\ \{}
+\DoxyCodeLine{00045\ \ \ HB\_OT\_SHAPE\_ZERO\_WIDTH\_MARKS\_NONE,}
+\DoxyCodeLine{00046\ \ \ HB\_OT\_SHAPE\_ZERO\_WIDTH\_MARKS\_BY\_GDEF\_EARLY,}
+\DoxyCodeLine{00047\ \ \ HB\_OT\_SHAPE\_ZERO\_WIDTH\_MARKS\_BY\_GDEF\_LATE}
+\DoxyCodeLine{00048\ \};}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{comment}{/*\ Master\ OT\ shaper\ list\ */}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ HB\_COMPLEX\_SHAPERS\_IMPLEMENT\_SHAPERS\ \(\backslash\)}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (arabic)\ \(\backslash\)}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (default)\ \(\backslash\)}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (dumber)\ \(\backslash\)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (hangul)\ \(\backslash\)}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (hebrew)\ \(\backslash\)}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (indic)\ \(\backslash\)}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (khmer)\ \(\backslash\)}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (myanmar)\ \(\backslash\)}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (myanmar\_zawgyi)\ \(\backslash\)}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (thai)\ \(\backslash\)}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\ \ HB\_COMPLEX\_SHAPER\_IMPLEMENT\ (use)\ \(\backslash\)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\ \ }\textcolor{comment}{/*\ \string^-\/-\/-\/\ Add\ new\ shapers\ here;\ keep\ sorted.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__ot__complex__shaper__t}{hb\_ot\_complex\_shaper\_t}}}
+\DoxyCodeLine{00068\ \{}
+\DoxyCodeLine{00069\ \ \ \textcolor{comment}{/*\ collect\_features()}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape\_plan().}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ *\ Shapers\ should\ use\ plan-\/>map\ to\ add\ their\ features\ and\ callbacks.}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00074\ \ \ void\ (*collect\_features)\ (\mbox{\hyperlink{structhb__ot__shape__planner__t}{hb\_ot\_shape\_planner\_t}}\ *plan);}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \textcolor{comment}{/*\ override\_features()}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape\_plan().}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ *\ Shapers\ should\ use\ plan-\/>map\ to\ override\ features\ and\ add\ callbacks\ after}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ \ *\ common\ features\ are\ added.}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00082\ \ \ void\ (*override\_features)\ (\mbox{\hyperlink{structhb__ot__shape__planner__t}{hb\_ot\_shape\_planner\_t}}\ *plan);}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \textcolor{comment}{/*\ data\_create()}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ *\ Called\ at\ the\ end\ of\ shape\_plan().}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ *\ Whatever\ shapers\ return\ will\ be\ accessible\ through\ plan-\/>data\ later.}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ \ \ *\ If\ nullptr\ is\ returned,\ means\ a\ plan\ failure.}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordtype}{void}\ *(*data\_create)\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan);}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00092\ \ \ \textcolor{comment}{/*\ data\_destroy()}}
+\DoxyCodeLine{00093\ \textcolor{comment}{\ \ \ *\ Called\ when\ the\ shape\_plan\ is\ being\ destroyed.}}
+\DoxyCodeLine{00094\ \textcolor{comment}{\ \ \ *\ plan-\/>data\ is\ passed\ here\ for\ destruction.}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ *\ If\ nullptr\ is\ returned,\ means\ a\ plan\ failure.}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00098\ \ \ void\ (*data\_destroy)\ (\textcolor{keywordtype}{void}\ *\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \textcolor{comment}{/*\ preprocess\_text()}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape().}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ *\ Shapers\ can\ use\ to\ modify\ text\ before\ shaping\ starts.}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00106\ \ \ void\ (*preprocess\_text)\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *font);}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \textcolor{comment}{/*\ postprocess\_glyphs()}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape().}}
+\DoxyCodeLine{00112\ \textcolor{comment}{\ \ \ *\ Shapers\ can\ use\ to\ modify\ glyphs\ after\ shaping\ ends.}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00115\ \ \ void\ (*postprocess\_glyphs)\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *font);}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ hb\_ot\_shape\_normalization\_mode\_t\ normalization\_preference;}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \ \ \textcolor{comment}{/*\ decompose()}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape()'s\ normalization.}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00126\ \ \ bool\ (*decompose)\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__normalize__context__t}{hb\_ot\_shape\_normalize\_context\_t}}\ *c,}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_codepoint\_t\ \ ab,}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_codepoint\_t\ *\mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_codepoint\_t\ *b);}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \textcolor{comment}{/*\ compose()}}
+\DoxyCodeLine{00132\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape()'s\ normalization.}}
+\DoxyCodeLine{00133\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00135\ \ \ bool\ (*compose)\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__normalize__context__t}{hb\_ot\_shape\_normalize\_context\_t}}\ *c,}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ hb\_codepoint\_t\ \ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ hb\_codepoint\_t\ \ b,}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ hb\_codepoint\_t\ *ab);}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \textcolor{comment}{/*\ setup\_masks()}}
+\DoxyCodeLine{00141\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape().}}
+\DoxyCodeLine{00142\ \textcolor{comment}{\ \ \ *\ Shapers\ should\ use\ map\ to\ get\ feature\ masks\ and\ set\ on\ buffer.}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ \ \ *\ Shapers\ may\ NOT\ modify\ characters.}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00146\ \ \ void\ (*setup\_masks)\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *font);}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \textcolor{comment}{/*\ gpos\_tag()}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ \ \ *\ If\ not\ HB\_TAG\_NONE,\ then\ must\ match\ found\ GPOS\ script\ tag\ for}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ \ \ *\ GPOS\ to\ be\ applied.\ \ Otherwise,\ fallback\ positioning\ will\ be\ used.}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00154\ \ \ hb\_tag\_t\ gpos\_tag;}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \textcolor{comment}{/*\ reorder\_marks()}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ \ \ *\ Called\ during\ shape().}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ \ \ *\ Shapers\ can\ use\ to\ modify\ ordering\ of\ combining\ marks.}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ \ \ *\ May\ be\ NULL.}}
+\DoxyCodeLine{00160\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00161\ \ \ void\ (*reorder\_marks)\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__plan__t}{hb\_ot\_shape\_plan\_t}}\ *plan,}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ start,}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ end);}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ hb\_ot\_shape\_zero\_width\_marks\_type\_t\ zero\_width\_marks;}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \textcolor{keywordtype}{bool}\ fallback\_position;}
+\DoxyCodeLine{00169\ \};}
+\DoxyCodeLine{00170\ }
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\#define\ HB\_COMPLEX\_SHAPER\_IMPLEMENT(name)\ extern\ HB\_INTERNAL\ const\ hb\_ot\_complex\_shaper\_t\ \_hb\_ot\_complex\_shaper\_\#\#name;}}
+\DoxyCodeLine{00172\ HB\_COMPLEX\_SHAPERS\_IMPLEMENT\_SHAPERS}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#undef\ HB\_COMPLEX\_SHAPER\_IMPLEMENT}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__complex__shaper__t}{hb\_ot\_complex\_shaper\_t}}\ *}
+\DoxyCodeLine{00177\ hb\_ot\_shape\_complex\_categorize\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__ot__shape__planner__t}{hb\_ot\_shape\_planner\_t}}\ *planner)}
+\DoxyCodeLine{00178\ \{}
+\DoxyCodeLine{00179\ \ \ \textcolor{keywordflow}{switch}\ ((hb\_tag\_t)\ planner-\/>props.script)}
+\DoxyCodeLine{00180\ \ \ \{}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_default;}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/1.1\ additions\ */}}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_ARABIC:}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/3.0\ additions\ */}}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SYRIAC:}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \textcolor{comment}{/*\ For\ Arabic\ script,\ use\ the\ Arabic\ shaper\ even\ if\ no\ OT\ script\ tag\ was\ found.}}
+\DoxyCodeLine{00192\ \textcolor{comment}{\ \ \ \ \ \ \ *\ This\ is\ because\ we\ do\ fallback\ shaping\ for\ Arabic\ script\ (and\ not\ others).}}
+\DoxyCodeLine{00193\ \textcolor{comment}{\ \ \ \ \ \ \ *\ But\ note\ that\ Arabic\ shaping\ is\ applicable\ only\ to\ horizontal\ layout;\ for}}
+\DoxyCodeLine{00194\ \textcolor{comment}{\ \ \ \ \ \ \ *\ vertical\ text,\ just\ use\ the\ generic\ shaper\ instead.\ */}}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((planner-\/>map.chosen\_script[0]\ !=\ HB\_OT\_TAG\_DEFAULT\_SCRIPT\ ||}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ planner-\/>props.script\ ==\ HB\_SCRIPT\_ARABIC)\ \&\&}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ HB\_DIRECTION\_IS\_HORIZONTAL(planner-\/>props.direction))}
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_arabic;}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_default;}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/1.1\ additions\ */}}
+\DoxyCodeLine{00204\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_THAI:}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_LAO:}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_thai;}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/1.1\ additions\ */}}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_HANGUL:}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_hangul;}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/1.1\ additions\ */}}
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_HEBREW:}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_hebrew;}
+\DoxyCodeLine{00220\ }
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/1.1\ additions\ */}}
+\DoxyCodeLine{00223\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_BENGALI:}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_DEVANAGARI:}
+\DoxyCodeLine{00225\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_GUJARATI:}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_GURMUKHI:}
+\DoxyCodeLine{00227\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KANNADA:}
+\DoxyCodeLine{00228\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MALAYALAM:}
+\DoxyCodeLine{00229\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_ORIYA:}
+\DoxyCodeLine{00230\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TAMIL:}
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TELUGU:}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/3.0\ additions\ */}}
+\DoxyCodeLine{00234\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SINHALA:}
+\DoxyCodeLine{00235\ }
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ the\ designer\ designed\ the\ font\ for\ the\ 'DFLT'\ script,}}
+\DoxyCodeLine{00237\ \textcolor{comment}{\ \ \ \ \ \ \ *\ (or\ we\ ended\ up\ arbitrarily\ pick\ 'latn'),\ use\ the\ default\ shaper.}}
+\DoxyCodeLine{00238\ \textcolor{comment}{\ \ \ \ \ \ \ *\ Otherwise,\ use\ the\ specific\ shaper.}}
+\DoxyCodeLine{00239\ \textcolor{comment}{\ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00240\ \textcolor{comment}{\ \ \ \ \ \ \ *\ If\ it's\ indy3\ tag,\ send\ to\ USE.\ */}}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (planner-\/>map.chosen\_script[0]\ ==\ HB\_TAG\ (\textcolor{charliteral}{'D'},\textcolor{charliteral}{'F'},\textcolor{charliteral}{'L'},\textcolor{charliteral}{'T'})\ ||}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ planner-\/>map.chosen\_script[0]\ ==\ HB\_TAG\ (\textcolor{charliteral}{'l'},\textcolor{charliteral}{'a'},\textcolor{charliteral}{'t'},\textcolor{charliteral}{'n'}))}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_default;}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((planner-\/>map.chosen\_script[0]\ \&\ 0x000000FF)\ ==\ \textcolor{charliteral}{'3'})}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_use;}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_indic;}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KHMER:}
+\DoxyCodeLine{00250\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_khmer;}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MYANMAR:}
+\DoxyCodeLine{00253\ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ the\ designer\ designed\ the\ font\ for\ the\ 'DFLT'\ script,}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ \ \ \ \ \ \ *\ (or\ we\ ended\ up\ arbitrarily\ pick\ 'latn'),\ use\ the\ default\ shaper.}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ \ \ \ \ \ \ *\ Otherwise,\ use\ the\ specific\ shaper.}}
+\DoxyCodeLine{00256\ \textcolor{comment}{\ \ \ \ \ \ \ *}}
+\DoxyCodeLine{00257\ \textcolor{comment}{\ \ \ \ \ \ \ *\ If\ designer\ designed\ for\ 'mymr'\ tag,\ also\ send\ to\ default}}
+\DoxyCodeLine{00258\ \textcolor{comment}{\ \ \ \ \ \ \ *\ shaper.\ \ That's\ tag\ used\ from\ before\ Myanmar\ shaping\ spec}}
+\DoxyCodeLine{00259\ \textcolor{comment}{\ \ \ \ \ \ \ *\ was\ developed.\ \ The\ shaping\ spec\ uses\ 'mym2'\ tag.\ */}}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (planner-\/>map.chosen\_script[0]\ ==\ HB\_TAG\ (\textcolor{charliteral}{'D'},\textcolor{charliteral}{'F'},\textcolor{charliteral}{'L'},\textcolor{charliteral}{'T'})\ ||}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ planner-\/>map.chosen\_script[0]\ ==\ HB\_TAG\ (\textcolor{charliteral}{'l'},\textcolor{charliteral}{'a'},\textcolor{charliteral}{'t'},\textcolor{charliteral}{'n'})\ ||}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ planner-\/>map.chosen\_script[0]\ ==\ HB\_TAG\ (\textcolor{charliteral}{'m'},\textcolor{charliteral}{'y'},\textcolor{charliteral}{'m'},\textcolor{charliteral}{'r'}))}
+\DoxyCodeLine{00263\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_default;}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00265\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_myanmar;}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\#define\ HB\_SCRIPT\_MYANMAR\_ZAWGYI\ \ \ \ ((hb\_script\_t)\ HB\_TAG\ ('Q','a','a','g'))}}
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MYANMAR\_ZAWGYI:}
+\DoxyCodeLine{00270\ \ \ \ \ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/1162\ */}}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_myanmar\_zawgyi;}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/2.0\ additions\ */}}
+\DoxyCodeLine{00276\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TIBETAN:}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/3.0\ additions\ */}}
+\DoxyCodeLine{00279\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MONGOLIAN:}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{comment}{//case\ HB\_SCRIPT\_SINHALA:}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/3.2\ additions\ */}}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_BUHID:}
+\DoxyCodeLine{00284\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_HANUNOO:}
+\DoxyCodeLine{00285\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TAGALOG:}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TAGBANWA:}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/4.0\ additions\ */}}
+\DoxyCodeLine{00289\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_LIMBU:}
+\DoxyCodeLine{00290\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TAI\_LE:}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/4.1\ additions\ */}}
+\DoxyCodeLine{00293\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_BUGINESE:}
+\DoxyCodeLine{00294\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KHAROSHTHI:}
+\DoxyCodeLine{00295\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SYLOTI\_NAGRI:}
+\DoxyCodeLine{00296\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TIFINAGH:}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/5.0\ additions\ */}}
+\DoxyCodeLine{00299\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_BALINESE:}
+\DoxyCodeLine{00300\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_NKO:}
+\DoxyCodeLine{00301\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_PHAGS\_PA:}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/5.1\ additions\ */}}
+\DoxyCodeLine{00304\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_CHAM:}
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KAYAH\_LI:}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_LEPCHA:}
+\DoxyCodeLine{00307\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_REJANG:}
+\DoxyCodeLine{00308\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SAURASHTRA:}
+\DoxyCodeLine{00309\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SUNDANESE:}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/5.2\ additions\ */}}
+\DoxyCodeLine{00312\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_EGYPTIAN\_HIEROGLYPHS:}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_JAVANESE:}
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KAITHI:}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MEETEI\_MAYEK:}
+\DoxyCodeLine{00316\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TAI\_THAM:}
+\DoxyCodeLine{00317\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TAI\_VIET:}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/6.0\ additions\ */}}
+\DoxyCodeLine{00320\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_BATAK:}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_BRAHMI:}
+\DoxyCodeLine{00322\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MANDAIC:}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/6.1\ additions\ */}}
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_CHAKMA:}
+\DoxyCodeLine{00326\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MIAO:}
+\DoxyCodeLine{00327\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SHARADA:}
+\DoxyCodeLine{00328\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TAKRI:}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/7.0\ additions\ */}}
+\DoxyCodeLine{00331\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_DUPLOYAN:}
+\DoxyCodeLine{00332\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_GRANTHA:}
+\DoxyCodeLine{00333\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KHOJKI:}
+\DoxyCodeLine{00334\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KHUDAWADI:}
+\DoxyCodeLine{00335\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MAHAJANI:}
+\DoxyCodeLine{00336\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MANICHAEAN:}
+\DoxyCodeLine{00337\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MODI:}
+\DoxyCodeLine{00338\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_PAHAWH\_HMONG:}
+\DoxyCodeLine{00339\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_PSALTER\_PAHLAVI:}
+\DoxyCodeLine{00340\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SIDDHAM:}
+\DoxyCodeLine{00341\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TIRHUTA:}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/8.0\ additions\ */}}
+\DoxyCodeLine{00344\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_AHOM:}
+\DoxyCodeLine{00345\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MULTANI:}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/9.0\ additions\ */}}
+\DoxyCodeLine{00348\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_ADLAM:}
+\DoxyCodeLine{00349\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_BHAIKSUKI:}
+\DoxyCodeLine{00350\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MARCHEN:}
+\DoxyCodeLine{00351\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_NEWA:}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/10.0\ additions\ */}}
+\DoxyCodeLine{00354\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MASARAM\_GONDI:}
+\DoxyCodeLine{00355\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SOYOMBO:}
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_ZANABAZAR\_SQUARE:}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/11.0\ additions\ */}}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_DOGRA:}
+\DoxyCodeLine{00360\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_GUNJALA\_GONDI:}
+\DoxyCodeLine{00361\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_HANIFI\_ROHINGYA:}
+\DoxyCodeLine{00362\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MAKASAR:}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_MEDEFAIDRIN:}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_OLD\_SOGDIAN:}
+\DoxyCodeLine{00365\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_SOGDIAN:}
+\DoxyCodeLine{00366\ }
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/12.0\ additions\ */}}
+\DoxyCodeLine{00368\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_ELYMAIC:}
+\DoxyCodeLine{00369\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_NANDINAGARI:}
+\DoxyCodeLine{00370\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_NYIAKENG\_PUACHUE\_HMONG:}
+\DoxyCodeLine{00371\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_WANCHO:}
+\DoxyCodeLine{00372\ }
+\DoxyCodeLine{00373\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/13.0\ additions\ */}}
+\DoxyCodeLine{00374\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_CHORASMIAN:}
+\DoxyCodeLine{00375\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_DIVES\_AKURU:}
+\DoxyCodeLine{00376\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_KHITAN\_SMALL\_SCRIPT:}
+\DoxyCodeLine{00377\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_YEZIDI:}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \ \ \ \ \textcolor{comment}{/*\ Unicode-\/14.0\ additions\ */}}
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_CYPRO\_MINOAN:}
+\DoxyCodeLine{00381\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_OLD\_UYGHUR:}
+\DoxyCodeLine{00382\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TANGSA:}
+\DoxyCodeLine{00383\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_TOTO:}
+\DoxyCodeLine{00384\ \ \ \ \ \textcolor{keywordflow}{case}\ HB\_SCRIPT\_VITHKUQI:}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \ \ \ \ \textcolor{comment}{/*\ If\ the\ designer\ designed\ the\ font\ for\ the\ 'DFLT'\ script,}}
+\DoxyCodeLine{00387\ \textcolor{comment}{\ \ \ \ \ \ \ *\ (or\ we\ ended\ up\ arbitrarily\ pick\ 'latn'),\ use\ the\ default\ shaper.}}
+\DoxyCodeLine{00388\ \textcolor{comment}{\ \ \ \ \ \ \ *\ Otherwise,\ use\ the\ specific\ shaper.}}
+\DoxyCodeLine{00389\ \textcolor{comment}{\ \ \ \ \ \ \ *\ Note\ that\ for\ some\ simple\ scripts,\ there\ may\ not\ be\ *any*}}
+\DoxyCodeLine{00390\ \textcolor{comment}{\ \ \ \ \ \ \ *\ GSUB/GPOS\ needed,\ so\ there\ may\ be\ no\ scripts\ found!\ */}}
+\DoxyCodeLine{00391\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (planner-\/>map.chosen\_script[0]\ ==\ HB\_TAG\ (\textcolor{charliteral}{'D'},\textcolor{charliteral}{'F'},\textcolor{charliteral}{'L'},\textcolor{charliteral}{'T'})\ ||}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ planner-\/>map.chosen\_script[0]\ ==\ HB\_TAG\ (\textcolor{charliteral}{'l'},\textcolor{charliteral}{'a'},\textcolor{charliteral}{'t'},\textcolor{charliteral}{'n'}))}
+\DoxyCodeLine{00393\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_default;}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00395\ \ \ \ \ \textcolor{keywordflow}{return}\ \&\_hb\_ot\_complex\_shaper\_use;}
+\DoxyCodeLine{00396\ \ \ \}}
+\DoxyCodeLine{00397\ \}}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_OT\_SHAPE\_COMPLEX\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

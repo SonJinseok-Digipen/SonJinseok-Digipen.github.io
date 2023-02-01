@@ -1,0 +1,141 @@
+\hypertarget{vp8li__dec_8h_source}{}\doxysection{vp8li\+\_\+dec.\+h}
+\label{vp8li__dec_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dec/vp8li\_dec.h@{AseSprite/aseprite/third\_party/libwebp/src/dec/vp8li\_dec.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Lossless\ decoder:\ internal\ header.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ \ \ \ \ \ \ \ \ Vikas\ Arora(vikaas.arora@gmail.com)}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DEC\_VP8LI\_DEC\_H\_}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#define\ WEBP\_DEC\_VP8LI\_DEC\_H\_}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <string.h>}\ \ \ \ \ \textcolor{comment}{//\ for\ memcpy()}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}src/dec/webpi\_dec.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}src/utils/bit\_reader\_utils.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/utils/color\_cache\_utils.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}src/utils/huffman\_utils.h"{}}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00025\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00029\ \ \ READ\_DATA\ =\ 0,}
+\DoxyCodeLine{00030\ \ \ READ\_HDR\ =\ 1,}
+\DoxyCodeLine{00031\ \ \ READ\_DIM\ =\ 2}
+\DoxyCodeLine{00032\ \}\ VP8LDecodeState;}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_transform}{VP8LTransform}}\ \mbox{\hyperlink{struct_v_p8_l_transform}{VP8LTransform}};}
+\DoxyCodeLine{00035\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_transform}{VP8LTransform}}\ \{}
+\DoxyCodeLine{00036\ \ \ VP8LImageTransformType\ type\_;\ \ \ \textcolor{comment}{//\ transform\ type.}}
+\DoxyCodeLine{00037\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bits\_;\ \ \ \textcolor{comment}{//\ subsampling\ bits\ defining\ transform\ window.}}
+\DoxyCodeLine{00038\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ xsize\_;\ \ \textcolor{comment}{//\ transform\ window\ X\ index.}}
+\DoxyCodeLine{00039\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ysize\_;\ \ \textcolor{comment}{//\ transform\ window\ Y\ index.}}
+\DoxyCodeLine{00040\ \ \ uint32\_t*\ \ \ \ \ \ \ \ \ \ \ \ \ \ data\_;\ \ \ \textcolor{comment}{//\ transform\ data.}}
+\DoxyCodeLine{00041\ \};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00044\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ color\_cache\_size\_;}
+\DoxyCodeLine{00045\ \ \ \mbox{\hyperlink{struct_v_p8_l_color_cache}{VP8LColorCache}}\ \ color\_cache\_;}
+\DoxyCodeLine{00046\ \ \ \mbox{\hyperlink{struct_v_p8_l_color_cache}{VP8LColorCache}}\ \ saved\_color\_cache\_;\ \ \textcolor{comment}{//\ for\ incremental}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ huffman\_mask\_;}
+\DoxyCodeLine{00049\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ huffman\_subsample\_bits\_;}
+\DoxyCodeLine{00050\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ huffman\_xsize\_;}
+\DoxyCodeLine{00051\ \ \ uint32\_t*\ \ \ \ \ \ \ huffman\_image\_;}
+\DoxyCodeLine{00052\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ num\_htree\_groups\_;}
+\DoxyCodeLine{00053\ \ \ \mbox{\hyperlink{struct_h_tree_group}{HTreeGroup}}*\ \ \ \ \ htree\_groups\_;}
+\DoxyCodeLine{00054\ \ \ \mbox{\hyperlink{struct_huffman_code}{HuffmanCode}}*\ \ \ \ huffman\_tables\_;}
+\DoxyCodeLine{00055\ \}\ \mbox{\hyperlink{struct_v_p8_l_metadata}{VP8LMetadata}};}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}}\ \mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}};}
+\DoxyCodeLine{00058\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}}\ \{}
+\DoxyCodeLine{00059\ \ \ VP8StatusCode\ \ \ \ status\_;}
+\DoxyCodeLine{00060\ \ \ VP8LDecodeState\ \ state\_;}
+\DoxyCodeLine{00061\ \ \ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \ \ \ \ \ \ \ \ \ \ io\_;}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_dec_buffer}{WebPDecBuffer}}*\ output\_;\ \ \ \ \textcolor{comment}{//\ shortcut\ to\ io-\/>opaque-\/>output}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ uint32\_t*\ \ \ \ \ \ \ \ pixels\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ Internal\ data:\ either\ uint8\_t*\ for\ alpha}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ or\ uint32\_t*\ for\ BGRA.}}
+\DoxyCodeLine{00067\ \ \ uint32\_t*\ \ \ \ \ \ \ \ argb\_cache\_;\ \ \ \ \textcolor{comment}{//\ Scratch\ buffer\ for\ temporary\ BGRA\ storage.}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_reader}{VP8LBitReader}}\ \ \ \ br\_;}
+\DoxyCodeLine{00070\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ incremental\_;\ \ \ \textcolor{comment}{//\ if\ true,\ incremental\ decoding\ is\ expected}}
+\DoxyCodeLine{00071\ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_reader}{VP8LBitReader}}\ \ \ \ saved\_br\_;\ \ \ \ \ \ \textcolor{comment}{//\ note:\ could\ be\ local\ variables\ too}}
+\DoxyCodeLine{00072\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ saved\_last\_pixel\_;}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ width\_;}
+\DoxyCodeLine{00075\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ height\_;}
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_row\_;\ \ \ \ \ \ \textcolor{comment}{//\ last\ input\ row\ decoded\ so\ far.}}
+\DoxyCodeLine{00077\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_pixel\_;\ \ \ \ \textcolor{comment}{//\ last\ pixel\ decoded\ so\ far.\ However,\ it\ may}}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ not\ be\ transformed,\ scaled\ and}}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ color-\/converted\ yet.}}
+\DoxyCodeLine{00080\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ last\_out\_row\_;\ \ \textcolor{comment}{//\ last\ row\ output\ so\ far.}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \mbox{\hyperlink{struct_v_p8_l_metadata}{VP8LMetadata}}\ \ \ \ \ hdr\_;}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ next\_transform\_;}
+\DoxyCodeLine{00085\ \ \ \mbox{\hyperlink{struct_v_p8_l_transform}{VP8LTransform}}\ \ \ \ transforms\_[NUM\_TRANSFORMS];}
+\DoxyCodeLine{00086\ \ \ \textcolor{comment}{//\ or'd\ bitset\ storing\ the\ transforms\ types.}}
+\DoxyCodeLine{00087\ \ \ uint32\_t\ \ \ \ \ \ \ \ \ transforms\_seen\_;}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ uint8\_t*\ \ \ \ \ \ \ \ \ rescaler\_memory;\ \ \textcolor{comment}{//\ Working\ memory\ for\ rescaling\ work.}}
+\DoxyCodeLine{00090\ \ \ \mbox{\hyperlink{struct_web_p_rescaler}{WebPRescaler}}*\ \ \ \ rescaler;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Common\ rescaler\ for\ all\ channels.}}
+\DoxyCodeLine{00091\ \};}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00094\ \textcolor{comment}{//\ internal\ functions.\ Not\ public.}}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_a_l_p_h_decoder}{ALPHDecoder}};\ \ \textcolor{comment}{//\ Defined\ in\ dec/alphai.h.}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{comment}{//\ in\ vp8l.c}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{comment}{//\ Decodes\ image\ header\ for\ alpha\ data\ stored\ using\ lossless\ compression.}}
+\DoxyCodeLine{00101\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00102\ \textcolor{keywordtype}{int}\ VP8LDecodeAlphaHeader(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_a_l_p_h_decoder}{ALPHDecoder}}*\ \textcolor{keyword}{const}\ alph\_dec,}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint8\_t*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{size\_t}\ data\_size);}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{comment}{//\ Decodes\ *at\ least*\ 'last\_row'\ rows\ of\ alpha.\ If\ some\ of\ the\ initial\ rows\ are}}
+\DoxyCodeLine{00106\ \textcolor{comment}{//\ already\ decoded\ in\ previous\ call(s),\ it\ will\ resume\ decoding\ from\ where\ it}}
+\DoxyCodeLine{00107\ \textcolor{comment}{//\ was\ paused.}}
+\DoxyCodeLine{00108\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ bitstream\ error.}}
+\DoxyCodeLine{00109\ \textcolor{keywordtype}{int}\ VP8LDecodeAlphaImageStream(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_a_l_p_h_decoder}{ALPHDecoder}}*\ \textcolor{keyword}{const}\ alph\_dec,}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ last\_row);}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{//\ Allocates\ and\ initialize\ a\ new\ lossless\ decoder\ instance.}}
+\DoxyCodeLine{00113\ \mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}}*\ VP8LNew(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \textcolor{comment}{//\ Decodes\ the\ image\ header.\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00116\ \textcolor{keywordtype}{int}\ VP8LDecodeHeader(\mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io);}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{comment}{//\ Decodes\ an\ image.\ It's\ required\ to\ decode\ the\ lossless\ header\ before\ calling}}
+\DoxyCodeLine{00119\ \textcolor{comment}{//\ this\ function.\ Returns\ false\ in\ case\ of\ error,\ with\ updated\ dec-\/>status\_.}}
+\DoxyCodeLine{00120\ \textcolor{keywordtype}{int}\ VP8LDecodeImage(\mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{comment}{//\ Resets\ the\ decoder\ in\ its\ initial\ state,\ reclaiming\ memory.}}
+\DoxyCodeLine{00123\ \textcolor{comment}{//\ Preserves\ the\ dec-\/>status\_\ value.}}
+\DoxyCodeLine{00124\ \textcolor{keywordtype}{void}\ VP8LClear(\mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{comment}{//\ Clears\ and\ deallocate\ a\ lossless\ decoder\ instance.}}
+\DoxyCodeLine{00127\ \textcolor{keywordtype}{void}\ VP8LDelete(\mbox{\hyperlink{struct_v_p8_l_decoder}{VP8LDecoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00132\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DEC\_VP8LI\_DEC\_H\_}}
+
+\end{DoxyCode}

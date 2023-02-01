@@ -1,0 +1,238 @@
+\hypertarget{draggable__widget_8h_source}{}\doxysection{draggable\+\_\+widget.\+h}
+\label{draggable__widget_8h_source}\index{AseSprite/aseprite/src/app/ui/draggable\_widget.h@{AseSprite/aseprite/src/app/ui/draggable\_widget.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2018-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ APP\_UI\_DRAGGABLE\_WIDGET\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ APP\_UI\_DRAGGABLE\_WIDGET\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}os/surface.h"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}os/system.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}ui/graphics.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}ui/message.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}ui/overlay.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}ui/overlay\_manager.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}ui/paint\_event.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}ui/system.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}ui/view.h"{}}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Base>}
+\DoxyCodeLine{00024\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_draggable_widget}{DraggableWidget}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{class_base}{Base}}\ \{}
+\DoxyCodeLine{00025\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00026\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}...Args>}
+\DoxyCodeLine{00027\ \ \ \mbox{\hyperlink{classapp_1_1_draggable_widget}{DraggableWidget}}(Args...args)\ :\ \mbox{\hyperlink{class_base}{Base}}(args...)\ \{\ \}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \mbox{\hyperlink{classapp_1_1_draggable_widget}{\string~DraggableWidget}}()\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_floatingOverlay)}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ destroyFloatingOverlay();}
+\DoxyCodeLine{00032\ \ \ \}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \textcolor{keywordtype}{bool}\ onProcessMessage(\mbox{\hyperlink{classui_1_1_message}{ui::Message}}*\ msg)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keywordflow}{switch}\ (msg-\/>type())\ \{}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ui::kSetCursorMessage:}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_floatingOverlay)\ \{}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\ mouseMsg\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\textcolor{keyword}{>}(msg);}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ mousePos\ =\ mouseMsg-\/>position();}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (onCanDropItemsOutside()\ \&\&}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ !getParentBounds().contains(mousePos))\ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \ \ \ \ ui::set\_mouse\_cursor(ui::kForbiddenCursor);}
+\DoxyCodeLine{00044\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \ \ \ ui::set\_mouse\_cursor(ui::kMoveCursor);}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ui::kMouseDownMessage:\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ wasCaptured\ =\ this-\/>hasCapture();}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ result\ =\ Base::onProcessMessage(msg);}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!wasCaptured\ \&\&\ this-\/>hasCapture())\ \{}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\ mouseMsg\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\textcolor{keyword}{>}(msg);}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ mousePos\ =\ mouseMsg-\/>position();}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ m\_dragMousePos\ =\ mousePos;}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ m\_floatingOffset\ =\ mouseMsg-\/>position()\ -\/\ this-\/>bounds().origin();}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ m\_createFloatingOverlay\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ui::kMouseMoveMessage:\ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\ mouseMsg\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\textcolor{keyword}{>}(msg);}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ mousePos\ =\ mouseMsg-\/>position();}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (this-\/>hasCapture()\ \&\&\ m\_createFloatingOverlay)\ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (this-\/>manager()-\/>pick(mousePos)\ !=\ \textcolor{keyword}{this})\ \{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \ \ m\_createFloatingOverlay\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!m\_floatingOverlay)}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ createFloatingOverlay();}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_floatingOverlay)\ \{}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ m\_floatingOverlay-\/>moveOverlay(mousePos\ -\/\ m\_floatingOffset);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ inside\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (onCanDropItemsOutside())\ \{}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ inside\ =\ getParentBounds().contains(mousePos);}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (inside)\ \{}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (this-\/>hasFlags(ui::HIDDEN))\ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>disableFlags(ui::HIDDEN);}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ layoutParent();}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!this-\/>hasFlags(ui::HIDDEN))\ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>enableFlags(ui::HIDDEN);}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ layoutParent();}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ onReorderWidgets(mousePos,\ inside);}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ ui::kMouseUpMessage:\ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\ mouseMsg\ =\ \textcolor{keyword}{static\_cast<}\mbox{\hyperlink{classui_1_1_mouse_message}{ui::MouseMessage}}*\textcolor{keyword}{>}(msg);}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ mousePos\ =\ mouseMsg-\/>position();}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ m\_wasDragged\ =\ (this-\/>hasCapture()\ \&\&\ m\_floatingOverlay);}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ result\ =\ Base::onProcessMessage(msg);}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!this-\/>hasCapture())\ \{}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_floatingOverlay)\ \{}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ destroyFloatingOverlay();}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ ASSERT(!m\_createFloatingOverlay);}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ onFinalDrop(getParentBounds().contains(mousePos));}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (m\_createFloatingOverlay)}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ m\_createFloatingOverlay\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ m\_wasDragged\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \}}
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordflow}{return}\ Base::onProcessMessage(msg);}
+\DoxyCodeLine{00126\ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \textcolor{keywordtype}{bool}\ wasDragged()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_wasDragged;}
+\DoxyCodeLine{00130\ \ \ \}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordtype}{bool}\ isDragging()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_isDragging;}
+\DoxyCodeLine{00134\ \ \ \}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordtype}{void}\ createFloatingOverlay()\ \{}
+\DoxyCodeLine{00139\ \ \ \ \ ASSERT(!m\_floatingOverlay);}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \ \ \ \ m\_isDragging\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\ sz\ =\ getFloatingOverlaySize();}
+\DoxyCodeLine{00144\ \ \ \ \ sz.w\ =\ std::max(1,\ sz.w);}
+\DoxyCodeLine{00145\ \ \ \ \ sz.h\ =\ std::max(1,\ sz.h);}
+\DoxyCodeLine{00146\ \ \ \ \ \mbox{\hyperlink{classbase_1_1_ref}{os::SurfaceRef}}\ surface\ =\ os::instance()-\/>makeRgbaSurface(sz.w,\ sz.h);}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \ \ \{}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \mbox{\hyperlink{classos_1_1_surface_lock}{os::SurfaceLock}}\ lock(surface.get());}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \mbox{\hyperlink{classos_1_1_paint}{os::Paint}}\ paint;}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ paint.color(gfx::rgba(0,\ 0,\ 0,\ 0));}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ paint.style(os::Paint::Fill);}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ surface-\/>drawRect(\mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}(0,\ 0,\ surface-\/>width(),\ surface-\/>height()),\ paint);}
+\DoxyCodeLine{00154\ \ \ \ \ \}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \mbox{\hyperlink{classui_1_1_display}{ui::Display}}*\ display\ =\ this-\/>Base::display();}
+\DoxyCodeLine{00157\ \ \ \ \ \{}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}\ g(display,\ surface,\ 0,\ 0);}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ g.setFont(AddRef(this-\/>font()));}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ drawFloatingOverlay(g);}
+\DoxyCodeLine{00161\ \ \ \ \ \}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \ \ \ \ m\_floatingOverlay\ =\ base::make\_ref<ui::Overlay>(}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ display,\ surface,\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(),}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ (ui::Overlay::ZOrder)(ui::Overlay::MouseZOrder-\/1));}
+\DoxyCodeLine{00166\ \ \ \ \ ui::OverlayManager::instance()-\/>addOverlay(m\_floatingOverlay);}
+\DoxyCodeLine{00167\ \ \ \}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \textcolor{keywordtype}{void}\ destroyFloatingOverlay()\ \{}
+\DoxyCodeLine{00170\ \ \ \ \ ui::OverlayManager::instance()-\/>removeOverlay(m\_floatingOverlay);}
+\DoxyCodeLine{00171\ \ \ \ \ m\_floatingOverlay.reset();}
+\DoxyCodeLine{00172\ \ \ \ \ m\_isDragging\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00173\ \ \ \}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \ \ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}\ getFloatingOverlaySize()\ \{}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{structview}{view}}\ =\ ui::View::getView(this-\/>parent());}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structview}{view}})}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structview}{view}}-\/>viewportBounds().offset(\mbox{\hyperlink{structview}{view}}-\/>viewScroll())\ \&\ this-\/>bounds()).size();}
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>size();}
+\DoxyCodeLine{00181\ \ \ \}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{gfx::Rect}}\ getParentBounds()\ \{}
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{structview}{view}}\ =\ ui::View::getView(this-\/>parent());}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structview}{view}})}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structview}{view}}-\/>viewportBounds();}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>parent()-\/>bounds();}
+\DoxyCodeLine{00189\ \ \ \}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \textcolor{keywordtype}{void}\ layoutParent()\ \{}
+\DoxyCodeLine{00192\ \ \ \ \ this-\/>parent()-\/>layout();}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{structview}{view}}\ =\ ui::View::getView(this-\/>parent());}
+\DoxyCodeLine{00194\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structview}{view}})}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structview}{view}}-\/>updateView();}
+\DoxyCodeLine{00196\ \ \ \}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \textcolor{keywordtype}{void}\ drawFloatingOverlay(\mbox{\hyperlink{classui_1_1_graphics}{ui::Graphics}}\&\ g)\ \{}
+\DoxyCodeLine{00199\ \ \ \ \ \mbox{\hyperlink{classui_1_1_paint_event}{ui::PaintEvent}}\ ev(\textcolor{keyword}{this},\ \&g);}
+\DoxyCodeLine{00200\ \ \ \ \ this-\/>onPaint(ev);}
+\DoxyCodeLine{00201\ \ \ \}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{bool}\ onCanDropItemsOutside()\ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00204\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onReorderWidgets(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\&\ mousePos,\ \textcolor{keywordtype}{bool}\ inside)\ \{\ \}}
+\DoxyCodeLine{00205\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onFinalDrop(\textcolor{keywordtype}{bool}\ inside)\ \{\ \}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \textcolor{comment}{//\ True\ if\ we\ should\ create\ the\ floating\ overlay\ after\ leaving\ the}}
+\DoxyCodeLine{00208\ \ \ \textcolor{comment}{//\ widget\ bounds.}}
+\DoxyCodeLine{00209\ \ \ \textcolor{keywordtype}{bool}\ m\_createFloatingOverlay\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \textcolor{keywordtype}{bool}\ m\_isDragging\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \textcolor{comment}{//\ True\ when\ the\ mouse\ button\ is\ released\ (drop\ operation)\ and\ we've}}
+\DoxyCodeLine{00214\ \ \ \textcolor{comment}{//\ dragged\ the\ widget\ to\ other\ position.\ Can\ be\ used\ to\ avoid}}
+\DoxyCodeLine{00215\ \ \ \textcolor{comment}{//\ triggering\ the\ default\ click\ operation\ by\ derived\ classes\ when}}
+\DoxyCodeLine{00216\ \ \ \textcolor{comment}{//\ we've\ dragged\ the\ widget.}}
+\DoxyCodeLine{00217\ \ \ \textcolor{keywordtype}{bool}\ m\_wasDragged\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \textcolor{comment}{//\ Initial\ mouse\ position\ when\ we\ start\ the\ dragging\ process.}}
+\DoxyCodeLine{00220\ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ m\_dragMousePos;}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \textcolor{comment}{//\ Overlay\ used\ to\ show\ the\ floating\ widget\ (this\ overlay\ floats}}
+\DoxyCodeLine{00223\ \ \ \textcolor{comment}{//\ next\ to\ the\ mouse\ cursor).}}
+\DoxyCodeLine{00224\ \ \ \mbox{\hyperlink{classbase_1_1_ref}{ui::OverlayRef}}\ m\_floatingOverlay;}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \textcolor{comment}{//\ Relative\ mouse\ position\ between\ the\ widget\ and\ the\ overlay.}}
+\DoxyCodeLine{00227\ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ m\_floatingOffset;}
+\DoxyCodeLine{00228\ \};}
+\DoxyCodeLine{00229\ }
+\DoxyCodeLine{00230\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

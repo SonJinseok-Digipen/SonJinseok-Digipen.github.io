@@ -1,0 +1,148 @@
+\hypertarget{color__histogram_8h_source}{}\doxysection{color\+\_\+histogram.\+h}
+\label{color__histogram_8h_source}\index{AseSprite/aseprite/src/render/color\_histogram.h@{AseSprite/aseprite/src/render/color\_histogram.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ Render\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ \ \ \ \ \ 2020\ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (c)\ 2001-\/2015\ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ RENDER\_COLOR\_HISTOGRAM\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ RENDER\_COLOR\_HISTOGRAM\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <limits>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}doc/color.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}doc/image.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}doc/image\_traits.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/palette.h"{}}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}render/median\_cut.h"{}}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }render\ \{}
+\DoxyCodeLine{00023\ \ \ \textcolor{keyword}{using\ namespace\ }doc;}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \textcolor{keyword}{template}<\textcolor{keywordtype}{int}\ RBits,\ \textcolor{comment}{//\ Number\ of\ bits\ for\ each\ component\ in\ the\ histogram}}
+\DoxyCodeLine{00026\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ GBits,}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ BBits,}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ ABits>}
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classrender_1_1_color_histogram}{ColorHistogram}}\ \{}
+\DoxyCodeLine{00030\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{comment}{//\ Number\ of\ elements\ in\ histogram\ for\ each\ RGB\ component}}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ RElements\ =\ 1\ <<\ RBits,}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ GElements\ =\ 1\ <<\ GBits,}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ BElements\ =\ 1\ <<\ BBits,}
+\DoxyCodeLine{00036\ \ \ \ \ \ \ AElements\ =\ 1\ <<\ ABits}
+\DoxyCodeLine{00037\ \ \ \ \ \};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ \mbox{\hyperlink{classrender_1_1_color_histogram}{ColorHistogram}}()}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ :\ m\_histogram(RElements*GElements*BElements*AElements,\ 0)}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ ,\ m\_useHighPrecision(\textcolor{keyword}{true})\ \{}
+\DoxyCodeLine{00042\ \ \ \ \ \}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ number\ of\ points\ in\ the\ specified\ histogram}}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{comment}{//\ entry.\ Each\ rgba-\/index\ is\ in\ the\ range\ of\ the\ histogram,\ e.g.}}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{comment}{//\ r=[0,RElements),\ g=[0,GElements),\ etc.}}
+\DoxyCodeLine{00047\ \ \ \ \ std::size\_t\ at(\textcolor{keywordtype}{int}\ r,\ \textcolor{keywordtype}{int}\ g,\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_histogram[histogramIndex(r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}})];}
+\DoxyCodeLine{00049\ \ \ \ \ \}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{//\ Add\ the\ specified\ "{}color"{}\ in\ the\ histogram\ as\ many\ times\ as\ the}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{comment}{//\ specified\ value\ in\ "{}count"{}.}}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{void}\ addSamples(doc::color\_t\ color,\ std::size\_t\ count\ =\ 1)\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ histogramIndex(color);}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_histogram[i]\ <\ std::numeric\_limits<std::size\_t>::max()-\/count)\ \textcolor{comment}{//\ Avoid\ overflow}}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ m\_histogram[i]\ +=\ count;}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ m\_histogram[i]\ =\ std::numeric\_limits<std::size\_t>::max();}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \textcolor{comment}{//\ Accurate\ colors\ are\ used\ only\ for\ less\ than\ 256\ colors.\ \ If\ the}}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \textcolor{comment}{//\ image\ has\ more\ than\ 256\ colors\ the\ m\_histogram\ is\ used}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \textcolor{comment}{//\ instead.}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_useHighPrecision)\ \{}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ std::vector<doc::color\_t>::iterator\ it\ =}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ std::find(m\_highPrecision.begin(),\ m\_highPrecision.end(),\ color);}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ The\ color\ is\ not\ in\ the\ high-\/precision\ table}}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (it\ ==\ m\_highPrecision.end())\ \{}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_highPrecision.size()\ <\ 256)\ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ m\_highPrecision.push\_back(color);}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ In\ this\ case\ we\ reach\ the\ limit\ for\ the\ high-\/precision\ histogram.}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ m\_useHighPrecision\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00079\ \ \ \ \ \}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{comment}{//\ Creates\ a\ set\ of\ entries\ for\ the\ given\ palette\ in\ the\ given\ range}}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{comment}{//\ with\ the\ more\ important\ colors\ in\ the\ histogram.\ Returns\ the}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//\ number\ of\ used\ entries\ in\ the\ palette\ (maybe\ the\ range\ [from,to]}}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{comment}{//\ is\ more\ than\ necessary).}}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{int}\ createOptimizedPalette(\mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ palette)\ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \textcolor{comment}{//\ Can\ we\ use\ the\ high-\/precision\ table?}}
+\DoxyCodeLine{00087\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_useHighPrecision\ \&\&\ \textcolor{keywordtype}{int}(m\_highPrecision.size())\ <=\ palette-\/>size())\ \{}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i=0;\ i<(int)m\_highPrecision.size();\ ++i)}
+\DoxyCodeLine{00089\ \ \ \ \ \ \ \ \ \ \ palette-\/>setEntry(i,\ m\_highPrecision[i]);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_highPrecision.size();}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \textcolor{comment}{//\ OK,\ we\ have\ to\ use\ the\ histogram\ and\ some\ algorithm\ (like}}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \textcolor{comment}{//\ median-\/cut)\ to\ quantize\ "{}optimal"{}\ colors.}}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ std::vector<doc::color\_t>\ result;}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \ median\_cut(*\textcolor{keyword}{this},\ palette-\/>size(),\ result);}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i=0;\ i<(int)result.size();\ ++i)}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ palette-\/>setEntry(i,\ result[i]);}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ result.size();}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00104\ \ \ \ \ \}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{bool}\ isHighPrecision()\ \{\ \textcolor{keywordflow}{return}\ m\_useHighPrecision;\ \}}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordtype}{int}\ highPrecisionSize()\ \{\ \textcolor{keywordflow}{return}\ m\_highPrecision.size();\ \}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{comment}{//\ Converts\ input\ color\ in\ a\ index\ for\ the\ histogram.\ It\ reduces}}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{comment}{//\ each\ 8-\/bit\ component\ to\ the\ resolution\ given\ in\ the\ template}}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{comment}{//\ parameters.}}
+\DoxyCodeLine{00113\ \ \ \ \ std::size\_t\ histogramIndex(doc::color\_t\ color)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ histogramIndex((rgba\_getr(color)\ >>\ (8\ -\/\ RBits)),}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (rgba\_getg(color)\ >>\ (8\ -\/\ GBits)),}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (rgba\_getb(color)\ >>\ (8\ -\/\ BBits)),}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (rgba\_geta(color)\ >>\ (8\ -\/\ ABits)));}
+\DoxyCodeLine{00118\ \ \ \ \ \}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ std::size\_t\ histogramIndex(\textcolor{keywordtype}{int}\ r,\ \textcolor{keywordtype}{int}\ g,\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \textcolor{keywordflow}{return}}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ r}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ |\ (g\ <<\ RBits)}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ |\ (b\ <<\ (RBits+GBits))}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ |\ (\mbox{\hyperlink{structa}{a}}\ <<\ (RBits+GBits+BBits));}
+\DoxyCodeLine{00126\ \ \ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{comment}{//\ 3D\ histogram\ (the\ index\ in\ the\ histogram\ is\ calculated\ through\ histogramIndex()\ function).}}
+\DoxyCodeLine{00129\ \ \ \ \ std::vector<std::size\_t>\ m\_histogram;}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{comment}{//\ High\ precision\ histogram\ to\ create\ an\ accurate\ palette\ if\ RGB}}
+\DoxyCodeLine{00132\ \ \ \ \ \textcolor{comment}{//\ source\ images\ contains\ less\ than\ 256\ colors.}}
+\DoxyCodeLine{00133\ \ \ \ \ std::vector<doc::color\_t>\ m\_highPrecision;}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{comment}{//\ True\ if\ we\ can\ use\ m\_highPrecision\ still\ (it\ means\ that\ the}}
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{comment}{//\ number\ of\ different\ samples\ is\ less\ than\ 256\ colors\ still).}}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_useHighPrecision;}
+\DoxyCodeLine{00138\ \ \ \};}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \}\ \textcolor{comment}{//\ namespace\ render}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

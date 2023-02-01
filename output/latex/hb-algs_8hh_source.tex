@@ -1,0 +1,1357 @@
+\hypertarget{hb-algs_8hh_source}{}\doxysection{hb-\/algs.hh}
+\label{hb-algs_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/algs.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/algs.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2017\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2019\ \ Facebook,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Facebook\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#ifndef\ HB\_ALGS\_HH}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ HB\_ALGS\_HH}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/meta.hh"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb-\/null.hh"{}}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ "{}hb-\/number.hh"{}}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#include\ <initializer\_list>}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#include\ <new>}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ Flags}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{comment}{/*\ Enable\ bitwise\ ops\ on\ enums\ marked\ as\ flags\_t\ */}}
+\DoxyCodeLine{00047\ \textcolor{comment}{/*\ To\ my\ surprise,\ looks\ like\ the\ function\ resolver\ is\ happy\ to\ silently\ cast}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ one\ enum\ to\ another...\ \ So\ this\ doesn't\ provide\ the\ type-\/checking\ that\ I}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ originally\ had\ in\ mind...\ :(.}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ For\ MSVC\ warnings,\ see:\ https://github.com/harfbuzz/harfbuzz/pull/163}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#ifdef\ \_MSC\_VER}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#\ pragma\ warning(disable:4200)}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#\ pragma\ warning(disable:4800)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ HB\_MARK\_AS\_FLAG\_T(T)\ \(\backslash\)}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\ \ \ \ extern\ "{}C++"{}}\ \{\ \(\backslash\)}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ static\ inline\ constexpr\ T\ operator\ |\ (T\ l,\ T\ r)\ \{\ return\ T\ ((unsigned)\ l\ |\ (unsigned)\ r);\ \}\ \(\backslash\)}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ static\ inline\ constexpr\ T\ operator\ \&\ (T\ l,\ T\ r)\ \{\ return\ T\ ((unsigned)\ l\ \&\ (unsigned)\ r);\ \}\ \(\backslash\)}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ static\ inline\ constexpr\ T\ operator\ \string^\ (T\ l,\ T\ r)\ \{\ return\ T\ ((unsigned)\ l\ \string^\ (unsigned)\ r);\ \}\ \(\backslash\)}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ static\ inline\ constexpr\ T\ operator\ \string~\ (T\ r)\ \{\ return\ T\ (\string~(unsigned\ int)\ r);\ \}\ \(\backslash\)}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ static\ inline\ T\&\ operator\ |=\ (T\ \&l,\ T\ r)\ \{\ l\ =\ l\ |\ r;\ return\ l;\ \}\ \(\backslash\)}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ static\ inline\ T\&\ operator\ \&=\ (T\&\ l,\ T\ r)\ \{\ l\ =\ l\ \&\ r;\ return\ l;\ \}\ \(\backslash\)}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ static\ inline\ T\&\ operator\ \string^=\ (T\&\ l,\ T\ r)\ \{\ l\ =\ l\ \string^\ r;\ return\ l;\ \}\ \(\backslash\)}
+\DoxyCodeLine{00066\ \ \ \ \ \}\ \(\backslash\)}
+\DoxyCodeLine{00067\ \ \ \ \ static\_assert\ (true,\ "{}"{})}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{comment}{/*\ Useful\ for\ set-\/operations\ on\ small\ enums.}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ *\ For\ example,\ for\ testing\ "{}x\ ∈\ \{x1,\ x2,\ x3\}"{}\ use:}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ *\ (FLAG\_UNSAFE(x)\ \&\ (FLAG(x1)\ |\ FLAG(x2)\ |\ FLAG(x3)))}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#define\ FLAG(x)\ (static\_assert\_expr\ ((unsigned)(x)\ <\ 32)\ +\ (((uint32\_t)\ 1U)\ <<\ (unsigned)(x)))}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ FLAG\_UNSAFE(x)\ ((unsigned)(x)\ <\ 32\ ?\ (((uint32\_t)\ 1U)\ <<\ (unsigned)(x))\ :\ 0)}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#define\ FLAG\_RANGE(x,y)\ (static\_assert\_expr\ ((x)\ <\ (y))\ +\ FLAG(y+1)\ -\/\ FLAG(x))}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#define\ FLAG64(x)\ (static\_assert\_expr\ ((unsigned)(x)\ <\ 64)\ +\ (((uint64\_t)\ 1ULL)\ <<\ (unsigned)(x)))}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#define\ FLAG64\_UNSAFE(x)\ ((unsigned)(x)\ <\ 64\ ?\ (((uint64\_t)\ 1ULL)\ <<\ (unsigned)(x))\ :\ 0)}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ *\ Big-\/endian\ integers.}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{/*\ Endian\ swap,\ used\ in\ Windows\ related\ backends\ */}}
+\DoxyCodeLine{00085\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ uint16\_t\ hb\_uint16\_swap\ (uint16\_t\ v)}
+\DoxyCodeLine{00086\ \{\ \textcolor{keywordflow}{return}\ (v\ >>\ 8)\ |\ (v\ <<\ 8);\ \}}
+\DoxyCodeLine{00087\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{constexpr}\ uint32\_t\ hb\_uint32\_swap\ (uint32\_t\ v)}
+\DoxyCodeLine{00088\ \{\ \textcolor{keywordflow}{return}\ (hb\_uint16\_swap\ (v)\ <<\ 16)\ |\ hb\_uint16\_swap\ (v\ >>\ 16);\ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keywordtype}{int}\ Bytes\ =\ sizeof\ (Type)>}
+\DoxyCodeLine{00091\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_b_e_int}{BEInt}};}
+\DoxyCodeLine{00092\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00093\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_b_e_int}{BEInt}}<Type,\ 1>}
+\DoxyCodeLine{00094\ \{}
+\DoxyCodeLine{00095\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00096\ \ \ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00097\ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ (Type\ V)\ :\ v\ \{uint8\_t\ (V)\}\ \{\}}
+\DoxyCodeLine{00098\ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{operator}\ Type\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v;\ \}}
+\DoxyCodeLine{00099\ \ \ \textcolor{keyword}{private}:\ uint8\_t\ v;}
+\DoxyCodeLine{00100\ \};}
+\DoxyCodeLine{00101\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00102\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_b_e_int}{BEInt}}<Type,\ 2>}
+\DoxyCodeLine{00103\ \{}
+\DoxyCodeLine{00104\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00105\ \ \ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00106\ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ (Type\ V)\ :\ v\ \{uint8\_t\ ((V\ >>\ \ 8)\ \&\ 0xFF),}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ((V\ \ \ \ \ \ )\ \&\ 0xFF)\}\ \{\}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \textcolor{keyword}{struct\ }\_\_attribute\_\_((packed))\ packed\_uint16\_t\ \{\ uint16\_t\ v;\ \};}
+\DoxyCodeLine{00110\ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{operator}\ Type\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00111\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#if\ ((defined(\_\_GNUC\_\_)\ \&\&\ \_\_GNUC\_\_\ >=\ 5)\ ||\ defined(\_\_clang\_\_))\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_BYTE\_ORDER)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\ \ \ \ (\_\_BYTE\_ORDER\ ==\ \_\_LITTLE\_ENDIAN\ ||\ \_\_BYTE\_ORDER\ ==\ \_\_BIG\_ENDIAN)}}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{comment}{/*\ Spoon-\/feed\ the\ compiler\ a\ big-\/endian\ integer\ with\ alignment\ 1.}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ \ \ \ \ *\ https://github.com/harfbuzz/harfbuzz/pull/1398\ */}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#if\ \_\_BYTE\_ORDER\ ==\ \_\_LITTLE\_ENDIAN}}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_builtin\_bswap16\ (((packed\_uint16\_t\ *)\ \textcolor{keyword}{this})-\/>v);}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{/*\ \_\_BYTE\_ORDER\ ==\ \_\_BIG\_ENDIAN\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keywordflow}{return}\ ((packed\_uint16\_t\ *)\ \textcolor{keyword}{this})-\/>v;}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordflow}{return}\ (v[0]\ <<\ \ 8)}
+\DoxyCodeLine{00124\ \ \ \ \ \ +\ (v[1]\ \ \ \ \ \ );}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00126\ \ \ \}}
+\DoxyCodeLine{00127\ \ \ \textcolor{keyword}{private}:\ uint8\_t\ v[2];}
+\DoxyCodeLine{00128\ \};}
+\DoxyCodeLine{00129\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00130\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_b_e_int}{BEInt}}<Type,\ 3>}
+\DoxyCodeLine{00131\ \{}
+\DoxyCodeLine{00132\ \ \ \textcolor{keyword}{static\_assert}\ (!std::is\_signed<Type>::value,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00133\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00134\ \ \ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00135\ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ (Type\ V)\ :\ v\ \{uint8\_t\ ((V\ >>\ 16)\ \&\ 0xFF),}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ((V\ >>\ \ 8)\ \&\ 0xFF),}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ((V\ \ \ \ \ \ )\ \&\ 0xFF)\}\ \{\}}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{operator}\ Type\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (v[0]\ <<\ 16)}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (v[1]\ <<\ \ 8)}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (v[2]\ \ \ \ \ \ );\ \}}
+\DoxyCodeLine{00142\ \ \ \textcolor{keyword}{private}:\ uint8\_t\ v[3];}
+\DoxyCodeLine{00143\ \};}
+\DoxyCodeLine{00144\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00145\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_b_e_int}{BEInt}}<Type,\ 4>}
+\DoxyCodeLine{00146\ \{}
+\DoxyCodeLine{00147\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00148\ \ \ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00149\ \ \ \textcolor{keyword}{constexpr}\ \mbox{\hyperlink{struct_b_e_int}{BEInt}}\ (Type\ V)\ :\ v\ \{uint8\_t\ ((V\ >>\ 24)\ \&\ 0xFF),}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ((V\ >>\ 16)\ \&\ 0xFF),}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ((V\ >>\ \ 8)\ \&\ 0xFF),}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ ((V\ \ \ \ \ \ )\ \&\ 0xFF)\}\ \{\}}
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{operator}\ Type\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (v[0]\ <<\ 24)}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (v[1]\ <<\ 16)}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (v[2]\ <<\ \ 8)}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ +\ (v[3]\ \ \ \ \ \ );\ \}}
+\DoxyCodeLine{00157\ \ \ \textcolor{keyword}{private}:\ uint8\_t\ v[4];}
+\DoxyCodeLine{00158\ \};}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \textcolor{comment}{/*\ Floats.\ */}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{comment}{/*\ We\ want\ our\ rounding\ towards\ +infinity.\ */}}
+\DoxyCodeLine{00163\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{float}}
+\DoxyCodeLine{00164\ \_hb\_roundf\ (\textcolor{keywordtype}{float}\ x)\ \{\ \textcolor{keywordflow}{return}\ floorf\ (x\ +\ .5f);\ \}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\#define\ roundf(x)\ \_hb\_roundf(x)}}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \textcolor{comment}{/*\ Encodes\ three\ unsigned\ integers\ in\ one\ 64-\/bit\ number.\ \ If\ the\ inputs\ have\ more\ than\ 21\ bits,}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ *\ values\ will\ be\ truncated\ /\ overlap,\ and\ might\ not\ decode\ exactly.\ */}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_ENCODE3(x,y,z)\ (((uint64\_t)\ (x)\ <<\ 42)\ |\ ((uint64\_t)\ (y)\ <<\ 21)\ |\ (uint64\_t)\ (z))}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_DECODE3\_1(v)\ ((hb\_codepoint\_t)\ ((v)\ >>\ 42))}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_DECODE3\_2(v)\ ((hb\_codepoint\_t)\ ((v)\ >>\ 21)\ \&\ 0x1FFFFFu)}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_DECODE3\_3(v)\ ((hb\_codepoint\_t)\ (v)\ \&\ 0x1FFFFFu)}}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{comment}{/*\ Custom\ encoding\ used\ by\ hb-\/ucd.\ */}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_ENCODE3\_11\_7\_14(x,y,z)\ (((uint32\_t)\ ((x)\ \&\ 0x07FFu)\ <<\ 21)\ |\ (((uint32\_t)\ (y)\ \&\ 0x007Fu)\ <<\ 14)\ |\ (uint32\_t)\ ((z)\ \&\ 0x3FFFu))}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_DECODE3\_11\_7\_14\_1(v)\ ((hb\_codepoint\_t)\ ((v)\ >>\ 21))}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_DECODE3\_11\_7\_14\_2(v)\ ((hb\_codepoint\_t)\ (((v)\ >>\ 14)\ \&\ 0x007Fu)\ |\ 0x0300)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\#define\ HB\_CODEPOINT\_DECODE3\_11\_7\_14\_3(v)\ ((hb\_codepoint\_t)\ (v)\ \&\ 0x3FFFu)}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00183\ \{}
+\DoxyCodeLine{00184\ \ \ \textcolor{comment}{/*\ Note.\ \ This\ is\ dangerous\ in\ that\ if\ it's\ passed\ an\ rvalue,\ it\ returns\ rvalue-\/reference.\ */}}
+\DoxyCodeLine{00185\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00186\ \ \ operator\ ()\ (T\&\&\ v)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\ std::forward<T>\ (v)\ )}
+\DoxyCodeLine{00187\ \}}
+\DoxyCodeLine{00188\ HB\_FUNCOBJ\ (hb\_identity);}
+\DoxyCodeLine{00189\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00190\ \{}
+\DoxyCodeLine{00191\ \ \ \textcolor{comment}{/*\ Like\ identity(),\ but\ only\ retains\ lvalue-\/references.\ \ Rvalues\ are\ returned\ as\ rvalues.\ */}}
+\DoxyCodeLine{00192\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ T\&}
+\DoxyCodeLine{00193\ \ \ operator\ ()\ (T\&\ v)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v;\ \}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ hb\_remove\_reference<T>}
+\DoxyCodeLine{00196\ \ \ operator\ ()\ (T\&\&\ v)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v;\ \}}
+\DoxyCodeLine{00197\ \}}
+\DoxyCodeLine{00198\ HB\_FUNCOBJ\ (hb\_lidentity);}
+\DoxyCodeLine{00199\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00200\ \{}
+\DoxyCodeLine{00201\ \ \ \textcolor{comment}{/*\ Like\ identity(),\ but\ always\ returns\ rvalue.\ */}}
+\DoxyCodeLine{00202\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ hb\_remove\_reference<T>}
+\DoxyCodeLine{00203\ \ \ operator\ ()\ (T\&\&\ v)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v;\ \}}
+\DoxyCodeLine{00204\ \}}
+\DoxyCodeLine{00205\ HB\_FUNCOBJ\ (hb\_ridentity);}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00208\ \{}
+\DoxyCodeLine{00209\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00210\ \ \ operator\ ()\ (T\&\&\ v)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bool\ (std::forward<T>\ (v));\ \}}
+\DoxyCodeLine{00211\ \}}
+\DoxyCodeLine{00212\ HB\_FUNCOBJ\ (hb\_bool);}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00215\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}}
+\DoxyCodeLine{00216\ T\ hb\_coerce\ (\textcolor{keyword}{const}\ T\ v)\ \{\ \textcolor{keywordflow}{return}\ v;\ \}}
+\DoxyCodeLine{00217\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ V,}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (!\mbox{\hyperlink{structhb__is__same}{hb\_is\_same}}\ (hb\_decay<T>,\ hb\_decay<V>)\ \&\&\ std::is\_pointer<V>::value)>}
+\DoxyCodeLine{00219\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}}
+\DoxyCodeLine{00220\ T\ hb\_coerce\ (\textcolor{keyword}{const}\ V\ v)\ \{\ \textcolor{keywordflow}{return}\ *v;\ \}}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00223\ \{}
+\DoxyCodeLine{00224\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00227\ \ \ impl\ (\textcolor{keyword}{const}\ T\&\ v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<2>}})\ \textcolor{keyword}{const}\ HB\_RETURN\ (uint32\_t,\ hb\_deref\ (v).hash\ ())}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ template\ <typename\ T>\ constexpr\ auto}
+\DoxyCodeLine{00230\ \ \ impl\ (const\ T\&\ v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority}}<1>)\ const\ HB\_RETURN\ (uint32\_t,\ std::hash<hb\_decay<decltype\ (hb\_deref\ (v))>>\{\}\ (hb\_deref\ (v)))}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ template\ <typename\ T,}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (std::\mbox{\hyperlink{structis__integral}{is\_integral}}<T>::\mbox{\hyperlink{classvalue}{value}})>\ constexpr\ auto}
+\DoxyCodeLine{00234\ \ \ impl\ (const\ T\&\ v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority}}<0>)\ const\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00235\ \ \ (}
+\DoxyCodeLine{00236\ \ \ \ \ \textcolor{comment}{/*\ Knuth's\ multiplicative\ method:\ */}}
+\DoxyCodeLine{00237\ \ \ \ \ (uint32\_t)\ v\ *\ 2654435761u}
+\DoxyCodeLine{00238\ \ \ )}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \ \ public:}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ template\ <typename\ T>\ constexpr\ auto}
+\DoxyCodeLine{00243\ \ \ operator\ ()\ (const\ T\&\ v)\ const\ HB\_RETURN\ (uint32\_t,\ impl\ (v,\ hb\_prioritize))}
+\DoxyCodeLine{00244\ \}}
+\DoxyCodeLine{00245\ HB\_FUNCOBJ\ (hb\_hash);}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ struct}
+\DoxyCodeLine{00249\ \{}
+\DoxyCodeLine{00250\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \textcolor{comment}{/*\ Pointer-\/to-\/member-\/function.\ */}}
+\DoxyCodeLine{00253\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Appl,\ \textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ ...Ts>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00254\ \ \ impl\ (Appl\&\&\ \mbox{\hyperlink{structa}{a}},\ \mbox{\hyperlink{structhb__priority}{hb\_priority<2>}},\ T\ \&\&v,\ Ts\&\&...\ ds)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00255\ \ \ ((hb\_deref\ (std::forward<T>\ (v)).*std::forward<Appl>\ (\mbox{\hyperlink{structa}{a}}))\ (std::forward<Ts>\ (ds)...))}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \textcolor{comment}{/*\ Pointer-\/to-\/member.\ */}}
+\DoxyCodeLine{00258\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Appl,\ \textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00259\ \ \ impl\ (Appl\&\&\ \mbox{\hyperlink{structa}{a}},\ \mbox{\hyperlink{structhb__priority}{hb\_priority<1>}},\ T\ \&\&v)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00260\ \ \ ((hb\_deref\ (std::forward<T>\ (v))).*std::forward<Appl>\ (\mbox{\hyperlink{structa}{a}}))}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \textcolor{comment}{/*\ Operator().\ */}}
+\DoxyCodeLine{00263\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Appl,\ \textcolor{keyword}{typename}\ ...Ts>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00264\ \ \ impl\ (Appl\&\&\ \mbox{\hyperlink{structa}{a}},\ \mbox{\hyperlink{structhb__priority}{hb\_priority<0>}},\ Ts\&\&...\ ds)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00265\ \ \ (hb\_deref\ (std::forward<Appl>\ (\mbox{\hyperlink{structa}{a}}))\ (std::forward<Ts>\ (ds)...))}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Appl,\ \textcolor{keyword}{typename}\ ...Ts>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00270\ \ \ operator\ ()\ (Appl\&\&\ \mbox{\hyperlink{structa}{a}},\ Ts\&\&...\ ds)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00271\ \ \ (}
+\DoxyCodeLine{00272\ \ \ \ \ impl\ (std::forward<Appl>\ (\mbox{\hyperlink{structa}{a}}),}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ hb\_prioritize,}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ std::forward<Ts>\ (ds)...)}
+\DoxyCodeLine{00275\ \ \ )}
+\DoxyCodeLine{00276\ \}}
+\DoxyCodeLine{00277\ HB\_FUNCOBJ\ (hb\_invoke);}
+\DoxyCodeLine{00278\ }
+\DoxyCodeLine{00279\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{unsigned}\ Pos,\ \textcolor{keyword}{typename}\ Appl,\ \textcolor{keyword}{typename}\ V>}
+\DoxyCodeLine{00280\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__partial__t}{hb\_partial\_t}}}
+\DoxyCodeLine{00281\ \{}
+\DoxyCodeLine{00282\ \ \ \mbox{\hyperlink{structhb__partial__t}{hb\_partial\_t}}\ (Appl\ \mbox{\hyperlink{structa}{a}},\ V\ v)\ :\ \mbox{\hyperlink{structa}{a}}\ (\mbox{\hyperlink{structa}{a}}),\ v\ (v)\ \{\}}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \ \ \textcolor{keyword}{static\_assert}\ (Pos\ >\ 0,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ...Ts,}
+\DoxyCodeLine{00287\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ P\ =\ Pos,}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (P\ ==\ 1)>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00289\ \ \ operator\ ()\ (Ts\&\&\ ...ds)\ -\/>\ \textcolor{keyword}{decltype}\ (hb\_invoke\ (hb\_declval\ (Appl),}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_declval\ (V),}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_declval\ (Ts)...))}
+\DoxyCodeLine{00292\ \ \ \{}
+\DoxyCodeLine{00293\ \ \ \ \ \textcolor{keywordflow}{return}\ hb\_invoke\ (std::forward<Appl>\ (\mbox{\hyperlink{structa}{a}}),}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::forward<V>\ (v),}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::forward<Ts>\ (ds)...);}
+\DoxyCodeLine{00296\ \ \ \}}
+\DoxyCodeLine{00297\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T0,\ \textcolor{keyword}{typename}\ ...Ts,}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ P\ =\ Pos,}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (P\ ==\ 2)>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00300\ \ \ operator\ ()\ (T0\&\&\ d0,\ Ts\&\&\ ...ds)\ -\/>\ \textcolor{keyword}{decltype}\ (hb\_invoke\ (hb\_declval\ (Appl),}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_declval\ (T0),}
+\DoxyCodeLine{00302\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_declval\ (V),}
+\DoxyCodeLine{00303\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_declval\ (Ts)...))}
+\DoxyCodeLine{00304\ \ \ \{}
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keywordflow}{return}\ hb\_invoke\ (std::forward<Appl>\ (\mbox{\hyperlink{structa}{a}}),}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::forward<T0>\ (d0),}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::forward<V>\ (v),}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::forward<Ts>\ (ds)...);}
+\DoxyCodeLine{00309\ \ \ \}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00312\ \ \ \mbox{\hyperlink{structhb__reference__wrapper}{hb\_reference\_wrapper<Appl>}}\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00313\ \ \ V\ v;}
+\DoxyCodeLine{00314\ \};}
+\DoxyCodeLine{00315\ \textcolor{keyword}{template}\ <\textcolor{keywordtype}{unsigned}\ Pos=1,\ \textcolor{keyword}{typename}\ Appl,\ \textcolor{keyword}{typename}\ V>}
+\DoxyCodeLine{00316\ \textcolor{keyword}{auto}\ hb\_partial\ (Appl\&\&\ \mbox{\hyperlink{structa}{a}},\ V\&\&\ v)\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00317\ ((\ \mbox{\hyperlink{structhb__partial__t}{hb\_partial\_t<Pos,\ Appl,\ V>}}\ (\mbox{\hyperlink{structa}{a}},\ v)\ ))}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \textcolor{comment}{/*\ The\ following,\ HB\_PARTIALIZE,\ macro\ uses\ a\ particular\ corner-\/case}}
+\DoxyCodeLine{00320\ \textcolor{comment}{\ *\ of\ C++11\ that\ is\ not\ particularly\ well-\/supported\ by\ all\ compilers.}}
+\DoxyCodeLine{00321\ \textcolor{comment}{\ *\ What's\ happening\ is\ that\ it's\ using\ "{}this"{}\ in\ a\ trailing\ return-\/type}}
+\DoxyCodeLine{00322\ \textcolor{comment}{\ *\ via\ decltype().\ \ Broken\ compilers\ deduce\ the\ type\ of\ "{}this"{}\ pointer}}
+\DoxyCodeLine{00323\ \textcolor{comment}{\ *\ in\ that\ context\ differently\ from\ what\ it\ resolves\ to\ in\ the\ body}}
+\DoxyCodeLine{00324\ \textcolor{comment}{\ *\ of\ the\ function.}}
+\DoxyCodeLine{00325\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00326\ \textcolor{comment}{\ *\ One\ probable\ cause\ of\ this\ is\ that\ at\ the\ time\ of\ trailing\ return}}
+\DoxyCodeLine{00327\ \textcolor{comment}{\ *\ type\ declaration,\ "{}this"{}\ points\ to\ an\ incomplete\ type,\ whereas\ in}}
+\DoxyCodeLine{00328\ \textcolor{comment}{\ *\ the\ function\ body\ the\ type\ is\ complete.\ \ That\ doesn't\ justify\ the}}
+\DoxyCodeLine{00329\ \textcolor{comment}{\ *\ error\ in\ any\ way,\ but\ is\ probably\ what's\ happening.}}
+\DoxyCodeLine{00330\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00331\ \textcolor{comment}{\ *\ In\ the\ case\ of\ MSVC,\ we\ get\ around\ this\ by\ using\ C++14\ "{}decltype(auto)"{}}}
+\DoxyCodeLine{00332\ \textcolor{comment}{\ *\ which\ deduces\ the\ type\ from\ the\ actual\ return\ statement.\ \ For\ gcc\ 4.8}}
+\DoxyCodeLine{00333\ \textcolor{comment}{\ *\ we\ use\ "{}+this"{}\ instead\ of\ "{}this"{}\ which\ produces\ an\ rvalue\ that\ seems}}
+\DoxyCodeLine{00334\ \textcolor{comment}{\ *\ to\ be\ deduced\ as\ the\ same\ type\ with\ this\ particular\ compiler,\ and\ seem}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ *\ to\ be\ fine\ as\ default\ code\ path\ as\ well.}}
+\DoxyCodeLine{00336\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\#ifdef\ \_MSC\_VER}}
+\DoxyCodeLine{00338\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/1730\ */}\ \(\backslash\)}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\#define\ HB\_PARTIALIZE(Pos)\ \(\backslash\)}}
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\ \ template\ <typename\ \_T>\ \(\backslash\)}}
+\DoxyCodeLine{00341\ \textcolor{preprocessor}{\ \ decltype(auto)\ operator\ ()\ (\_T\&\&\ \_v)\ const\ \(\backslash\)}}
+\DoxyCodeLine{00342\ \textcolor{preprocessor}{\ \ \{\ return\ hb\_partial<Pos>\ (this,\ std::forward<\_T>\ (\_v));\ \}\ \(\backslash\)}}
+\DoxyCodeLine{00343\ \textcolor{preprocessor}{\ \ static\_assert\ (true,\ "{}"{}})}
+\DoxyCodeLine{00344\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00345\ \textcolor{comment}{/*\ https://github.com/harfbuzz/harfbuzz/issues/1724\ */}}
+\DoxyCodeLine{00346\ \textcolor{preprocessor}{\#define\ HB\_PARTIALIZE(Pos)\ \(\backslash\)}}
+\DoxyCodeLine{00347\ \textcolor{preprocessor}{\ \ template\ <typename\ \_T>\ \(\backslash\)}}
+\DoxyCodeLine{00348\ \textcolor{preprocessor}{\ \ auto\ operator\ ()\ (\_T\&\&\ \_v)\ const\ HB\_AUTO\_RETURN\ \(\backslash\)}}
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\ \ (hb\_partial<Pos>\ (+this,\ std::forward<\_T>\ (\_v)))\ \(\backslash\)}}
+\DoxyCodeLine{00350\ \textcolor{preprocessor}{\ \ static\_assert\ (true,\ "{}"{}})}
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00355\ \{}
+\DoxyCodeLine{00356\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00359\ \ \ impl\ (Pred\&\&\ p,\ Val\ \&\&v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<1>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00360\ \ \ (}
+\DoxyCodeLine{00361\ \ \ \ \ hb\_deref\ (std::forward<Pred>\ (p)).has\ (std::forward<Val>\ (v))}
+\DoxyCodeLine{00362\ \ \ )}
+\DoxyCodeLine{00363\ }
+\DoxyCodeLine{00364\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00365\ \ \ impl\ (Pred\&\&\ p,\ Val\ \&\&v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<0>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00366\ \ \ (}
+\DoxyCodeLine{00367\ \ \ \ \ hb\_invoke\ (std::forward<Pred>\ (p),}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ std::forward<Val>\ (v))}
+\DoxyCodeLine{00369\ \ \ )}
+\DoxyCodeLine{00370\ }
+\DoxyCodeLine{00371\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00372\ }
+\DoxyCodeLine{00373\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00374\ \ \ operator\ ()\ (Pred\&\&\ p,\ Val\ \&\&v)\ \textcolor{keyword}{const}\ HB\_RETURN\ (\textcolor{keywordtype}{bool},}
+\DoxyCodeLine{00375\ \ \ \ \ impl\ (std::forward<Pred>\ (p),}
+\DoxyCodeLine{00376\ \ \ \ \ \ \ std::forward<Val>\ (v),}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ hb\_prioritize)}
+\DoxyCodeLine{00378\ \ \ )}
+\DoxyCodeLine{00379\ \}}
+\DoxyCodeLine{00380\ HB\_FUNCOBJ\ (hb\_has);}
+\DoxyCodeLine{00381\ }
+\DoxyCodeLine{00382\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00383\ \{}
+\DoxyCodeLine{00384\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00387\ \ \ impl\ (Pred\&\&\ p,\ Val\ \&\&v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<1>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00388\ \ \ (}
+\DoxyCodeLine{00389\ \ \ \ \ hb\_has\ (std::forward<Pred>\ (p),}
+\DoxyCodeLine{00390\ \ \ \ \ \ \ \ \ std::forward<Val>\ (v))}
+\DoxyCodeLine{00391\ \ \ )}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00394\ \ \ impl\ (Pred\&\&\ p,\ Val\ \&\&v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<0>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00395\ \ \ (}
+\DoxyCodeLine{00396\ \ \ \ \ std::forward<Pred>\ (p)\ ==\ std::forward<Val>\ (v)}
+\DoxyCodeLine{00397\ \ \ )}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00402\ \ \ operator\ ()\ (Pred\&\&\ p,\ Val\ \&\&v)\ \textcolor{keyword}{const}\ HB\_RETURN\ (\textcolor{keywordtype}{bool},}
+\DoxyCodeLine{00403\ \ \ \ \ impl\ (std::forward<Pred>\ (p),}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ std::forward<Val>\ (v),}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ hb\_prioritize)}
+\DoxyCodeLine{00406\ \ \ )}
+\DoxyCodeLine{00407\ \}}
+\DoxyCodeLine{00408\ HB\_FUNCOBJ\ (hb\_match);}
+\DoxyCodeLine{00409\ }
+\DoxyCodeLine{00410\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00411\ \{}
+\DoxyCodeLine{00412\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00415\ \ \ impl\ (Proj\&\&\ f,\ Val\ \&\&v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<2>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00416\ \ \ (}
+\DoxyCodeLine{00417\ \ \ \ \ hb\_deref\ (std::forward<Proj>\ (f)).get\ (std::forward<Val>\ (v))}
+\DoxyCodeLine{00418\ \ \ )}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00421\ \ \ impl\ (Proj\&\&\ f,\ Val\ \&\&v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<1>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00422\ \ \ (}
+\DoxyCodeLine{00423\ \ \ \ \ hb\_invoke\ (std::forward<Proj>\ (f),}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ \ \ \ std::forward<Val>\ (v))}
+\DoxyCodeLine{00425\ \ \ )}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00428\ \ \ impl\ (Proj\&\&\ f,\ Val\ \&\&v,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<0>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00429\ \ \ (}
+\DoxyCodeLine{00430\ \ \ \ \ std::forward<Proj>\ (f)[std::forward<Val>\ (v)]}
+\DoxyCodeLine{00431\ \ \ )}
+\DoxyCodeLine{00432\ }
+\DoxyCodeLine{00433\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj,\ \textcolor{keyword}{typename}\ Val>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00436\ \ \ operator\ ()\ (Proj\&\&\ f,\ Val\ \&\&v)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00437\ \ \ (}
+\DoxyCodeLine{00438\ \ \ \ \ impl\ (std::forward<Proj>\ (f),}
+\DoxyCodeLine{00439\ \ \ \ \ \ \ std::forward<Val>\ (v),}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ hb\_prioritize)}
+\DoxyCodeLine{00441\ \ \ )}
+\DoxyCodeLine{00442\ \}}
+\DoxyCodeLine{00443\ HB\_FUNCOBJ\ (hb\_get);}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00446\ \{}
+\DoxyCodeLine{00447\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00450\ \ \ impl\ (T1\&\&\ v1,\ T2\ \&\&v2,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<3>}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00451\ \ \ (}
+\DoxyCodeLine{00452\ \ \ \ \ std::forward<T2>\ (v2).cmp\ (std::forward<T1>\ (v1))\ ==\ 0}
+\DoxyCodeLine{00453\ \ \ )}
+\DoxyCodeLine{00454\ }
+\DoxyCodeLine{00455\ \ \ template\ <typename\ T1,\ typename\ T2>\ auto}
+\DoxyCodeLine{00456\ \ \ impl\ (T1\&\&\ v1,\ T2\ \&\&v2,\ \mbox{\hyperlink{structhb__priority}{hb\_priority}}<2>)\ const\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00457\ \ \ (}
+\DoxyCodeLine{00458\ \ \ \ \ std::forward<T1>\ (v1).cmp\ (std::forward<T2>\ (v2))\ ==\ 0}
+\DoxyCodeLine{00459\ \ \ )}
+\DoxyCodeLine{00460\ }
+\DoxyCodeLine{00461\ \ \ template\ <typename\ T1,\ typename\ T2>\ auto}
+\DoxyCodeLine{00462\ \ \ impl\ (T1\&\&\ v1,\ T2\ \&\&v2,\ \mbox{\hyperlink{structhb__priority}{hb\_priority}}<1>)\ const\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00463\ \ \ (}
+\DoxyCodeLine{00464\ \ \ \ \ std::forward<T1>\ (v1)\ ==\ std::forward<T2>\ (v2)}
+\DoxyCodeLine{00465\ \ \ )}
+\DoxyCodeLine{00466\ }
+\DoxyCodeLine{00467\ \ \ template\ <typename\ T1,\ typename\ T2>\ auto}
+\DoxyCodeLine{00468\ \ \ impl\ (T1\&\&\ v1,\ T2\ \&\&v2,\ \mbox{\hyperlink{structhb__priority}{hb\_priority}}<0>)\ const\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00469\ \ \ (}
+\DoxyCodeLine{00470\ \ \ \ \ std::forward<T2>\ (v2)\ ==\ std::forward<T1>\ (v1)}
+\DoxyCodeLine{00471\ \ \ )}
+\DoxyCodeLine{00472\ }
+\DoxyCodeLine{00473\ \ \ public:}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \ \ template\ <typename\ T1,\ typename\ T2>\ auto}
+\DoxyCodeLine{00476\ \ \ operator\ ()\ (T1\&\&\ v1,\ T2\ \&\&v2)\ const\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00477\ \ \ (}
+\DoxyCodeLine{00478\ \ \ \ \ impl\ (std::forward<T1>\ (v1),}
+\DoxyCodeLine{00479\ \ \ \ \ \ \ std::forward<T2>\ (v2),}
+\DoxyCodeLine{00480\ \ \ \ \ \ \ hb\_prioritize)}
+\DoxyCodeLine{00481\ \ \ )}
+\DoxyCodeLine{00482\ \}}
+\DoxyCodeLine{00483\ HB\_FUNCOBJ\ (hb\_equal);}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ }
+\DoxyCodeLine{00486\ template\ <typename\ T1,\ typename\ T2>}
+\DoxyCodeLine{00487\ struct\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t}}}
+\DoxyCodeLine{00488\ \{}
+\DoxyCodeLine{00489\ \ \ \textcolor{keyword}{typedef}\ T1\ first\_t;}
+\DoxyCodeLine{00490\ \ \ \textcolor{keyword}{typedef}\ T2\ second\_t;}
+\DoxyCodeLine{00491\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<T1,\ T2>}}\ \mbox{\hyperlink{structhb__pair__t}{pair\_t}};}
+\DoxyCodeLine{00492\ }
+\DoxyCodeLine{00493\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ U1\ =\ T1,\ \textcolor{keyword}{typename}\ U2\ =\ T2,}
+\DoxyCodeLine{00494\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (std::is\_default\_constructible<U1>::value\ \&\&}
+\DoxyCodeLine{00495\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ std::is\_default\_constructible<U2>::value)>}
+\DoxyCodeLine{00496\ \ \ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t}}\ ()\ :\ first\ (),\ second\ ()\ \{\}}
+\DoxyCodeLine{00497\ \ \ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t}}\ (T1\ \mbox{\hyperlink{structa}{a}},\ T2\ b)\ :\ first\ (\mbox{\hyperlink{structa}{a}}),\ second\ (b)\ \{\}}
+\DoxyCodeLine{00498\ }
+\DoxyCodeLine{00499\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Q1,\ \textcolor{keyword}{typename}\ Q2,}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (hb\_is\_convertible\ (T1,\ Q1)\ \&\&}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_is\_convertible\ (T2,\ Q2))>}
+\DoxyCodeLine{00502\ \ \ \textcolor{keyword}{operator}\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<Q1,\ Q2>}}\ ()\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<Q1,\ Q2>}}\ (first,\ second);\ \}}
+\DoxyCodeLine{00503\ }
+\DoxyCodeLine{00504\ \ \ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<T1,\ T2>}}\ reverse\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00505\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<T1,\ T2>}}\ (second,\ first);\ \}}
+\DoxyCodeLine{00506\ }
+\DoxyCodeLine{00507\ \ \ \textcolor{keywordtype}{bool}\ operator\ ==\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__pair__t}{pair\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ first\ ==\ o.first\ \&\&\ second\ ==\ o.second;\ \}}
+\DoxyCodeLine{00508\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__pair__t}{pair\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ ==\ o);\ \}}
+\DoxyCodeLine{00509\ \ \ \textcolor{keywordtype}{bool}\ operator\ <\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__pair__t}{pair\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ first\ <\ o.first\ ||\ (first\ ==\ o.first\ \&\&\ second\ <\ o.second);\ \}}
+\DoxyCodeLine{00510\ \ \ \textcolor{keywordtype}{bool}\ operator\ >=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__pair__t}{pair\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ <\ o);\ \}}
+\DoxyCodeLine{00511\ \ \ \textcolor{keywordtype}{bool}\ operator\ >\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__pair__t}{pair\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ first\ >\ o.first\ ||\ (first\ ==\ o.first\ \&\&\ second\ >\ o.second);\ \}}
+\DoxyCodeLine{00512\ \ \ \textcolor{keywordtype}{bool}\ operator\ <=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__pair__t}{pair\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ >\ o);\ \}}
+\DoxyCodeLine{00513\ }
+\DoxyCodeLine{00514\ \ \ T1\ first;}
+\DoxyCodeLine{00515\ \ \ T2\ second;}
+\DoxyCodeLine{00516\ \};}
+\DoxyCodeLine{00517\ \textcolor{preprocessor}{\#define\ hb\_pair\_t(T1,T2)\ hb\_pair\_t<T1,\ T2>}}
+\DoxyCodeLine{00518\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<T1,\ T2>}}}
+\DoxyCodeLine{00519\ hb\_pair\ (T1\&\&\ \mbox{\hyperlink{structa}{a}},\ T2\&\&\ b)\ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<T1,\ T2>}}\ (\mbox{\hyperlink{structa}{a}},\ b);\ \}}
+\DoxyCodeLine{00520\ }
+\DoxyCodeLine{00521\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00522\ \{}
+\DoxyCodeLine{00523\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pair>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{typename}\ Pair::first\_t}
+\DoxyCodeLine{00524\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ Pair\&\ pair)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ pair.first;\ \}}
+\DoxyCodeLine{00525\ \}}
+\DoxyCodeLine{00526\ HB\_FUNCOBJ\ (hb\_first);}
+\DoxyCodeLine{00527\ }
+\DoxyCodeLine{00528\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00529\ \{}
+\DoxyCodeLine{00530\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pair>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{typename}\ Pair::second\_t}
+\DoxyCodeLine{00531\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ Pair\&\ pair)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ pair.second;\ \}}
+\DoxyCodeLine{00532\ \}}
+\DoxyCodeLine{00533\ HB\_FUNCOBJ\ (hb\_second);}
+\DoxyCodeLine{00534\ }
+\DoxyCodeLine{00535\ \textcolor{comment}{/*\ Note.\ \ In\ min/max\ impl,\ we\ can\ use\ hb\_type\_identity<T>\ for\ second\ argument.}}
+\DoxyCodeLine{00536\ \textcolor{comment}{\ *\ However,\ that\ would\ silently\ convert\ between\ different-\/signedness\ integers.}}
+\DoxyCodeLine{00537\ \textcolor{comment}{\ *\ Instead\ we\ accept\ two\ different\ types,\ such\ that\ compiler\ can\ err\ if}}
+\DoxyCodeLine{00538\ \textcolor{comment}{\ *\ comparing\ integers\ of\ different\ signedness.\ */}}
+\DoxyCodeLine{00539\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00540\ \{}
+\DoxyCodeLine{00541\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00542\ \ \ operator\ ()\ (T\&\&\ \mbox{\hyperlink{structa}{a}},\ T2\&\&\ b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00543\ \ \ (\mbox{\hyperlink{structa}{a}}\ <=\ b\ ?\ std::forward<T>\ (\mbox{\hyperlink{structa}{a}})\ :\ std::forward<T2>\ (b))}
+\DoxyCodeLine{00544\ \}}
+\DoxyCodeLine{00545\ HB\_FUNCOBJ\ (hb\_min);}
+\DoxyCodeLine{00546\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00547\ \{}
+\DoxyCodeLine{00548\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00549\ \ \ operator\ ()\ (T\&\&\ \mbox{\hyperlink{structa}{a}},\ T2\&\&\ b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00550\ \ \ (\mbox{\hyperlink{structa}{a}}\ >=\ b\ ?\ std::forward<T>\ (\mbox{\hyperlink{structa}{a}})\ :\ std::forward<T2>\ (b))}
+\DoxyCodeLine{00551\ \}}
+\DoxyCodeLine{00552\ HB\_FUNCOBJ\ (hb\_max);}
+\DoxyCodeLine{00553\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00554\ \{}
+\DoxyCodeLine{00555\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ T3>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00556\ \ \ operator\ ()\ (T\&\&\ x,\ T2\&\&\ min,\ T3\&\&\ max)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00557\ \ \ (hb\_min\ (hb\_max\ (std::forward<T>\ (x),\ std::forward<T2>\ (min)),\ std::forward<T3>\ (max)))}
+\DoxyCodeLine{00558\ \}}
+\DoxyCodeLine{00559\ HB\_FUNCOBJ\ (hb\_clamp);}
+\DoxyCodeLine{00560\ }
+\DoxyCodeLine{00561\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00562\ \{}
+\DoxyCodeLine{00563\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00564\ \ \ operator\ ()\ (T\&\ \mbox{\hyperlink{structa}{a}},\ T\&\ b)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00565\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00566\ \ \ \ \ \textcolor{keyword}{using\ }std::swap;\ \textcolor{comment}{//\ allow\ ADL}}
+\DoxyCodeLine{00567\ \ \ \ \ swap\ (\mbox{\hyperlink{structa}{a}},\ b);}
+\DoxyCodeLine{00568\ \ \ \}}
+\DoxyCodeLine{00569\ \}}
+\DoxyCodeLine{00570\ HB\_FUNCOBJ\ (hb\_swap);}
+\DoxyCodeLine{00571\ }
+\DoxyCodeLine{00572\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00573\ \textcolor{comment}{\ *\ Bithacks.}}
+\DoxyCodeLine{00574\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00575\ }
+\DoxyCodeLine{00576\ \textcolor{comment}{/*\ Return\ the\ number\ of\ 1\ bits\ in\ v.\ */}}
+\DoxyCodeLine{00577\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00578\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00579\ hb\_popcount\ (T\ v)}
+\DoxyCodeLine{00580\ \{}
+\DoxyCodeLine{00581\ \textcolor{preprocessor}{\#if\ (defined(\_\_GNUC\_\_)\ \&\&\ (\_\_GNUC\_\_\ >=\ 4))\ ||\ defined(\_\_clang\_\_)}}
+\DoxyCodeLine{00582\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}))}
+\DoxyCodeLine{00583\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_builtin\_popcount\ (v);}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}))}
+\DoxyCodeLine{00586\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_builtin\_popcountl\ (v);}
+\DoxyCodeLine{00587\ }
+\DoxyCodeLine{00588\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}))}
+\DoxyCodeLine{00589\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_builtin\_popcountll\ (v);}
+\DoxyCodeLine{00590\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00591\ }
+\DoxyCodeLine{00592\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ 4)}
+\DoxyCodeLine{00593\ \ \ \{}
+\DoxyCodeLine{00594\ \ \ \ \ \textcolor{comment}{/*\ "{}HACKMEM\ 169"{}\ */}}
+\DoxyCodeLine{00595\ \ \ \ \ uint32\_t\ y;}
+\DoxyCodeLine{00596\ \ \ \ \ y\ =\ (v\ >>\ 1)\ \&033333333333;}
+\DoxyCodeLine{00597\ \ \ \ \ y\ =\ v\ -\/\ y\ -\/\ ((y\ >>1)\ \&\ 033333333333);}
+\DoxyCodeLine{00598\ \ \ \ \ \textcolor{keywordflow}{return}\ (((y\ +\ (y\ >>\ 3))\ \&\ 030707070707)\ \%\ 077);}
+\DoxyCodeLine{00599\ \ \ \}}
+\DoxyCodeLine{00600\ }
+\DoxyCodeLine{00601\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ ==\ 8)}
+\DoxyCodeLine{00602\ \ \ \{}
+\DoxyCodeLine{00603\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ shift\ =\ 32;}
+\DoxyCodeLine{00604\ \ \ \ \ \textcolor{keywordflow}{return}\ hb\_popcount<uint32\_t>\ ((uint32\_t)\ v)\ +\ hb\_popcount\ ((uint32\_t)\ (v\ >>\ shift));}
+\DoxyCodeLine{00605\ \ \ \}}
+\DoxyCodeLine{00606\ }
+\DoxyCodeLine{00607\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ ==\ 16)}
+\DoxyCodeLine{00608\ \ \ \{}
+\DoxyCodeLine{00609\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ shift\ =\ 64;}
+\DoxyCodeLine{00610\ \ \ \ \ \textcolor{keywordflow}{return}\ hb\_popcount<uint64\_t>\ ((uint64\_t)\ v)\ +\ hb\_popcount\ ((uint64\_t)\ (v\ >>\ shift));}
+\DoxyCodeLine{00611\ \ \ \}}
+\DoxyCodeLine{00612\ }
+\DoxyCodeLine{00613\ \ \ assert\ (0);}
+\DoxyCodeLine{00614\ \ \ \textcolor{keywordflow}{return}\ 0;\ \textcolor{comment}{/*\ Shut\ up\ stupid\ compiler.\ */}}
+\DoxyCodeLine{00615\ \}}
+\DoxyCodeLine{00616\ }
+\DoxyCodeLine{00617\ \textcolor{comment}{/*\ Returns\ the\ number\ of\ bits\ needed\ to\ store\ number\ */}}
+\DoxyCodeLine{00618\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00619\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00620\ hb\_bit\_storage\ (T\ v)}
+\DoxyCodeLine{00621\ \{}
+\DoxyCodeLine{00622\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!v))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00623\ }
+\DoxyCodeLine{00624\ \textcolor{preprocessor}{\#if\ (defined(\_\_GNUC\_\_)\ \&\&\ (\_\_GNUC\_\_\ >=\ 4))\ ||\ defined(\_\_clang\_\_)}}
+\DoxyCodeLine{00625\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}))}
+\DoxyCodeLine{00626\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ int)\ *\ 8\ -\/\ \_\_builtin\_clz\ (v);}
+\DoxyCodeLine{00627\ }
+\DoxyCodeLine{00628\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ long))}
+\DoxyCodeLine{00629\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ long)\ *\ 8\ -\/\ \_\_builtin\_clzl\ (v);}
+\DoxyCodeLine{00630\ }
+\DoxyCodeLine{00631\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ long))}
+\DoxyCodeLine{00632\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ long)\ *\ 8\ -\/\ \_\_builtin\_clzll\ (v);}
+\DoxyCodeLine{00633\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00634\ }
+\DoxyCodeLine{00635\ \textcolor{preprocessor}{\#if\ (defined(\_MSC\_VER)\ \&\&\ \_MSC\_VER\ >=\ 1500)\ ||\ (defined(\_\_MINGW32\_\_)\ \&\&\ (\_\_GNUC\_\_\ <\ 4))}}
+\DoxyCodeLine{00636\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ int))}
+\DoxyCodeLine{00637\ \ \ \{}
+\DoxyCodeLine{00638\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ where;}
+\DoxyCodeLine{00639\ \ \ \ \ \_BitScanReverse\ (\&where,\ v);}
+\DoxyCodeLine{00640\ \ \ \ \ \textcolor{keywordflow}{return}\ 1\ +\ where;}
+\DoxyCodeLine{00641\ \ \ \}}
+\DoxyCodeLine{00642\ \textcolor{preprocessor}{\#\ if\ defined(\_WIN64)}}
+\DoxyCodeLine{00643\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ 8)}
+\DoxyCodeLine{00644\ \ \ \{}
+\DoxyCodeLine{00645\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ where;}
+\DoxyCodeLine{00646\ \ \ \ \ \_BitScanReverse64\ (\&where,\ v);}
+\DoxyCodeLine{00647\ \ \ \ \ \textcolor{keywordflow}{return}\ 1\ +\ where;}
+\DoxyCodeLine{00648\ \ \ \}}
+\DoxyCodeLine{00649\ \textcolor{preprocessor}{\#\ endif}}
+\DoxyCodeLine{00650\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00651\ }
+\DoxyCodeLine{00652\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ 4)}
+\DoxyCodeLine{00653\ \ \ \{}
+\DoxyCodeLine{00654\ \ \ \ \ \textcolor{comment}{/*\ "{}bithacks"{}\ */}}
+\DoxyCodeLine{00655\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b[]\ =\ \{0x2,\ 0xC,\ 0xF0,\ 0xFF00,\ 0xFFFF0000\};}
+\DoxyCodeLine{00656\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ S[]\ =\ \{1,\ 2,\ 4,\ 8,\ 16\};}
+\DoxyCodeLine{00657\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ r\ =\ 0;}
+\DoxyCodeLine{00658\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 4;\ i\ >=\ 0;\ i-\/-\/)}
+\DoxyCodeLine{00659\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ b[i])}
+\DoxyCodeLine{00660\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00661\ \ \ \ \ v\ >>=\ S[i];}
+\DoxyCodeLine{00662\ \ \ \ \ r\ |=\ S[i];}
+\DoxyCodeLine{00663\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00664\ \ \ \ \ \textcolor{keywordflow}{return}\ r\ +\ 1;}
+\DoxyCodeLine{00665\ \ \ \}}
+\DoxyCodeLine{00666\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ 8)}
+\DoxyCodeLine{00667\ \ \ \{}
+\DoxyCodeLine{00668\ \ \ \ \ \textcolor{comment}{/*\ "{}bithacks"{}\ */}}
+\DoxyCodeLine{00669\ \ \ \ \ \textcolor{keyword}{const}\ uint64\_t\ b[]\ =\ \{0x2ULL,\ 0xCULL,\ 0xF0ULL,\ 0xFF00ULL,\ 0xFFFF0000ULL,\ 0xFFFFFFFF00000000ULL\};}
+\DoxyCodeLine{00670\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ S[]\ =\ \{1,\ 2,\ 4,\ 8,\ 16,\ 32\};}
+\DoxyCodeLine{00671\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ r\ =\ 0;}
+\DoxyCodeLine{00672\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 5;\ i\ >=\ 0;\ i-\/-\/)}
+\DoxyCodeLine{00673\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ b[i])}
+\DoxyCodeLine{00674\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00675\ \ \ \ \ v\ >>=\ S[i];}
+\DoxyCodeLine{00676\ \ \ \ \ r\ |=\ S[i];}
+\DoxyCodeLine{00677\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00678\ \ \ \ \ \textcolor{keywordflow}{return}\ r\ +\ 1;}
+\DoxyCodeLine{00679\ \ \ \}}
+\DoxyCodeLine{00680\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ ==\ 16)}
+\DoxyCodeLine{00681\ \ \ \{}
+\DoxyCodeLine{00682\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ shift\ =\ 64;}
+\DoxyCodeLine{00683\ \ \ \ \ \textcolor{keywordflow}{return}\ (v\ >>\ shift)\ ?\ hb\_bit\_storage<uint64\_t>\ ((uint64\_t)\ (v\ >>\ shift))\ +\ shift\ :}
+\DoxyCodeLine{00684\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_bit\_storage<uint64\_t>\ ((uint64\_t)\ v);}
+\DoxyCodeLine{00685\ \ \ \}}
+\DoxyCodeLine{00686\ }
+\DoxyCodeLine{00687\ \ \ assert\ (0);}
+\DoxyCodeLine{00688\ \ \ \textcolor{keywordflow}{return}\ 0;\ \textcolor{comment}{/*\ Shut\ up\ stupid\ compiler.\ */}}
+\DoxyCodeLine{00689\ \}}
+\DoxyCodeLine{00690\ }
+\DoxyCodeLine{00691\ \textcolor{comment}{/*\ Returns\ the\ number\ of\ zero\ bits\ in\ the\ least\ significant\ side\ of\ v\ */}}
+\DoxyCodeLine{00692\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00693\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00694\ hb\_ctz\ (T\ v)}
+\DoxyCodeLine{00695\ \{}
+\DoxyCodeLine{00696\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!v))\ \textcolor{keywordflow}{return}\ 8\ *\ \textcolor{keyword}{sizeof}\ (T);}
+\DoxyCodeLine{00697\ }
+\DoxyCodeLine{00698\ \textcolor{preprocessor}{\#if\ (defined(\_\_GNUC\_\_)\ \&\&\ (\_\_GNUC\_\_\ >=\ 4))\ ||\ defined(\_\_clang\_\_)}}
+\DoxyCodeLine{00699\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ int))}
+\DoxyCodeLine{00700\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_builtin\_ctz\ (v);}
+\DoxyCodeLine{00701\ }
+\DoxyCodeLine{00702\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}))}
+\DoxyCodeLine{00703\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_builtin\_ctzl\ (v);}
+\DoxyCodeLine{00704\ }
+\DoxyCodeLine{00705\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}))}
+\DoxyCodeLine{00706\ \ \ \ \ \textcolor{keywordflow}{return}\ \_\_builtin\_ctzll\ (v);}
+\DoxyCodeLine{00707\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00708\ }
+\DoxyCodeLine{00709\ \textcolor{preprocessor}{\#if\ (defined(\_MSC\_VER)\ \&\&\ \_MSC\_VER\ >=\ 1500)\ ||\ (defined(\_\_MINGW32\_\_)\ \&\&\ (\_\_GNUC\_\_\ <\ 4))}}
+\DoxyCodeLine{00710\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ \textcolor{keyword}{sizeof}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}))}
+\DoxyCodeLine{00711\ \ \ \{}
+\DoxyCodeLine{00712\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ where;}
+\DoxyCodeLine{00713\ \ \ \ \ \_BitScanForward\ (\&where,\ v);}
+\DoxyCodeLine{00714\ \ \ \ \ \textcolor{keywordflow}{return}\ where;}
+\DoxyCodeLine{00715\ \ \ \}}
+\DoxyCodeLine{00716\ \textcolor{preprocessor}{\#\ if\ defined(\_WIN64)}}
+\DoxyCodeLine{00717\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ 8)}
+\DoxyCodeLine{00718\ \ \ \{}
+\DoxyCodeLine{00719\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ where;}
+\DoxyCodeLine{00720\ \ \ \ \ \_BitScanForward64\ (\&where,\ v);}
+\DoxyCodeLine{00721\ \ \ \ \ \textcolor{keywordflow}{return}\ where;}
+\DoxyCodeLine{00722\ \ \ \}}
+\DoxyCodeLine{00723\ \textcolor{preprocessor}{\#\ endif}}
+\DoxyCodeLine{00724\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00725\ }
+\DoxyCodeLine{00726\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ 4)}
+\DoxyCodeLine{00727\ \ \ \{}
+\DoxyCodeLine{00728\ \ \ \ \ \textcolor{comment}{/*\ "{}bithacks"{}\ */}}
+\DoxyCodeLine{00729\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ c\ =\ 32;}
+\DoxyCodeLine{00730\ \ \ \ \ v\ \&=\ -\/\ (int32\_t)\ v;}
+\DoxyCodeLine{00731\ \ \ \ \ \textcolor{keywordflow}{if}\ (v)\ c-\/-\/;}
+\DoxyCodeLine{00732\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x0000FFFF)\ c\ -\/=\ 16;}
+\DoxyCodeLine{00733\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x00FF00FF)\ c\ -\/=\ 8;}
+\DoxyCodeLine{00734\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x0F0F0F0F)\ c\ -\/=\ 4;}
+\DoxyCodeLine{00735\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x33333333)\ c\ -\/=\ 2;}
+\DoxyCodeLine{00736\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x55555555)\ c\ -\/=\ 1;}
+\DoxyCodeLine{00737\ \ \ \ \ \textcolor{keywordflow}{return}\ c;}
+\DoxyCodeLine{00738\ \ \ \}}
+\DoxyCodeLine{00739\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ <=\ 8)}
+\DoxyCodeLine{00740\ \ \ \{}
+\DoxyCodeLine{00741\ \ \ \ \ \textcolor{comment}{/*\ "{}bithacks"{}\ */}}
+\DoxyCodeLine{00742\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ c\ =\ 64;}
+\DoxyCodeLine{00743\ \ \ \ \ v\ \&=\ -\/\ (int64\_t)\ (v);}
+\DoxyCodeLine{00744\ \ \ \ \ \textcolor{keywordflow}{if}\ (v)\ c-\/-\/;}
+\DoxyCodeLine{00745\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x00000000FFFFFFFFULL)\ c\ -\/=\ 32;}
+\DoxyCodeLine{00746\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x0000FFFF0000FFFFULL)\ c\ -\/=\ 16;}
+\DoxyCodeLine{00747\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x00FF00FF00FF00FFULL)\ c\ -\/=\ 8;}
+\DoxyCodeLine{00748\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x0F0F0F0F0F0F0F0FULL)\ c\ -\/=\ 4;}
+\DoxyCodeLine{00749\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x3333333333333333ULL)\ c\ -\/=\ 2;}
+\DoxyCodeLine{00750\ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ \&\ 0x5555555555555555ULL)\ c\ -\/=\ 1;}
+\DoxyCodeLine{00751\ \ \ \ \ \textcolor{keywordflow}{return}\ c;}
+\DoxyCodeLine{00752\ \ \ \}}
+\DoxyCodeLine{00753\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keyword}{sizeof}\ (T)\ ==\ 16)}
+\DoxyCodeLine{00754\ \ \ \{}
+\DoxyCodeLine{00755\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ shift\ =\ 64;}
+\DoxyCodeLine{00756\ \ \ \ \ \textcolor{keywordflow}{return}\ (uint64\_t)\ v\ ?\ hb\_bit\_storage<uint64\_t>\ ((uint64\_t)\ v)\ :}
+\DoxyCodeLine{00757\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_bit\_storage<uint64\_t>\ ((uint64\_t)\ (v\ >>\ shift))\ +\ shift;}
+\DoxyCodeLine{00758\ \ \ \}}
+\DoxyCodeLine{00759\ }
+\DoxyCodeLine{00760\ \ \ assert\ (0);}
+\DoxyCodeLine{00761\ \ \ \textcolor{keywordflow}{return}\ 0;\ \textcolor{comment}{/*\ Shut\ up\ stupid\ compiler.\ */}}
+\DoxyCodeLine{00762\ \}}
+\DoxyCodeLine{00763\ }
+\DoxyCodeLine{00764\ }
+\DoxyCodeLine{00765\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00766\ \textcolor{comment}{\ *\ Tiny\ stuff.}}
+\DoxyCodeLine{00767\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00768\ }
+\DoxyCodeLine{00769\ \textcolor{comment}{/*\ ASCII\ tag/character\ handling\ */}}
+\DoxyCodeLine{00770\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ ISALPHA\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ c)}
+\DoxyCodeLine{00771\ \{\ \textcolor{keywordflow}{return}\ (c\ >=\ \textcolor{charliteral}{'a'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'z'})\ ||\ (c\ >=\ \textcolor{charliteral}{'A'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'Z'});\ \}}
+\DoxyCodeLine{00772\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ ISALNUM\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ c)}
+\DoxyCodeLine{00773\ \{\ \textcolor{keywordflow}{return}\ (c\ >=\ \textcolor{charliteral}{'a'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'z'})\ ||\ (c\ >=\ \textcolor{charliteral}{'A'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'Z'})\ ||\ (c\ >=\ \textcolor{charliteral}{'0'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'9'});\ \}}
+\DoxyCodeLine{00774\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ ISSPACE\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ c)}
+\DoxyCodeLine{00775\ \{\ \textcolor{keywordflow}{return}\ c\ ==\ \textcolor{charliteral}{'\ '}\ ||\ c\ ==\textcolor{charliteral}{'\(\backslash\)f'}||\ c\ ==\textcolor{charliteral}{'\(\backslash\)n'}||\ c\ ==\textcolor{charliteral}{'\(\backslash\)r'}||\ c\ ==\textcolor{charliteral}{'\(\backslash\)t'}||\ c\ ==\textcolor{charliteral}{'\(\backslash\)v'};\ \}}
+\DoxyCodeLine{00776\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ TOUPPER\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ c)}
+\DoxyCodeLine{00777\ \{\ \textcolor{keywordflow}{return}\ (c\ >=\ \textcolor{charliteral}{'a'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'z'})\ ?\ c\ -\/\ \textcolor{charliteral}{'a'}\ +\ \textcolor{charliteral}{'A'}\ :\ c;\ \}}
+\DoxyCodeLine{00778\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ TOLOWER\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ c)}
+\DoxyCodeLine{00779\ \{\ \textcolor{keywordflow}{return}\ (c\ >=\ \textcolor{charliteral}{'A'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'Z'})\ ?\ c\ -\/\ \textcolor{charliteral}{'A'}\ +\ \textcolor{charliteral}{'a'}\ :\ c;\ \}}
+\DoxyCodeLine{00780\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ ISHEX\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ c)}
+\DoxyCodeLine{00781\ \{\ \textcolor{keywordflow}{return}\ (c\ >=\ \textcolor{charliteral}{'0'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'9'})\ ||\ (c\ >=\ \textcolor{charliteral}{'a'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'f'})\ ||\ (c\ >=\ \textcolor{charliteral}{'A'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'F'});\ \}}
+\DoxyCodeLine{00782\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ TOHEX\ (uint8\_t\ c)}
+\DoxyCodeLine{00783\ \{\ \textcolor{keywordflow}{return}\ (c\ \&\ 0xF)\ <=\ 9\ ?\ (c\ \&\ 0xF)\ +\ \textcolor{charliteral}{'0'}\ :\ (c\ \&\ 0xF)\ +\ \textcolor{charliteral}{'a'}\ -\/\ 10;\ \}}
+\DoxyCodeLine{00784\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ uint8\_t\ FROMHEX\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ c)}
+\DoxyCodeLine{00785\ \{\ \textcolor{keywordflow}{return}\ (c\ >=\ \textcolor{charliteral}{'0'}\ \&\&\ c\ <=\ \textcolor{charliteral}{'9'})\ ?\ c\ -\/\ \textcolor{charliteral}{'0'}\ :\ TOLOWER\ (c)\ -\/\ \textcolor{charliteral}{'a'}\ +\ 10;\ \}}
+\DoxyCodeLine{00786\ }
+\DoxyCodeLine{00787\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ DIV\_CEIL\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b)}
+\DoxyCodeLine{00788\ \{\ \textcolor{keywordflow}{return}\ (\mbox{\hyperlink{structa}{a}}\ +\ (b\ -\/\ 1))\ /\ b;\ \}}
+\DoxyCodeLine{00789\ }
+\DoxyCodeLine{00790\ }
+\DoxyCodeLine{00791\ \textcolor{preprocessor}{\#undef\ \ ARRAY\_LENGTH}}
+\DoxyCodeLine{00792\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ n>}
+\DoxyCodeLine{00793\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ ARRAY\_LENGTH\ (\textcolor{keyword}{const}\ Type\ (\&)[n])\ \{\ \textcolor{keywordflow}{return}\ n;\ \}}
+\DoxyCodeLine{00794\ \textcolor{comment}{/*\ A\ const\ version,\ but\ does\ not\ detect\ erratically\ being\ called\ on\ pointers.\ */}}
+\DoxyCodeLine{00795\ \textcolor{preprocessor}{\#define\ ARRAY\_LENGTH\_CONST(\_\_array)\ ((signed\ int)\ (sizeof\ (\_\_array)\ /\ sizeof\ (\_\_array[0])))}}
+\DoxyCodeLine{00796\ }
+\DoxyCodeLine{00797\ }
+\DoxyCodeLine{00798\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ *}
+\DoxyCodeLine{00799\ hb\_memcpy\ (\textcolor{keywordtype}{void}\ *\_\_restrict\ dst,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_\_restrict\ src,\ \textcolor{keywordtype}{size\_t}\ len)}
+\DoxyCodeLine{00800\ \{}
+\DoxyCodeLine{00801\ \ \ \textcolor{comment}{/*\ It's\ illegal\ to\ pass\ 0\ as\ size\ to\ memcpy.\ */}}
+\DoxyCodeLine{00802\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!len))\ \textcolor{keywordflow}{return}\ dst;}
+\DoxyCodeLine{00803\ \ \ \textcolor{keywordflow}{return}\ memcpy\ (dst,\ src,\ len);}
+\DoxyCodeLine{00804\ \}}
+\DoxyCodeLine{00805\ }
+\DoxyCodeLine{00806\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00807\ hb\_memcmp\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len)}
+\DoxyCodeLine{00808\ \{}
+\DoxyCodeLine{00809\ \ \ \textcolor{comment}{/*\ It's\ illegal\ to\ pass\ NULL\ to\ memcmp(),\ even\ if\ len\ is\ zero.}}
+\DoxyCodeLine{00810\ \textcolor{comment}{\ \ \ *\ So,\ wrap\ it.}}
+\DoxyCodeLine{00811\ \textcolor{comment}{\ \ \ *\ https://sourceware.org/bugzilla/show\_bug.cgi?id=23878\ */}}
+\DoxyCodeLine{00812\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!len))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00813\ \ \ \textcolor{keywordflow}{return}\ memcmp\ (\mbox{\hyperlink{structa}{a}},\ b,\ len);}
+\DoxyCodeLine{00814\ \}}
+\DoxyCodeLine{00815\ }
+\DoxyCodeLine{00816\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ *}
+\DoxyCodeLine{00817\ hb\_memset\ (\textcolor{keywordtype}{void}\ *s,\ \textcolor{keywordtype}{int}\ c,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ n)}
+\DoxyCodeLine{00818\ \{}
+\DoxyCodeLine{00819\ \ \ \textcolor{comment}{/*\ It's\ illegal\ to\ pass\ NULL\ to\ memset(),\ even\ if\ n\ is\ zero.\ */}}
+\DoxyCodeLine{00820\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!n))\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00821\ \ \ \textcolor{keywordflow}{return}\ memset\ (s,\ c,\ n);}
+\DoxyCodeLine{00822\ \}}
+\DoxyCodeLine{00823\ }
+\DoxyCodeLine{00824\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00825\ hb\_ceil\_to\_4\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ v)}
+\DoxyCodeLine{00826\ \{}
+\DoxyCodeLine{00827\ \ \ \textcolor{keywordflow}{return}\ ((v\ -\/\ 1)\ |\ 3)\ +\ 1;}
+\DoxyCodeLine{00828\ \}}
+\DoxyCodeLine{00829\ }
+\DoxyCodeLine{00830\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00831\ hb\_in\_range\ (T\ u,\ T\ lo,\ T\ hi)}
+\DoxyCodeLine{00832\ \{}
+\DoxyCodeLine{00833\ \ \ \textcolor{keyword}{static\_assert}\ (!std::is\_signed<T>::value,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00834\ }
+\DoxyCodeLine{00835\ \ \ \textcolor{comment}{/*\ The\ casts\ below\ are\ important\ as\ if\ T\ is\ smaller\ than\ int,}}
+\DoxyCodeLine{00836\ \textcolor{comment}{\ \ \ *\ the\ subtract\ results\ will\ become\ a\ signed\ int!\ */}}
+\DoxyCodeLine{00837\ \ \ \textcolor{keywordflow}{return}\ (T)(u\ -\/\ lo)\ <=\ (T)(hi\ -\/\ lo);}
+\DoxyCodeLine{00838\ \}}
+\DoxyCodeLine{00839\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00840\ hb\_in\_ranges\ (T\ u,\ T\ lo1,\ T\ hi1,\ T\ lo2,\ T\ hi2)}
+\DoxyCodeLine{00841\ \{}
+\DoxyCodeLine{00842\ \ \ \textcolor{keywordflow}{return}\ hb\_in\_range\ (u,\ lo1,\ hi1)\ ||\ hb\_in\_range\ (u,\ lo2,\ hi2);}
+\DoxyCodeLine{00843\ \}}
+\DoxyCodeLine{00844\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00845\ hb\_in\_ranges\ (T\ u,\ T\ lo1,\ T\ hi1,\ T\ lo2,\ T\ hi2,\ T\ lo3,\ T\ hi3)}
+\DoxyCodeLine{00846\ \{}
+\DoxyCodeLine{00847\ \ \ \textcolor{keywordflow}{return}\ hb\_in\_range\ (u,\ lo1,\ hi1)\ ||\ hb\_in\_range\ (u,\ lo2,\ hi2)\ ||\ hb\_in\_range\ (u,\ lo3,\ hi3);}
+\DoxyCodeLine{00848\ \}}
+\DoxyCodeLine{00849\ }
+\DoxyCodeLine{00850\ }
+\DoxyCodeLine{00851\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00852\ \textcolor{comment}{\ *\ Overflow\ checking.}}
+\DoxyCodeLine{00853\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00854\ }
+\DoxyCodeLine{00855\ \textcolor{comment}{/*\ Consider\ \_\_builtin\_mul\_overflow\ use\ here\ also\ */}}
+\DoxyCodeLine{00856\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00857\ hb\_unsigned\_mul\_overflows\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size)}
+\DoxyCodeLine{00858\ \{}
+\DoxyCodeLine{00859\ \ \ \textcolor{keywordflow}{return}\ (size\ >\ 0)\ \&\&\ (count\ >=\ ((\textcolor{keywordtype}{unsigned}\ int)\ -\/1)\ /\ size);}
+\DoxyCodeLine{00860\ \}}
+\DoxyCodeLine{00861\ }
+\DoxyCodeLine{00862\ }
+\DoxyCodeLine{00863\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00864\ \textcolor{comment}{\ *\ Sort\ and\ search.}}
+\DoxyCodeLine{00865\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00866\ }
+\DoxyCodeLine{00867\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ K,\ \textcolor{keyword}{typename}\ V,\ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00868\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00869\ \_hb\_cmp\_method\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *pkey,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *pval,\ Ts...\ ds)}
+\DoxyCodeLine{00870\ \{}
+\DoxyCodeLine{00871\ \ \ \textcolor{keyword}{const}\ K\&\ key\ =\ *\ (\textcolor{keyword}{const}\ K*)\ pkey;}
+\DoxyCodeLine{00872\ \ \ \textcolor{keyword}{const}\ V\&\ val\ =\ *\ (\textcolor{keyword}{const}\ V*)\ pval;}
+\DoxyCodeLine{00873\ }
+\DoxyCodeLine{00874\ \ \ \textcolor{keywordflow}{return}\ val.cmp\ (key,\ ds...);}
+\DoxyCodeLine{00875\ \}}
+\DoxyCodeLine{00876\ }
+\DoxyCodeLine{00877\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ V,\ \textcolor{keyword}{typename}\ K,\ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00878\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00879\ hb\_bsearch\_impl\ (\textcolor{keywordtype}{unsigned}\ *pos,\ \textcolor{comment}{/*\ Out\ */}}
+\DoxyCodeLine{00880\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ K\&\ key,}
+\DoxyCodeLine{00881\ \ \ \ \ \ \ \ \ \ V*\ base,\ \textcolor{keywordtype}{size\_t}\ nmemb,\ \textcolor{keywordtype}{size\_t}\ stride,}
+\DoxyCodeLine{00882\ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*compar)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_key,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_item,\ Ts...\ \_ds),}
+\DoxyCodeLine{00883\ \ \ \ \ \ \ \ \ \ Ts...\ ds)}
+\DoxyCodeLine{00884\ \{}
+\DoxyCodeLine{00885\ \ \ \textcolor{comment}{/*\ This\ is\ our\ *only*\ bsearch\ implementation.\ */}}
+\DoxyCodeLine{00886\ }
+\DoxyCodeLine{00887\ \ \ \textcolor{keywordtype}{int}\ min\ =\ 0,\ max\ =\ (int)\ nmemb\ -\/\ 1;}
+\DoxyCodeLine{00888\ \ \ \textcolor{keywordflow}{while}\ (min\ <=\ max)}
+\DoxyCodeLine{00889\ \ \ \{}
+\DoxyCodeLine{00890\ \ \ \ \ \textcolor{keywordtype}{int}\ mid\ =\ ((\textcolor{keywordtype}{unsigned}\ int)\ min\ +\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})\ max)\ /\ 2;}
+\DoxyCodeLine{00891\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ push}}
+\DoxyCodeLine{00892\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ ignored\ "{}-\/Wcast-\/align"{}}}
+\DoxyCodeLine{00893\ \ \ \ \ V*\ p\ =\ (V*)\ (((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ base)\ +\ (mid\ *\ stride));}
+\DoxyCodeLine{00894\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ pop}}
+\DoxyCodeLine{00895\ \ \ \ \ \textcolor{keywordtype}{int}\ c\ =\ compar\ ((\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *)\ std::addressof\ (key),\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *)\ p,\ ds...);}
+\DoxyCodeLine{00896\ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ <\ 0)}
+\DoxyCodeLine{00897\ \ \ \ \ \ \ max\ =\ mid\ -\/\ 1;}
+\DoxyCodeLine{00898\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (c\ >\ 0)}
+\DoxyCodeLine{00899\ \ \ \ \ \ \ min\ =\ mid\ +\ 1;}
+\DoxyCodeLine{00900\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00901\ \ \ \ \ \{}
+\DoxyCodeLine{00902\ \ \ \ \ \ \ *pos\ =\ mid;}
+\DoxyCodeLine{00903\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00904\ \ \ \ \ \}}
+\DoxyCodeLine{00905\ \ \ \}}
+\DoxyCodeLine{00906\ \ \ *pos\ =\ min;}
+\DoxyCodeLine{00907\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00908\ \}}
+\DoxyCodeLine{00909\ }
+\DoxyCodeLine{00910\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ V,\ \textcolor{keyword}{typename}\ K>}
+\DoxyCodeLine{00911\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ V*}
+\DoxyCodeLine{00912\ hb\_bsearch\ (\textcolor{keyword}{const}\ K\&\ key,\ V*\ base,}
+\DoxyCodeLine{00913\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ nmemb,\ \textcolor{keywordtype}{size\_t}\ stride\ =\ \textcolor{keyword}{sizeof}\ (V),}
+\DoxyCodeLine{00914\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*compar)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_key,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_item)\ =\ \_hb\_cmp\_method<K,\ V>)}
+\DoxyCodeLine{00915\ \{}
+\DoxyCodeLine{00916\ \ \ \textcolor{keywordtype}{unsigned}\ pos;}
+\DoxyCodeLine{00917\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ push}}
+\DoxyCodeLine{00918\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ ignored\ "{}-\/Wcast-\/align"{}}}
+\DoxyCodeLine{00919\ \ \ \textcolor{keywordflow}{return}\ hb\_bsearch\_impl\ (\&pos,\ key,\ base,\ nmemb,\ stride,\ compar)\ ?}
+\DoxyCodeLine{00920\ \ \ \ \ \ (V*)\ (((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ base)\ +\ (pos\ *\ stride))\ :\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00921\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ pop}}
+\DoxyCodeLine{00922\ \}}
+\DoxyCodeLine{00923\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ V,\ \textcolor{keyword}{typename}\ K,\ \textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00924\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ V*}
+\DoxyCodeLine{00925\ hb\_bsearch\ (\textcolor{keyword}{const}\ K\&\ key,\ V*\ base,}
+\DoxyCodeLine{00926\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ nmemb,\ \textcolor{keywordtype}{size\_t}\ stride,}
+\DoxyCodeLine{00927\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*compar)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_key,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_item,\ Ts...\ \_ds),}
+\DoxyCodeLine{00928\ \ \ \ \ \ \ \ \ Ts...\ ds)}
+\DoxyCodeLine{00929\ \{}
+\DoxyCodeLine{00930\ \ \ \textcolor{keywordtype}{unsigned}\ pos;}
+\DoxyCodeLine{00931\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ push}}
+\DoxyCodeLine{00932\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ ignored\ "{}-\/Wcast-\/align"{}}}
+\DoxyCodeLine{00933\ \ \ \textcolor{keywordflow}{return}\ hb\_bsearch\_impl\ (\&pos,\ key,\ base,\ nmemb,\ stride,\ compar,\ ds...)\ ?}
+\DoxyCodeLine{00934\ \ \ \ \ \ (V*)\ (((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ base)\ +\ (pos\ *\ stride))\ :\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00935\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ pop}}
+\DoxyCodeLine{00936\ \}}
+\DoxyCodeLine{00937\ }
+\DoxyCodeLine{00938\ }
+\DoxyCodeLine{00939\ \textcolor{comment}{/*\ From\ https://github.com/noporpoise/sort\_r}}
+\DoxyCodeLine{00940\ \textcolor{comment}{\ \ \ Feb\ 5,\ 2019\ (c8c65c1e)}}
+\DoxyCodeLine{00941\ \textcolor{comment}{\ \ \ Modified\ to\ support\ optional\ argument\ using\ templates\ */}}
+\DoxyCodeLine{00942\ }
+\DoxyCodeLine{00943\ \textcolor{comment}{/*\ Isaac\ Turner\ 29\ April\ 2014\ Public\ Domain\ */}}
+\DoxyCodeLine{00944\ }
+\DoxyCodeLine{00945\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00946\ \textcolor{comment}{hb\_qsort\ function\ to\ be\ exported.}}
+\DoxyCodeLine{00947\ \textcolor{comment}{Parameters:}}
+\DoxyCodeLine{00948\ \textcolor{comment}{\ \ base\ is\ the\ array\ to\ be\ sorted}}
+\DoxyCodeLine{00949\ \textcolor{comment}{\ \ nel\ is\ the\ number\ of\ elements\ in\ the\ array}}
+\DoxyCodeLine{00950\ \textcolor{comment}{\ \ width\ is\ the\ size\ in\ bytes\ of\ each\ element\ of\ the\ array}}
+\DoxyCodeLine{00951\ \textcolor{comment}{\ \ compar\ is\ the\ comparison\ function}}
+\DoxyCodeLine{00952\ \textcolor{comment}{\ \ arg\ (optional)\ is\ a\ pointer\ to\ be\ passed\ to\ the\ comparison\ function}}
+\DoxyCodeLine{00953\ \textcolor{comment}{}}
+\DoxyCodeLine{00954\ \textcolor{comment}{void\ hb\_qsort(void\ *base,\ size\_t\ nel,\ size\_t\ width,}}
+\DoxyCodeLine{00955\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ int\ (*compar)(const\ void\ *\_a,\ const\ void\ *\_b,\ [void\ *\_arg]),}}
+\DoxyCodeLine{00956\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ [void\ *arg]);}}
+\DoxyCodeLine{00957\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00958\ }
+\DoxyCodeLine{00959\ \textcolor{preprocessor}{\#define\ SORT\_R\_SWAP(a,b,tmp)\ ((tmp)\ =\ (a),\ (a)\ =\ (b),\ (b)\ =\ (tmp))}}
+\DoxyCodeLine{00960\ }
+\DoxyCodeLine{00961\ \textcolor{comment}{/*\ swap\ a\ and\ b\ */}}
+\DoxyCodeLine{00962\ \textcolor{comment}{/*\ a\ and\ b\ must\ not\ be\ equal!\ */}}
+\DoxyCodeLine{00963\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ sort\_r\_swap(\textcolor{keywordtype}{char}\ *\_\_restrict\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{char}\ *\_\_restrict\ b,}
+\DoxyCodeLine{00964\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ w)}
+\DoxyCodeLine{00965\ \{}
+\DoxyCodeLine{00966\ \ \ \textcolor{keywordtype}{char}\ tmp,\ *end\ =\ \mbox{\hyperlink{structa}{a}}+w;}
+\DoxyCodeLine{00967\ \ \ \textcolor{keywordflow}{for}(;\ \mbox{\hyperlink{structa}{a}}\ <\ end;\ \mbox{\hyperlink{structa}{a}}++,\ b++)\ \{\ SORT\_R\_SWAP(*\mbox{\hyperlink{structa}{a}},\ *b,\ tmp);\ \}}
+\DoxyCodeLine{00968\ \}}
+\DoxyCodeLine{00969\ }
+\DoxyCodeLine{00970\ \textcolor{comment}{/*\ swap\ a,\ b\ iff\ a>b\ */}}
+\DoxyCodeLine{00971\ \textcolor{comment}{/*\ a\ and\ b\ must\ not\ be\ equal!\ */}}
+\DoxyCodeLine{00972\ \textcolor{comment}{/*\ \_\_restrict\ is\ same\ as\ restrict\ but\ better\ support\ on\ old\ machines\ */}}
+\DoxyCodeLine{00973\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{00974\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{int}\ sort\_r\_cmpswap(\textcolor{keywordtype}{char}\ *\_\_restrict\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00975\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *\_\_restrict\ b,\ \textcolor{keywordtype}{size\_t}\ w,}
+\DoxyCodeLine{00976\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*compar)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_a,}
+\DoxyCodeLine{00977\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_b,}
+\DoxyCodeLine{00978\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ts...\ \_ds),}
+\DoxyCodeLine{00979\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ts...\ ds)}
+\DoxyCodeLine{00980\ \{}
+\DoxyCodeLine{00981\ \ \ \textcolor{keywordflow}{if}(compar(\mbox{\hyperlink{structa}{a}},\ b,\ ds...)\ >\ 0)\ \{}
+\DoxyCodeLine{00982\ \ \ \ \ sort\_r\_swap(\mbox{\hyperlink{structa}{a}},\ b,\ w);}
+\DoxyCodeLine{00983\ \ \ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00984\ \ \ \}}
+\DoxyCodeLine{00985\ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00986\ \}}
+\DoxyCodeLine{00987\ }
+\DoxyCodeLine{00988\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00989\ \textcolor{comment}{Swap\ consecutive\ blocks\ of\ bytes\ of\ size\ na\ and\ nb\ starting\ at\ memory\ addr\ ptr,}}
+\DoxyCodeLine{00990\ \textcolor{comment}{with\ the\ smallest\ swap\ so\ that\ the\ blocks\ are\ in\ the\ opposite\ order.\ Blocks\ may}}
+\DoxyCodeLine{00991\ \textcolor{comment}{be\ internally\ re-\/ordered\ e.g.}}
+\DoxyCodeLine{00992\ \textcolor{comment}{\ \ 12345ab\ \ -\/>\ \ \ ab34512}}
+\DoxyCodeLine{00993\ \textcolor{comment}{\ \ 123abc\ \ \ -\/>\ \ \ abc123}}
+\DoxyCodeLine{00994\ \textcolor{comment}{\ \ 12abcde\ \ -\/>\ \ \ deabc12}}
+\DoxyCodeLine{00995\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00996\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ sort\_r\_swap\_blocks(\textcolor{keywordtype}{char}\ *ptr,\ \textcolor{keywordtype}{size\_t}\ na,\ \textcolor{keywordtype}{size\_t}\ nb)}
+\DoxyCodeLine{00997\ \{}
+\DoxyCodeLine{00998\ \ \ \textcolor{keywordflow}{if}(na\ >\ 0\ \&\&\ nb\ >\ 0)\ \{}
+\DoxyCodeLine{00999\ \ \ \ \ \textcolor{keywordflow}{if}(na\ >\ nb)\ \{\ sort\_r\_swap(ptr,\ ptr+na,\ nb);\ \}}
+\DoxyCodeLine{01000\ \ \ \ \ \textcolor{keywordflow}{else}\ \{\ sort\_r\_swap(ptr,\ ptr+nb,\ na);\ \}}
+\DoxyCodeLine{01001\ \ \ \}}
+\DoxyCodeLine{01002\ \}}
+\DoxyCodeLine{01003\ }
+\DoxyCodeLine{01004\ \textcolor{comment}{/*\ Implement\ recursive\ quicksort\ ourselves\ */}}
+\DoxyCodeLine{01005\ \textcolor{comment}{/*\ Note:\ quicksort\ is\ not\ stable,\ equivalent\ values\ may\ be\ swapped\ */}}
+\DoxyCodeLine{01006\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ...Ts>}
+\DoxyCodeLine{01007\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ sort\_r\_simple(\textcolor{keywordtype}{void}\ *base,\ \textcolor{keywordtype}{size\_t}\ nel,\ \textcolor{keywordtype}{size\_t}\ w,}
+\DoxyCodeLine{01008\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*compar)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_a,}
+\DoxyCodeLine{01009\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_b,}
+\DoxyCodeLine{01010\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ts...\ \_ds),}
+\DoxyCodeLine{01011\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Ts...\ ds)}
+\DoxyCodeLine{01012\ \{}
+\DoxyCodeLine{01013\ \ \ \textcolor{keywordtype}{char}\ *b\ =\ (\textcolor{keywordtype}{char}\ *)base,\ *end\ =\ b\ +\ nel*w;}
+\DoxyCodeLine{01014\ }
+\DoxyCodeLine{01015\ \ \ \textcolor{comment}{/*\ for(size\_t\ i=0;\ i<nel;\ i++)\ \{printf("{}\%4i"{},\ *(int*)(b\ +\ i*sizeof(int)));\}}}
+\DoxyCodeLine{01016\ \textcolor{comment}{\ \ printf("{}\(\backslash\)n"{});\ */}}
+\DoxyCodeLine{01017\ }
+\DoxyCodeLine{01018\ \ \ \textcolor{keywordflow}{if}(nel\ <\ 10)\ \{}
+\DoxyCodeLine{01019\ \ \ \ \ \textcolor{comment}{/*\ Insertion\ sort\ for\ arbitrarily\ small\ inputs\ */}}
+\DoxyCodeLine{01020\ \ \ \ \ \textcolor{keywordtype}{char}\ *pi,\ *pj;}
+\DoxyCodeLine{01021\ \ \ \ \ \textcolor{keywordflow}{for}(pi\ =\ b+w;\ pi\ <\ end;\ pi\ +=\ w)\ \{}
+\DoxyCodeLine{01022\ \ \ \ \ \ \ \textcolor{keywordflow}{for}(pj\ =\ pi;\ pj\ >\ b\ \&\&\ sort\_r\_cmpswap(pj-\/w,pj,w,compar,ds...);\ pj\ -\/=\ w)\ \{\}}
+\DoxyCodeLine{01023\ \ \ \ \ \}}
+\DoxyCodeLine{01024\ \ \ \}}
+\DoxyCodeLine{01025\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01026\ \ \ \{}
+\DoxyCodeLine{01027\ \ \ \ \ \textcolor{comment}{/*\ nel\ >\ 9;\ Quicksort\ */}}
+\DoxyCodeLine{01028\ }
+\DoxyCodeLine{01029\ \ \ \ \ \textcolor{keywordtype}{int}\ cmp;}
+\DoxyCodeLine{01030\ \ \ \ \ \textcolor{keywordtype}{char}\ *pl,\ *ple,\ *pr,\ *pre,\ *pivot;}
+\DoxyCodeLine{01031\ \ \ \ \ \textcolor{keywordtype}{char}\ *last\ =\ b+w*(nel-\/1),\ *tmp;}
+\DoxyCodeLine{01032\ }
+\DoxyCodeLine{01033\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{01034\ \textcolor{comment}{\ \ \ \ Use\ median\ of\ second,\ middle\ and\ second-\/last\ items\ as\ pivot.}}
+\DoxyCodeLine{01035\ \textcolor{comment}{\ \ \ \ First\ and\ last\ may\ have\ been\ swapped\ with\ pivot\ and\ therefore\ be\ extreme}}
+\DoxyCodeLine{01036\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{01037\ \ \ \ \ \textcolor{keywordtype}{char}\ *l[3];}
+\DoxyCodeLine{01038\ \ \ \ \ l[0]\ =\ b\ +\ w;}
+\DoxyCodeLine{01039\ \ \ \ \ l[1]\ =\ b+w*(nel/2);}
+\DoxyCodeLine{01040\ \ \ \ \ l[2]\ =\ last\ -\/\ w;}
+\DoxyCodeLine{01041\ }
+\DoxyCodeLine{01042\ \ \ \ \ \textcolor{comment}{/*\ printf("{}pivots:\ \%i,\ \%i,\ \%i\(\backslash\)n"{},\ *(int*)l[0],\ *(int*)l[1],\ *(int*)l[2]);\ */}}
+\DoxyCodeLine{01043\ }
+\DoxyCodeLine{01044\ \ \ \ \ \textcolor{keywordflow}{if}(compar(l[0],l[1],ds...)\ >\ 0)\ \{\ SORT\_R\_SWAP(l[0],\ l[1],\ tmp);\ \}}
+\DoxyCodeLine{01045\ \ \ \ \ \textcolor{keywordflow}{if}(compar(l[1],l[2],ds...)\ >\ 0)\ \{}
+\DoxyCodeLine{01046\ \ \ \ \ \ \ SORT\_R\_SWAP(l[1],\ l[2],\ tmp);}
+\DoxyCodeLine{01047\ \ \ \ \ \ \ \textcolor{keywordflow}{if}(compar(l[0],l[1],ds...)\ >\ 0)\ \{\ SORT\_R\_SWAP(l[0],\ l[1],\ tmp);\ \}}
+\DoxyCodeLine{01048\ \ \ \ \ \}}
+\DoxyCodeLine{01049\ }
+\DoxyCodeLine{01050\ \ \ \ \ \textcolor{comment}{/*\ swap\ mid\ value\ (l[1]),\ and\ last\ element\ to\ put\ pivot\ as\ last\ element\ */}}
+\DoxyCodeLine{01051\ \ \ \ \ \textcolor{keywordflow}{if}(l[1]\ !=\ last)\ \{\ sort\_r\_swap(l[1],\ last,\ w);\ \}}
+\DoxyCodeLine{01052\ }
+\DoxyCodeLine{01053\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{01054\ \textcolor{comment}{\ \ \ \ pl\ is\ the\ next\ item\ on\ the\ left\ to\ be\ compared\ to\ the\ pivot}}
+\DoxyCodeLine{01055\ \textcolor{comment}{\ \ \ \ pr\ is\ the\ last\ item\ on\ the\ right\ that\ was\ compared\ to\ the\ pivot}}
+\DoxyCodeLine{01056\ \textcolor{comment}{\ \ \ \ ple\ is\ the\ left\ position\ to\ put\ the\ next\ item\ that\ equals\ the\ pivot}}
+\DoxyCodeLine{01057\ \textcolor{comment}{\ \ \ \ ple\ is\ the\ last\ right\ position\ where\ we\ put\ an\ item\ that\ equals\ the\ pivot}}
+\DoxyCodeLine{01058\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ v-\/\ end\ (beyond\ the\ array)}}
+\DoxyCodeLine{01059\ \textcolor{comment}{\ \ \ \ \ \ EEEEEELLLLLLLLuuuuuuuuGGGGGGGEEEEEEEE.}}
+\DoxyCodeLine{01060\ \textcolor{comment}{\ \ \ \ \ \ \string^-\/\ b\ \ \string^-\/\ ple\ \ \string^-\/\ pl\ \ \ \string^-\/\ pr\ \ \string^-\/\ pre\ \string^-\/\ last\ (where\ the\ pivot\ is)}}
+\DoxyCodeLine{01061\ \textcolor{comment}{\ \ \ \ Pivot\ comparison\ key:}}
+\DoxyCodeLine{01062\ \textcolor{comment}{\ \ \ \ \ \ E\ =\ equal,\ L\ =\ less\ than,\ u\ =\ unknown,\ G\ =\ greater\ than,\ E\ =\ equal}}
+\DoxyCodeLine{01063\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{01064\ \ \ \ \ pivot\ =\ last;}
+\DoxyCodeLine{01065\ \ \ \ \ ple\ =\ pl\ =\ b;}
+\DoxyCodeLine{01066\ \ \ \ \ pre\ =\ pr\ =\ last;}
+\DoxyCodeLine{01067\ }
+\DoxyCodeLine{01068\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{01069\ \textcolor{comment}{\ \ \ \ Strategy:}}
+\DoxyCodeLine{01070\ \textcolor{comment}{\ \ \ \ Loop\ into\ the\ list\ from\ the\ left\ and\ right\ at\ the\ same\ time\ to\ find:}}
+\DoxyCodeLine{01071\ \textcolor{comment}{\ \ \ \ -\/\ an\ item\ on\ the\ left\ that\ is\ greater\ than\ the\ pivot}}
+\DoxyCodeLine{01072\ \textcolor{comment}{\ \ \ \ -\/\ an\ item\ on\ the\ right\ that\ is\ less\ than\ the\ pivot}}
+\DoxyCodeLine{01073\ \textcolor{comment}{\ \ \ \ Once\ found,\ they\ are\ swapped\ and\ the\ loop\ continues.}}
+\DoxyCodeLine{01074\ \textcolor{comment}{\ \ \ \ Meanwhile\ items\ that\ are\ equal\ to\ the\ pivot\ are\ moved\ to\ the\ edges\ of\ the}}
+\DoxyCodeLine{01075\ \textcolor{comment}{\ \ \ \ array.}}
+\DoxyCodeLine{01076\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{01077\ \ \ \ \ \textcolor{keywordflow}{while}(pl\ <\ pr)\ \{}
+\DoxyCodeLine{01078\ \ \ \ \ \ \ \textcolor{comment}{/*\ Move\ left\ hand\ items\ which\ are\ equal\ to\ the\ pivot\ to\ the\ far\ left.}}
+\DoxyCodeLine{01079\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ break\ when\ we\ find\ an\ item\ that\ is\ greater\ than\ the\ pivot\ */}}
+\DoxyCodeLine{01080\ \ \ \ \ \ \ \textcolor{keywordflow}{for}(;\ pl\ <\ pr;\ pl\ +=\ w)\ \{}
+\DoxyCodeLine{01081\ \ \ \ \ \ \ \ \ cmp\ =\ compar(pl,\ pivot,\ ds...);}
+\DoxyCodeLine{01082\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(cmp\ >\ 0)\ \{\ \textcolor{keywordflow}{break};\ \}}
+\DoxyCodeLine{01083\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(cmp\ ==\ 0)\ \{}
+\DoxyCodeLine{01084\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(ple\ <\ pl)\ \{\ sort\_r\_swap(ple,\ pl,\ w);\ \}}
+\DoxyCodeLine{01085\ \ \ \ \ \ \ \ \ \ \ ple\ +=\ w;}
+\DoxyCodeLine{01086\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01087\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01088\ \ \ \ \ \ \ \textcolor{comment}{/*\ break\ if\ last\ batch\ of\ left\ hand\ items\ were\ equal\ to\ pivot\ */}}
+\DoxyCodeLine{01089\ \ \ \ \ \ \ \textcolor{keywordflow}{if}(pl\ >=\ pr)\ \{\ \textcolor{keywordflow}{break};\ \}}
+\DoxyCodeLine{01090\ \ \ \ \ \ \ \textcolor{comment}{/*\ Move\ right\ hand\ items\ which\ are\ equal\ to\ the\ pivot\ to\ the\ far\ right.}}
+\DoxyCodeLine{01091\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ break\ when\ we\ find\ an\ item\ that\ is\ less\ than\ the\ pivot\ */}}
+\DoxyCodeLine{01092\ \ \ \ \ \ \ \textcolor{keywordflow}{for}(;\ pl\ <\ pr;\ )\ \{}
+\DoxyCodeLine{01093\ \ \ \ \ \ \ \ \ pr\ -\/=\ w;\ \textcolor{comment}{/*\ Move\ right\ pointer\ onto\ an\ unprocessed\ item\ */}}
+\DoxyCodeLine{01094\ \ \ \ \ \ \ \ \ cmp\ =\ compar(pr,\ pivot,\ ds...);}
+\DoxyCodeLine{01095\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(cmp\ ==\ 0)\ \{}
+\DoxyCodeLine{01096\ \ \ \ \ \ \ \ \ \ \ pre\ -\/=\ w;}
+\DoxyCodeLine{01097\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(pr\ <\ pre)\ \{\ sort\_r\_swap(pr,\ pre,\ w);\ \}}
+\DoxyCodeLine{01098\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01099\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}(cmp\ <\ 0)\ \{}
+\DoxyCodeLine{01100\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}(pl\ <\ pr)\ \{\ sort\_r\_swap(pl,\ pr,\ w);\ \}}
+\DoxyCodeLine{01101\ \ \ \ \ \ \ \ \ \ \ pl\ +=\ w;}
+\DoxyCodeLine{01102\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01103\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01104\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01105\ \ \ \ \ \}}
+\DoxyCodeLine{01106\ }
+\DoxyCodeLine{01107\ \ \ \ \ pl\ =\ pr;\ \textcolor{comment}{/*\ pr\ may\ have\ gone\ below\ pl\ */}}
+\DoxyCodeLine{01108\ }
+\DoxyCodeLine{01109\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{01110\ \textcolor{comment}{\ \ \ \ Now\ we\ need\ to\ go\ from:\ EEELLLGGGGEEEE}}
+\DoxyCodeLine{01111\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ to:\ LLLEEEEEEEGGGG}}
+\DoxyCodeLine{01112\ \textcolor{comment}{\ \ \ \ Pivot\ comparison\ key:}}
+\DoxyCodeLine{01113\ \textcolor{comment}{\ \ \ \ \ \ E\ =\ equal,\ L\ =\ less\ than,\ u\ =\ unknown,\ G\ =\ greater\ than,\ E\ =\ equal}}
+\DoxyCodeLine{01114\ \textcolor{comment}{\ \ \ \ */}}
+\DoxyCodeLine{01115\ \ \ \ \ sort\_r\_swap\_blocks(b,\ ple-\/b,\ pl-\/ple);}
+\DoxyCodeLine{01116\ \ \ \ \ sort\_r\_swap\_blocks(pr,\ pre-\/pr,\ end-\/pre);}
+\DoxyCodeLine{01117\ }
+\DoxyCodeLine{01118\ \ \ \ \ \textcolor{comment}{/*for(size\_t\ i=0;\ i<nel;\ i++)\ \{printf("{}\%4i"{},\ *(int*)(b\ +\ i*sizeof(int)));\}}}
+\DoxyCodeLine{01119\ \textcolor{comment}{\ \ \ \ printf("{}\(\backslash\)n"{});*/}}
+\DoxyCodeLine{01120\ }
+\DoxyCodeLine{01121\ \ \ \ \ sort\_r\_simple(b,\ (pl-\/ple)/w,\ w,\ compar,\ ds...);}
+\DoxyCodeLine{01122\ \ \ \ \ sort\_r\_simple(end-\/(pre-\/pr),\ (pre-\/pr)/w,\ w,\ compar,\ ds...);}
+\DoxyCodeLine{01123\ \ \ \}}
+\DoxyCodeLine{01124\ \}}
+\DoxyCodeLine{01125\ }
+\DoxyCodeLine{01126\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01127\ hb\_qsort\ (\textcolor{keywordtype}{void}\ *base,\ \textcolor{keywordtype}{size\_t}\ nel,\ \textcolor{keywordtype}{size\_t}\ width,}
+\DoxyCodeLine{01128\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*compar)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_a,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_b))}
+\DoxyCodeLine{01129\ \{}
+\DoxyCodeLine{01130\ \textcolor{preprocessor}{\#if\ defined(\_\_OPTIMIZE\_SIZE\_\_)\ \&\&\ !defined(HB\_USE\_INTERNAL\_QSORT)}}
+\DoxyCodeLine{01131\ \ \ qsort\ (base,\ nel,\ width,\ compar);}
+\DoxyCodeLine{01132\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{01133\ \ \ sort\_r\_simple\ (base,\ nel,\ width,\ compar);}
+\DoxyCodeLine{01134\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01135\ \}}
+\DoxyCodeLine{01136\ }
+\DoxyCodeLine{01137\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01138\ hb\_qsort\ (\textcolor{keywordtype}{void}\ *base,\ \textcolor{keywordtype}{size\_t}\ nel,\ \textcolor{keywordtype}{size\_t}\ width,}
+\DoxyCodeLine{01139\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*compar)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_a,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_b,\ \textcolor{keywordtype}{void}\ *\_arg),}
+\DoxyCodeLine{01140\ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *arg)}
+\DoxyCodeLine{01141\ \{}
+\DoxyCodeLine{01142\ \textcolor{preprocessor}{\#ifdef\ HAVE\_GNU\_QSORT\_R}}
+\DoxyCodeLine{01143\ \ \ qsort\_r\ (base,\ nel,\ width,\ compar,\ arg);}
+\DoxyCodeLine{01144\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{01145\ \ \ sort\_r\_simple\ (base,\ nel,\ width,\ compar,\ arg);}
+\DoxyCodeLine{01146\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01147\ \}}
+\DoxyCodeLine{01148\ }
+\DoxyCodeLine{01149\ }
+\DoxyCodeLine{01150\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2,\ \textcolor{keyword}{typename}\ T3>\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01151\ hb\_stable\_sort\ (T\ *array,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len,\ \textcolor{keywordtype}{int}(*compar)(\textcolor{keyword}{const}\ T2\ *,\ \textcolor{keyword}{const}\ T2\ *),\ T3\ *array2)}
+\DoxyCodeLine{01152\ \{}
+\DoxyCodeLine{01153\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ len;\ i++)}
+\DoxyCodeLine{01154\ \ \ \{}
+\DoxyCodeLine{01155\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ j\ =\ i;}
+\DoxyCodeLine{01156\ \ \ \ \ \textcolor{keywordflow}{while}\ (j\ \&\&\ compar\ (\&array[j\ -\/\ 1],\ \&array[i])\ >\ 0)}
+\DoxyCodeLine{01157\ \ \ \ \ \ \ j-\/-\/;}
+\DoxyCodeLine{01158\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ ==\ j)}
+\DoxyCodeLine{01159\ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{01160\ \ \ \ \ \textcolor{comment}{/*\ Move\ item\ i\ to\ occupy\ place\ for\ item\ j,\ shift\ what's\ in\ between.\ */}}
+\DoxyCodeLine{01161\ \ \ \ \ \{}
+\DoxyCodeLine{01162\ \ \ \ \ \ \ T\ t\ =\ array[i];}
+\DoxyCodeLine{01163\ \ \ \ \ \ \ memmove\ (\&array[j\ +\ 1],\ \&array[j],\ (i\ -\/\ j)\ *\ \textcolor{keyword}{sizeof}\ (T));}
+\DoxyCodeLine{01164\ \ \ \ \ \ \ array[j]\ =\ t;}
+\DoxyCodeLine{01165\ \ \ \ \ \}}
+\DoxyCodeLine{01166\ \ \ \ \ \textcolor{keywordflow}{if}\ (array2)}
+\DoxyCodeLine{01167\ \ \ \ \ \{}
+\DoxyCodeLine{01168\ \ \ \ \ \ \ T3\ t\ =\ array2[i];}
+\DoxyCodeLine{01169\ \ \ \ \ \ \ memmove\ (\&array2[j\ +\ 1],\ \&array2[j],\ (i\ -\/\ j)\ *\ \textcolor{keyword}{sizeof}\ (T3));}
+\DoxyCodeLine{01170\ \ \ \ \ \ \ array2[j]\ =\ t;}
+\DoxyCodeLine{01171\ \ \ \ \ \}}
+\DoxyCodeLine{01172\ \ \ \}}
+\DoxyCodeLine{01173\ \}}
+\DoxyCodeLine{01174\ }
+\DoxyCodeLine{01175\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01176\ hb\_stable\_sort\ (T\ *array,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len,\ \textcolor{keywordtype}{int}(*compar)(\textcolor{keyword}{const}\ T\ *,\ \textcolor{keyword}{const}\ T\ *))}
+\DoxyCodeLine{01177\ \{}
+\DoxyCodeLine{01178\ \ \ hb\_stable\_sort\ (array,\ len,\ compar,\ (\textcolor{keywordtype}{int}\ *)\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{01179\ \}}
+\DoxyCodeLine{01180\ }
+\DoxyCodeLine{01181\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ hb\_bool\_t}
+\DoxyCodeLine{01182\ hb\_codepoint\_parse\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *s,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len,\ \textcolor{keywordtype}{int}\ base,\ hb\_codepoint\_t\ *out)}
+\DoxyCodeLine{01183\ \{}
+\DoxyCodeLine{01184\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ v;}
+\DoxyCodeLine{01185\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *p\ =\ s;}
+\DoxyCodeLine{01186\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *end\ =\ p\ +\ len;}
+\DoxyCodeLine{01187\ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!hb\_parse\_uint\ (\&p,\ end,\ \&v,\ \textcolor{keyword}{true}\textcolor{comment}{/*\ whole\ buffer\ */},\ base)))}
+\DoxyCodeLine{01188\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01189\ }
+\DoxyCodeLine{01190\ \ \ *out\ =\ v;}
+\DoxyCodeLine{01191\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01192\ \}}
+\DoxyCodeLine{01193\ }
+\DoxyCodeLine{01194\ }
+\DoxyCodeLine{01195\ \textcolor{comment}{/*\ Operators.\ */}}
+\DoxyCodeLine{01196\ }
+\DoxyCodeLine{01197\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01198\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01199\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01200\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ \&\ b)}
+\DoxyCodeLine{01201\ \}}
+\DoxyCodeLine{01202\ HB\_FUNCOBJ\ (hb\_bitwise\_and);}
+\DoxyCodeLine{01203\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01204\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01205\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01206\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ |\ b)}
+\DoxyCodeLine{01207\ \}}
+\DoxyCodeLine{01208\ HB\_FUNCOBJ\ (hb\_bitwise\_or);}
+\DoxyCodeLine{01209\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01210\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01211\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01212\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ \string^\ b)}
+\DoxyCodeLine{01213\ \}}
+\DoxyCodeLine{01214\ HB\_FUNCOBJ\ (hb\_bitwise\_xor);}
+\DoxyCodeLine{01215\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01216\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01217\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01218\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\string~\mbox{\hyperlink{structa}{a}}\ \&\ b)}
+\DoxyCodeLine{01219\ \}}
+\DoxyCodeLine{01220\ HB\_FUNCOBJ\ (hb\_bitwise\_lt);}
+\DoxyCodeLine{01221\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01222\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01223\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01224\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ \&\ \string~b)}
+\DoxyCodeLine{01225\ \}}
+\DoxyCodeLine{01226\ HB\_FUNCOBJ\ (hb\_bitwise\_gt);\ \textcolor{comment}{//\ aka\ sub}}
+\DoxyCodeLine{01227\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01228\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01229\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01230\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\string~\mbox{\hyperlink{structa}{a}}\ |\ b)}
+\DoxyCodeLine{01231\ \}}
+\DoxyCodeLine{01232\ HB\_FUNCOBJ\ (hb\_bitwise\_le);}
+\DoxyCodeLine{01233\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01234\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01235\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01236\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ |\ \string~b)}
+\DoxyCodeLine{01237\ \}}
+\DoxyCodeLine{01238\ HB\_FUNCOBJ\ (hb\_bitwise\_ge);}
+\DoxyCodeLine{01239\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01240\ \{}
+\DoxyCodeLine{01241\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01242\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\string~\mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{01243\ \}}
+\DoxyCodeLine{01244\ HB\_FUNCOBJ\ (hb\_bitwise\_neg);}
+\DoxyCodeLine{01245\ }
+\DoxyCodeLine{01246\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01247\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01248\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01249\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T2\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ +\ b)}
+\DoxyCodeLine{01250\ \}}
+\DoxyCodeLine{01251\ HB\_FUNCOBJ\ (hb\_add);}
+\DoxyCodeLine{01252\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01253\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01254\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01255\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T2\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ -\/\ b)}
+\DoxyCodeLine{01256\ \}}
+\DoxyCodeLine{01257\ HB\_FUNCOBJ\ (hb\_sub);}
+\DoxyCodeLine{01258\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01259\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01260\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01261\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T2\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (b\ -\/\ \mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{01262\ \}}
+\DoxyCodeLine{01263\ HB\_FUNCOBJ\ (hb\_rsub);}
+\DoxyCodeLine{01264\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01265\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01266\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01267\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T2\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ *\ b)}
+\DoxyCodeLine{01268\ \}}
+\DoxyCodeLine{01269\ HB\_FUNCOBJ\ (hb\_mul);}
+\DoxyCodeLine{01270\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01271\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01272\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01273\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T2\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ /\ b)}
+\DoxyCodeLine{01274\ \}}
+\DoxyCodeLine{01275\ HB\_FUNCOBJ\ (hb\_div);}
+\DoxyCodeLine{01276\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01277\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{01278\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01279\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ T2\ \&b)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (\mbox{\hyperlink{structa}{a}}\ \%\ b)}
+\DoxyCodeLine{01280\ \}}
+\DoxyCodeLine{01281\ HB\_FUNCOBJ\ (hb\_mod);}
+\DoxyCodeLine{01282\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01283\ \{}
+\DoxyCodeLine{01284\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01285\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (+\mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{01286\ \}}
+\DoxyCodeLine{01287\ HB\_FUNCOBJ\ (hb\_pos);}
+\DoxyCodeLine{01288\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01289\ \{}
+\DoxyCodeLine{01290\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01291\ \ \ operator\ ()\ (\textcolor{keyword}{const}\ T\ \&\mbox{\hyperlink{structa}{a}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (-\/\mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{01292\ \}}
+\DoxyCodeLine{01293\ HB\_FUNCOBJ\ (hb\_neg);}
+\DoxyCodeLine{01294\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01295\ \{}
+\DoxyCodeLine{01296\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01297\ \ \ operator\ ()\ (T\ \&\mbox{\hyperlink{structa}{a}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (++\mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{01298\ \}}
+\DoxyCodeLine{01299\ HB\_FUNCOBJ\ (hb\_inc);}
+\DoxyCodeLine{01300\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{01301\ \{}
+\DoxyCodeLine{01302\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{auto}}
+\DoxyCodeLine{01303\ \ \ operator\ ()\ (T\ \&\mbox{\hyperlink{structa}{a}})\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN\ (-\/-\/\mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{01304\ \}}
+\DoxyCodeLine{01305\ HB\_FUNCOBJ\ (hb\_dec);}
+\DoxyCodeLine{01306\ }
+\DoxyCodeLine{01307\ }
+\DoxyCodeLine{01308\ \textcolor{comment}{/*\ Compiler-\/assisted\ vectorization.\ */}}
+\DoxyCodeLine{01309\ }
+\DoxyCodeLine{01310\ \textcolor{comment}{/*\ Type\ behaving\ similar\ to\ vectorized\ vars\ defined\ using\ \_\_attribute\_\_((vector\_size(...))),}}
+\DoxyCodeLine{01311\ \textcolor{comment}{\ *\ basically\ a\ fixed-\/size\ bitset.\ */}}
+\DoxyCodeLine{01312\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ elt\_t,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \textcolor{keywordtype}{byte}\_size>}
+\DoxyCodeLine{01313\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}}
+\DoxyCodeLine{01314\ \{}
+\DoxyCodeLine{01315\ \ \ elt\_t\&\ operator\ []\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)\ \{\ \textcolor{keywordflow}{return}\ v[i];\ \}}
+\DoxyCodeLine{01316\ \ \ \textcolor{keyword}{const}\ elt\_t\&\ operator\ []\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v[i];\ \}}
+\DoxyCodeLine{01317\ }
+\DoxyCodeLine{01318\ \ \ \textcolor{keywordtype}{void}\ clear\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ v\ =\ 0)\ \{\ memset\ (\textcolor{keyword}{this},\ v,\ \textcolor{keyword}{sizeof}\ (*\textcolor{keyword}{this}));\ \}}
+\DoxyCodeLine{01319\ }
+\DoxyCodeLine{01320\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Op>}
+\DoxyCodeLine{01321\ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ process\ (\textcolor{keyword}{const}\ Op\&\ op)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01322\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{01323\ \ \ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ r;}
+\DoxyCodeLine{01324\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ ARRAY\_LENGTH\ (v);\ i++)}
+\DoxyCodeLine{01325\ \ \ \ \ \ \ r.v[i]\ =\ op\ (v[i]);}
+\DoxyCodeLine{01326\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{01327\ \ \ \}}
+\DoxyCodeLine{01328\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Op>}
+\DoxyCodeLine{01329\ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ process\ (\textcolor{keyword}{const}\ Op\&\ op,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ \&o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01330\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{01331\ \ \ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ r;}
+\DoxyCodeLine{01332\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ ARRAY\_LENGTH\ (v);\ i++)}
+\DoxyCodeLine{01333\ \ \ \ \ \ \ r.v[i]\ =\ op\ (v[i],\ o.v[i]);}
+\DoxyCodeLine{01334\ \ \ \ \ \textcolor{keywordflow}{return}\ r;}
+\DoxyCodeLine{01335\ \ \ \}}
+\DoxyCodeLine{01336\ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ operator\ |\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ \&o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01337\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ process\ (hb\_bitwise\_or,\ o);\ \}}
+\DoxyCodeLine{01338\ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ operator\ \&\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ \&o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01339\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ process\ (hb\_bitwise\_and,\ o);\ \}}
+\DoxyCodeLine{01340\ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ operator\ \string^\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ \&o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01341\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ process\ (hb\_bitwise\_xor,\ o);\ \}}
+\DoxyCodeLine{01342\ \ \ \mbox{\hyperlink{structhb__vector__size__t}{hb\_vector\_size\_t}}\ operator\ \string~\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{01343\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ process\ (hb\_bitwise\_neg);\ \}}
+\DoxyCodeLine{01344\ }
+\DoxyCodeLine{01345\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{01346\ \ \ \textcolor{keyword}{static\_assert}\ (0\ ==\ byte\_size\ \%\ \textcolor{keyword}{sizeof}\ (elt\_t),\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{01347\ \ \ elt\_t\ v[byte\_size\ /\ \textcolor{keyword}{sizeof}\ (elt\_t)];}
+\DoxyCodeLine{01348\ \};}
+\DoxyCodeLine{01349\ }
+\DoxyCodeLine{01350\ }
+\DoxyCodeLine{01351\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_ALGS\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

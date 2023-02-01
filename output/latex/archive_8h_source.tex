@@ -1,0 +1,1218 @@
+\hypertarget{archive_8h_source}{}\doxysection{archive.\+h}
+\label{archive_8h_source}\index{AseSprite/aseprite/third\_party/libarchive/libarchive/archive.h@{AseSprite/aseprite/third\_party/libarchive/libarchive/archive.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ (c)\ 2003-\/2010\ Tim\ Kientzle}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ All\ rights\ reserved.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ Redistribution\ and\ use\ in\ source\ and\ binary\ forms,\ with\ or\ without}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ modification,\ are\ permitted\ provided\ that\ the\ following\ conditions}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ are\ met:}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ 1.\ Redistributions\ of\ source\ code\ must\ retain\ the\ above\ copyright}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ 2.\ Redistributions\ in\ binary\ form\ must\ reproduce\ the\ above\ copyright}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer\ in\ the}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ \ \ \ documentation\ and/or\ other\ materials\ provided\ with\ the\ distribution.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ THIS\ SOFTWARE\ IS\ PROVIDED\ BY\ THE\ AUTHOR(S)\ ``AS\ IS''\ AND\ ANY\ EXPRESS\ OR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IMPLIED\ WARRANTIES,\ INCLUDING,\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ OF\ MERCHANTABILITY\ AND\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ ARE\ DISCLAIMED.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ AUTHOR(S)\ BE\ LIABLE\ FOR\ ANY\ DIRECT,\ INDIRECT,}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ INCIDENTAL,\ SPECIAL,\ EXEMPLARY,\ OR\ CONSEQUENTIAL\ DAMAGES\ (INCLUDING,\ BUT}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ NOT\ LIMITED\ TO,\ PROCUREMENT\ OF\ SUBSTITUTE\ GOODS\ OR\ SERVICES;\ LOSS\ OF\ USE,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ DATA,\ OR\ PROFITS;\ OR\ BUSINESS\ INTERRUPTION)\ HOWEVER\ CAUSED\ AND\ ON\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ THEORY\ OF\ LIABILITY,\ WHETHER\ IN\ CONTRACT,\ STRICT\ LIABILITY,\ OR\ TORT}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ (INCLUDING\ NEGLIGENCE\ OR\ OTHERWISE)\ ARISING\ IN\ ANY\ WAY\ OUT\ OF\ THE\ USE\ OF}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ THIS\ SOFTWARE,\ EVEN\ IF\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH\ DAMAGE.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ \$FreeBSD:\ src/lib/libarchive/archive.h.in,v\ 1.50\ 2008/05/26\ 17:00:22\ kientzle\ Exp\ \$}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#ifndef\ ARCHIVE\_H\_INCLUDED}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ ARCHIVE\_H\_INCLUDED}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ The\ version\ number\ is\ expressed\ as\ a\ single\ integer\ that\ makes\ it}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ easy\ to\ compare\ versions\ at\ build\ time:\ for\ version\ a.b.c,\ the}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *\ version\ number\ is\ printf("{}\%d\%03d\%03d"{},a,b,c).\ \ For\ example,\ if\ you}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ know\ your\ application\ requires\ version\ 2.12.108\ or\ later,\ you\ can}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ assert\ that\ ARCHIVE\_VERSION\_NUMBER\ >=\ 2012108.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00038\ \textcolor{comment}{/*\ Note:\ Compiler\ will\ complain\ if\ this\ does\ not\ match\ archive\_entry.h!\ */}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ ARCHIVE\_VERSION\_NUMBER\ 3006002}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#include\ <sys/stat.h>}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#include\ <stddef.h>}\ \ \textcolor{comment}{/*\ for\ wchar\_t\ */}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#include\ <stdio.h>}\ \textcolor{comment}{/*\ For\ FILE\ *\ */}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#include\ <time.h>}\ \textcolor{comment}{/*\ For\ time\_t\ */}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *\ Note:\ archive.h\ is\ for\ use\ outside\ of\ libarchive;\ the\ configuration}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ headers\ (config.h,\ archive\_platform.h,\ etc.)\ are\ purely\ internal.}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ Do\ NOT\ use\ HAVE\_XXX\ configuration\ macros\ to\ control\ the\ behavior\ of}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ this\ header!\ \ If\ you\ must\ conditionalize,\ use\ predefined\ compiler\ and/or}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ platform\ macros.}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#if\ defined(\_\_BORLANDC\_\_)\ \&\&\ \_\_BORLANDC\_\_\ >=\ 0x560}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#\ include\ <stdint.h>}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#elif\ !defined(\_\_WATCOMC\_\_)\ \&\&\ !defined(\_MSC\_VER)\ \&\&\ !defined(\_\_INTERIX)\ \&\&\ !defined(\_\_BORLANDC\_\_)\ \&\&\ !defined(\_SCO\_DS)\ \&\&\ !defined(\_\_osf\_\_)\ \&\&\ !defined(\_\_CLANG\_INTTYPES\_H)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#\ include\ <inttypes.h>}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{comment}{/*\ Get\ appropriate\ definitions\ of\ 64-\/bit\ integer\ */}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#if\ !defined(\_\_LA\_INT64\_T\_DEFINED)}}
+\DoxyCodeLine{00061\ \textcolor{comment}{/*\ Older\ code\ relied\ on\ the\ \_\_LA\_INT64\_T\ macro;\ after\ 4.0\ we'll\ switch\ to\ the\ typedef\ exclusively.\ */}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#\ if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#define\ \_\_LA\_INT64\_T\ la\_int64\_t}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#\ endif}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ \_\_LA\_INT64\_T\_DEFINED}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#\ if\ defined(\_WIN32)\ \&\&\ !defined(\_\_CYGWIN\_\_)\ \&\&\ !defined(\_\_WATCOMC\_\_)}}
+\DoxyCodeLine{00067\ \textcolor{keyword}{typedef}\ \_\_int64\ la\_int64\_t;}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#\ else}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#\ include\ <unistd.h>}\ \ \textcolor{comment}{/*\ ssize\_t\ */}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#\ \ if\ defined(\_SCO\_DS)\ ||\ defined(\_\_osf\_\_)}}
+\DoxyCodeLine{00071\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{long}\ la\_int64\_t;}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00073\ \textcolor{keyword}{typedef}\ int64\_t\ la\_int64\_t;}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#\ endif}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{comment}{/*\ The\ la\_ssize\_t\ should\ match\ the\ type\ used\ in\ 'struct\ stat'\ */}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#if\ !defined(\_\_LA\_SSIZE\_T\_DEFINED)}}
+\DoxyCodeLine{00080\ \textcolor{comment}{/*\ Older\ code\ relied\ on\ the\ \_\_LA\_SSIZE\_T\ macro;\ after\ 4.0\ we'll\ switch\ to\ the\ typedef\ exclusively.\ */}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#\ if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#define\ \_\_LA\_SSIZE\_T\ la\_ssize\_t}}
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#\ endif}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#define\ \_\_LA\_SSIZE\_T\_DEFINED}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#\ if\ defined(\_WIN32)\ \&\&\ !defined(\_\_CYGWIN\_\_)\ \&\&\ !defined(\_\_WATCOMC\_\_)}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#\ \ if\ defined(\_SSIZE\_T\_DEFINED)\ ||\ defined(\_SSIZE\_T\_)}}
+\DoxyCodeLine{00087\ \textcolor{keyword}{typedef}\ ssize\_t\ la\_ssize\_t;}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#\ \ elif\ defined(\_WIN64)}}
+\DoxyCodeLine{00089\ \textcolor{keyword}{typedef}\ \_\_int64\ la\_ssize\_t;}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00091\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ la\_ssize\_t;}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#\ else}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#\ include\ <unistd.h>}\ \ \textcolor{comment}{/*\ ssize\_t\ */}}
+\DoxyCodeLine{00095\ \textcolor{keyword}{typedef}\ ssize\_t\ la\_ssize\_t;}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#\ endif}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{comment}{/*\ Large\ file\ support\ for\ Android\ */}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#if\ defined(\_\_LIBARCHIVE\_BUILD)\ \&\&\ defined(\_\_ANDROID\_\_)}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#include\ "{}android\_lf.h"{}}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ *\ On\ Windows,\ define\ LIBARCHIVE\_STATIC\ if\ you're\ building\ or\ using\ a}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ *\ .lib.\ \ The\ default\ here\ assumes\ you're\ building\ a\ DLL.\ \ Only}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ *\ libarchive\ source\ should\ ever\ define\ \_\_LIBARCHIVE\_BUILD.}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#if\ ((defined\ \_\_WIN32\_\_)\ ||\ (defined\ \_WIN32)\ ||\ defined(\_\_CYGWIN\_\_))\ \&\&\ (!defined\ LIBARCHIVE\_STATIC)}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#\ ifdef\ \_\_LIBARCHIVE\_BUILD}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#\ \ ifdef\ \_\_GNUC\_\_}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#\ \ \ define\ \_\_LA\_DECL\ \ \ \ \_\_attribute\_\_((dllexport))\ extern}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#\ \ \ define\ \_\_LA\_DECL\ \ \ \ \_\_declspec(dllexport)}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#\ else}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#\ \ ifdef\ \_\_GNUC\_\_}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#\ \ \ define\ \_\_LA\_DECL}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#\ \ \ define\ \_\_LA\_DECL\ \ \ \ \_\_declspec(dllimport)}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#\ endif}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#elif\ defined\ \_\_LIBARCHIVE\_ENABLE\_VISIBILITY}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#\ \ define\ \_\_LA\_DECL\ \_\_attribute\_\_((visibility("{}default"{}})))}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00126\ \textcolor{comment}{/*\ Static\ libraries\ or\ non-\/Windows\ needs\ no\ special\ declaration.\ */}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#\ define\ \_\_LA\_DECL}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)\ \&\&\ \_\_GNUC\_\_\ >=\ 3\ \&\&\ !defined(\_\_MINGW32\_\_)}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ \_\_LA\_PRINTF(fmtarg,\ firstvararg)\ \(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ \ \ \_\_attribute\_\_((\_\_format\_\_\ (\_\_printf\_\_,\ fmtarg,\ firstvararg)))}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#define\ \_\_LA\_PRINTF(fmtarg,\ firstvararg)\ \ \ \ }\textcolor{comment}{/*\ nothing\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#if\ defined(\_\_GNUC\_\_)\ \&\&\ \_\_GNUC\_\_\ >=\ 3\ \&\&\ \_\_GNUC\_MINOR\_\_\ >=\ 1}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#\ define\ \_\_LA\_DEPRECATED\ \_\_attribute\_\_((deprecated))}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#\ define\ \_\_LA\_DEPRECATED}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00144\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00148\ \textcolor{comment}{\ *\ The\ version\ number\ is\ provided\ as\ both\ a\ macro\ and\ a\ function.}}
+\DoxyCodeLine{00149\ \textcolor{comment}{\ *\ The\ macro\ identifies\ the\ installed\ header;\ the\ function\ identifies}}
+\DoxyCodeLine{00150\ \textcolor{comment}{\ *\ the\ library\ version\ (which\ may\ not\ be\ the\ same\ if\ you're\ using\ a}}
+\DoxyCodeLine{00151\ \textcolor{comment}{\ *\ dynamically-\/linked\ version\ of\ the\ library).\ \ Of\ course,\ if\ the}}
+\DoxyCodeLine{00152\ \textcolor{comment}{\ *\ header\ and\ library\ are\ very\ different,\ you\ should\ expect\ some}}
+\DoxyCodeLine{00153\ \textcolor{comment}{\ *\ strangeness.\ \ Don't\ do\ that.}}
+\DoxyCodeLine{00154\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00155\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ archive\_version\_number(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ *\ Textual\ name/version\ of\ the\ library,\ useful\ for\ version\ displays.}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#define\ ARCHIVE\_VERSION\_ONLY\_STRING\ "{}3.6.2dev"{}}}
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#define\ ARCHIVE\_VERSION\_STRING\ "{}libarchive\ "{}}\ ARCHIVE\_VERSION\_ONLY\_STRING}
+\DoxyCodeLine{00162\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ archive\_version\_string(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ *\ Detailed\ textual\ name/version\ of\ the\ library\ and\ its\ dependencies.}}
+\DoxyCodeLine{00166\ \textcolor{comment}{\ *\ This\ has\ the\ form:}}
+\DoxyCodeLine{00167\ \textcolor{comment}{\ *\ \ \ \ "{}libarchive\ x.y.z\ zlib/a.b.c\ liblzma/d.e.f\ ...\ etc\ ..."{}}}
+\DoxyCodeLine{00168\ \textcolor{comment}{\ *\ the\ list\ of\ libraries\ described\ here\ will\ vary\ depending\ on\ how}}
+\DoxyCodeLine{00169\ \textcolor{comment}{\ *\ libarchive\ was\ compiled.}}
+\DoxyCodeLine{00170\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00171\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ archive\_version\_details(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00174\ \textcolor{comment}{\ *\ Returns\ NULL\ if\ libarchive\ was\ compiled\ without\ the\ associated\ library.}}
+\DoxyCodeLine{00175\ \textcolor{comment}{\ *\ Otherwise,\ returns\ the\ version\ number\ that\ libarchive\ was\ compiled}}
+\DoxyCodeLine{00176\ \textcolor{comment}{\ *\ against.}}
+\DoxyCodeLine{00177\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00178\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ archive\_zlib\_version(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00179\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ archive\_liblzma\_version(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00180\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ archive\_bzlib\_version(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00181\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ archive\_liblz4\_version(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00182\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ archive\_libzstd\_version(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00183\ }
+\DoxyCodeLine{00184\ \textcolor{comment}{/*\ Declare\ our\ basic\ types.\ */}}
+\DoxyCodeLine{00185\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive}{archive}};}
+\DoxyCodeLine{00186\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive__entry}{archive\_entry}};}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00189\ \textcolor{comment}{\ *\ Error\ codes:\ Use\ archive\_errno()\ and\ archive\_error\_string()}}
+\DoxyCodeLine{00190\ \textcolor{comment}{\ *\ to\ retrieve\ details.\ \ Unless\ specified\ otherwise,\ all\ functions}}
+\DoxyCodeLine{00191\ \textcolor{comment}{\ *\ that\ return\ 'int'\ use\ these\ codes.}}
+\DoxyCodeLine{00192\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EOF\ \ \ 1\ }\textcolor{comment}{/*\ Found\ end\ of\ archive.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#define\ ARCHIVE\_OK\ \ \ \ 0\ }\textcolor{comment}{/*\ Operation\ was\ successful.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\#define\ ARCHIVE\_RETRY\ \ \ (-\/10)\ \ \ }\textcolor{comment}{/*\ Retry\ might\ succeed.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#define\ ARCHIVE\_WARN\ \ \ \ (-\/20)\ \ \ }\textcolor{comment}{/*\ Partial\ success.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00197\ \textcolor{comment}{/*\ For\ example,\ if\ write\_header\ "{}fails"{},\ then\ you\ can't\ push\ data.\ */}}
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FAILED\ \ (-\/25)\ \ \ }\textcolor{comment}{/*\ Current\ operation\ cannot\ complete.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00199\ \textcolor{comment}{/*\ But\ if\ write\_header\ is\ "{}fatal,"{}\ then\ this\ archive\ is\ dead\ and\ useless.\ */}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FATAL\ \ \ (-\/30)\ \ \ }\textcolor{comment}{/*\ No\ more\ operations\ are\ possible.\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00203\ \textcolor{comment}{\ *\ As\ far\ as\ possible,\ archive\_errno\ returns\ standard\ platform\ errno\ codes.}}
+\DoxyCodeLine{00204\ \textcolor{comment}{\ *\ Of\ course,\ the\ details\ vary\ by\ platform,\ so\ the\ actual\ definitions}}
+\DoxyCodeLine{00205\ \textcolor{comment}{\ *\ here\ are\ stored\ in\ "{}archive\_platform.h"{}.\ \ The\ symbols\ are\ listed\ here}}
+\DoxyCodeLine{00206\ \textcolor{comment}{\ *\ for\ reference;\ as\ a\ rule,\ clients\ should\ not\ need\ to\ know\ the\ exact}}
+\DoxyCodeLine{00207\ \textcolor{comment}{\ *\ platform-\/dependent\ error\ code.}}
+\DoxyCodeLine{00208\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00209\ \textcolor{comment}{/*\ Unrecognized\ or\ invalid\ file\ format.\ */}}
+\DoxyCodeLine{00210\ \textcolor{comment}{/*\ \#define\ \ ARCHIVE\_ERRNO\_FILE\_FORMAT\ */}}
+\DoxyCodeLine{00211\ \textcolor{comment}{/*\ Illegal\ usage\ of\ the\ library.\ */}}
+\DoxyCodeLine{00212\ \textcolor{comment}{/*\ \#define\ \ ARCHIVE\_ERRNO\_PROGRAMMER\_ERROR\ */}}
+\DoxyCodeLine{00213\ \textcolor{comment}{/*\ Unknown\ or\ unclassified\ error.\ */}}
+\DoxyCodeLine{00214\ \textcolor{comment}{/*\ \#define\ \ ARCHIVE\_ERRNO\_MISC\ */}}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00217\ \textcolor{comment}{\ *\ Callbacks\ are\ invoked\ to\ automatically\ read/skip/write/open/close\ the}}
+\DoxyCodeLine{00218\ \textcolor{comment}{\ *\ archive.\ You\ can\ provide\ your\ own\ for\ complex\ tasks\ (like\ breaking}}
+\DoxyCodeLine{00219\ \textcolor{comment}{\ *\ archives\ across\ multiple\ tapes)\ or\ use\ standard\ ones\ built\ into\ the}}
+\DoxyCodeLine{00220\ \textcolor{comment}{\ *\ library.}}
+\DoxyCodeLine{00221\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \textcolor{comment}{/*\ Returns\ pointer\ and\ size\ of\ next\ block\ of\ data\ from\ archive.\ */}}
+\DoxyCodeLine{00224\ \textcolor{keyword}{typedef}\ la\_ssize\_t\ \ archive\_read\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\_client\_data,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **\_buffer);}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \textcolor{comment}{/*\ Skips\ at\ most\ request\ bytes\ from\ archive\ and\ returns\ the\ skipped\ amount.}}
+\DoxyCodeLine{00228\ \textcolor{comment}{\ *\ This\ may\ skip\ fewer\ bytes\ than\ requested;\ it\ may\ even\ skip\ zero\ bytes.}}
+\DoxyCodeLine{00229\ \textcolor{comment}{\ *\ If\ you\ do\ skip\ fewer\ bytes\ than\ requested,\ libarchive\ will\ invoke\ your}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ *\ read\ callback\ and\ discard\ data\ as\ necessary\ to\ make\ up\ the\ full\ skip.}}
+\DoxyCodeLine{00231\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00232\ \textcolor{keyword}{typedef}\ la\_int64\_t\ \ archive\_skip\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00233\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\_client\_data,\ la\_int64\_t\ request);}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \textcolor{comment}{/*\ Seeks\ to\ specified\ location\ in\ the\ file\ and\ returns\ the\ position.}}
+\DoxyCodeLine{00236\ \textcolor{comment}{\ *\ Whence\ values\ are\ SEEK\_SET,\ SEEK\_CUR,\ SEEK\_END\ from\ stdio.h.}}
+\DoxyCodeLine{00237\ \textcolor{comment}{\ *\ Return\ ARCHIVE\_FATAL\ if\ the\ seek\ fails\ for\ any\ reason.}}
+\DoxyCodeLine{00238\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00239\ \textcolor{keyword}{typedef}\ la\_int64\_t\ \ archive\_seek\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00240\ \ \ \ \ \textcolor{keywordtype}{void}\ *\_client\_data,\ la\_int64\_t\ offset,\ \textcolor{keywordtype}{int}\ whence);}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \textcolor{comment}{/*\ Returns\ size\ actually\ written,\ zero\ on\ EOF,\ -\/1\ on\ error.\ */}}
+\DoxyCodeLine{00243\ \textcolor{keyword}{typedef}\ la\_ssize\_t\ \ archive\_write\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\_client\_data,}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\_buffer,\ \textcolor{keywordtype}{size\_t}\ \_length);}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{int}\ archive\_open\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *\_client\_data);}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{int}\ archive\_close\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *\_client\_data);}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{int}\ archive\_free\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *\_client\_data);}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \textcolor{comment}{/*\ Switches\ from\ one\ client\ data\ object\ to\ the\ next/prev\ client\ data\ object.}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ *\ This\ is\ useful\ for\ reading\ from\ different\ data\ blocks\ such\ as\ a\ set\ of\ files}}
+\DoxyCodeLine{00255\ \textcolor{comment}{\ *\ that\ make\ up\ one\ large\ file.}}
+\DoxyCodeLine{00256\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00257\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{int}\ archive\_switch\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *\_client\_data1,}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\_client\_data2);}
+\DoxyCodeLine{00259\ }
+\DoxyCodeLine{00260\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00261\ \textcolor{comment}{\ *\ Returns\ a\ passphrase\ used\ for\ encryption\ or\ decryption,\ NULL\ on\ nothing}}
+\DoxyCodeLine{00262\ \textcolor{comment}{\ *\ to\ do\ and\ give\ it\ up.}}
+\DoxyCodeLine{00263\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00264\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *archive\_passphrase\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\_client\_data);}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00268\ \textcolor{comment}{\ *\ Codes\ to\ identify\ various\ stream\ filters.}}
+\DoxyCodeLine{00269\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_NONE\ 0}}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_GZIP\ 1}}
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_BZIP2\ \ \ \ 2}}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_COMPRESS\ 3}}
+\DoxyCodeLine{00274\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_PROGRAM\ \ 4}}
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_LZMA\ 5}}
+\DoxyCodeLine{00276\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_XZ\ \ \ 6}}
+\DoxyCodeLine{00277\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_UU\ \ \ 7}}
+\DoxyCodeLine{00278\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_RPM\ \ 8}}
+\DoxyCodeLine{00279\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_LZIP\ 9}}
+\DoxyCodeLine{00280\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_LRZIP\ \ \ \ 10}}
+\DoxyCodeLine{00281\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_LZOP\ 11}}
+\DoxyCodeLine{00282\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_GRZIP\ \ \ \ 12}}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_LZ4\ \ 13}}
+\DoxyCodeLine{00284\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FILTER\_ZSTD\ 14}}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \textcolor{preprocessor}{\#if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{00287\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_NONE\ \ \ \ ARCHIVE\_FILTER\_NONE}}
+\DoxyCodeLine{00288\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_GZIP\ \ \ \ ARCHIVE\_FILTER\_GZIP}}
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_BZIP2\ \ \ ARCHIVE\_FILTER\_BZIP2}}
+\DoxyCodeLine{00290\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_COMPRESS\ \ \ \ ARCHIVE\_FILTER\_COMPRESS}}
+\DoxyCodeLine{00291\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_PROGRAM\ ARCHIVE\_FILTER\_PROGRAM}}
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_LZMA\ \ \ \ ARCHIVE\_FILTER\_LZMA}}
+\DoxyCodeLine{00293\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_XZ\ \ \ \ \ \ ARCHIVE\_FILTER\_XZ}}
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_UU\ \ \ \ \ \ ARCHIVE\_FILTER\_UU}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_RPM\ \ \ \ \ ARCHIVE\_FILTER\_RPM}}
+\DoxyCodeLine{00296\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_LZIP\ \ \ \ ARCHIVE\_FILTER\_LZIP}}
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\#define\ ARCHIVE\_COMPRESSION\_LRZIP\ \ \ ARCHIVE\_FILTER\_LRZIP}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00301\ \textcolor{comment}{\ *\ Codes\ returned\ by\ archive\_format.}}
+\DoxyCodeLine{00302\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00303\ \textcolor{comment}{\ *\ Top\ 16\ bits\ identifies\ the\ format\ family\ (e.g.,\ "{}tar"{});\ lower}}
+\DoxyCodeLine{00304\ \textcolor{comment}{\ *\ 16\ bits\ indicate\ the\ variant.\ \ This\ is\ updated\ by\ read\_next\_header.}}
+\DoxyCodeLine{00305\ \textcolor{comment}{\ *\ Note\ that\ the\ lower\ 16\ bits\ will\ often\ vary\ from\ entry\ to\ entry.}}
+\DoxyCodeLine{00306\ \textcolor{comment}{\ *\ In\ some\ cases,\ this\ variation\ occurs\ as\ libarchive\ learns\ more\ about}}
+\DoxyCodeLine{00307\ \textcolor{comment}{\ *\ the\ archive\ (for\ example,\ later\ entries\ might\ utilize\ extensions\ that}}
+\DoxyCodeLine{00308\ \textcolor{comment}{\ *\ weren't\ necessary\ earlier\ in\ the\ archive;\ in\ this\ case,\ libarchive}}
+\DoxyCodeLine{00309\ \textcolor{comment}{\ *\ will\ change\ the\ format\ code\ to\ indicate\ the\ extended\ format\ that}}
+\DoxyCodeLine{00310\ \textcolor{comment}{\ *\ was\ used).\ \ In\ other\ cases,\ it's\ because\ different\ tools\ have}}
+\DoxyCodeLine{00311\ \textcolor{comment}{\ *\ modified\ the\ archive\ and\ so\ different\ parts\ of\ the\ archive}}
+\DoxyCodeLine{00312\ \textcolor{comment}{\ *\ actually\ have\ slightly\ different\ formats.\ \ (Both\ tar\ and\ cpio\ store}}
+\DoxyCodeLine{00313\ \textcolor{comment}{\ *\ format\ codes\ in\ each\ entry,\ so\ it\ is\ quite\ possible\ for\ each}}
+\DoxyCodeLine{00314\ \textcolor{comment}{\ *\ entry\ to\ be\ in\ a\ different\ format.)}}
+\DoxyCodeLine{00315\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00316\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_BASE\_MASK\ \ \ \ \ \ \ \ 0xff0000}}
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\ \ \ \ \ \ \ \ \ 0x10000}}
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\_POSIX\ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_CPIO\ |\ 1)}}
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\_BIN\_LE\ \ \ \ \ \ (ARCHIVE\_FORMAT\_CPIO\ |\ 2)}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\_BIN\_BE\ \ \ \ \ \ (ARCHIVE\_FORMAT\_CPIO\ |\ 3)}}
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\_SVR4\_NOCRC\ \ \ \ \ \ (ARCHIVE\_FORMAT\_CPIO\ |\ 4)}}
+\DoxyCodeLine{00322\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\_SVR4\_CRC\ \ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_CPIO\ |\ 5)}}
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\_AFIO\_LARGE\ \ \ \ \ \ (ARCHIVE\_FORMAT\_CPIO\ |\ 6)}}
+\DoxyCodeLine{00324\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CPIO\_PWB\ \ \ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_CPIO\ |\ 7)}}
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_SHAR\ \ \ \ \ \ \ \ \ 0x20000}}
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_SHAR\_BASE\ \ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_SHAR\ |\ 1)}}
+\DoxyCodeLine{00327\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_SHAR\_DUMP\ \ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_SHAR\ |\ 2)}}
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_TAR\ \ \ \ \ \ \ \ \ \ 0x30000}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_TAR\_USTAR\ \ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_TAR\ |\ 1)}}
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_TAR\_PAX\_INTERCHANGE\ \ (ARCHIVE\_FORMAT\_TAR\ |\ 2)}}
+\DoxyCodeLine{00331\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_TAR\_PAX\_RESTRICTED\ \ \ (ARCHIVE\_FORMAT\_TAR\ |\ 3)}}
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_TAR\_GNUTAR\ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_TAR\ |\ 4)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_ISO9660\ \ \ \ \ \ \ \ \ \ 0x40000}}
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_ISO9660\_ROCKRIDGE\ \ \ \ (ARCHIVE\_FORMAT\_ISO9660\ |\ 1)}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_ZIP\ \ \ \ \ \ \ \ \ \ 0x50000}}
+\DoxyCodeLine{00336\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_EMPTY\ \ \ \ \ \ \ \ \ \ \ \ 0x60000}}
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_AR\ \ \ \ \ \ \ \ \ \ \ 0x70000}}
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_AR\_GNU\ \ \ \ \ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_AR\ |\ 1)}}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_AR\_BSD\ \ \ \ \ \ \ \ \ \ \ (ARCHIVE\_FORMAT\_AR\ |\ 2)}}
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_MTREE\ \ \ \ \ \ \ \ \ \ \ \ 0x80000}}
+\DoxyCodeLine{00341\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_RAW\ \ \ \ \ \ \ \ \ \ 0x90000}}
+\DoxyCodeLine{00342\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_XAR\ \ \ \ \ \ \ \ \ \ 0xA0000}}
+\DoxyCodeLine{00343\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_LHA\ \ \ \ \ \ \ \ \ \ 0xB0000}}
+\DoxyCodeLine{00344\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_CAB\ \ \ \ \ \ \ \ \ \ 0xC0000}}
+\DoxyCodeLine{00345\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_RAR\ \ \ \ \ \ \ \ \ \ 0xD0000}}
+\DoxyCodeLine{00346\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_7ZIP\ \ \ \ \ \ \ \ \ 0xE0000}}
+\DoxyCodeLine{00347\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_WARC\ \ \ \ \ \ \ \ \ 0xF0000}}
+\DoxyCodeLine{00348\ \textcolor{preprocessor}{\#define\ ARCHIVE\_FORMAT\_RAR\_V5\ \ \ \ \ \ \ \ \ \ \ 0x100000}}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00351\ \textcolor{comment}{\ *\ Codes\ returned\ by\ archive\_read\_format\_capabilities().}}
+\DoxyCodeLine{00352\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00353\ \textcolor{comment}{\ *\ This\ list\ can\ be\ extended\ with\ values\ between\ 0\ and\ 0xffff.}}
+\DoxyCodeLine{00354\ \textcolor{comment}{\ *\ The\ original\ purpose\ of\ this\ list\ was\ to\ let\ different\ archive}}
+\DoxyCodeLine{00355\ \textcolor{comment}{\ *\ format\ readers\ expose\ their\ general\ capabilities\ in\ terms\ of}}
+\DoxyCodeLine{00356\ \textcolor{comment}{\ *\ encryption.}}
+\DoxyCodeLine{00357\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00358\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READ\_FORMAT\_CAPS\_NONE\ (0)\ }\textcolor{comment}{/*\ no\ special\ capabilities\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00359\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READ\_FORMAT\_CAPS\_ENCRYPT\_DATA\ (1<<0)\ \ }\textcolor{comment}{/*\ reader\ can\ detect\ encrypted\ data\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00360\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READ\_FORMAT\_CAPS\_ENCRYPT\_METADATA\ (1<<1)\ \ }\textcolor{comment}{/*\ reader\ can\ detect\ encryptable\ metadata\ (pathname,\ mtime,\ etc.)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00363\ \textcolor{comment}{\ *\ Codes\ returned\ by\ archive\_read\_has\_encrypted\_entries().}}
+\DoxyCodeLine{00364\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00365\ \textcolor{comment}{\ *\ In\ case\ the\ archive\ does\ not\ support\ encryption\ detection\ at\ all}}
+\DoxyCodeLine{00366\ \textcolor{comment}{\ *\ ARCHIVE\_READ\_FORMAT\_ENCRYPTION\_UNSUPPORTED\ is\ returned.\ If\ the\ reader}}
+\DoxyCodeLine{00367\ \textcolor{comment}{\ *\ for\ some\ other\ reason\ (e.g.\ not\ enough\ bytes\ read)\ cannot\ say\ if}}
+\DoxyCodeLine{00368\ \textcolor{comment}{\ *\ there\ are\ encrypted\ entries,\ ARCHIVE\_READ\_FORMAT\_ENCRYPTION\_DONT\_KNOW}}
+\DoxyCodeLine{00369\ \textcolor{comment}{\ *\ is\ returned.}}
+\DoxyCodeLine{00370\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00371\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READ\_FORMAT\_ENCRYPTION\_UNSUPPORTED\ -\/2}}
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READ\_FORMAT\_ENCRYPTION\_DONT\_KNOW\ -\/1}}
+\DoxyCodeLine{00373\ }
+\DoxyCodeLine{00374\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00375\ \textcolor{comment}{\ *\ Basic\ outline\ for\ reading\ an\ archive:}}
+\DoxyCodeLine{00376\ \textcolor{comment}{\ *\ \ \ 1)\ Ask\ archive\_read\_new\ for\ an\ archive\ reader\ object.}}
+\DoxyCodeLine{00377\ \textcolor{comment}{\ *\ \ \ 2)\ Update\ any\ global\ properties\ as\ appropriate.}}
+\DoxyCodeLine{00378\ \textcolor{comment}{\ *\ \ \ \ \ \ In\ particular,\ you'll\ certainly\ want\ to\ call\ appropriate}}
+\DoxyCodeLine{00379\ \textcolor{comment}{\ *\ \ \ \ \ \ archive\_read\_support\_XXX\ functions.}}
+\DoxyCodeLine{00380\ \textcolor{comment}{\ *\ \ \ 3)\ Call\ archive\_read\_open\_XXX\ to\ open\ the\ archive}}
+\DoxyCodeLine{00381\ \textcolor{comment}{\ *\ \ \ 4)\ Repeatedly\ call\ archive\_read\_next\_header\ to\ get\ information\ about}}
+\DoxyCodeLine{00382\ \textcolor{comment}{\ *\ \ \ \ \ \ successive\ archive\ entries.\ \ Call\ archive\_read\_data\ to\ extract}}
+\DoxyCodeLine{00383\ \textcolor{comment}{\ *\ \ \ \ \ \ data\ for\ entries\ of\ interest.}}
+\DoxyCodeLine{00384\ \textcolor{comment}{\ *\ \ \ 5)\ Call\ archive\_read\_free\ to\ end\ processing.}}
+\DoxyCodeLine{00385\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00386\ \_\_LA\_DECL\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive}{archive}}\ *archive\_read\_new(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00389\ \textcolor{comment}{\ *\ The\ archive\_read\_support\_XXX\ calls\ enable\ auto-\/detect\ for\ this}}
+\DoxyCodeLine{00390\ \textcolor{comment}{\ *\ archive\ handle.\ \ They\ also\ link\ in\ the\ necessary\ support\ code.}}
+\DoxyCodeLine{00391\ \textcolor{comment}{\ *\ For\ example,\ if\ you\ don't\ want\ bzlib\ linked\ in,\ don't\ invoke}}
+\DoxyCodeLine{00392\ \textcolor{comment}{\ *\ support\_compression\_bzip2().\ \ The\ "{}all"{}\ functions\ provide\ the}}
+\DoxyCodeLine{00393\ \textcolor{comment}{\ *\ obvious\ shorthand.}}
+\DoxyCodeLine{00394\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00395\ }
+\DoxyCodeLine{00396\ \textcolor{preprocessor}{\#if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{00397\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_all(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00399\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_bzip2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00401\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_compress(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00403\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_gzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00405\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_lzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00407\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_lzma(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00409\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_none(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00411\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_program(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *command)\ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00413\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_program\_signature}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ (\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\ \textcolor{comment}{/*\ match\ */},\ \textcolor{keywordtype}{size\_t})\ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_rpm(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00419\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_uu(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00421\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_compression\_xz(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00423\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00424\ }
+\DoxyCodeLine{00425\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_all(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00426\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_by\_code(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00427\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_bzip2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00428\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_compress(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00429\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_gzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00430\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_grzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00431\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_lrzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00432\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_lz4(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00433\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_lzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00434\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_lzma(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00435\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_lzop(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00436\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_none(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00437\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_program(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *command);}
+\DoxyCodeLine{00439\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_program\_signature}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ \ \ (\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \textcolor{comment}{/*\ cmd\ */},}
+\DoxyCodeLine{00441\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\ \textcolor{comment}{/*\ match\ */},\ \textcolor{keywordtype}{size\_t});}
+\DoxyCodeLine{00442\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_rpm(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00443\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_uu(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00444\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_xz(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00445\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_filter\_zstd(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00446\ }
+\DoxyCodeLine{00447\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_7zip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00448\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_all(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00449\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_ar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00450\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_by\_code(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00451\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_cab(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00452\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_cpio(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00453\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_empty(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00454\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_gnutar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00455\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_iso9660(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00456\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_lha(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00457\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_mtree(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00458\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_rar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00459\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_rar5(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00460\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_raw(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00461\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_tar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00462\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_warc(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00463\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_xar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00464\ \textcolor{comment}{/*\ archive\_read\_support\_format\_zip()\ enables\ both\ streamable\ and\ seekable}}
+\DoxyCodeLine{00465\ \textcolor{comment}{\ *\ zip\ readers.\ */}}
+\DoxyCodeLine{00466\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_zip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00467\ \textcolor{comment}{/*\ Reads\ Zip\ archives\ as\ stream\ from\ beginning\ to\ end.\ \ Doesn't}}
+\DoxyCodeLine{00468\ \textcolor{comment}{\ *\ correctly\ handle\ SFX\ ZIP\ files\ or\ ZIP\ archives\ that\ have\ been\ modified}}
+\DoxyCodeLine{00469\ \textcolor{comment}{\ *\ in-\/place.\ */}}
+\DoxyCodeLine{00470\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_zip\_streamable(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00471\ \textcolor{comment}{/*\ Reads\ starting\ from\ central\ directory;\ requires\ seekable\ input.\ */}}
+\DoxyCodeLine{00472\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_support\_format\_zip\_seekable(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00473\ }
+\DoxyCodeLine{00474\ \textcolor{comment}{/*\ Functions\ to\ manually\ set\ the\ format\ and\ filters\ to\ be\ used.\ This\ is}}
+\DoxyCodeLine{00475\ \textcolor{comment}{\ *\ useful\ to\ bypass\ the\ bidding\ process\ when\ the\ format\ and\ filters\ to\ use}}
+\DoxyCodeLine{00476\ \textcolor{comment}{\ *\ is\ known\ in\ advance.}}
+\DoxyCodeLine{00477\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00478\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_format(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00479\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_append\_filter(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00480\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_append\_filter\_program(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00481\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00482\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_append\_filter\_program\_signature}
+\DoxyCodeLine{00483\ \ \ \ \ (\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\ \textcolor{comment}{/*\ match\ */},\ \textcolor{keywordtype}{size\_t});}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \textcolor{comment}{/*\ Set\ various\ callbacks.\ */}}
+\DoxyCodeLine{00486\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_open\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00487\ \ \ \ \ archive\_open\_callback\ *);}
+\DoxyCodeLine{00488\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_read\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00489\ \ \ \ \ archive\_read\_callback\ *);}
+\DoxyCodeLine{00490\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_seek\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00491\ \ \ \ \ archive\_seek\_callback\ *);}
+\DoxyCodeLine{00492\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_skip\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00493\ \ \ \ \ archive\_skip\_callback\ *);}
+\DoxyCodeLine{00494\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_close\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00495\ \ \ \ \ archive\_close\_callback\ *);}
+\DoxyCodeLine{00496\ \textcolor{comment}{/*\ Callback\ used\ to\ switch\ between\ one\ data\ object\ to\ the\ next\ */}}
+\DoxyCodeLine{00497\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_switch\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00498\ \ \ \ \ archive\_switch\_callback\ *);}
+\DoxyCodeLine{00499\ }
+\DoxyCodeLine{00500\ \textcolor{comment}{/*\ This\ sets\ the\ first\ data\ object.\ */}}
+\DoxyCodeLine{00501\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_callback\_data(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00502\ \textcolor{comment}{/*\ This\ sets\ data\ object\ at\ specified\ index\ */}}
+\DoxyCodeLine{00503\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_callback\_data2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *,}
+\DoxyCodeLine{00504\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00505\ \textcolor{comment}{/*\ This\ adds\ a\ data\ object\ at\ the\ specified\ index.\ */}}
+\DoxyCodeLine{00506\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_add\_callback\_data(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *,}
+\DoxyCodeLine{00507\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00508\ \textcolor{comment}{/*\ This\ appends\ a\ data\ object\ to\ the\ end\ of\ list\ */}}
+\DoxyCodeLine{00509\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_append\_callback\_data(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00510\ \textcolor{comment}{/*\ This\ prepends\ a\ data\ object\ to\ the\ beginning\ of\ list\ */}}
+\DoxyCodeLine{00511\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_prepend\_callback\_data(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00512\ }
+\DoxyCodeLine{00513\ \textcolor{comment}{/*\ Opening\ freezes\ the\ callbacks.\ */}}
+\DoxyCodeLine{00514\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open1(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \textcolor{comment}{/*\ Convenience\ wrappers\ around\ the\ above.\ */}}
+\DoxyCodeLine{00517\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *\_client\_data,}
+\DoxyCodeLine{00518\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_open\_callback\ *,\ archive\_read\_callback\ *,}
+\DoxyCodeLine{00519\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_close\_callback\ *);}
+\DoxyCodeLine{00520\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *\_client\_data,}
+\DoxyCodeLine{00521\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_open\_callback\ *,\ archive\_read\_callback\ *,}
+\DoxyCodeLine{00522\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_skip\_callback\ *,\ archive\_close\_callback\ *);}
+\DoxyCodeLine{00523\ }
+\DoxyCodeLine{00524\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00525\ \textcolor{comment}{\ *\ A\ variety\ of\ shortcuts\ that\ invoke\ archive\_read\_open()\ with}}
+\DoxyCodeLine{00526\ \textcolor{comment}{\ *\ canned\ callbacks\ suitable\ for\ common\ situations.\ \ The\ ones\ that}}
+\DoxyCodeLine{00527\ \textcolor{comment}{\ *\ accept\ a\ block\ size\ handle\ tape\ blocking\ correctly.}}
+\DoxyCodeLine{00528\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00529\ \textcolor{comment}{/*\ Use\ this\ if\ you\ know\ the\ filename.\ \ Note:\ NULL\ indicates\ stdin.\ */}}
+\DoxyCodeLine{00530\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_filename(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00531\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\_filename,\ \textcolor{keywordtype}{size\_t}\ \_block\_size);}
+\DoxyCodeLine{00532\ \textcolor{comment}{/*\ Use\ this\ for\ reading\ multivolume\ files\ by\ filenames.}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ *\ NOTE:\ Must\ be\ NULL\ terminated.\ Sorting\ is\ NOT\ done.\ */}}
+\DoxyCodeLine{00534\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_filenames(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00535\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ **\_filenames,\ \textcolor{keywordtype}{size\_t}\ \_block\_size);}
+\DoxyCodeLine{00536\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_filename\_w(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00537\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}\ *\_filename,\ \textcolor{keywordtype}{size\_t}\ \_block\_size);}
+\DoxyCodeLine{00538\ \textcolor{comment}{/*\ archive\_read\_open\_file()\ is\ a\ deprecated\ synonym\ for\ ...\_open\_filename().\ */}}
+\DoxyCodeLine{00539\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_file(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00540\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\_filename,\ \textcolor{keywordtype}{size\_t}\ \_block\_size)\ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00541\ \textcolor{comment}{/*\ Read\ an\ archive\ that's\ stored\ in\ memory.\ */}}
+\DoxyCodeLine{00542\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_memory(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *\ buff,\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00544\ \textcolor{comment}{/*\ A\ more\ involved\ version\ that\ is\ only\ used\ for\ internal\ testing.\ */}}
+\DoxyCodeLine{00545\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_memory2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *buff,}
+\DoxyCodeLine{00546\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ size,\ \textcolor{keywordtype}{size\_t}\ read\_size);}
+\DoxyCodeLine{00547\ \textcolor{comment}{/*\ Read\ an\ archive\ that's\ already\ open,\ using\ the\ file\ descriptor.\ */}}
+\DoxyCodeLine{00548\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_fd(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ \_fd,}
+\DoxyCodeLine{00549\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \_block\_size);}
+\DoxyCodeLine{00550\ \textcolor{comment}{/*\ Read\ an\ archive\ that's\ already\ open,\ using\ a\ FILE\ *.\ */}}
+\DoxyCodeLine{00551\ \textcolor{comment}{/*\ Note:\ DO\ NOT\ use\ this\ with\ tape\ drives.\ */}}
+\DoxyCodeLine{00552\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_open\_FILE(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ FILE\ *\_file);}
+\DoxyCodeLine{00553\ }
+\DoxyCodeLine{00554\ \textcolor{comment}{/*\ Parses\ and\ returns\ next\ entry\ header.\ */}}
+\DoxyCodeLine{00555\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_next\_header(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ **);}
+\DoxyCodeLine{00557\ }
+\DoxyCodeLine{00558\ \textcolor{comment}{/*\ Parses\ and\ returns\ next\ entry\ header\ using\ the\ archive\_entry\ passed\ in\ */}}
+\DoxyCodeLine{00559\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_next\_header2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00560\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{00561\ }
+\DoxyCodeLine{00562\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00563\ \textcolor{comment}{\ *\ Retrieve\ the\ byte\ offset\ in\ UNCOMPRESSED\ data\ where\ last-\/read}}
+\DoxyCodeLine{00564\ \textcolor{comment}{\ *\ header\ started.}}
+\DoxyCodeLine{00565\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00566\ \_\_LA\_DECL\ la\_int64\_t\ \ \ \ \ \ \ \ \ archive\_read\_header\_position(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00567\ }
+\DoxyCodeLine{00568\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00569\ \textcolor{comment}{\ *\ Returns\ 1\ if\ the\ archive\ contains\ at\ least\ one\ encrypted\ entry.}}
+\DoxyCodeLine{00570\ \textcolor{comment}{\ *\ If\ the\ archive\ format\ not\ support\ encryption\ at\ all}}
+\DoxyCodeLine{00571\ \textcolor{comment}{\ *\ ARCHIVE\_READ\_FORMAT\_ENCRYPTION\_UNSUPPORTED\ is\ returned.}}
+\DoxyCodeLine{00572\ \textcolor{comment}{\ *\ If\ for\ any\ other\ reason\ (e.g.\ not\ enough\ data\ read\ so\ far)}}
+\DoxyCodeLine{00573\ \textcolor{comment}{\ *\ we\ cannot\ say\ whether\ there\ are\ encrypted\ entries,\ then}}
+\DoxyCodeLine{00574\ \textcolor{comment}{\ *\ ARCHIVE\_READ\_FORMAT\_ENCRYPTION\_DONT\_KNOW\ is\ returned.}}
+\DoxyCodeLine{00575\ \textcolor{comment}{\ *\ In\ general,\ this\ function\ will\ return\ values\ below\ zero\ when\ the}}
+\DoxyCodeLine{00576\ \textcolor{comment}{\ *\ reader\ is\ uncertain\ or\ totally\ incapable\ of\ encryption\ support.}}
+\DoxyCodeLine{00577\ \textcolor{comment}{\ *\ When\ this\ function\ returns\ 0\ you\ can\ be\ sure\ that\ the\ reader}}
+\DoxyCodeLine{00578\ \textcolor{comment}{\ *\ supports\ encryption\ detection\ but\ no\ encrypted\ entries\ have}}
+\DoxyCodeLine{00579\ \textcolor{comment}{\ *\ been\ found\ yet.}}
+\DoxyCodeLine{00580\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00581\ \textcolor{comment}{\ *\ NOTE:\ If\ the\ metadata/header\ of\ an\ archive\ is\ also\ encrypted,\ you}}
+\DoxyCodeLine{00582\ \textcolor{comment}{\ *\ cannot\ rely\ on\ the\ number\ of\ encrypted\ entries.\ That\ is\ why\ this}}
+\DoxyCodeLine{00583\ \textcolor{comment}{\ *\ function\ does\ not\ return\ the\ number\ of\ encrypted\ entries\ but\#}}
+\DoxyCodeLine{00584\ \textcolor{comment}{\ *\ just\ shows\ that\ there\ are\ some.}}
+\DoxyCodeLine{00585\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00586\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_has\_encrypted\_entries(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00587\ }
+\DoxyCodeLine{00588\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00589\ \textcolor{comment}{\ *\ Returns\ a\ bitmask\ of\ capabilities\ that\ are\ supported\ by\ the\ archive\ format\ reader.}}
+\DoxyCodeLine{00590\ \textcolor{comment}{\ *\ If\ the\ reader\ has\ no\ special\ capabilities,\ ARCHIVE\_READ\_FORMAT\_CAPS\_NONE\ is\ returned.}}
+\DoxyCodeLine{00591\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00592\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_read\_format\_capabilities(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00593\ }
+\DoxyCodeLine{00594\ \textcolor{comment}{/*\ Read\ data\ from\ the\ body\ of\ an\ entry.\ \ Similar\ to\ read(2).\ */}}
+\DoxyCodeLine{00595\ \_\_LA\_DECL\ la\_ssize\_t\ \ \ \ \ \ \ \ \ archive\_read\_data(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00596\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *,\ \textcolor{keywordtype}{size\_t});}
+\DoxyCodeLine{00597\ }
+\DoxyCodeLine{00598\ \textcolor{comment}{/*\ Seek\ within\ the\ body\ of\ an\ entry.\ \ Similar\ to\ lseek(2).\ */}}
+\DoxyCodeLine{00599\ \_\_LA\_DECL\ la\_int64\_t\ archive\_seek\_data(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ la\_int64\_t,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00600\ }
+\DoxyCodeLine{00601\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00602\ \textcolor{comment}{\ *\ A\ zero-\/copy\ version\ of\ archive\_read\_data\ that\ also\ exposes\ the\ file\ offset}}
+\DoxyCodeLine{00603\ \textcolor{comment}{\ *\ of\ each\ returned\ block.\ \ Note\ that\ the\ client\ has\ no\ way\ to\ specify}}
+\DoxyCodeLine{00604\ \textcolor{comment}{\ *\ the\ desired\ size\ of\ the\ block.\ \ The\ API\ does\ guarantee\ that\ offsets\ will}}
+\DoxyCodeLine{00605\ \textcolor{comment}{\ *\ be\ strictly\ increasing\ and\ that\ returned\ blocks\ will\ not\ overlap.}}
+\DoxyCodeLine{00606\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00607\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_data\_block(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00608\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **buff,\ \textcolor{keywordtype}{size\_t}\ *size,\ la\_int64\_t\ *offset);}
+\DoxyCodeLine{00609\ }
+\DoxyCodeLine{00610\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00611\ \textcolor{comment}{\ *\ Some\ convenience\ functions\ that\ are\ built\ on\ archive\_read\_data:}}
+\DoxyCodeLine{00612\ \textcolor{comment}{\ *\ \ 'skip':\ skips\ entire\ entry}}
+\DoxyCodeLine{00613\ \textcolor{comment}{\ *\ \ 'into\_buffer':\ writes\ data\ into\ memory\ buffer\ that\ you\ provide}}
+\DoxyCodeLine{00614\ \textcolor{comment}{\ *\ \ 'into\_fd':\ writes\ data\ to\ specified\ filedes}}
+\DoxyCodeLine{00615\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00616\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_data\_skip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00617\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_data\_into\_fd(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ fd);}
+\DoxyCodeLine{00618\ }
+\DoxyCodeLine{00619\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00620\ \textcolor{comment}{\ *\ Set\ read\ options.}}
+\DoxyCodeLine{00621\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00622\ \textcolor{comment}{/*\ Apply\ option\ to\ the\ format\ only.\ */}}
+\DoxyCodeLine{00623\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_format\_option(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00624\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *m,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *o,}
+\DoxyCodeLine{00625\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *v);}
+\DoxyCodeLine{00626\ \textcolor{comment}{/*\ Apply\ option\ to\ the\ filter\ only.\ */}}
+\DoxyCodeLine{00627\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_filter\_option(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00628\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *m,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *o,}
+\DoxyCodeLine{00629\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *v);}
+\DoxyCodeLine{00630\ \textcolor{comment}{/*\ Apply\ option\ to\ both\ the\ format\ and\ the\ filter.\ */}}
+\DoxyCodeLine{00631\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_option(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00632\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *m,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *o,}
+\DoxyCodeLine{00633\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *v);}
+\DoxyCodeLine{00634\ \textcolor{comment}{/*\ Apply\ option\ string\ to\ both\ the\ format\ and\ the\ filter.\ */}}
+\DoxyCodeLine{00635\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_options(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00636\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *opts);}
+\DoxyCodeLine{00637\ }
+\DoxyCodeLine{00638\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00639\ \textcolor{comment}{\ *\ Add\ a\ decryption\ passphrase.}}
+\DoxyCodeLine{00640\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00641\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_add\_passphrase(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00642\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_set\_passphrase\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00643\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *client\_data,\ archive\_passphrase\_callback\ *);}
+\DoxyCodeLine{00644\ }
+\DoxyCodeLine{00645\ }
+\DoxyCodeLine{00646\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00647\ \textcolor{comment}{\ *\ Convenience\ function\ to\ recreate\ the\ current\ entry\ (whose\ header}}
+\DoxyCodeLine{00648\ \textcolor{comment}{\ *\ has\ just\ been\ read)\ on\ disk.}}
+\DoxyCodeLine{00649\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00650\ \textcolor{comment}{\ *\ This\ does\ quite\ a\ bit\ more\ than\ just\ copy\ data\ to\ disk.\ It\ also:}}
+\DoxyCodeLine{00651\ \textcolor{comment}{\ *\ \ -\/\ Creates\ intermediate\ directories\ as\ required.}}
+\DoxyCodeLine{00652\ \textcolor{comment}{\ *\ \ -\/\ Manages\ directory\ permissions:\ \ non-\/writable\ directories\ will}}
+\DoxyCodeLine{00653\ \textcolor{comment}{\ *\ \ \ \ be\ initially\ created\ with\ write\ permission\ enabled;\ when\ the}}
+\DoxyCodeLine{00654\ \textcolor{comment}{\ *\ \ \ \ archive\ is\ closed,\ dir\ permissions\ are\ edited\ to\ the\ values\ specified}}
+\DoxyCodeLine{00655\ \textcolor{comment}{\ *\ \ \ \ in\ the\ archive.}}
+\DoxyCodeLine{00656\ \textcolor{comment}{\ *\ \ -\/\ Checks\ hardlinks:\ \ hardlinks\ will\ not\ be\ extracted\ unless\ the}}
+\DoxyCodeLine{00657\ \textcolor{comment}{\ *\ \ \ \ linked-\/to\ file\ was\ also\ extracted\ within\ the\ same\ session.\ (TODO)}}
+\DoxyCodeLine{00658\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00659\ }
+\DoxyCodeLine{00660\ \textcolor{comment}{/*\ The\ "{}flags"{}\ argument\ selects\ optional\ behavior,\ 'OR'\ the\ flags\ you\ want.\ */}}
+\DoxyCodeLine{00661\ }
+\DoxyCodeLine{00662\ \textcolor{comment}{/*\ Default:\ Do\ not\ try\ to\ set\ owner/group.\ */}}
+\DoxyCodeLine{00663\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_OWNER\ \ \ \ \ \ \ \ \ \ \ (0x0001)}}
+\DoxyCodeLine{00664\ \textcolor{comment}{/*\ Default:\ Do\ obey\ umask,\ do\ not\ restore\ SUID/SGID/SVTX\ bits.\ */}}
+\DoxyCodeLine{00665\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_PERM\ \ \ \ \ \ \ \ \ \ \ \ (0x0002)}}
+\DoxyCodeLine{00666\ \textcolor{comment}{/*\ Default:\ Do\ not\ restore\ mtime/atime.\ */}}
+\DoxyCodeLine{00667\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_TIME\ \ \ \ \ \ \ \ \ \ \ \ (0x0004)}}
+\DoxyCodeLine{00668\ \textcolor{comment}{/*\ Default:\ Replace\ existing\ files.\ */}}
+\DoxyCodeLine{00669\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_NO\_OVERWRITE\ \ \ \ \ \ \ \ (0x0008)}}
+\DoxyCodeLine{00670\ \textcolor{comment}{/*\ Default:\ Try\ create\ first,\ unlink\ only\ if\ create\ fails\ with\ EEXIST.\ */}}
+\DoxyCodeLine{00671\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_UNLINK\ \ \ \ \ \ \ \ \ \ (0x0010)}}
+\DoxyCodeLine{00672\ \textcolor{comment}{/*\ Default:\ Do\ not\ restore\ ACLs.\ */}}
+\DoxyCodeLine{00673\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_ACL\ \ \ \ \ \ \ \ \ (0x0020)}}
+\DoxyCodeLine{00674\ \textcolor{comment}{/*\ Default:\ Do\ not\ restore\ fflags.\ */}}
+\DoxyCodeLine{00675\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_FFLAGS\ \ \ \ \ \ \ \ \ \ (0x0040)}}
+\DoxyCodeLine{00676\ \textcolor{comment}{/*\ Default:\ Do\ not\ restore\ xattrs.\ */}}
+\DoxyCodeLine{00677\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_XATTR\ \ \ \ \ \ \ \ \ \ \ (0x0080)}}
+\DoxyCodeLine{00678\ \textcolor{comment}{/*\ Default:\ Do\ not\ try\ to\ guard\ against\ extracts\ redirected\ by\ symlinks.\ */}}
+\DoxyCodeLine{00679\ \textcolor{comment}{/*\ Note:\ With\ ARCHIVE\_EXTRACT\_UNLINK,\ will\ remove\ any\ intermediate\ symlink.\ */}}
+\DoxyCodeLine{00680\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_SECURE\_SYMLINKS\ \ \ \ \ (0x0100)}}
+\DoxyCodeLine{00681\ \textcolor{comment}{/*\ Default:\ Do\ not\ reject\ entries\ with\ '..'\ as\ path\ elements.\ */}}
+\DoxyCodeLine{00682\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_SECURE\_NODOTDOT\ \ \ \ \ (0x0200)}}
+\DoxyCodeLine{00683\ \textcolor{comment}{/*\ Default:\ Create\ parent\ directories\ as\ needed.\ */}}
+\DoxyCodeLine{00684\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_NO\_AUTODIR\ \ \ \ \ \ (0x0400)}}
+\DoxyCodeLine{00685\ \textcolor{comment}{/*\ Default:\ Overwrite\ files,\ even\ if\ one\ on\ disk\ is\ newer.\ */}}
+\DoxyCodeLine{00686\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_NO\_OVERWRITE\_NEWER\ \ (0x0800)}}
+\DoxyCodeLine{00687\ \textcolor{comment}{/*\ Detect\ blocks\ of\ 0\ and\ write\ holes\ instead.\ */}}
+\DoxyCodeLine{00688\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_SPARSE\ \ \ \ \ \ \ \ \ \ (0x1000)}}
+\DoxyCodeLine{00689\ \textcolor{comment}{/*\ Default:\ Do\ not\ restore\ Mac\ extended\ metadata.\ */}}
+\DoxyCodeLine{00690\ \textcolor{comment}{/*\ This\ has\ no\ effect\ except\ on\ Mac\ OS.\ */}}
+\DoxyCodeLine{00691\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_MAC\_METADATA\ \ \ \ \ \ \ \ (0x2000)}}
+\DoxyCodeLine{00692\ \textcolor{comment}{/*\ Default:\ Use\ HFS+\ compression\ if\ it\ was\ compressed.\ */}}
+\DoxyCodeLine{00693\ \textcolor{comment}{/*\ This\ has\ no\ effect\ except\ on\ Mac\ OS\ v10.6\ or\ later.\ */}}
+\DoxyCodeLine{00694\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_NO\_HFS\_COMPRESSION\ \ (0x4000)}}
+\DoxyCodeLine{00695\ \textcolor{comment}{/*\ Default:\ Do\ not\ use\ HFS+\ compression\ if\ it\ was\ not\ compressed.\ */}}
+\DoxyCodeLine{00696\ \textcolor{comment}{/*\ This\ has\ no\ effect\ except\ on\ Mac\ OS\ v10.6\ or\ later.\ */}}
+\DoxyCodeLine{00697\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_HFS\_COMPRESSION\_FORCED\ \ (0x8000)}}
+\DoxyCodeLine{00698\ \textcolor{comment}{/*\ Default:\ Do\ not\ reject\ entries\ with\ absolute\ paths\ */}}
+\DoxyCodeLine{00699\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_SECURE\_NOABSOLUTEPATHS\ (0x10000)}}
+\DoxyCodeLine{00700\ \textcolor{comment}{/*\ Default:\ Do\ not\ clear\ no-\/change\ flags\ when\ unlinking\ object\ */}}
+\DoxyCodeLine{00701\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_CLEAR\_NOCHANGE\_FFLAGS\ \ \ (0x20000)}}
+\DoxyCodeLine{00702\ \textcolor{comment}{/*\ Default:\ Do\ not\ extract\ atomically\ (using\ rename)\ */}}
+\DoxyCodeLine{00703\ \textcolor{preprocessor}{\#define\ ARCHIVE\_EXTRACT\_SAFE\_WRITES\ \ \ \ \ (0x40000)}}
+\DoxyCodeLine{00704\ }
+\DoxyCodeLine{00705\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structarchive__read__extract}{archive\_read\_extract}}(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *,}
+\DoxyCodeLine{00706\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ flags);}
+\DoxyCodeLine{00707\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_extract2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *,}
+\DoxyCodeLine{00708\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\ \textcolor{comment}{/*\ dest\ */});}
+\DoxyCodeLine{00709\ \_\_LA\_DECL\ \textcolor{keywordtype}{void}\ \ \ archive\_read\_extract\_set\_progress\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00710\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ (*\_progress\_func)(\textcolor{keywordtype}{void}\ *),\ \textcolor{keywordtype}{void}\ *\_user\_data);}
+\DoxyCodeLine{00711\ }
+\DoxyCodeLine{00712\ \textcolor{comment}{/*\ Record\ the\ dev/ino\ of\ a\ file\ that\ will\ not\ be\ written.\ \ This\ is}}
+\DoxyCodeLine{00713\ \textcolor{comment}{\ *\ generally\ set\ to\ the\ dev/ino\ of\ the\ archive\ being\ read.\ */}}
+\DoxyCodeLine{00714\ \_\_LA\_DECL\ \textcolor{keywordtype}{void}\ \ \ \ \ \ archive\_read\_extract\_set\_skip\_file(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00715\ \ \ \ \ \ \ \ \ \ \ \ \ \ la\_int64\_t,\ la\_int64\_t);}
+\DoxyCodeLine{00716\ }
+\DoxyCodeLine{00717\ \textcolor{comment}{/*\ Close\ the\ file\ and\ release\ most\ resources.\ */}}
+\DoxyCodeLine{00718\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_read\_close(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00719\ \textcolor{comment}{/*\ Release\ all\ resources\ and\ destroy\ the\ object.\ */}}
+\DoxyCodeLine{00720\ \textcolor{comment}{/*\ Note\ that\ archive\_read\_free\ will\ call\ archive\_read\_close\ for\ you.\ */}}
+\DoxyCodeLine{00721\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_read\_free(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00722\ \textcolor{preprocessor}{\#if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{00723\ \textcolor{comment}{/*\ Synonym\ for\ archive\_read\_free()\ for\ backwards\ compatibility.\ */}}
+\DoxyCodeLine{00724\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_read\_finish(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)\ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00725\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00726\ }
+\DoxyCodeLine{00727\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00728\ \textcolor{comment}{\ *\ To\ create\ an\ archive:}}
+\DoxyCodeLine{00729\ \textcolor{comment}{\ *\ \ \ 1)\ Ask\ archive\_write\_new\ for\ an\ archive\ writer\ object.}}
+\DoxyCodeLine{00730\ \textcolor{comment}{\ *\ \ \ 2)\ Set\ any\ global\ properties.\ \ In\ particular,\ you\ should\ set}}
+\DoxyCodeLine{00731\ \textcolor{comment}{\ *\ \ \ \ \ \ the\ compression\ and\ format\ to\ use.}}
+\DoxyCodeLine{00732\ \textcolor{comment}{\ *\ \ \ 3)\ Call\ archive\_write\_open\ to\ open\ the\ file\ (most\ people}}
+\DoxyCodeLine{00733\ \textcolor{comment}{\ *\ \ \ \ \ \ \ will\ use\ archive\_write\_open\_file\ or\ archive\_write\_open\_fd,}}
+\DoxyCodeLine{00734\ \textcolor{comment}{\ *\ \ \ \ \ \ \ which\ provide\ convenient\ canned\ I/O\ callbacks\ for\ you).}}
+\DoxyCodeLine{00735\ \textcolor{comment}{\ *\ \ \ 4)\ For\ each\ entry:}}
+\DoxyCodeLine{00736\ \textcolor{comment}{\ *\ \ \ \ \ \ -\/\ construct\ an\ appropriate\ struct\ archive\_entry\ structure}}
+\DoxyCodeLine{00737\ \textcolor{comment}{\ *\ \ \ \ \ \ -\/\ archive\_write\_header\ to\ write\ the\ header}}
+\DoxyCodeLine{00738\ \textcolor{comment}{\ *\ \ \ \ \ \ -\/\ archive\_write\_data\ to\ write\ the\ entry\ data}}
+\DoxyCodeLine{00739\ \textcolor{comment}{\ *\ \ \ 5)\ archive\_write\_close\ to\ close\ the\ output}}
+\DoxyCodeLine{00740\ \textcolor{comment}{\ *\ \ \ 6)\ archive\_write\_free\ to\ cleanup\ the\ writer\ and\ release\ resources}}
+\DoxyCodeLine{00741\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00742\ \_\_LA\_DECL\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive}{archive}}\ *archive\_write\_new(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00743\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_bytes\_per\_block(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00744\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ bytes\_per\_block);}
+\DoxyCodeLine{00745\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_get\_bytes\_per\_block(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00746\ \textcolor{comment}{/*\ XXX\ This\ is\ badly\ misnamed;\ suggestions\ appreciated.\ XXX\ */}}
+\DoxyCodeLine{00747\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_bytes\_in\_last\_block(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00748\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ bytes\_in\_last\_block);}
+\DoxyCodeLine{00749\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_get\_bytes\_in\_last\_block(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00750\ }
+\DoxyCodeLine{00751\ \textcolor{comment}{/*\ The\ dev/ino\ of\ a\ file\ that\ won't\ be\ archived.\ \ This\ is\ used}}
+\DoxyCodeLine{00752\ \textcolor{comment}{\ *\ to\ avoid\ recursively\ adding\ an\ archive\ to\ itself.\ */}}
+\DoxyCodeLine{00753\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_skip\_file(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00754\ \ \ \ \ la\_int64\_t,\ la\_int64\_t);}
+\DoxyCodeLine{00755\ }
+\DoxyCodeLine{00756\ \textcolor{preprocessor}{\#if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{00757\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_bzip2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00758\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00759\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_compress(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00760\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00761\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_gzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00762\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00763\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_lzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00764\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00765\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_lzma(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00766\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00767\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_none(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00768\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00769\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_program(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00770\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *cmd)\ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00771\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_compression\_xz(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{00772\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00773\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00774\ }
+\DoxyCodeLine{00775\ \textcolor{comment}{/*\ A\ convenience\ function\ to\ set\ the\ filter\ based\ on\ the\ code.\ */}}
+\DoxyCodeLine{00776\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ filter\_code);}
+\DoxyCodeLine{00777\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_by\_name(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00778\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *name);}
+\DoxyCodeLine{00779\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_b64encode(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00780\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_bzip2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00781\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_compress(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00782\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_grzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00783\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_gzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00784\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_lrzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00785\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_lz4(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00786\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_lzip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00787\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_lzma(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00788\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_lzop(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00789\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_none(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00790\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_program(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00791\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *cmd);}
+\DoxyCodeLine{00792\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_uuencode(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00793\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_xz(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00794\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_add\_filter\_zstd(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00795\ }
+\DoxyCodeLine{00796\ }
+\DoxyCodeLine{00797\ \textcolor{comment}{/*\ A\ convenience\ function\ to\ set\ the\ format\ based\ on\ the\ code\ or\ name.\ */}}
+\DoxyCodeLine{00798\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ format\_code);}
+\DoxyCodeLine{00799\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_by\_name(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00800\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *name);}
+\DoxyCodeLine{00801\ \textcolor{comment}{/*\ To\ minimize\ link\ pollution,\ use\ one\ or\ more\ of\ the\ following.\ */}}
+\DoxyCodeLine{00802\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_7zip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00803\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_ar\_bsd(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00804\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_ar\_svr4(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00805\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_cpio(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00806\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_cpio\_bin(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00807\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_cpio\_newc(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00808\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_cpio\_odc(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00809\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_cpio\_pwb(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00810\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_gnutar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00811\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_iso9660(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00812\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_mtree(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00813\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_mtree\_classic(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00814\ \textcolor{comment}{/*\ TODO:\ int\ archive\_write\_set\_format\_old\_tar(struct\ archive\ *);\ */}}
+\DoxyCodeLine{00815\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_pax(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00816\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_pax\_restricted(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00817\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_raw(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00818\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_shar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00819\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_shar\_dump(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00820\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_ustar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00821\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_v7tar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00822\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_warc(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00823\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_xar(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00824\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_zip(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00825\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_filter\_by\_ext(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *filename);}
+\DoxyCodeLine{00826\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_filter\_by\_ext\_def(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *filename,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ def\_ext);}
+\DoxyCodeLine{00827\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_zip\_set\_compression\_deflate(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00828\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_zip\_set\_compression\_store(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00829\ \textcolor{comment}{/*\ Deprecated;\ use\ archive\_write\_open2\ instead\ */}}
+\DoxyCodeLine{00830\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *,}
+\DoxyCodeLine{00831\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_open\_callback\ *,\ archive\_write\_callback\ *,}
+\DoxyCodeLine{00832\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_close\_callback\ *);}
+\DoxyCodeLine{00833\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open2(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *,}
+\DoxyCodeLine{00834\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_open\_callback\ *,\ archive\_write\_callback\ *,}
+\DoxyCodeLine{00835\ \ \ \ \ \ \ \ \ \ \ \ \ \ archive\_close\_callback\ *,\ archive\_free\_callback\ *);}
+\DoxyCodeLine{00836\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open\_fd(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ \_fd);}
+\DoxyCodeLine{00837\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open\_filename(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\_file);}
+\DoxyCodeLine{00838\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open\_filename\_w(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00839\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}\ *\_file);}
+\DoxyCodeLine{00840\ \textcolor{comment}{/*\ A\ deprecated\ synonym\ for\ archive\_write\_open\_filename()\ */}}
+\DoxyCodeLine{00841\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open\_file(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\_file)}
+\DoxyCodeLine{00842\ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00843\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open\_FILE(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ FILE\ *);}
+\DoxyCodeLine{00844\ \textcolor{comment}{/*\ \_buffSize\ is\ the\ size\ of\ the\ buffer,\ \_used\ refers\ to\ a\ variable\ that}}
+\DoxyCodeLine{00845\ \textcolor{comment}{\ *\ will\ be\ updated\ after\ each\ write\ into\ the\ buffer.\ */}}
+\DoxyCodeLine{00846\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_open\_memory(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00847\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\_buffer,\ \textcolor{keywordtype}{size\_t}\ \_buffSize,\ \textcolor{keywordtype}{size\_t}\ *\_used);}
+\DoxyCodeLine{00848\ }
+\DoxyCodeLine{00849\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00850\ \textcolor{comment}{\ *\ Note\ that\ the\ library\ will\ truncate\ writes\ beyond\ the\ size\ provided}}
+\DoxyCodeLine{00851\ \textcolor{comment}{\ *\ to\ archive\_write\_header\ or\ pad\ if\ the\ provided\ data\ is\ short.}}
+\DoxyCodeLine{00852\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00853\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_header(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00854\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{00855\ \_\_LA\_DECL\ la\_ssize\_t\ \ \ \ archive\_write\_data(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00856\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ \textcolor{keywordtype}{size\_t});}
+\DoxyCodeLine{00857\ }
+\DoxyCodeLine{00858\ \textcolor{comment}{/*\ This\ interface\ is\ currently\ only\ available\ for\ archive\_write\_disk\ handles.\ \ */}}
+\DoxyCodeLine{00859\ \_\_LA\_DECL\ la\_ssize\_t\ \ \ \ \ archive\_write\_data\_block(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00860\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ \textcolor{keywordtype}{size\_t},\ la\_int64\_t);}
+\DoxyCodeLine{00861\ }
+\DoxyCodeLine{00862\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_write\_finish\_entry(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00863\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_write\_close(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00864\ \textcolor{comment}{/*\ Marks\ the\ archive\ as\ FATAL\ so\ that\ a\ subsequent\ free()\ operation}}
+\DoxyCodeLine{00865\ \textcolor{comment}{\ *\ won't\ try\ to\ close()\ cleanly.\ \ Provides\ a\ fast\ abort\ capability}}
+\DoxyCodeLine{00866\ \textcolor{comment}{\ *\ when\ the\ client\ discovers\ that\ things\ have\ gone\ wrong.\ */}}
+\DoxyCodeLine{00867\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ archive\_write\_fail(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00868\ \textcolor{comment}{/*\ This\ can\ fail\ if\ the\ archive\ wasn't\ already\ closed,\ in\ which\ case}}
+\DoxyCodeLine{00869\ \textcolor{comment}{\ *\ archive\_write\_free()\ will\ implicitly\ call\ archive\_write\_close().\ */}}
+\DoxyCodeLine{00870\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_write\_free(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00871\ \textcolor{preprocessor}{\#if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{00872\ \textcolor{comment}{/*\ Synonym\ for\ archive\_write\_free()\ for\ backwards\ compatibility.\ */}}
+\DoxyCodeLine{00873\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_write\_finish(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)\ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{00874\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00875\ }
+\DoxyCodeLine{00876\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00877\ \textcolor{comment}{\ *\ Set\ write\ options.}}
+\DoxyCodeLine{00878\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00879\ \textcolor{comment}{/*\ Apply\ option\ to\ the\ format\ only.\ */}}
+\DoxyCodeLine{00880\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_format\_option(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00881\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *m,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *o,}
+\DoxyCodeLine{00882\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *v);}
+\DoxyCodeLine{00883\ \textcolor{comment}{/*\ Apply\ option\ to\ the\ filter\ only.\ */}}
+\DoxyCodeLine{00884\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_filter\_option(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00885\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *m,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *o,}
+\DoxyCodeLine{00886\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *v);}
+\DoxyCodeLine{00887\ \textcolor{comment}{/*\ Apply\ option\ to\ both\ the\ format\ and\ the\ filter.\ */}}
+\DoxyCodeLine{00888\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_option(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00889\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *m,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *o,}
+\DoxyCodeLine{00890\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *v);}
+\DoxyCodeLine{00891\ \textcolor{comment}{/*\ Apply\ option\ string\ to\ both\ the\ format\ and\ the\ filter.\ */}}
+\DoxyCodeLine{00892\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_options(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,}
+\DoxyCodeLine{00893\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *opts);}
+\DoxyCodeLine{00894\ }
+\DoxyCodeLine{00895\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00896\ \textcolor{comment}{\ *\ Set\ a\ encryption\ passphrase.}}
+\DoxyCodeLine{00897\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00898\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_passphrase(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_a,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *p);}
+\DoxyCodeLine{00899\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_set\_passphrase\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00900\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *client\_data,\ archive\_passphrase\_callback\ *);}
+\DoxyCodeLine{00901\ }
+\DoxyCodeLine{00902\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00903\ \textcolor{comment}{\ *\ ARCHIVE\_WRITE\_DISK\ API}}
+\DoxyCodeLine{00904\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00905\ \textcolor{comment}{\ *\ To\ create\ objects\ on\ disk:}}
+\DoxyCodeLine{00906\ \textcolor{comment}{\ *\ \ \ 1)\ Ask\ archive\_write\_disk\_new\ for\ a\ new\ archive\_write\_disk\ object.}}
+\DoxyCodeLine{00907\ \textcolor{comment}{\ *\ \ \ 2)\ Set\ any\ global\ properties.\ \ In\ particular,\ you\ probably}}
+\DoxyCodeLine{00908\ \textcolor{comment}{\ *\ \ \ \ \ \ want\ to\ set\ the\ options.}}
+\DoxyCodeLine{00909\ \textcolor{comment}{\ *\ \ \ 3)\ For\ each\ entry:}}
+\DoxyCodeLine{00910\ \textcolor{comment}{\ *\ \ \ \ \ \ -\/\ construct\ an\ appropriate\ struct\ archive\_entry\ structure}}
+\DoxyCodeLine{00911\ \textcolor{comment}{\ *\ \ \ \ \ \ -\/\ archive\_write\_header\ to\ create\ the\ file/dir/etc\ on\ disk}}
+\DoxyCodeLine{00912\ \textcolor{comment}{\ *\ \ \ \ \ \ -\/\ archive\_write\_data\ to\ write\ the\ entry\ data}}
+\DoxyCodeLine{00913\ \textcolor{comment}{\ *\ \ \ 4)\ archive\_write\_free\ to\ cleanup\ the\ writer\ and\ release\ resources}}
+\DoxyCodeLine{00914\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00915\ \textcolor{comment}{\ *\ In\ particular,\ you\ can\ use\ this\ in\ conjunction\ with\ archive\_read()}}
+\DoxyCodeLine{00916\ \textcolor{comment}{\ *\ to\ pull\ entries\ out\ of\ an\ archive\ and\ create\ them\ on\ disk.}}
+\DoxyCodeLine{00917\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00918\ \_\_LA\_DECL\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive}{archive}}\ *archive\_write\_disk\_new(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00919\ \textcolor{comment}{/*\ This\ file\ will\ not\ be\ overwritten.\ */}}
+\DoxyCodeLine{00920\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_disk\_set\_skip\_file(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00921\ \ \ \ \ la\_int64\_t,\ la\_int64\_t);}
+\DoxyCodeLine{00922\ \textcolor{comment}{/*\ Set\ flags\ to\ control\ how\ the\ next\ item\ gets\ created.}}
+\DoxyCodeLine{00923\ \textcolor{comment}{\ *\ This\ accepts\ a\ bitmask\ of\ ARCHIVE\_EXTRACT\_XXX\ flags\ defined\ above.\ */}}
+\DoxyCodeLine{00924\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_write\_disk\_set\_options(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00925\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ flags);}
+\DoxyCodeLine{00926\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00927\ \textcolor{comment}{\ *\ The\ lookup\ functions\ are\ given\ uname/uid\ (or\ gname/gid)\ pairs\ and}}
+\DoxyCodeLine{00928\ \textcolor{comment}{\ *\ return\ a\ uid\ (gid)\ suitable\ for\ this\ system.\ \ These\ are\ used\ for}}
+\DoxyCodeLine{00929\ \textcolor{comment}{\ *\ restoring\ ownership\ and\ for\ setting\ ACLs.\ \ The\ default\ functions}}
+\DoxyCodeLine{00930\ \textcolor{comment}{\ *\ are\ naive,\ they\ just\ return\ the\ uid/gid.\ \ These\ are\ small,\ so\ reasonable}}
+\DoxyCodeLine{00931\ \textcolor{comment}{\ *\ for\ applications\ that\ don't\ need\ to\ preserve\ ownership;\ they}}
+\DoxyCodeLine{00932\ \textcolor{comment}{\ *\ are\ probably\ also\ appropriate\ for\ applications\ that\ are\ doing}}
+\DoxyCodeLine{00933\ \textcolor{comment}{\ *\ same-\/system\ backup\ and\ restore.}}
+\DoxyCodeLine{00934\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00935\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00936\ \textcolor{comment}{\ *\ The\ "{}standard"{}\ lookup\ functions\ use\ common\ system\ calls\ to\ lookup}}
+\DoxyCodeLine{00937\ \textcolor{comment}{\ *\ the\ uname/gname,\ falling\ back\ to\ the\ uid/gid\ if\ the\ names\ can't\ be}}
+\DoxyCodeLine{00938\ \textcolor{comment}{\ *\ found.\ \ They\ cache\ lookups\ and\ are\ reasonably\ fast,\ but\ can\ be\ very}}
+\DoxyCodeLine{00939\ \textcolor{comment}{\ *\ large,\ so\ they\ are\ not\ used\ unless\ you\ ask\ for\ them.\ \ In}}
+\DoxyCodeLine{00940\ \textcolor{comment}{\ *\ particular,\ these\ match\ the\ specifications\ of\ POSIX\ "{}pax"{}\ and\ old}}
+\DoxyCodeLine{00941\ \textcolor{comment}{\ *\ POSIX\ "{}tar"{}.}}
+\DoxyCodeLine{00942\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00943\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ archive\_write\_disk\_set\_standard\_lookup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00944\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00945\ \textcolor{comment}{\ *\ If\ neither\ the\ default\ (naive)\ nor\ the\ standard\ (big)\ functions\ suit}}
+\DoxyCodeLine{00946\ \textcolor{comment}{\ *\ your\ needs,\ you\ can\ write\ your\ own\ and\ register\ them.\ \ Be\ sure\ to}}
+\DoxyCodeLine{00947\ \textcolor{comment}{\ *\ include\ a\ cleanup\ function\ if\ you\ have\ allocated\ private\ data.}}
+\DoxyCodeLine{00948\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00949\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_disk\_set\_group\_lookup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00950\ \ \ \ \ \textcolor{keywordtype}{void}\ *\ \textcolor{comment}{/*\ private\_data\ */},}
+\DoxyCodeLine{00951\ \ \ \ \ la\_int64\_t\ (*)(\textcolor{keywordtype}{void}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,\ la\_int64\_t),}
+\DoxyCodeLine{00952\ \ \ \ \ \textcolor{keywordtype}{void}\ (*\ \textcolor{comment}{/*\ cleanup\ */})(\textcolor{keywordtype}{void}\ *));}
+\DoxyCodeLine{00953\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_write\_disk\_set\_user\_lookup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00954\ \ \ \ \ \textcolor{keywordtype}{void}\ *\ \textcolor{comment}{/*\ private\_data\ */},}
+\DoxyCodeLine{00955\ \ \ \ \ la\_int64\_t\ (*)(\textcolor{keywordtype}{void}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,\ la\_int64\_t),}
+\DoxyCodeLine{00956\ \ \ \ \ \textcolor{keywordtype}{void}\ (*\ \textcolor{comment}{/*\ cleanup\ */})(\textcolor{keywordtype}{void}\ *));}
+\DoxyCodeLine{00957\ \_\_LA\_DECL\ la\_int64\_t\ archive\_write\_disk\_gid(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,\ la\_int64\_t);}
+\DoxyCodeLine{00958\ \_\_LA\_DECL\ la\_int64\_t\ archive\_write\_disk\_uid(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,\ la\_int64\_t);}
+\DoxyCodeLine{00959\ }
+\DoxyCodeLine{00960\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00961\ \textcolor{comment}{\ *\ ARCHIVE\_READ\_DISK\ API}}
+\DoxyCodeLine{00962\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00963\ \textcolor{comment}{\ *\ This\ is\ still\ evolving\ and\ somewhat\ experimental.}}
+\DoxyCodeLine{00964\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00965\ \_\_LA\_DECL\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive}{archive}}\ *archive\_read\_disk\_new(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00966\ \textcolor{comment}{/*\ The\ names\ for\ symlink\ modes\ here\ correspond\ to\ an\ old\ BSD}}
+\DoxyCodeLine{00967\ \textcolor{comment}{\ *\ command-\/line\ argument\ convention:\ -\/L,\ -\/P,\ -\/H\ */}}
+\DoxyCodeLine{00968\ \textcolor{comment}{/*\ Follow\ all\ symlinks.\ */}}
+\DoxyCodeLine{00969\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_disk\_set\_symlink\_logical(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00970\ \textcolor{comment}{/*\ Follow\ no\ symlinks.\ */}}
+\DoxyCodeLine{00971\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_disk\_set\_symlink\_physical(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00972\ \textcolor{comment}{/*\ Follow\ symlink\ initially,\ then\ not.\ */}}
+\DoxyCodeLine{00973\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_disk\_set\_symlink\_hybrid(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00974\ \textcolor{comment}{/*\ TODO:\ Handle\ Linux\ stat32/stat64\ ugliness.\ <sigh>\ */}}
+\DoxyCodeLine{00975\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_read\_disk\_entry\_from\_file(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00976\ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *,\ \textcolor{keywordtype}{int}\ \textcolor{comment}{/*\ fd\ */},\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct}\ stat\ *);}
+\DoxyCodeLine{00977\ \textcolor{comment}{/*\ Look\ up\ gname\ for\ gid\ or\ uname\ for\ uid.\ */}}
+\DoxyCodeLine{00978\ \textcolor{comment}{/*\ Default\ implementations\ are\ very,\ very\ stupid.\ */}}
+\DoxyCodeLine{00979\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *archive\_read\_disk\_gname(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ la\_int64\_t);}
+\DoxyCodeLine{00980\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *archive\_read\_disk\_uname(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ la\_int64\_t);}
+\DoxyCodeLine{00981\ \textcolor{comment}{/*\ "{}Standard"{}\ implementation\ uses\ getpwuid\_r,\ getgrgid\_r\ and\ caches\ the}}
+\DoxyCodeLine{00982\ \textcolor{comment}{\ *\ results\ for\ performance.\ */}}
+\DoxyCodeLine{00983\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_set\_standard\_lookup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00984\ \textcolor{comment}{/*\ You\ can\ install\ your\ own\ lookups\ if\ you\ like.\ */}}
+\DoxyCodeLine{00985\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_set\_gname\_lookup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00986\ \ \ \ \ \textcolor{keywordtype}{void}\ *\ \textcolor{comment}{/*\ private\_data\ */},}
+\DoxyCodeLine{00987\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *(*\ \textcolor{comment}{/*\ lookup\_fn\ */})(\textcolor{keywordtype}{void}\ *,\ la\_int64\_t),}
+\DoxyCodeLine{00988\ \ \ \ \ \textcolor{keywordtype}{void}\ (*\ \textcolor{comment}{/*\ cleanup\_fn\ */})(\textcolor{keywordtype}{void}\ *));}
+\DoxyCodeLine{00989\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_set\_uname\_lookup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{00990\ \ \ \ \ \textcolor{keywordtype}{void}\ *\ \textcolor{comment}{/*\ private\_data\ */},}
+\DoxyCodeLine{00991\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *(*\ \textcolor{comment}{/*\ lookup\_fn\ */})(\textcolor{keywordtype}{void}\ *,\ la\_int64\_t),}
+\DoxyCodeLine{00992\ \ \ \ \ \textcolor{keywordtype}{void}\ (*\ \textcolor{comment}{/*\ cleanup\_fn\ */})(\textcolor{keywordtype}{void}\ *));}
+\DoxyCodeLine{00993\ \textcolor{comment}{/*\ Start\ traversal.\ */}}
+\DoxyCodeLine{00994\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_open(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00995\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_open\_w(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}\ *);}
+\DoxyCodeLine{00996\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00997\ \textcolor{comment}{\ *\ Request\ that\ current\ entry\ be\ visited.\ \ If\ you\ invoke\ it\ on\ every}}
+\DoxyCodeLine{00998\ \textcolor{comment}{\ *\ directory,\ you'll\ get\ a\ physical\ traversal.\ \ This\ is\ ignored\ if\ the}}
+\DoxyCodeLine{00999\ \textcolor{comment}{\ *\ current\ entry\ isn't\ a\ directory\ or\ a\ link\ to\ a\ directory.\ \ So,\ if}}
+\DoxyCodeLine{01000\ \textcolor{comment}{\ *\ you\ invoke\ this\ on\ every\ returned\ path,\ you'll\ get\ a\ full\ logical}}
+\DoxyCodeLine{01001\ \textcolor{comment}{\ *\ traversal.}}
+\DoxyCodeLine{01002\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01003\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_descend(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01004\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_can\_descend(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01005\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_current\_filesystem(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01006\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_current\_filesystem\_is\_synthetic(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01007\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_current\_filesystem\_is\_remote(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01008\ \textcolor{comment}{/*\ Request\ that\ the\ access\ time\ of\ the\ entry\ visited\ by\ traversal\ be\ restored.\ */}}
+\DoxyCodeLine{01009\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ archive\_read\_disk\_set\_atime\_restored(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01010\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01011\ \textcolor{comment}{\ *\ Set\ behavior.\ The\ "{}flags"{}\ argument\ selects\ optional\ behavior.}}
+\DoxyCodeLine{01012\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01013\ \textcolor{comment}{/*\ Request\ that\ the\ access\ time\ of\ the\ entry\ visited\ by\ traversal\ be\ restored.}}
+\DoxyCodeLine{01014\ \textcolor{comment}{\ *\ This\ is\ the\ same\ as\ archive\_read\_disk\_set\_atime\_restored.\ */}}
+\DoxyCodeLine{01015\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_RESTORE\_ATIME\ \ \ \ \ \ (0x0001)}}
+\DoxyCodeLine{01016\ \textcolor{comment}{/*\ Default:\ Do\ not\ skip\ an\ entry\ which\ has\ nodump\ flags.\ */}}
+\DoxyCodeLine{01017\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_HONOR\_NODUMP\ \ \ \ \ \ \ (0x0002)}}
+\DoxyCodeLine{01018\ \textcolor{comment}{/*\ Default:\ Skip\ a\ mac\ resource\ fork\ file\ whose\ prefix\ is\ "{}.\_"{}\ because\ of}}
+\DoxyCodeLine{01019\ \textcolor{comment}{\ *\ using\ copyfile.\ */}}
+\DoxyCodeLine{01020\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_MAC\_COPYFILE\ \ \ \ \ \ \ (0x0004)}}
+\DoxyCodeLine{01021\ \textcolor{comment}{/*\ Default:\ Traverse\ mount\ points.\ */}}
+\DoxyCodeLine{01022\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_NO\_TRAVERSE\_MOUNTS\ (0x0008)}}
+\DoxyCodeLine{01023\ \textcolor{comment}{/*\ Default:\ Xattrs\ are\ read\ from\ disk.\ */}}
+\DoxyCodeLine{01024\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_NO\_XATTR\ \ \ \ \ \ \ (0x0010)}}
+\DoxyCodeLine{01025\ \textcolor{comment}{/*\ Default:\ ACLs\ are\ read\ from\ disk.\ */}}
+\DoxyCodeLine{01026\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_NO\_ACL\ \ \ \ \ \ \ \ \ (0x0020)}}
+\DoxyCodeLine{01027\ \textcolor{comment}{/*\ Default:\ File\ flags\ are\ read\ from\ disk.\ */}}
+\DoxyCodeLine{01028\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_NO\_FFLAGS\ \ \ \ \ \ (0x0040)}}
+\DoxyCodeLine{01029\ \textcolor{comment}{/*\ Default:\ Sparse\ file\ information\ is\ read\ from\ disk.\ */}}
+\DoxyCodeLine{01030\ \textcolor{preprocessor}{\#define\ ARCHIVE\_READDISK\_NO\_SPARSE\ \ \ \ \ \ (0x0080)}}
+\DoxyCodeLine{01031\ }
+\DoxyCodeLine{01032\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ archive\_read\_disk\_set\_behavior(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01033\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ flags);}
+\DoxyCodeLine{01034\ }
+\DoxyCodeLine{01035\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01036\ \textcolor{comment}{\ *\ Set\ archive\_match\ object\ that\ will\ be\ used\ in\ archive\_read\_disk\ to}}
+\DoxyCodeLine{01037\ \textcolor{comment}{\ *\ know\ whether\ an\ entry\ should\ be\ skipped.\ The\ callback\ function}}
+\DoxyCodeLine{01038\ \textcolor{comment}{\ *\ \_excluded\_func\ will\ be\ invoked\ when\ an\ entry\ is\ skipped\ by\ the\ result}}
+\DoxyCodeLine{01039\ \textcolor{comment}{\ *\ of\ archive\_match.}}
+\DoxyCodeLine{01040\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01041\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_set\_matching(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01042\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *\_matching,\ \textcolor{keywordtype}{void}\ (*\_excluded\_func)}
+\DoxyCodeLine{01043\ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *,\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *),}
+\DoxyCodeLine{01044\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *\_client\_data);}
+\DoxyCodeLine{01045\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_read\_disk\_set\_metadata\_filter\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01046\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ (*\_metadata\_filter\_func)(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *,}
+\DoxyCodeLine{01047\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *),\ \textcolor{keywordtype}{void}\ *\_client\_data);}
+\DoxyCodeLine{01048\ }
+\DoxyCodeLine{01049\ \textcolor{comment}{/*\ Simplified\ cleanup\ interface;}}
+\DoxyCodeLine{01050\ \textcolor{comment}{\ *\ This\ calls\ archive\_read\_free()\ or\ archive\_write\_free()\ as\ needed.\ */}}
+\DoxyCodeLine{01051\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_free(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01052\ }
+\DoxyCodeLine{01053\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01054\ \textcolor{comment}{\ *\ Accessor\ functions\ to\ read/set\ various\ information\ in}}
+\DoxyCodeLine{01055\ \textcolor{comment}{\ *\ the\ struct\ archive\ object:}}
+\DoxyCodeLine{01056\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01057\ }
+\DoxyCodeLine{01058\ \textcolor{comment}{/*\ Number\ of\ filters\ in\ the\ current\ filter\ pipeline.\ */}}
+\DoxyCodeLine{01059\ \textcolor{comment}{/*\ Filter\ \#0\ is\ the\ one\ closest\ to\ the\ format,\ -\/1\ is\ a\ synonym\ for\ the}}
+\DoxyCodeLine{01060\ \textcolor{comment}{\ *\ last\ filter,\ which\ is\ always\ the\ pseudo-\/filter\ that\ wraps\ the}}
+\DoxyCodeLine{01061\ \textcolor{comment}{\ *\ client\ callbacks.\ */}}
+\DoxyCodeLine{01062\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_filter\_count(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01063\ \_\_LA\_DECL\ la\_int64\_t\ \ \ \ \ archive\_filter\_bytes(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{01064\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_filter\_code(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{01065\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ \ archive\_filter\_name(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{01066\ }
+\DoxyCodeLine{01067\ \textcolor{preprocessor}{\#if\ ARCHIVE\_VERSION\_NUMBER\ <\ 4000000}}
+\DoxyCodeLine{01068\ \textcolor{comment}{/*\ These\ don't\ properly\ handle\ multiple\ filters,\ so\ are\ deprecated\ and}}
+\DoxyCodeLine{01069\ \textcolor{comment}{\ *\ will\ eventually\ be\ removed.\ */}}
+\DoxyCodeLine{01070\ \textcolor{comment}{/*\ As\ of\ libarchive\ 3.0,\ this\ is\ an\ alias\ for\ archive\_filter\_bytes(a,\ -\/1);\ */}}
+\DoxyCodeLine{01071\ \_\_LA\_DECL\ la\_int64\_t\ \ \ \ \ archive\_position\_compressed(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{01072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{01073\ \textcolor{comment}{/*\ As\ of\ libarchive\ 3.0,\ this\ is\ an\ alias\ for\ archive\_filter\_bytes(a,\ 0);\ */}}
+\DoxyCodeLine{01074\ \_\_LA\_DECL\ la\_int64\_t\ \ \ \ \ archive\_position\_uncompressed(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{01075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{01076\ \textcolor{comment}{/*\ As\ of\ libarchive\ 3.0,\ this\ is\ an\ alias\ for\ archive\_filter\_name(a,\ 0);\ */}}
+\DoxyCodeLine{01077\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ *archive\_compression\_name(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{01078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{01079\ \textcolor{comment}{/*\ As\ of\ libarchive\ 3.0,\ this\ is\ an\ alias\ for\ archive\_filter\_code(a,\ 0);\ */}}
+\DoxyCodeLine{01080\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_compression(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *)}
+\DoxyCodeLine{01081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_LA\_DEPRECATED;}
+\DoxyCodeLine{01082\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01083\ }
+\DoxyCodeLine{01084\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_errno(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01085\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ *archive\_error\_string(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01086\ \_\_LA\_DECL\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ *archive\_format\_name(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01087\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_format(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01088\ \_\_LA\_DECL\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ archive\_clear\_error(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01089\ \_\_LA\_DECL\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ archive\_set\_error(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ \_err,}
+\DoxyCodeLine{01090\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,\ ...)\ \_\_LA\_PRINTF(3,\ 4);}
+\DoxyCodeLine{01091\ \_\_LA\_DECL\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ archive\_copy\_error(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *dest,}
+\DoxyCodeLine{01092\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ struct\ \mbox{\hyperlink{structarchive}{archive}}\ *src);}
+\DoxyCodeLine{01093\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ archive\_file\_count(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01094\ }
+\DoxyCodeLine{01095\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01096\ \textcolor{comment}{\ *\ ARCHIVE\_MATCH\ API}}
+\DoxyCodeLine{01097\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01098\ \_\_LA\_DECL\ struct\ \mbox{\hyperlink{structarchive}{archive}}\ *archive\_match\_new(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{01099\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_free(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01100\ }
+\DoxyCodeLine{01101\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01102\ \textcolor{comment}{\ *\ Test\ if\ archive\_entry\ is\ excluded.}}
+\DoxyCodeLine{01103\ \textcolor{comment}{\ *\ This\ is\ a\ convenience\ function.\ This\ is\ the\ same\ as\ calling\ all}}
+\DoxyCodeLine{01104\ \textcolor{comment}{\ *\ archive\_match\_path\_excluded,\ archive\_match\_time\_excluded}}
+\DoxyCodeLine{01105\ \textcolor{comment}{\ *\ and\ archive\_match\_owner\_excluded.}}
+\DoxyCodeLine{01106\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01107\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_excluded(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01108\ \ \ \ \ \ \ \ \ \ \ \ \ struct\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{01109\ }
+\DoxyCodeLine{01110\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01111\ \textcolor{comment}{\ *\ Test\ if\ pathname\ is\ excluded.\ The\ conditions\ are\ set\ by\ following\ functions.}}
+\DoxyCodeLine{01112\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01113\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_path\_excluded(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01114\ \ \ \ \ \ \ \ \ \ \ \ \ struct\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{01115\ \textcolor{comment}{/*\ Control\ recursive\ inclusion\ of\ directory\ content\ when\ directory\ is\ included.\ Default\ on.\ */}}
+\DoxyCodeLine{01116\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_set\_inclusion\_recursion(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{01117\ \textcolor{comment}{/*\ Add\ exclusion\ pathname\ pattern.\ */}}
+\DoxyCodeLine{01118\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_exclude\_pattern(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ const\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{01119\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_exclude\_pattern\_w(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01120\ \ \ \ \ \ \ \ \ \ \ \ \ const\ \textcolor{keywordtype}{wchar\_t}\ *);}
+\DoxyCodeLine{01121\ \textcolor{comment}{/*\ Add\ exclusion\ pathname\ pattern\ from\ file.\ */}}
+\DoxyCodeLine{01122\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_exclude\_pattern\_from\_file(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01123\ \ \ \ \ \ \ \ \ \ \ \ \ const\ \textcolor{keywordtype}{char}\ *,\ \textcolor{keywordtype}{int}\ \_nullSeparator);}
+\DoxyCodeLine{01124\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_exclude\_pattern\_from\_file\_w(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01125\ \ \ \ \ \ \ \ \ \ \ \ \ const\ \textcolor{keywordtype}{wchar\_t}\ *,\ \textcolor{keywordtype}{int}\ \_nullSeparator);}
+\DoxyCodeLine{01126\ \textcolor{comment}{/*\ Add\ inclusion\ pathname\ pattern.\ */}}
+\DoxyCodeLine{01127\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_pattern(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ const\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{01128\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_pattern\_w(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01129\ \ \ \ \ \ \ \ \ \ \ \ \ const\ \textcolor{keywordtype}{wchar\_t}\ *);}
+\DoxyCodeLine{01130\ \textcolor{comment}{/*\ Add\ inclusion\ pathname\ pattern\ from\ file.\ */}}
+\DoxyCodeLine{01131\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_pattern\_from\_file(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01132\ \ \ \ \ \ \ \ \ \ \ \ \ const\ \textcolor{keywordtype}{char}\ *,\ \textcolor{keywordtype}{int}\ \_nullSeparator);}
+\DoxyCodeLine{01133\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_pattern\_from\_file\_w(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01134\ \ \ \ \ \ \ \ \ \ \ \ \ const\ \textcolor{keywordtype}{wchar\_t}\ *,\ \textcolor{keywordtype}{int}\ \_nullSeparator);}
+\DoxyCodeLine{01135\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01136\ \textcolor{comment}{\ *\ How\ to\ get\ statistic\ information\ for\ inclusion\ patterns.}}
+\DoxyCodeLine{01137\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01138\ \textcolor{comment}{/*\ Return\ the\ amount\ number\ of\ unmatched\ inclusion\ patterns.\ */}}
+\DoxyCodeLine{01139\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_path\_unmatched\_inclusions(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{01140\ \textcolor{comment}{/*\ Return\ the\ pattern\ of\ unmatched\ inclusion\ with\ ARCHIVE\_OK.}}
+\DoxyCodeLine{01141\ \textcolor{comment}{\ *\ Return\ ARCHIVE\_EOF\ if\ there\ is\ no\ inclusion\ pattern.\ */}}
+\DoxyCodeLine{01142\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_path\_unmatched\_inclusions\_next(}
+\DoxyCodeLine{01143\ \ \ \ \ \ \ \ \ \ \ \ \ struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ const\ \textcolor{keywordtype}{char}\ **);}
+\DoxyCodeLine{01144\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_path\_unmatched\_inclusions\_next\_w(}
+\DoxyCodeLine{01145\ \ \ \ \ \ \ \ \ \ \ \ \ struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ const\ \textcolor{keywordtype}{wchar\_t}\ **);}
+\DoxyCodeLine{01146\ }
+\DoxyCodeLine{01147\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01148\ \textcolor{comment}{\ *\ Test\ if\ a\ file\ is\ excluded\ by\ its\ time\ stamp.}}
+\DoxyCodeLine{01149\ \textcolor{comment}{\ *\ The\ conditions\ are\ set\ by\ following\ functions.}}
+\DoxyCodeLine{01150\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01151\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_time\_excluded(struct\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01152\ \ \ \ \ \ \ \ \ \ \ \ \ struct\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{01153\ }
+\DoxyCodeLine{01154\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01155\ \textcolor{comment}{\ *\ Flags\ to\ tell\ a\ matching\ type\ of\ time\ stamps.\ These\ are\ used\ for}}
+\DoxyCodeLine{01156\ \textcolor{comment}{\ *\ following\ functions.}}
+\DoxyCodeLine{01157\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01158\ \textcolor{comment}{/*\ Time\ flag:\ mtime\ to\ be\ tested.\ */}}
+\DoxyCodeLine{01159\ \textcolor{preprocessor}{\#define\ ARCHIVE\_MATCH\_MTIME\ (0x0100)}}
+\DoxyCodeLine{01160\ \textcolor{comment}{/*\ Time\ flag:\ ctime\ to\ be\ tested.\ */}}
+\DoxyCodeLine{01161\ \textcolor{preprocessor}{\#define\ ARCHIVE\_MATCH\_CTIME\ (0x0200)}}
+\DoxyCodeLine{01162\ \textcolor{comment}{/*\ Comparison\ flag:\ Match\ the\ time\ if\ it\ is\ newer\ than.\ */}}
+\DoxyCodeLine{01163\ \textcolor{preprocessor}{\#define\ ARCHIVE\_MATCH\_NEWER\ (0x0001)}}
+\DoxyCodeLine{01164\ \textcolor{comment}{/*\ Comparison\ flag:\ Match\ the\ time\ if\ it\ is\ older\ than.\ */}}
+\DoxyCodeLine{01165\ \textcolor{preprocessor}{\#define\ ARCHIVE\_MATCH\_OLDER\ (0x0002)}}
+\DoxyCodeLine{01166\ \textcolor{comment}{/*\ Comparison\ flag:\ Match\ the\ time\ if\ it\ is\ equal\ to.\ */}}
+\DoxyCodeLine{01167\ \textcolor{preprocessor}{\#define\ ARCHIVE\_MATCH\_EQUAL\ (0x0010)}}
+\DoxyCodeLine{01168\ \textcolor{comment}{/*\ Set\ inclusion\ time.\ */}}
+\DoxyCodeLine{01169\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_time(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ \_flag,}
+\DoxyCodeLine{01170\ \ \ \ \ \ \ \ \ \ \ \ \ time\_t\ \_sec,\ \textcolor{keywordtype}{long}\ \_nsec);}
+\DoxyCodeLine{01171\ \textcolor{comment}{/*\ Set\ inclusion\ time\ by\ a\ date\ string.\ */}}
+\DoxyCodeLine{01172\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_date(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ \_flag,}
+\DoxyCodeLine{01173\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\_datestr);}
+\DoxyCodeLine{01174\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_date\_w(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{int}\ \_flag,}
+\DoxyCodeLine{01175\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}\ *\_datestr);}
+\DoxyCodeLine{01176\ \textcolor{comment}{/*\ Set\ inclusion\ time\ by\ a\ particular\ file.\ */}}
+\DoxyCodeLine{01177\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_file\_time(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01178\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \_flag,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\_pathname);}
+\DoxyCodeLine{01179\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_file\_time\_w(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01180\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \_flag,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}\ *\_pathname);}
+\DoxyCodeLine{01181\ \textcolor{comment}{/*\ Add\ exclusion\ entry.\ */}}
+\DoxyCodeLine{01182\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_exclude\_entry(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01183\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \_flag,\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{01184\ }
+\DoxyCodeLine{01185\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01186\ \textcolor{comment}{\ *\ Test\ if\ a\ file\ is\ excluded\ by\ its\ uid\ ,gid,\ uname\ or\ gname.}}
+\DoxyCodeLine{01187\ \textcolor{comment}{\ *\ The\ conditions\ are\ set\ by\ following\ functions.}}
+\DoxyCodeLine{01188\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01189\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_owner\_excluded(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01190\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{01191\ \textcolor{comment}{/*\ Add\ inclusion\ uid,\ gid,\ uname\ and\ gname.\ */}}
+\DoxyCodeLine{01192\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_uid(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ la\_int64\_t);}
+\DoxyCodeLine{01193\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_gid(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ la\_int64\_t);}
+\DoxyCodeLine{01194\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_uname(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{01195\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_uname\_w(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01196\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}\ *);}
+\DoxyCodeLine{01197\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_gname(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{01198\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ \ \ archive\_match\_include\_gname\_w(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,}
+\DoxyCodeLine{01199\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{wchar\_t}\ *);}
+\DoxyCodeLine{01200\ }
+\DoxyCodeLine{01201\ \textcolor{comment}{/*\ Utility\ functions\ */}}
+\DoxyCodeLine{01202\ \textcolor{comment}{/*\ Convenience\ function\ to\ sort\ a\ NULL\ terminated\ list\ of\ strings\ */}}
+\DoxyCodeLine{01203\ \_\_LA\_DECL\ \textcolor{keywordtype}{int}\ archive\_utility\_string\_sort(\textcolor{keywordtype}{char}\ **);}
+\DoxyCodeLine{01204\ }
+\DoxyCodeLine{01205\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{01206\ \}}
+\DoxyCodeLine{01207\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01208\ }
+\DoxyCodeLine{01209\ \textcolor{comment}{/*\ These\ are\ meaningless\ outside\ of\ this\ header.\ */}}
+\DoxyCodeLine{01210\ \textcolor{preprocessor}{\#undef\ \_\_LA\_DECL}}
+\DoxyCodeLine{01211\ }
+\DoxyCodeLine{01212\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !ARCHIVE\_H\_INCLUDED\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

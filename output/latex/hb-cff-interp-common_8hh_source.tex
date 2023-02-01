@@ -1,0 +1,686 @@
+\hypertarget{hb-cff-interp-common_8hh_source}{}\doxysection{hb-\/cff-\/interp-\/common.hh}
+\label{hb-cff-interp-common_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/cff-\/interp-\/common.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/cff-\/interp-\/common.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2018\ Adobe\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Adobe\ Author(s):\ Michiharu\ Ariza}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#ifndef\ HB\_CFF\_INTERP\_COMMON\_HH}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ HB\_CFF\_INTERP\_COMMON\_HH}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{namespace\ }CFF\ \{}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{using\ namespace\ }OT;}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ op\_code\_t;}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{/*\ ===\ Dict\ operators\ ===\ */}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{comment}{/*\ One\ byte\ operators\ (0-\/31)\ */}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ OpCode\_version\ \ \ \ \ \ \ \ 0\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ OpCode\_Notice\ \ \ \ \ \ \ \ \ 1\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ OpCode\_FullName\ \ \ \ \ \ \ 2\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ OpCode\_FamilyName\ \ \ \ \ 3\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#define\ OpCode\_Weight\ \ \ \ \ \ \ \ \ 4\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ OpCode\_FontBBox\ \ \ \ \ \ \ 5\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ OpCode\_BlueValues\ \ \ \ \ 6\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ OpCode\_OtherBlues\ \ \ \ \ 7\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ OpCode\_FamilyBlues\ \ \ \ 8\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ OpCode\_FamilyOtherBlues\ \ \ 9\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ OpCode\_StdHW\ \ \ \ \ \ \ \ \ 10\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#define\ OpCode\_StdVW\ \ \ \ \ \ \ \ \ 11\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ OpCode\_escape\ \ \ \ \ \ \ \ 12\ }\textcolor{comment}{/*\ All.\ Shared\ with\ CS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ OpCode\_UniqueID\ \ \ \ \ \ 13\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ OpCode\_XUID\ \ \ \ \ \ 14\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ OpCode\_charset\ \ \ \ \ \ \ 15\ }\textcolor{comment}{/*\ CFF\ Top\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ OpCode\_Encoding\ \ \ \ \ \ 16\ }\textcolor{comment}{/*\ CFF\ Top\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ OpCode\_CharStrings\ \ \ 17\ }\textcolor{comment}{/*\ CFF\ Top,\ CFF2\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ OpCode\_Private\ \ \ \ \ \ \ 18\ }\textcolor{comment}{/*\ CFF\ Top,\ CFF2\ FD\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#define\ OpCode\_Subrs\ \ \ \ \ \ \ \ \ 19\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#define\ OpCode\_defaultWidthX\ \ \ \ \ 20\ }\textcolor{comment}{/*\ CFF\ Private\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#define\ OpCode\_nominalWidthX\ \ \ \ \ 21\ }\textcolor{comment}{/*\ CFF\ Private\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#define\ OpCode\_vsindexdict\ \ \ 22\ }\textcolor{comment}{/*\ CFF2\ Private/CS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#define\ OpCode\_blenddict\ \ \ \ \ 23\ }\textcolor{comment}{/*\ CFF2\ Private/CS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#define\ OpCode\_vstore\ \ \ \ \ \ \ \ 24\ }\textcolor{comment}{/*\ CFF2\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#define\ OpCode\_reserved25\ \ \ \ 25}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ OpCode\_reserved26\ \ \ \ 26}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#define\ OpCode\_reserved27\ \ \ \ 27}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{comment}{/*\ Numbers\ */}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#define\ OpCode\_shortint\ \ \ \ \ \ 28\ }\textcolor{comment}{/*\ 16-\/bit\ integer,\ All\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ OpCode\_longintdict\ \ \ 29\ }\textcolor{comment}{/*\ 32-\/bit\ integer,\ All\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#define\ OpCode\_BCD\ \ \ \ \ \ \ 30\ }\textcolor{comment}{/*\ Real\ number,\ CFF2\ Top/FD\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#define\ OpCode\_reserved31\ \ \ \ 31}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{comment}{/*\ 1-\/byte\ integers\ */}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\#define\ OpCode\_OneByteIntFirst\ \ \ 32\ }\textcolor{comment}{/*\ All.\ beginning\ of\ the\ range\ of\ first\ byte\ ints\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\#define\ OpCode\_OneByteIntLast\ \ \ 246\ }\textcolor{comment}{/*\ All.\ ending\ of\ the\ range\ of\ first\ byte\ int\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{comment}{/*\ 2-\/byte\ integers\ */}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ OpCode\_TwoBytePosInt0\ \ \ 247\ }\textcolor{comment}{/*\ All.\ first\ byte\ of\ two\ byte\ positive\ int\ (+108\ to\ +1131)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#define\ OpCode\_TwoBytePosInt1\ \ \ 248}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#define\ OpCode\_TwoBytePosInt2\ \ \ 249}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#define\ OpCode\_TwoBytePosInt3\ \ \ 250}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#define\ OpCode\_TwoByteNegInt0\ \ \ 251\ }\textcolor{comment}{/*\ All.\ first\ byte\ of\ two\ byte\ negative\ int\ (-\/1131\ to\ -\/108)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ OpCode\_TwoByteNegInt1\ \ \ 252}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ OpCode\_TwoByteNegInt2\ \ \ 253}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\#define\ OpCode\_TwoByteNegInt3\ \ \ 254}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{comment}{/*\ Two\ byte\ escape\ operators\ 12,\ (0-\/41)\ */}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#define\ OpCode\_ESC\_Base\ \ \ \ \ 256}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#define\ Make\_OpCode\_ESC(byte2)\ \ ((op\_code\_t)(OpCode\_ESC\_Base\ +\ (byte2)))}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{keyword}{inline}\ op\_code\_t\ Unmake\_OpCode\_ESC\ (op\_code\_t\ op)\ \ \{\ \textcolor{keywordflow}{return}\ (op\_code\_t)(op\ -\/\ OpCode\_ESC\_Base);\ \}}
+\DoxyCodeLine{00094\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}\ Is\_OpCode\_ESC\ (op\_code\_t\ op)\ \{\ \textcolor{keywordflow}{return}\ op\ >=\ OpCode\_ESC\_Base;\ \}}
+\DoxyCodeLine{00095\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ OpCode\_Size\ (op\_code\_t\ op)\ \{\ \textcolor{keywordflow}{return}\ Is\_OpCode\_ESC\ (op)\ ?\ 2:\ 1;\ \}}
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#define\ OpCode\_Copyright\ \ \ \ Make\_OpCode\_ESC(0)\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#define\ OpCode\_isFixedPitch\ Make\_OpCode\_ESC(1)\ }\textcolor{comment}{/*\ CFF\ Top\ (false)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#define\ OpCode\_ItalicAngle\ \ Make\_OpCode\_ESC(2)\ }\textcolor{comment}{/*\ CFF\ Top\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#define\ OpCode\_UnderlinePosition\ Make\_OpCode\_ESC(3)\ }\textcolor{comment}{/*\ CFF\ Top\ (-\/100)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#define\ OpCode\_UnderlineThickness\ Make\_OpCode\_ESC(4)\ }\textcolor{comment}{/*\ CFF\ Top\ (50)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#define\ OpCode\_PaintType\ \ \ \ Make\_OpCode\_ESC(5)\ }\textcolor{comment}{/*\ CFF\ Top\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#define\ OpCode\_CharstringType\ \ \ Make\_OpCode\_ESC(6)\ }\textcolor{comment}{/*\ CFF\ Top\ (2)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#define\ OpCode\_FontMatrix\ \ \ Make\_OpCode\_ESC(7)\ }\textcolor{comment}{/*\ CFF\ Top,\ CFF2\ Top\ (.001\ 0\ 0\ .001\ 0\ 0)*/}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#define\ OpCode\_StrokeWidth\ \ Make\_OpCode\_ESC(8)\ }\textcolor{comment}{/*\ CFF\ Top\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#define\ OpCode\_BlueScale\ \ \ \ Make\_OpCode\_ESC(9)\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ (0.039625)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#define\ OpCode\_BlueShift\ \ \ \ Make\_OpCode\_ESC(10)\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ (7)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#define\ OpCode\_BlueFuzz\ \ \ \ \ Make\_OpCode\_ESC(11)\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ (1)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#define\ OpCode\_StemSnapH\ \ \ \ Make\_OpCode\_ESC(12)\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#define\ OpCode\_StemSnapV\ \ \ \ Make\_OpCode\_ESC(13)\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#define\ OpCode\_ForceBold\ \ \ \ Make\_OpCode\_ESC(14)\ }\textcolor{comment}{/*\ CFF\ Private\ (false)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC15\ \ \ \ Make\_OpCode\_ESC(15)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC16\ \ \ \ Make\_OpCode\_ESC(16)}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#define\ OpCode\_LanguageGroup\ \ \ \ Make\_OpCode\_ESC(17)\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ OpCode\_ExpansionFactor\ \ Make\_OpCode\_ESC(18)\ }\textcolor{comment}{/*\ CFF\ Private,\ CFF2\ Private\ (0.06)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#define\ OpCode\_initialRandomSeed\ Make\_OpCode\_ESC(19)\ }\textcolor{comment}{/*\ CFF\ Private\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ OpCode\_SyntheticBase\ \ \ \ Make\_OpCode\_ESC(20)\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ OpCode\_PostScript\ \ \ Make\_OpCode\_ESC(21)\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#define\ OpCode\_BaseFontName\ Make\_OpCode\_ESC(22)\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#define\ OpCode\_BaseFontBlend\ \ \ \ Make\_OpCode\_ESC(23)\ }\textcolor{comment}{/*\ CFF\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC24\ \ \ \ Make\_OpCode\_ESC(24)}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC25\ \ \ \ Make\_OpCode\_ESC(25)}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC26\ \ \ \ Make\_OpCode\_ESC(26)}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC27\ \ \ \ Make\_OpCode\_ESC(27)}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC28\ \ \ \ Make\_OpCode\_ESC(28)}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC29\ \ \ \ Make\_OpCode\_ESC(29)}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#define\ OpCode\_ROS\ \ \ \ \ \ Make\_OpCode\_ESC(30)\ }\textcolor{comment}{/*\ CFF\ Top\_CID\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#define\ OpCode\_CIDFontVersion\ \ \ Make\_OpCode\_ESC(31)\ }\textcolor{comment}{/*\ CFF\ Top\_CID\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ OpCode\_CIDFontRevision\ \ Make\_OpCode\_ESC(32)\ }\textcolor{comment}{/*\ CFF\ Top\_CID\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#define\ OpCode\_CIDFontType\ \ Make\_OpCode\_ESC(33)\ }\textcolor{comment}{/*\ CFF\ Top\_CID\ (0)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ OpCode\_CIDCount\ \ \ \ \ Make\_OpCode\_ESC(34)\ }\textcolor{comment}{/*\ CFF\ Top\_CID\ (8720)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#define\ OpCode\_UIDBase\ \ \ \ \ \ Make\_OpCode\_ESC(35)\ }\textcolor{comment}{/*\ CFF\ Top\_CID\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ OpCode\_FDArray\ \ \ \ \ \ Make\_OpCode\_ESC(36)\ }\textcolor{comment}{/*\ CFF\ Top\_CID,\ CFF2\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#define\ OpCode\_FDSelect\ \ \ \ \ Make\_OpCode\_ESC(37)\ }\textcolor{comment}{/*\ CFF\ Top\_CID,\ CFF2\ Top\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#define\ OpCode\_FontName\ \ \ \ \ Make\_OpCode\_ESC(38)\ }\textcolor{comment}{/*\ CFF\ Top\_CID\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{comment}{/*\ ===\ CharString\ operators\ ===\ */}}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#define\ OpCode\_hstem\ \ \ \ \ \ \ \ \ \ 1\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#define\ OpCode\_Reserved2\ \ \ \ \ \ 2}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#define\ OpCode\_vstem\ \ \ \ \ \ \ \ \ \ 3\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#define\ OpCode\_vmoveto\ \ \ \ \ \ \ \ 4\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\#define\ OpCode\_rlineto\ \ \ \ \ \ \ \ 5\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#define\ OpCode\_hlineto\ \ \ \ \ \ \ \ 6\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\#define\ OpCode\_vlineto\ \ \ \ \ \ \ \ 7\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#define\ OpCode\_rrcurveto\ \ \ \ \ \ 8\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\#define\ OpCode\_Reserved9\ \ \ \ \ \ 9}}
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\#define\ OpCode\_callsubr\ \ \ \ \ \ 10\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#define\ OpCode\_return\ \ \ \ \ \ \ \ 11\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00151\ \textcolor{comment}{//\#define\ OpCode\_escape\ \ \ \ \ \ 12\ /*\ CFF,\ CFF2\ */}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#define\ OpCode\_Reserved13\ \ \ \ 13}}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\#define\ OpCode\_endchar\ \ \ \ \ \ \ 14\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#define\ OpCode\_vsindexcs\ \ \ \ \ 15\ }\textcolor{comment}{/*\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\#define\ OpCode\_blendcs\ \ \ \ \ \ \ 16\ }\textcolor{comment}{/*\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#define\ OpCode\_Reserved17\ \ \ \ 17}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#define\ OpCode\_hstemhm\ \ \ \ \ \ \ 18\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#define\ OpCode\_hintmask\ \ \ \ \ \ 19\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#define\ OpCode\_cntrmask\ \ \ \ \ \ 20\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\#define\ OpCode\_rmoveto\ \ \ \ \ \ \ 21\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\#define\ OpCode\_hmoveto\ \ \ \ \ \ \ 22\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#define\ OpCode\_vstemhm\ \ \ \ \ \ \ 23\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\#define\ OpCode\_rcurveline\ \ \ \ 24\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#define\ OpCode\_rlinecurve\ \ \ \ 25\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\#define\ OpCode\_vvcurveto\ \ \ \ \ 26\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\#define\ OpCode\_hhcurveto\ \ \ \ \ 27\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00167\ \textcolor{comment}{//\#define\ OpCode\_shortint\ \ \ \ 28\ /*\ CFF,\ CFF2\ */}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#define\ OpCode\_callgsubr\ \ \ \ \ 29\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\#define\ OpCode\_vhcurveto\ \ \ \ \ 30\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#define\ OpCode\_hvcurveto\ \ \ \ \ 31\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#define\ OpCode\_fixedcs\ \ \ \ \ \ 255\ }\textcolor{comment}{/*\ 32-\/bit\ fixed\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{comment}{/*\ Two\ byte\ escape\ operators\ 12,\ (0-\/41)\ */}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\#define\ OpCode\_dotsection\ \ \ Make\_OpCode\_ESC(0)\ }\textcolor{comment}{/*\ CFF\ (obsoleted)\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC1\ Make\_OpCode\_ESC(1)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC2\ Make\_OpCode\_ESC(2)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\#define\ OpCode\_and\ \ \ \ \ \ Make\_OpCode\_ESC(3)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\#define\ OpCode\_or\ \ \ \ \ \ \ Make\_OpCode\_ESC(4)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\#define\ OpCode\_not\ \ \ \ \ \ Make\_OpCode\_ESC(5)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC6\ Make\_OpCode\_ESC(6)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC7\ Make\_OpCode\_ESC(7)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC8\ Make\_OpCode\_ESC(8)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#define\ OpCode\_abs\ \ \ \ \ \ Make\_OpCode\_ESC(9)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#define\ OpCode\_add\ \ \ \ \ \ Make\_OpCode\_ESC(10)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\#define\ OpCode\_sub\ \ \ \ \ \ Make\_OpCode\_ESC(11)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#define\ OpCode\_div\ \ \ \ \ \ Make\_OpCode\_ESC(12)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC13\ \ \ \ Make\_OpCode\_ESC(13)}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#define\ OpCode\_neg\ \ \ \ \ \ Make\_OpCode\_ESC(14)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\#define\ OpCode\_eq\ \ \ \ \ \ \ Make\_OpCode\_ESC(15)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC16\ \ \ \ Make\_OpCode\_ESC(16)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC17\ \ \ \ Make\_OpCode\_ESC(17)}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#define\ OpCode\_drop\ \ \ \ \ Make\_OpCode\_ESC(18)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\#define\ OpCode\_ReservedESC19\ \ \ \ Make\_OpCode\_ESC(19)}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\#define\ OpCode\_put\ \ \ \ \ \ Make\_OpCode\_ESC(20)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\#define\ OpCode\_get\ \ \ \ \ \ Make\_OpCode\_ESC(21)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\#define\ OpCode\_ifelse\ \ \ \ \ \ \ Make\_OpCode\_ESC(22)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\#define\ OpCode\_random\ \ \ \ \ \ \ Make\_OpCode\_ESC(23)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#define\ OpCode\_mul\ \ \ \ \ \ Make\_OpCode\_ESC(24)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00200\ \textcolor{comment}{//\#define\ OpCode\_reservedESC25\ \ Make\_OpCode\_ESC(25)}}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\#define\ OpCode\_sqrt\ \ \ \ \ Make\_OpCode\_ESC(26)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\#define\ OpCode\_dup\ \ \ \ \ \ Make\_OpCode\_ESC(27)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\#define\ OpCode\_exch\ \ \ \ \ Make\_OpCode\_ESC(28)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00204\ \textcolor{preprocessor}{\#define\ OpCode\_index\ \ \ \ \ \ \ \ Make\_OpCode\_ESC(29)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\#define\ OpCode\_roll\ \ \ \ \ Make\_OpCode\_ESC(30)\ }\textcolor{comment}{/*\ CFF\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00206\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC31\ \ \ \ Make\_OpCode\_ESC(31)}}
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC32\ \ \ \ Make\_OpCode\_ESC(32)}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#define\ OpCode\_reservedESC33\ \ \ \ Make\_OpCode\_ESC(33)}}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#define\ OpCode\_hflex\ \ \ \ \ \ \ \ Make\_OpCode\_ESC(34)\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\#define\ OpCode\_flex\ \ \ \ \ Make\_OpCode\_ESC(35)\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\#define\ OpCode\_hflex1\ \ \ \ \ \ \ Make\_OpCode\_ESC(36)\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#define\ OpCode\_flex1\ \ \ \ \ \ \ \ Make\_OpCode\_ESC(37)\ }\textcolor{comment}{/*\ CFF,\ CFF2\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#define\ OpCode\_Invalid\ \ \ \ \ \ 0xFFFFu}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}}
+\DoxyCodeLine{00219\ \{}
+\DoxyCodeLine{00220\ \ \ \textcolor{keywordtype}{void}\ set\_int\ (\textcolor{keywordtype}{int}\ v)\ \ \ \ \ \ \ \{\ \mbox{\hyperlink{classvalue}{value}}\ =\ v;\ \}}
+\DoxyCodeLine{00221\ \ \ \textcolor{keywordtype}{int}\ to\_int\ ()\textcolor{keyword}{\ const\ \ \ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};\ \}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \textcolor{keywordtype}{void}\ set\_fixed\ (int32\_t\ v)\ \{\ \mbox{\hyperlink{classvalue}{value}}\ =\ v\ /\ 65536.0;\ \}}
+\DoxyCodeLine{00224\ \ \ int32\_t\ to\_fixed\ ()\textcolor{keyword}{\ const\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}}\ *\ 65536.0;\ \}}
+\DoxyCodeLine{00225\ }
+\DoxyCodeLine{00226\ \ \ \textcolor{keywordtype}{void}\ set\_real\ (\textcolor{keywordtype}{double}\ v)\ \ \ \{\ \mbox{\hyperlink{classvalue}{value}}\ =\ v;\ \}}
+\DoxyCodeLine{00227\ \ \ \textcolor{keywordtype}{double}\ to\_real\ ()\textcolor{keyword}{\ const\ \ \ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};\ \}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \textcolor{keywordtype}{bool}\ in\_int\_range\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00230\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ ((\textcolor{keywordtype}{double})\ (int16\_t)\ to\_int\ ()\ ==\ \mbox{\hyperlink{classvalue}{value}});\ \}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \textcolor{keywordtype}{bool}\ operator\ >\ \ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&n)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}}\ >\ n.to\_real\ ();\ \}}
+\DoxyCodeLine{00233\ \ \ \textcolor{keywordtype}{bool}\ operator\ <\ \ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&n)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ n\ >\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00234\ \ \ \textcolor{keywordtype}{bool}\ operator\ >=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&n)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ <\ n);\ \}}
+\DoxyCodeLine{00235\ \ \ \textcolor{keywordtype}{bool}\ operator\ <=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&n)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !(*\textcolor{keyword}{this}\ >\ n);\ \}}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&operator\ +=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&n)}
+\DoxyCodeLine{00238\ \ \ \{}
+\DoxyCodeLine{00239\ \ \ \ \ set\_real\ (to\_real\ ()\ +\ n.to\_real\ ());}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};}
+\DoxyCodeLine{00242\ \ \ \}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00245\ \ \ \textcolor{keywordtype}{double}\ \mbox{\hyperlink{classvalue}{value}}\ =\ 0.;}
+\DoxyCodeLine{00246\ \};}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \textcolor{comment}{/*\ byte\ string\ */}}
+\DoxyCodeLine{00249\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1_unsized_byte_str}{UnsizedByteStr}}\ :\ \mbox{\hyperlink{struct_o_t_1_1_unsized_array_of}{UnsizedArrayOf}}\ <HBUINT8>}
+\DoxyCodeLine{00250\ \{}
+\DoxyCodeLine{00251\ \ \ \textcolor{comment}{//\ encode\ 2-\/byte\ int\ (Dict/CharString)\ or\ 4-\/byte\ int\ (Dict)}}
+\DoxyCodeLine{00252\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ V>}
+\DoxyCodeLine{00253\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ serialize\_int\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,\ op\_code\_t\ intOp,\ V\ \mbox{\hyperlink{classvalue}{value}})}
+\DoxyCodeLine{00254\ \ \ \{}
+\DoxyCodeLine{00255\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ *p\ =\ c-\/>allocate\_size<\mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}>\ (1);}
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!p))\ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00259\ \ \ \ \ *p\ =\ intOp;}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \ \ T\ *ip\ =\ c-\/>allocate\_size<T>\ (T::static\_size);}
+\DoxyCodeLine{00262\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!ip))\ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00263\ \ \ \ \ return\_trace\ (c-\/>check\_assign\ (*ip,\ \mbox{\hyperlink{classvalue}{value}},\ HB\_SERIALIZE\_ERROR\_INT\_OVERFLOW));}
+\DoxyCodeLine{00264\ \ \ \}}
+\DoxyCodeLine{00265\ }
+\DoxyCodeLine{00266\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ V>}
+\DoxyCodeLine{00267\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ serialize\_int4\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,\ V\ \mbox{\hyperlink{classvalue}{value}})}
+\DoxyCodeLine{00268\ \ \ \{\ \textcolor{keywordflow}{return}\ serialize\_int<HBINT32>\ (c,\ OpCode\_longintdict,\ \mbox{\hyperlink{classvalue}{value}});\ \}}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ V>}
+\DoxyCodeLine{00271\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ serialize\_int2\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,\ V\ \mbox{\hyperlink{classvalue}{value}})}
+\DoxyCodeLine{00272\ \ \ \{\ \textcolor{keywordflow}{return}\ serialize\_int<HBINT16>\ (c,\ OpCode\_shortint,\ \mbox{\hyperlink{classvalue}{value}});\ \}}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \ \ \textcolor{comment}{/*\ Defining\ null\_size\ allows\ a\ Null\ object\ may\ be\ created.\ Should\ be\ safe\ because:}}
+\DoxyCodeLine{00275\ \textcolor{comment}{\ \ \ *\ A\ descendent\ struct\ Dict\ uses\ a\ Null\ pointer\ to\ indicate\ a\ missing\ table,}}
+\DoxyCodeLine{00276\ \textcolor{comment}{\ \ \ *\ checked\ before\ access.}}
+\DoxyCodeLine{00277\ \textcolor{comment}{\ \ \ *\ byte\_str\_t,\ a\ wrapper\ struct\ pairing\ a\ byte\ pointer\ along\ with\ its\ length,\ always}}
+\DoxyCodeLine{00278\ \textcolor{comment}{\ \ \ *\ checks\ the\ length\ before\ access.\ A\ Null\ pointer\ is\ used\ as\ the\ initial\ pointer}}
+\DoxyCodeLine{00279\ \textcolor{comment}{\ \ \ *\ along\ with\ zero\ length\ by\ the\ default\ ctor.}}
+\DoxyCodeLine{00280\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00281\ \ \ DEFINE\_SIZE\_MIN(0);}
+\DoxyCodeLine{00282\ \};}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \textcolor{comment}{/*\ Holder\ of\ a\ section\ of\ byte\ string\ within\ a\ CFFIndex\ entry\ */}}
+\DoxyCodeLine{00285\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ :\ \mbox{\hyperlink{structhb__array__t}{hb\_ubytes\_t}}}
+\DoxyCodeLine{00286\ \{}
+\DoxyCodeLine{00287\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ ()}
+\DoxyCodeLine{00288\ \ \ \ \ :\ \mbox{\hyperlink{structhb__array__t}{hb\_ubytes\_t}}\ ()\ \{\}}
+\DoxyCodeLine{00289\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1_unsized_byte_str}{UnsizedByteStr}}\&\ s,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ l)}
+\DoxyCodeLine{00290\ \ \ \ \ :\ \mbox{\hyperlink{structhb__array__t}{hb\_ubytes\_t}}\ ((\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}*)\&s,\ l)\ \{\}}
+\DoxyCodeLine{00291\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *s,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ l)}
+\DoxyCodeLine{00292\ \ \ \ \ :\ \mbox{\hyperlink{structhb__array__t}{hb\_ubytes\_t}}\ (s,\ l)\ \{\}}
+\DoxyCodeLine{00293\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__array__t}{hb\_ubytes\_t}}\ \&ub)\ \ \ \textcolor{comment}{/*\ conversion\ from\ hb\_ubytes\_t\ */}}
+\DoxyCodeLine{00294\ \ \ \ \ :\ \mbox{\hyperlink{structhb__array__t}{hb\_ubytes\_t}}\ (ub)\ \{\}}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \ \ \textcolor{comment}{/*\ sub-\/string\ */}}
+\DoxyCodeLine{00297\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ sub\_str\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len\_)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00298\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ (hb\_ubytes\_t::sub\_array\ (offset,\ len\_));\ \}}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \ \ \textcolor{keywordtype}{bool}\ check\_limit\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00301\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ (offset\ +\ count\ <=\ length);\ \}}
+\DoxyCodeLine{00302\ \};}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \textcolor{comment}{/*\ A\ byte\ string\ associated\ with\ the\ current\ offset\ and\ an\ error\ condition\ */}}
+\DoxyCodeLine{00305\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}}
+\DoxyCodeLine{00306\ \{}
+\DoxyCodeLine{00307\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\ ()\ \{\ init\ ();\ \}}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \textcolor{keywordtype}{void}\ init\ ()}
+\DoxyCodeLine{00310\ \ \ \{}
+\DoxyCodeLine{00311\ \ \ \ \ str\ =\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ ();}
+\DoxyCodeLine{00312\ \ \ \ \ offset\ =\ 0;}
+\DoxyCodeLine{00313\ \ \ \ \ error\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00314\ \ \ \}}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \ \ \textcolor{keywordtype}{void}\ fini\ ()\ \{\}}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ \&str\_,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset\_\ =\ 0)}
+\DoxyCodeLine{00319\ \ \ \ \ :\ str\ (str\_),\ offset\ (offset\_),\ error\ (\textcolor{keyword}{false})\ \{\}}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \ \ \textcolor{keywordtype}{void}\ reset\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ \&str\_,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset\_\ =\ 0)}
+\DoxyCodeLine{00322\ \ \ \{}
+\DoxyCodeLine{00323\ \ \ \ \ str\ =\ str\_;}
+\DoxyCodeLine{00324\ \ \ \ \ offset\ =\ offset\_;}
+\DoxyCodeLine{00325\ \ \ \ \ error\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00326\ \ \ \}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\&\ operator\ []\ (\textcolor{keywordtype}{int}\ i)\ \{}
+\DoxyCodeLine{00329\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ ((\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int})\ (offset\ +\ i)\ >=\ str.length))}
+\DoxyCodeLine{00330\ \ \ \ \ \{}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_null}{Null}}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char});}
+\DoxyCodeLine{00333\ \ \ \ \ \}}
+\DoxyCodeLine{00334\ \ \ \ \ \textcolor{keywordflow}{return}\ str[offset\ +\ i];}
+\DoxyCodeLine{00335\ \ \ \}}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \ \ \textcolor{comment}{/*\ Conversion\ to\ byte\_str\_t\ */}}
+\DoxyCodeLine{00338\ \ \ \textcolor{keyword}{operator}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ str.sub\_str\ (offset,\ str.length\ -\/\ offset);\ \}}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ sub\_str\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset\_,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len\_)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00341\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ str.sub\_str\ (offset\_,\ len\_);\ \}}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \textcolor{keywordtype}{bool}\ avail\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count=1)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00344\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ (!in\_error\ ()\ \&\&\ str.check\_limit\ (offset,\ count));\ \}}
+\DoxyCodeLine{00345\ \ \ \textcolor{keywordtype}{void}\ inc\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count=1)}
+\DoxyCodeLine{00346\ \ \ \{}
+\DoxyCodeLine{00347\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (!in\_error\ ()\ \&\&\ (offset\ <=\ str.length)\ \&\&\ (offset\ +\ count\ <=\ str.length)))}
+\DoxyCodeLine{00348\ \ \ \ \ \{}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ offset\ +=\ count;}
+\DoxyCodeLine{00350\ \ \ \ \ \}}
+\DoxyCodeLine{00351\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00352\ \ \ \ \ \{}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ offset\ =\ str.length;}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00355\ \ \ \ \ \}}
+\DoxyCodeLine{00356\ \ \ \}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \textcolor{keywordtype}{void}\ set\_error\ ()\ \ \ \ \ \ \{\ error\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00359\ \ \ \textcolor{keywordtype}{bool}\ in\_error\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ error;\ \}}
+\DoxyCodeLine{00360\ }
+\DoxyCodeLine{00361\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ \ \ \ \ \ \ str;}
+\DoxyCodeLine{00362\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ offset;\ \textcolor{comment}{/*\ beginning\ of\ the\ sub-\/string\ within\ str\ */}}
+\DoxyCodeLine{00363\ }
+\DoxyCodeLine{00364\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00365\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ error;}
+\DoxyCodeLine{00366\ \};}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<byte\_str\_t>}}\ \mbox{\hyperlink{structhb__vector__t}{byte\_str\_array\_t}};}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \textcolor{comment}{/*\ stack\ */}}
+\DoxyCodeLine{00371\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ELEM,\ \textcolor{keywordtype}{int}\ LIMIT>}
+\DoxyCodeLine{00372\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1cff__stack__t}{cff\_stack\_t}}}
+\DoxyCodeLine{00373\ \{}
+\DoxyCodeLine{00374\ \ \ \textcolor{keywordtype}{void}\ init\ ()}
+\DoxyCodeLine{00375\ \ \ \{}
+\DoxyCodeLine{00376\ \ \ \ \ error\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00377\ \ \ \ \ count\ =\ 0;}
+\DoxyCodeLine{00378\ \ \ \ \ elements.init\ ();}
+\DoxyCodeLine{00379\ \ \ \ \ elements.resize\ (kSizeLimit);}
+\DoxyCodeLine{00380\ \ \ \}}
+\DoxyCodeLine{00381\ \ \ \textcolor{keywordtype}{void}\ fini\ ()\ \{\ elements.fini\ ();\ \}}
+\DoxyCodeLine{00382\ }
+\DoxyCodeLine{00383\ \ \ ELEM\&\ operator\ []\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)}
+\DoxyCodeLine{00384\ \ \ \{}
+\DoxyCodeLine{00385\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (i\ >=\ count))\ set\_error\ ();}
+\DoxyCodeLine{00386\ \ \ \ \ \textcolor{keywordflow}{return}\ elements[i];}
+\DoxyCodeLine{00387\ \ \ \}}
+\DoxyCodeLine{00388\ }
+\DoxyCodeLine{00389\ \ \ \textcolor{keywordtype}{void}\ push\ (\textcolor{keyword}{const}\ ELEM\ \&v)}
+\DoxyCodeLine{00390\ \ \ \{}
+\DoxyCodeLine{00391\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (count\ <\ elements.length))}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ elements[count++]\ =\ v;}
+\DoxyCodeLine{00393\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00395\ \ \ \}}
+\DoxyCodeLine{00396\ \ \ ELEM\ \&push\ ()}
+\DoxyCodeLine{00397\ \ \ \{}
+\DoxyCodeLine{00398\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (count\ <\ elements.length))}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ elements[count++];}
+\DoxyCodeLine{00400\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00401\ \ \ \ \ \{}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ Crap\ (ELEM);}
+\DoxyCodeLine{00404\ \ \ \ \ \}}
+\DoxyCodeLine{00405\ \ \ \}}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \ \ ELEM\&\ pop\ ()}
+\DoxyCodeLine{00408\ \ \ \{}
+\DoxyCodeLine{00409\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (count\ >\ 0))}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ elements[-\/-\/count];}
+\DoxyCodeLine{00411\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00412\ \ \ \ \ \{}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ Crap\ (ELEM);}
+\DoxyCodeLine{00415\ \ \ \ \ \}}
+\DoxyCodeLine{00416\ \ \ \}}
+\DoxyCodeLine{00417\ \ \ \textcolor{keywordtype}{void}\ pop\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ n)}
+\DoxyCodeLine{00418\ \ \ \{}
+\DoxyCodeLine{00419\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (count\ >=\ n))}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ count\ -\/=\ n;}
+\DoxyCodeLine{00421\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00423\ \ \ \}}
+\DoxyCodeLine{00424\ }
+\DoxyCodeLine{00425\ \ \ \textcolor{keyword}{const}\ ELEM\&\ peek\ ()}
+\DoxyCodeLine{00426\ \ \ \{}
+\DoxyCodeLine{00427\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (count\ <\ 0))}
+\DoxyCodeLine{00428\ \ \ \ \ \{}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct_null}{Null}}\ (ELEM);}
+\DoxyCodeLine{00431\ \ \ \ \ \}}
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{keywordflow}{return}\ elements[count\ -\/\ 1];}
+\DoxyCodeLine{00433\ \ \ \}}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \textcolor{keywordtype}{void}\ unpop\ ()}
+\DoxyCodeLine{00436\ \ \ \{}
+\DoxyCodeLine{00437\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (count\ <\ elements.length))}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ count++;}
+\DoxyCodeLine{00439\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00441\ \ \ \}}
+\DoxyCodeLine{00442\ }
+\DoxyCodeLine{00443\ \ \ \textcolor{keywordtype}{void}\ clear\ ()\ \{\ count\ =\ 0;\ \}}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \ \ \textcolor{keywordtype}{bool}\ in\_error\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (error\ ||\ elements.in\_error\ ());\ \}}
+\DoxyCodeLine{00446\ \ \ \textcolor{keywordtype}{void}\ set\_error\ ()\ \ \ \ \ \ \{\ error\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00447\ }
+\DoxyCodeLine{00448\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_count\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ count;\ \}}
+\DoxyCodeLine{00449\ \ \ \textcolor{keywordtype}{bool}\ is\_empty\ ()\textcolor{keyword}{\ const\ \ \ \ \ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ !count;\ \}}
+\DoxyCodeLine{00450\ }
+\DoxyCodeLine{00451\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ kSizeLimit\ =\ LIMIT;}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00454\ \ \ \textcolor{keywordtype}{bool}\ error;}
+\DoxyCodeLine{00455\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count;}
+\DoxyCodeLine{00456\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<ELEM>}}\ elements;}
+\DoxyCodeLine{00457\ \};}
+\DoxyCodeLine{00458\ }
+\DoxyCodeLine{00459\ \textcolor{comment}{/*\ argument\ stack\ */}}
+\DoxyCodeLine{00460\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ARG=number\_t>}
+\DoxyCodeLine{00461\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1arg__stack__t}{arg\_stack\_t}}\ :\ \mbox{\hyperlink{struct_c_f_f_1_1cff__stack__t}{cff\_stack\_t}}<ARG,\ 513>}
+\DoxyCodeLine{00462\ \{}
+\DoxyCodeLine{00463\ \ \ \textcolor{keywordtype}{void}\ push\_int\ (\textcolor{keywordtype}{int}\ v)}
+\DoxyCodeLine{00464\ \ \ \{}
+\DoxyCodeLine{00465\ \ \ \ \ ARG\ \&n\ =\ S::push\ ();}
+\DoxyCodeLine{00466\ \ \ \ \ n.set\_int\ (v);}
+\DoxyCodeLine{00467\ \ \ \}}
+\DoxyCodeLine{00468\ }
+\DoxyCodeLine{00469\ \ \ \textcolor{keywordtype}{void}\ push\_fixed\ (int32\_t\ v)}
+\DoxyCodeLine{00470\ \ \ \{}
+\DoxyCodeLine{00471\ \ \ \ \ ARG\ \&n\ =\ S::push\ ();}
+\DoxyCodeLine{00472\ \ \ \ \ n.set\_fixed\ (v);}
+\DoxyCodeLine{00473\ \ \ \}}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \ \ \textcolor{keywordtype}{void}\ push\_real\ (\textcolor{keywordtype}{double}\ v)}
+\DoxyCodeLine{00476\ \ \ \{}
+\DoxyCodeLine{00477\ \ \ \ \ ARG\ \&n\ =\ S::push\ ();}
+\DoxyCodeLine{00478\ \ \ \ \ n.set\_real\ (v);}
+\DoxyCodeLine{00479\ \ \ \}}
+\DoxyCodeLine{00480\ }
+\DoxyCodeLine{00481\ \ \ ARG\&\ pop\_num\ ()\ \{\ \textcolor{keywordflow}{return}\ this-\/>pop\ ();\ \}}
+\DoxyCodeLine{00482\ }
+\DoxyCodeLine{00483\ \ \ \textcolor{keywordtype}{int}\ pop\_int\ ()\ \ \{\ \textcolor{keywordflow}{return}\ this-\/>pop\ ().to\_int\ ();\ \}}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pop\_uint\ ()}
+\DoxyCodeLine{00486\ \ \ \{}
+\DoxyCodeLine{00487\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ pop\_int\ ();}
+\DoxyCodeLine{00488\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (i\ <\ 0))}
+\DoxyCodeLine{00489\ \ \ \ \ \{}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ i\ =\ 0;}
+\DoxyCodeLine{00491\ \ \ \ \ \ \ S::set\_error\ ();}
+\DoxyCodeLine{00492\ \ \ \ \ \}}
+\DoxyCodeLine{00493\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{unsigned})\ i;}
+\DoxyCodeLine{00494\ \ \ \}}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \ \ \textcolor{keywordtype}{void}\ push\_longint\_from\_substr\ (\mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\&\ str\_ref)}
+\DoxyCodeLine{00497\ \ \ \{}
+\DoxyCodeLine{00498\ \ \ \ \ push\_int\ ((str\_ref[0]\ <<\ 24)\ |\ (str\_ref[1]\ <<\ 16)\ |\ (str\_ref[2]\ <<\ 8)\ |\ (str\_ref[3]));}
+\DoxyCodeLine{00499\ \ \ \ \ str\_ref.inc\ (4);}
+\DoxyCodeLine{00500\ \ \ \}}
+\DoxyCodeLine{00501\ }
+\DoxyCodeLine{00502\ \ \ \textcolor{keywordtype}{bool}\ push\_fixed\_from\_substr\ (\mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\&\ str\_ref)}
+\DoxyCodeLine{00503\ \ \ \{}
+\DoxyCodeLine{00504\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!str\_ref.avail\ (4)))}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00506\ \ \ \ \ push\_fixed\ ((int32\_t)*(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT32}}*)\&str\_ref[0]);}
+\DoxyCodeLine{00507\ \ \ \ \ str\_ref.inc\ (4);}
+\DoxyCodeLine{00508\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00509\ \ \ \}}
+\DoxyCodeLine{00510\ }
+\DoxyCodeLine{00511\ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<const\ ARG>}}\ get\_subarray\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00512\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ S::elements.sub\_array\ (start);\ \}}
+\DoxyCodeLine{00513\ }
+\DoxyCodeLine{00514\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00515\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_c_f_f_1_1cff__stack__t}{cff\_stack\_t<ARG,\ 513>}}\ \mbox{\hyperlink{struct_c_f_f_1_1cff__stack__t}{S}};}
+\DoxyCodeLine{00516\ \};}
+\DoxyCodeLine{00517\ }
+\DoxyCodeLine{00518\ \textcolor{comment}{/*\ an\ operator\ prefixed\ by\ its\ operands\ in\ a\ byte\ string\ */}}
+\DoxyCodeLine{00519\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1op__str__t}{op\_str\_t}}}
+\DoxyCodeLine{00520\ \{}
+\DoxyCodeLine{00521\ \ \ op\_code\_t\ \ op;}
+\DoxyCodeLine{00522\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ str;}
+\DoxyCodeLine{00523\ \};}
+\DoxyCodeLine{00524\ }
+\DoxyCodeLine{00525\ \textcolor{comment}{/*\ base\ of\ OP\_SERIALIZER\ */}}
+\DoxyCodeLine{00526\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1op__serializer__t}{op\_serializer\_t}}}
+\DoxyCodeLine{00527\ \{}
+\DoxyCodeLine{00528\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00529\ \ \ \textcolor{keywordtype}{bool}\ copy\_opstr\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1op__str__t}{op\_str\_t}}\&\ opstr)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00530\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00531\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00532\ }
+\DoxyCodeLine{00533\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ *d\ =\ c-\/>allocate\_size<\mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}>\ (opstr.str.length);}
+\DoxyCodeLine{00534\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!d))\ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00535\ \ \ \ \ memcpy\ (d,\ \&opstr.str[0],\ opstr.str.length);}
+\DoxyCodeLine{00536\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00537\ \ \ \}}
+\DoxyCodeLine{00538\ \};}
+\DoxyCodeLine{00539\ }
+\DoxyCodeLine{00540\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ VAL>}
+\DoxyCodeLine{00541\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1parsed__values__t}{parsed\_values\_t}}}
+\DoxyCodeLine{00542\ \{}
+\DoxyCodeLine{00543\ \ \ \textcolor{keywordtype}{void}\ init\ ()}
+\DoxyCodeLine{00544\ \ \ \{}
+\DoxyCodeLine{00545\ \ \ \ \ opStart\ =\ 0;}
+\DoxyCodeLine{00546\ \ \ \ \ values.init\ ();}
+\DoxyCodeLine{00547\ \ \ \}}
+\DoxyCodeLine{00548\ \ \ \textcolor{keywordtype}{void}\ fini\ ()\ \{\ values.fini\ ();\ \}}
+\DoxyCodeLine{00549\ }
+\DoxyCodeLine{00550\ \ \ \textcolor{keywordtype}{void}\ add\_op\ (op\_code\_t\ op,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\&\ str\_ref\ =\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\ ())}
+\DoxyCodeLine{00551\ \ \ \{}
+\DoxyCodeLine{00552\ \ \ \ \ VAL\ *val\ =\ values.push\ ();}
+\DoxyCodeLine{00553\ \ \ \ \ val-\/>op\ =\ op;}
+\DoxyCodeLine{00554\ \ \ \ \ val-\/>str\ =\ str\_ref.str.sub\_str\ (opStart,\ str\_ref.offset\ -\/\ opStart);}
+\DoxyCodeLine{00555\ \ \ \ \ opStart\ =\ str\_ref.offset;}
+\DoxyCodeLine{00556\ \ \ \}}
+\DoxyCodeLine{00557\ }
+\DoxyCodeLine{00558\ \ \ \textcolor{keywordtype}{void}\ add\_op\ (op\_code\_t\ op,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\&\ str\_ref,\ \textcolor{keyword}{const}\ VAL\ \&v)}
+\DoxyCodeLine{00559\ \ \ \{}
+\DoxyCodeLine{00560\ \ \ \ \ VAL\ *val\ =\ values.push\ (v);}
+\DoxyCodeLine{00561\ \ \ \ \ val-\/>op\ =\ op;}
+\DoxyCodeLine{00562\ \ \ \ \ val-\/>str\ =\ str\_ref.sub\_str\ (\ opStart,\ str\_ref.offset\ -\/\ opStart);}
+\DoxyCodeLine{00563\ \ \ \ \ opStart\ =\ str\_ref.offset;}
+\DoxyCodeLine{00564\ \ \ \}}
+\DoxyCodeLine{00565\ }
+\DoxyCodeLine{00566\ \ \ \textcolor{keywordtype}{bool}\ has\_op\ (op\_code\_t\ op)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00567\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00568\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ get\_count\ ();\ i++)}
+\DoxyCodeLine{00569\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (get\_value\ (i).op\ ==\ op)\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00570\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00571\ \ \ \}}
+\DoxyCodeLine{00572\ }
+\DoxyCodeLine{00573\ \ \ \textcolor{keywordtype}{unsigned}\ get\_count\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ values.length;\ \}}
+\DoxyCodeLine{00574\ \ \ \textcolor{keyword}{const}\ VAL\ \&get\_value\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)\textcolor{keyword}{\ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ values[i];\ \}}
+\DoxyCodeLine{00575\ \ \ \textcolor{keyword}{const}\ VAL\ \&operator\ []\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ get\_value\ (i);\ \}}
+\DoxyCodeLine{00576\ }
+\DoxyCodeLine{00577\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ opStart;}
+\DoxyCodeLine{00578\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<VAL>}}\ \ \ values;}
+\DoxyCodeLine{00579\ \};}
+\DoxyCodeLine{00580\ }
+\DoxyCodeLine{00581\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ARG=number\_t>}
+\DoxyCodeLine{00582\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1interp__env__t}{interp\_env\_t}}}
+\DoxyCodeLine{00583\ \{}
+\DoxyCodeLine{00584\ \ \ \textcolor{keywordtype}{void}\ init\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ \&str\_)}
+\DoxyCodeLine{00585\ \ \ \{}
+\DoxyCodeLine{00586\ \ \ \ \ str\_ref.reset\ (str\_);}
+\DoxyCodeLine{00587\ \ \ \ \ argStack.init\ ();}
+\DoxyCodeLine{00588\ \ \ \ \ error\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00589\ \ \ \}}
+\DoxyCodeLine{00590\ \ \ \textcolor{keywordtype}{void}\ fini\ ()\ \{\ argStack.fini\ ();\ \}}
+\DoxyCodeLine{00591\ }
+\DoxyCodeLine{00592\ \ \ \textcolor{keywordtype}{bool}\ in\_error\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00593\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ error\ ||\ str\_ref.in\_error\ ()\ ||\ argStack.in\_error\ ();\ \}}
+\DoxyCodeLine{00594\ }
+\DoxyCodeLine{00595\ \ \ \textcolor{keywordtype}{void}\ set\_error\ ()\ \{\ error\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00596\ }
+\DoxyCodeLine{00597\ \ \ op\_code\_t\ fetch\_op\ ()}
+\DoxyCodeLine{00598\ \ \ \{}
+\DoxyCodeLine{00599\ \ \ \ \ op\_code\_t\ \ op\ =\ OpCode\_Invalid;}
+\DoxyCodeLine{00600\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!str\_ref.avail\ ()))}
+\DoxyCodeLine{00601\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ OpCode\_Invalid;}
+\DoxyCodeLine{00602\ \ \ \ \ op\ =\ (op\_code\_t)(\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char})str\_ref[0];}
+\DoxyCodeLine{00603\ \ \ \ \ \textcolor{keywordflow}{if}\ (op\ ==\ OpCode\_escape)\ \{}
+\DoxyCodeLine{00604\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!str\_ref.avail\ ()))}
+\DoxyCodeLine{00605\ \ \ \ \ \textcolor{keywordflow}{return}\ OpCode\_Invalid;}
+\DoxyCodeLine{00606\ \ \ \ \ \ \ op\ =\ Make\_OpCode\_ESC(str\_ref[1]);}
+\DoxyCodeLine{00607\ \ \ \ \ \ \ str\_ref.inc\ ();}
+\DoxyCodeLine{00608\ \ \ \ \ \}}
+\DoxyCodeLine{00609\ \ \ \ \ str\_ref.inc\ ();}
+\DoxyCodeLine{00610\ \ \ \ \ \textcolor{keywordflow}{return}\ op;}
+\DoxyCodeLine{00611\ \ \ \}}
+\DoxyCodeLine{00612\ }
+\DoxyCodeLine{00613\ \ \ \textcolor{keyword}{const}\ ARG\&\ eval\_arg\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i)\ \{\ \textcolor{keywordflow}{return}\ argStack[i];\ \}}
+\DoxyCodeLine{00614\ }
+\DoxyCodeLine{00615\ \ \ ARG\&\ pop\_arg\ ()\ \{\ \textcolor{keywordflow}{return}\ argStack.pop\ ();\ \}}
+\DoxyCodeLine{00616\ \ \ \textcolor{keywordtype}{void}\ pop\_n\_args\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ n)\ \{\ argStack.pop\ (n);\ \}}
+\DoxyCodeLine{00617\ }
+\DoxyCodeLine{00618\ \ \ \textcolor{keywordtype}{void}\ clear\_args\ ()\ \{\ pop\_n\_args\ (argStack.get\_count\ ());\ \}}
+\DoxyCodeLine{00619\ }
+\DoxyCodeLine{00620\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \ \ str\_ref;}
+\DoxyCodeLine{00622\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1arg__stack__t}{arg\_stack\_t<ARG>}}}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ argStack;}
+\DoxyCodeLine{00624\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00625\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ error;}
+\DoxyCodeLine{00626\ \};}
+\DoxyCodeLine{00627\ }
+\DoxyCodeLine{00628\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_c_f_f_1_1interp__env__t}{interp\_env\_t<>}}\ \mbox{\hyperlink{struct_c_f_f_1_1interp__env__t}{num\_interp\_env\_t}};}
+\DoxyCodeLine{00629\ }
+\DoxyCodeLine{00630\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ARG=number\_t>}
+\DoxyCodeLine{00631\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1opset__t}{opset\_t}}}
+\DoxyCodeLine{00632\ \{}
+\DoxyCodeLine{00633\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ process\_op\ (op\_code\_t\ op,\ \mbox{\hyperlink{struct_c_f_f_1_1interp__env__t}{interp\_env\_t<ARG>}}\&\ env)}
+\DoxyCodeLine{00634\ \ \ \{}
+\DoxyCodeLine{00635\ \ \ \ \ \textcolor{keywordflow}{switch}\ (op)\ \{}
+\DoxyCodeLine{00636\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_shortint:}
+\DoxyCodeLine{00637\ \ \ \ \ env.argStack.push\_int\ ((int16\_t)((env.str\_ref[0]\ <<\ 8)\ |\ env.str\_ref[1]));}
+\DoxyCodeLine{00638\ \ \ \ \ env.str\_ref.inc\ (2);}
+\DoxyCodeLine{00639\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00640\ }
+\DoxyCodeLine{00641\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_TwoBytePosInt0:\ \textcolor{keywordflow}{case}\ OpCode\_TwoBytePosInt1:}
+\DoxyCodeLine{00642\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_TwoBytePosInt2:\ \textcolor{keywordflow}{case}\ OpCode\_TwoBytePosInt3:}
+\DoxyCodeLine{00643\ \ \ \ \ env.argStack.push\_int\ ((int16\_t)((op\ -\/\ OpCode\_TwoBytePosInt0)\ *\ 256\ +\ env.str\_ref[0]\ +\ 108));}
+\DoxyCodeLine{00644\ \ \ \ \ env.str\_ref.inc\ ();}
+\DoxyCodeLine{00645\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00646\ }
+\DoxyCodeLine{00647\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_TwoByteNegInt0:\ \textcolor{keywordflow}{case}\ OpCode\_TwoByteNegInt1:}
+\DoxyCodeLine{00648\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_TwoByteNegInt2:\ \textcolor{keywordflow}{case}\ OpCode\_TwoByteNegInt3:}
+\DoxyCodeLine{00649\ \ \ \ \ env.argStack.push\_int\ ((-\/(int16\_t)(op\ -\/\ OpCode\_TwoByteNegInt0)\ *\ 256\ -\/\ env.str\_ref[0]\ -\/\ 108));}
+\DoxyCodeLine{00650\ \ \ \ \ env.str\_ref.inc\ ();}
+\DoxyCodeLine{00651\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00652\ }
+\DoxyCodeLine{00653\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00654\ \ \ \ \ \textcolor{comment}{/*\ 1-\/byte\ integer\ */}}
+\DoxyCodeLine{00655\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ ((OpCode\_OneByteIntFirst\ <=\ op)\ \&\&\ (op\ <=\ OpCode\_OneByteIntLast)))}
+\DoxyCodeLine{00656\ \ \ \ \ \{}
+\DoxyCodeLine{00657\ \ \ \ \ \ \ env.argStack.push\_int\ ((\textcolor{keywordtype}{int})op\ -\/\ 139);}
+\DoxyCodeLine{00658\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00659\ \ \ \ \ \ \ \textcolor{comment}{/*\ invalid\ unknown\ operator\ */}}
+\DoxyCodeLine{00660\ \ \ \ \ \ \ env.clear\_args\ ();}
+\DoxyCodeLine{00661\ \ \ \ \ \ \ env.set\_error\ ();}
+\DoxyCodeLine{00662\ \ \ \ \ \}}
+\DoxyCodeLine{00663\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00664\ \ \ \ \ \}}
+\DoxyCodeLine{00665\ \ \ \}}
+\DoxyCodeLine{00666\ \};}
+\DoxyCodeLine{00667\ }
+\DoxyCodeLine{00668\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ENV>}
+\DoxyCodeLine{00669\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1interpreter__t}{interpreter\_t}}}
+\DoxyCodeLine{00670\ \{}
+\DoxyCodeLine{00671\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1interpreter__t}{\string~interpreter\_t}}()\ \{\ fini\ ();\ \}}
+\DoxyCodeLine{00672\ }
+\DoxyCodeLine{00673\ \ \ \textcolor{keywordtype}{void}\ fini\ ()\ \{\ env.fini\ ();\ \}}
+\DoxyCodeLine{00674\ }
+\DoxyCodeLine{00675\ \ \ ENV\ env;}
+\DoxyCodeLine{00676\ \};}
+\DoxyCodeLine{00677\ }
+\DoxyCodeLine{00678\ \}\ \textcolor{comment}{/*\ namespace\ CFF\ */}}
+\DoxyCodeLine{00679\ }
+\DoxyCodeLine{00680\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_CFF\_INTERP\_COMMON\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

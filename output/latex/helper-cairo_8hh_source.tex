@@ -1,0 +1,656 @@
+\hypertarget{helper-cairo_8hh_source}{}\doxysection{helper-\/cairo.hh}
+\label{helper-cairo_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/util/helper-\/cairo.hh@{AseSprite/aseprite/third\_party/harfbuzz/util/helper-\/cairo.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2011\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HELPER\_CAIRO\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HELPER\_CAIRO\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}view-\/options.hh"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}output-\/options.hh"{}}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}helper-\/cairo-\/ft.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}helper-\/cairo-\/user.hh"{}}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ <cairo.h>}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ <hb.h>}}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#include\ "{}helper-\/cairo-\/ansi.hh"{}}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#ifdef\ CAIRO\_HAS\_SVG\_SURFACE}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#\ \ include\ <cairo-\/svg.h>}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#ifdef\ CAIRO\_HAS\_PDF\_SURFACE}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#\ \ include\ <cairo-\/pdf.h>}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#ifdef\ CAIRO\_HAS\_PS\_SURFACE}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#\ \ include\ <cairo-\/ps.h>}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#\ \ if\ CAIRO\_VERSION\ >=\ CAIRO\_VERSION\_ENCODE(1,6,0)}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#\ \ \ \ define\ HAS\_EPS\ 1}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{keyword}{static}\ cairo\_surface\_t\ *}
+\DoxyCodeLine{00051\ \_cairo\_eps\_surface\_create\_for\_stream\ (cairo\_write\_func\_t\ \ write\_func,}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *closure,}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ \ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ \ \ \ \ \ \ \ \ \ \ \ \ \ height)}
+\DoxyCodeLine{00055\ \{}
+\DoxyCodeLine{00056\ \ \ cairo\_surface\_t\ *surface;}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ surface\ =\ cairo\_ps\_surface\_create\_for\_stream\ (write\_func,\ closure,\ width,\ height);}
+\DoxyCodeLine{00059\ \ \ cairo\_ps\_surface\_set\_eps\ (surface,\ \textcolor{keyword}{true});}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \textcolor{keywordflow}{return}\ surface;}
+\DoxyCodeLine{00062\ \}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#\ \ \ \ undef\ HAS\_EPS}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00070\ helper\_cairo\_use\_hb\_draw\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structfont__options__t}{font\_options\_t}}\ *font\_opts)}
+\DoxyCodeLine{00071\ \{}
+\DoxyCodeLine{00072\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *env\ =\ getenv\ (\textcolor{stringliteral}{"{}HB\_DRAW"{}});}
+\DoxyCodeLine{00073\ \ \ \textcolor{keywordflow}{if}\ (!env)}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keywordflow}{return}\ cairo\_version\ ()\ >=\ CAIRO\_VERSION\_ENCODE\ (1,\ 17,\ 5);}
+\DoxyCodeLine{00075\ \ \ \textcolor{keywordflow}{return}\ atoi\ (env);}
+\DoxyCodeLine{00076\ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ cairo\_scaled\_font\_t\ *}
+\DoxyCodeLine{00079\ helper\_cairo\_create\_scaled\_font\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structfont__options__t}{font\_options\_t}}\ *font\_opts)}
+\DoxyCodeLine{00080\ \{}
+\DoxyCodeLine{00081\ \ \ \textcolor{keywordtype}{bool}\ use\_hb\_draw\ =\ helper\_cairo\_use\_hb\_draw\ (font\_opts);}
+\DoxyCodeLine{00082\ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font\ =\ hb\_font\_reference\ (font\_opts-\/>font);}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ cairo\_font\_face\_t\ *cairo\_face;}
+\DoxyCodeLine{00085\ \ \ \textcolor{keywordflow}{if}\ (use\_hb\_draw)}
+\DoxyCodeLine{00086\ \ \ \ \ cairo\_face\ =\ helper\_cairo\_create\_user\_font\_face\ (font\_opts);}
+\DoxyCodeLine{00087\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00088\ \ \ \ \ cairo\_face\ =\ helper\_cairo\_create\_ft\_font\_face\ (font\_opts);}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ cairo\_matrix\_t\ ctm,\ font\_matrix;}
+\DoxyCodeLine{00091\ \ \ cairo\_font\_options\_t\ *font\_options;}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ cairo\_matrix\_init\_identity\ (\&ctm);}
+\DoxyCodeLine{00094\ \ \ cairo\_matrix\_init\_scale\ (\&font\_matrix,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font\_opts-\/>font\_size\_x,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font\_opts-\/>font\_size\_y);}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordflow}{if}\ (use\_hb\_draw)}
+\DoxyCodeLine{00098\ \ \ \ \ font\_matrix.xy\ =\ -\/font\_opts-\/>slant\ *\ font\_opts-\/>font\_size\_x;}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ font\_options\ =\ cairo\_font\_options\_create\ ();}
+\DoxyCodeLine{00101\ \ \ cairo\_font\_options\_set\_hint\_style\ (font\_options,\ CAIRO\_HINT\_STYLE\_NONE);}
+\DoxyCodeLine{00102\ \ \ cairo\_font\_options\_set\_hint\_metrics\ (font\_options,\ CAIRO\_HINT\_METRICS\_OFF);}
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ cairo\_scaled\_font\_t\ *scaled\_font\ =\ cairo\_scaled\_font\_create\ (cairo\_face,}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&font\_matrix,}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&ctm,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ font\_options);}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ cairo\_font\_options\_destroy\ (font\_options);}
+\DoxyCodeLine{00110\ \ \ cairo\_font\_face\_destroy\ (cairo\_face);}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \textcolor{keyword}{static}\ cairo\_user\_data\_key\_t\ key;}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordflow}{if}\ (cairo\_scaled\_font\_set\_user\_data\ (scaled\_font,}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&key,}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void}\ *)\ font,}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (cairo\_destroy\_func\_t)\ hb\_font\_destroy))}
+\DoxyCodeLine{00117\ \ \ \ \ hb\_font\_destroy\ (font);}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \textcolor{keywordflow}{return}\ scaled\_font;}
+\DoxyCodeLine{00120\ \}}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00123\ helper\_cairo\_scaled\_font\_has\_color\ (cairo\_scaled\_font\_t\ *scaled\_font)}
+\DoxyCodeLine{00124\ \{}
+\DoxyCodeLine{00125\ \ \ \textcolor{keywordflow}{if}\ (helper\_cairo\_user\_font\_face\_has\_data\ (cairo\_scaled\_font\_get\_font\_face\ (scaled\_font)))}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordflow}{return}\ helper\_cairo\_user\_scaled\_font\_has\_color\ (scaled\_font);}
+\DoxyCodeLine{00127\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordflow}{return}\ helper\_cairo\_ft\_scaled\_font\_has\_color\ (scaled\_font);}
+\DoxyCodeLine{00129\ \}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{keyword}{enum\ class}\ image\_protocol\_t\ \{}
+\DoxyCodeLine{00133\ \ \ NONE\ =\ 0,}
+\DoxyCodeLine{00134\ \ \ ITERM2,}
+\DoxyCodeLine{00135\ \ \ KITTY,}
+\DoxyCodeLine{00136\ \};}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ \{}
+\DoxyCodeLine{00139\ \ \ void\ (*callback)(\mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ *);}
+\DoxyCodeLine{00140\ \ \ cairo\_surface\_t\ *surface;}
+\DoxyCodeLine{00141\ \ \ cairo\_write\_func\_t\ write\_func;}
+\DoxyCodeLine{00142\ \ \ \textcolor{keywordtype}{void}\ *closure;}
+\DoxyCodeLine{00143\ \ \ image\_protocol\_t\ \mbox{\hyperlink{namespaceprotocol}{protocol}};}
+\DoxyCodeLine{00144\ \};}
+\DoxyCodeLine{00145\ \textcolor{keyword}{static}\ cairo\_user\_data\_key\_t\ finalize\_closure\_key;}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00149\ finalize\_ansi\ (\mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ *closure)}
+\DoxyCodeLine{00150\ \{}
+\DoxyCodeLine{00151\ \ \ cairo\_status\_t\ status;}
+\DoxyCodeLine{00152\ \ \ status\ =\ helper\_cairo\_surface\_write\_to\_ansi\_stream\ (closure-\/>surface,}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ closure-\/>write\_func,}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ closure-\/>closure);}
+\DoxyCodeLine{00155\ \ \ \textcolor{keywordflow}{if}\ (status\ !=\ CAIRO\_STATUS\_SUCCESS)}
+\DoxyCodeLine{00156\ \ \ \ \ fail\ (\textcolor{keyword}{false},\ \textcolor{stringliteral}{"{}Failed\ to\ write\ output:\ \%s"{}},}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ cairo\_status\_to\_string\ (status));}
+\DoxyCodeLine{00158\ \}}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \textcolor{keyword}{static}\ cairo\_surface\_t\ *}
+\DoxyCodeLine{00161\ \_cairo\_ansi\_surface\_create\_for\_stream\ (cairo\_write\_func\_t\ write\_func,}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *closure,}
+\DoxyCodeLine{00163\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ width,}
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ height,}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cairo\_content\_t\ \mbox{\hyperlink{structcontent}{content}},}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image\_protocol\_t\ \mbox{\hyperlink{namespaceprotocol}{protocol}}\ HB\_UNUSED)}
+\DoxyCodeLine{00167\ \{}
+\DoxyCodeLine{00168\ \ \ cairo\_surface\_t\ *surface;}
+\DoxyCodeLine{00169\ \ \ \textcolor{keywordtype}{int}\ w\ =\ ceil\ (width);}
+\DoxyCodeLine{00170\ \ \ \textcolor{keywordtype}{int}\ h\ =\ ceil\ (height);}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \textcolor{keywordflow}{switch}\ (\mbox{\hyperlink{structcontent}{content}})\ \{}
+\DoxyCodeLine{00173\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_ALPHA:}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ surface\ =\ cairo\_image\_surface\_create\ (CAIRO\_FORMAT\_A8,\ w,\ h);}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_COLOR:}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ surface\ =\ cairo\_image\_surface\_create\ (CAIRO\_FORMAT\_RGB24,\ w,\ h);}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_COLOR\_ALPHA:}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ surface\ =\ cairo\_image\_surface\_create\ (CAIRO\_FORMAT\_ARGB32,\ w,\ h);}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00183\ \ \ \}}
+\DoxyCodeLine{00184\ \ \ cairo\_status\_t\ status\ =\ cairo\_surface\_status\ (surface);}
+\DoxyCodeLine{00185\ \ \ \textcolor{keywordflow}{if}\ (status\ !=\ CAIRO\_STATUS\_SUCCESS)}
+\DoxyCodeLine{00186\ \ \ \ \ fail\ (\textcolor{keyword}{false},\ \textcolor{stringliteral}{"{}Failed\ to\ create\ cairo\ surface:\ \%s"{}},}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ cairo\_status\_to\_string\ (status));}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ *ansi\_closure\ =\ g\_new0\ (\mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}},\ 1);}
+\DoxyCodeLine{00190\ \ \ ansi\_closure-\/>callback\ =\ finalize\_ansi;}
+\DoxyCodeLine{00191\ \ \ ansi\_closure-\/>surface\ =\ surface;}
+\DoxyCodeLine{00192\ \ \ ansi\_closure-\/>write\_func\ =\ write\_func;}
+\DoxyCodeLine{00193\ \ \ ansi\_closure-\/>closure\ =\ closure;}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \textcolor{keywordflow}{if}\ (cairo\_surface\_set\_user\_data\ (surface,}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&finalize\_closure\_key,}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void}\ *)\ ansi\_closure,}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (cairo\_destroy\_func\_t)\ g\_free))}
+\DoxyCodeLine{00199\ \ \ \ \ g\_free\ ((\textcolor{keywordtype}{void}\ *)\ closure);}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \textcolor{keywordflow}{return}\ surface;}
+\DoxyCodeLine{00202\ \}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\#ifdef\ CAIRO\_HAS\_PNG\_FUNCTIONS}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \textcolor{keyword}{static}\ cairo\_status\_t}
+\DoxyCodeLine{00208\ byte\_array\_write\_func\ (\textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *closure,}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ size)}
+\DoxyCodeLine{00211\ \{}
+\DoxyCodeLine{00212\ \ \ g\_byte\_array\_append\ ((GByteArray\ *)\ closure,\ \mbox{\hyperlink{structdata}{data}},\ size);}
+\DoxyCodeLine{00213\ \ \ \textcolor{keywordflow}{return}\ CAIRO\_STATUS\_SUCCESS;}
+\DoxyCodeLine{00214\ \}}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00217\ finalize\_png\ (\mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ *closure)}
+\DoxyCodeLine{00218\ \{}
+\DoxyCodeLine{00219\ \ \ cairo\_status\_t\ status;}
+\DoxyCodeLine{00220\ \ \ GByteArray\ *\mbox{\hyperlink{classbytes}{bytes}}\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00221\ \ \ GString\ *string;}
+\DoxyCodeLine{00222\ \ \ gchar\ *base64;}
+\DoxyCodeLine{00223\ \ \ \textcolor{keywordtype}{size\_t}\ base64\_len;}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \ \ \textcolor{keywordflow}{if}\ (closure-\/>protocol\ ==\ image\_protocol\_t::NONE)}
+\DoxyCodeLine{00226\ \ \ \{}
+\DoxyCodeLine{00227\ \ \ \ \ status\ =\ cairo\_surface\_write\_to\_png\_stream\ (closure-\/>surface,}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ closure-\/>write\_func,}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ closure-\/>closure);}
+\DoxyCodeLine{00230\ \ \ \}}
+\DoxyCodeLine{00231\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00232\ \ \ \{}
+\DoxyCodeLine{00233\ \ \ \ \ \mbox{\hyperlink{classbytes}{bytes}}\ =\ g\_byte\_array\_new\ ();}
+\DoxyCodeLine{00234\ \ \ \ \ status\ =\ cairo\_surface\_write\_to\_png\_stream\ (closure-\/>surface,}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ byte\_array\_write\_func,}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classbytes}{bytes}});}
+\DoxyCodeLine{00237\ \ \ \}}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \ \ \textcolor{keywordflow}{if}\ (status\ !=\ CAIRO\_STATUS\_SUCCESS)}
+\DoxyCodeLine{00240\ \ \ \ \ fail\ (\textcolor{keyword}{false},\ \textcolor{stringliteral}{"{}Failed\ to\ write\ output:\ \%s"{}},}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ cairo\_status\_to\_string\ (status));}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \ \ \textcolor{keywordflow}{if}\ (closure-\/>protocol\ ==\ image\_protocol\_t::NONE)}
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00245\ }
+\DoxyCodeLine{00246\ \ \ base64\ =\ g\_base64\_encode\ (\mbox{\hyperlink{classbytes}{bytes}}-\/>data,\ \mbox{\hyperlink{classbytes}{bytes}}-\/>len);}
+\DoxyCodeLine{00247\ \ \ base64\_len\ =\ strlen\ (base64);}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \ \ \textcolor{keywordtype}{string}\ =\ g\_string\_new\ (NULL);}
+\DoxyCodeLine{00250\ \ \ \textcolor{keywordflow}{if}\ (closure-\/>protocol\ ==\ image\_protocol\_t::ITERM2)}
+\DoxyCodeLine{00251\ \ \ \{}
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{comment}{/*\ https://iterm2.com/documentation-\/images.html\ */}}
+\DoxyCodeLine{00253\ \ \ \ \ g\_string\_printf\ (\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}\(\backslash\)033]1337;File=inline=1;size=\%zu:\%s\(\backslash\)a\(\backslash\)n"{}},}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \ \ \ \ \ \ \ base64\_len,\ base64);}
+\DoxyCodeLine{00255\ \ \ \}}
+\DoxyCodeLine{00256\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (closure-\/>protocol\ ==\ image\_protocol\_t::KITTY)}
+\DoxyCodeLine{00257\ \ \ \{}
+\DoxyCodeLine{00258\ \textcolor{preprocessor}{\#define\ CHUNK\_SIZE\ 4096}}
+\DoxyCodeLine{00259\ \ \ \ \ \textcolor{comment}{/*\ https://sw.kovidgoyal.net/kitty/graphics-\/protocol.html\ */}}
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ pos\ =\ 0;\ pos\ <\ base64\_len;\ pos\ +=\ CHUNK\_SIZE)}
+\DoxyCodeLine{00261\ \ \ \ \ \{}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ len\ =\ base64\_len\ -\/\ pos;}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (pos\ ==\ 0)}
+\DoxyCodeLine{00265\ \ \ \ \ g\_string\_append\ (\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}\(\backslash\)033\_Ga=T,f=100,m="{}});}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00267\ \ \ \ \ g\_string\_append\ (\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}\(\backslash\)033\_Gm="{}});}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (len\ >\ CHUNK\_SIZE)}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00271\ \ \ \ \ g\_string\_append\ (\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}1;"{}});}
+\DoxyCodeLine{00272\ \ \ \ \ g\_string\_append\_len\ (\textcolor{keywordtype}{string},\ base64\ +\ pos,\ CHUNK\_SIZE);}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00276\ \ \ \ \ g\_string\_append\ (\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}0;"{}});}
+\DoxyCodeLine{00277\ \ \ \ \ g\_string\_append\_len\ (\textcolor{keywordtype}{string},\ base64\ +\ pos,\ len);}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \ \ \ \ g\_string\_append\ (\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}\(\backslash\)033\(\backslash\)\(\backslash\)"{}});}
+\DoxyCodeLine{00281\ \ \ \ \ \}}
+\DoxyCodeLine{00282\ \ \ \ \ g\_string\_append\ (\textcolor{keywordtype}{string},\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}});}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\#undef\ CHUNK\_SIZE}}
+\DoxyCodeLine{00284\ \ \ \}}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ closure-\/>write\_func\ (closure-\/>closure,\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *)\ string-\/>str,\ string-\/>len);}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \ \ g\_byte\_array\_unref\ (\mbox{\hyperlink{classbytes}{bytes}});}
+\DoxyCodeLine{00289\ \ \ g\_free\ (base64);}
+\DoxyCodeLine{00290\ \ \ g\_string\_free\ (\textcolor{keywordtype}{string},\ TRUE);}
+\DoxyCodeLine{00291\ \}}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \textcolor{keyword}{static}\ cairo\_surface\_t\ *}
+\DoxyCodeLine{00294\ \_cairo\_png\_surface\_create\_for\_stream\ (cairo\_write\_func\_t\ write\_func,}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *closure,}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ width,}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ height,}
+\DoxyCodeLine{00298\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cairo\_content\_t\ \mbox{\hyperlink{structcontent}{content}},}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image\_protocol\_t\ \mbox{\hyperlink{namespaceprotocol}{protocol}})}
+\DoxyCodeLine{00300\ \{}
+\DoxyCodeLine{00301\ \ \ cairo\_surface\_t\ *surface;}
+\DoxyCodeLine{00302\ \ \ \textcolor{keywordtype}{int}\ w\ =\ ceil\ (width);}
+\DoxyCodeLine{00303\ \ \ \textcolor{keywordtype}{int}\ h\ =\ ceil\ (height);}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \textcolor{keywordflow}{switch}\ (\mbox{\hyperlink{structcontent}{content}})\ \{}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_ALPHA:}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ surface\ =\ cairo\_image\_surface\_create\ (CAIRO\_FORMAT\_A8,\ w,\ h);}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00309\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00310\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_COLOR:}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ surface\ =\ cairo\_image\_surface\_create\ (CAIRO\_FORMAT\_RGB24,\ w,\ h);}
+\DoxyCodeLine{00312\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_COLOR\_ALPHA:}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ surface\ =\ cairo\_image\_surface\_create\ (CAIRO\_FORMAT\_ARGB32,\ w,\ h);}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00316\ \ \ \}}
+\DoxyCodeLine{00317\ \ \ cairo\_status\_t\ status\ =\ cairo\_surface\_status\ (surface);}
+\DoxyCodeLine{00318\ \ \ \textcolor{keywordflow}{if}\ (status\ !=\ CAIRO\_STATUS\_SUCCESS)}
+\DoxyCodeLine{00319\ \ \ \ \ fail\ (\textcolor{keyword}{false},\ \textcolor{stringliteral}{"{}Failed\ to\ create\ cairo\ surface:\ \%s"{}},}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ cairo\_status\_to\_string\ (status));}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ *png\_closure\ =\ g\_new0\ (\mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}},\ 1);}
+\DoxyCodeLine{00323\ \ \ png\_closure-\/>callback\ =\ finalize\_png;}
+\DoxyCodeLine{00324\ \ \ png\_closure-\/>surface\ =\ surface;}
+\DoxyCodeLine{00325\ \ \ png\_closure-\/>write\_func\ =\ write\_func;}
+\DoxyCodeLine{00326\ \ \ png\_closure-\/>closure\ =\ closure;}
+\DoxyCodeLine{00327\ \ \ png\_closure-\/>protocol\ =\ \mbox{\hyperlink{namespaceprotocol}{protocol}};}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \ \ \textcolor{keywordflow}{if}\ (cairo\_surface\_set\_user\_data\ (surface,}
+\DoxyCodeLine{00330\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&finalize\_closure\_key,}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (\textcolor{keywordtype}{void}\ *)\ png\_closure,}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (cairo\_destroy\_func\_t)\ g\_free))}
+\DoxyCodeLine{00333\ \ \ \ \ g\_free\ ((\textcolor{keywordtype}{void}\ *)\ closure);}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \ \ \textcolor{keywordflow}{return}\ surface;}
+\DoxyCodeLine{00336\ \}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00339\ }
+\DoxyCodeLine{00340\ \textcolor{keyword}{static}\ cairo\_status\_t}
+\DoxyCodeLine{00341\ stdio\_write\_func\ (\textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *closure,}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ size)}
+\DoxyCodeLine{00344\ \{}
+\DoxyCodeLine{00345\ \ \ FILE\ *\mbox{\hyperlink{structbasic__fp}{fp}}\ =\ (FILE\ *)\ closure;}
+\DoxyCodeLine{00346\ }
+\DoxyCodeLine{00347\ \ \ \textcolor{keywordflow}{while}\ (size)\ \{}
+\DoxyCodeLine{00348\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ ret\ =\ fwrite\ (\mbox{\hyperlink{structdata}{data}},\ 1,\ size,\ \mbox{\hyperlink{structbasic__fp}{fp}});}
+\DoxyCodeLine{00349\ \ \ \ \ size\ -\/=\ ret;}
+\DoxyCodeLine{00350\ \ \ \ \ \mbox{\hyperlink{structdata}{data}}\ +=\ ret;}
+\DoxyCodeLine{00351\ \ \ \ \ \textcolor{keywordflow}{if}\ (size\ \&\&\ ferror\ (\mbox{\hyperlink{structbasic__fp}{fp}}))}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ fail\ (\textcolor{keyword}{false},\ \textcolor{stringliteral}{"{}Failed\ to\ write\ output:\ \%s"{}},\ strerror\ (errno));}
+\DoxyCodeLine{00353\ \ \ \}}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \ \ \textcolor{keywordflow}{return}\ CAIRO\_STATUS\_SUCCESS;}
+\DoxyCodeLine{00356\ \}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *helper\_cairo\_supported\_formats[]\ =}
+\DoxyCodeLine{00359\ \{}
+\DoxyCodeLine{00360\ \ \ \textcolor{stringliteral}{"{}ansi"{}},}
+\DoxyCodeLine{00361\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_PNG\_FUNCTIONS}}
+\DoxyCodeLine{00362\ \ \ \textcolor{stringliteral}{"{}png"{}},}
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00364\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_SVG\_SURFACE}}
+\DoxyCodeLine{00365\ \ \ \textcolor{stringliteral}{"{}svg"{}},}
+\DoxyCodeLine{00366\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00367\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_PDF\_SURFACE}}
+\DoxyCodeLine{00368\ \ \ \textcolor{stringliteral}{"{}pdf"{}},}
+\DoxyCodeLine{00369\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00370\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_PS\_SURFACE}}
+\DoxyCodeLine{00371\ \ \ \textcolor{stringliteral}{"{}ps"{}},}
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\ \ \ \#ifdef\ HAS\_EPS}}
+\DoxyCodeLine{00373\ \ \ \ \ \textcolor{stringliteral}{"{}eps"{}},}
+\DoxyCodeLine{00374\ \textcolor{preprocessor}{\ \ \ \#endif}}
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00376\ \ \ \textcolor{keyword}{nullptr}}
+\DoxyCodeLine{00377\ \};}
+\DoxyCodeLine{00378\ }
+\DoxyCodeLine{00379\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{structview__options__t}{view\_options\_t}},}
+\DoxyCodeLine{00380\ \ \ \ \ \ \textcolor{keyword}{typename}\ output\_options\_type>}
+\DoxyCodeLine{00381\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ cairo\_t\ *}
+\DoxyCodeLine{00382\ helper\_cairo\_create\_context\ (\textcolor{keywordtype}{double}\ w,\ \textcolor{keywordtype}{double}\ h,}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structview__options__t}{view\_options\_t}}\ *view\_opts,}
+\DoxyCodeLine{00384\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ output\_options\_type\ *out\_opts,}
+\DoxyCodeLine{00385\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cairo\_content\_t\ \mbox{\hyperlink{structcontent}{content}})}
+\DoxyCodeLine{00386\ \{}
+\DoxyCodeLine{00387\ \ \ cairo\_surface\_t\ *(*constructor)\ (cairo\_write\_func\_t\ write\_func,}
+\DoxyCodeLine{00388\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *closure,}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ width,}
+\DoxyCodeLine{00390\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ height)\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00391\ \ \ cairo\_surface\_t\ *(*constructor2)\ (cairo\_write\_func\_t\ write\_func,}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ *closure,}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ width,}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ height,}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cairo\_content\_t\ \mbox{\hyperlink{structcontent}{content}},}
+\DoxyCodeLine{00396\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image\_protocol\_t\ \mbox{\hyperlink{namespaceprotocol}{protocol}})\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ \ \ image\_protocol\_t\ \mbox{\hyperlink{namespaceprotocol}{protocol}}\ =\ image\_protocol\_t::NONE;}
+\DoxyCodeLine{00399\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *extension\ =\ out\_opts-\/>output\_format;}
+\DoxyCodeLine{00400\ \ \ \textcolor{keywordflow}{if}\ (!extension)\ \{}
+\DoxyCodeLine{00401\ \textcolor{preprocessor}{\#if\ HAVE\_ISATTY}}
+\DoxyCodeLine{00402\ \ \ \ \ \textcolor{keywordflow}{if}\ (isatty\ (fileno\ (out\_opts-\/>out\_fp)))}
+\DoxyCodeLine{00403\ \ \ \ \ \{}
+\DoxyCodeLine{00404\ \textcolor{preprocessor}{\#ifdef\ CAIRO\_HAS\_PNG\_FUNCTIONS}}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *name;}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \textcolor{comment}{/*\ https://gitlab.com/gnachman/iterm2/-\//issues/7154\ */}}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((name\ =\ getenv\ (\textcolor{stringliteral}{"{}LC\_TERMINAL"{}}))\ !=\ \textcolor{keyword}{nullptr}\ \&\&}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ 0\ ==\ g\_ascii\_strcasecmp\ (name,\ \textcolor{stringliteral}{"{}iTerm2"{}}))}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00410\ \ \ \ \ extension\ =\ \textcolor{stringliteral}{"{}png"{}};}
+\DoxyCodeLine{00411\ \ \ \ \ \mbox{\hyperlink{namespaceprotocol}{protocol}}\ =\ image\_protocol\_t::ITERM2;}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((name\ =\ getenv\ (\textcolor{stringliteral}{"{}TERM"{}}))\ !=\ \textcolor{keyword}{nullptr}\ \&\&}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ \ \ \ 0\ ==\ g\_ascii\_strcasecmp\ (name,\ \textcolor{stringliteral}{"{}xterm-\/kitty"{}}))}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00416\ \ \ \ \ extension\ =\ \textcolor{stringliteral}{"{}png"{}};}
+\DoxyCodeLine{00417\ \ \ \ \ \mbox{\hyperlink{namespaceprotocol}{protocol}}\ =\ image\_protocol\_t::KITTY;}
+\DoxyCodeLine{00418\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00419\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00420\ \ \ \ \ extension\ =\ \textcolor{stringliteral}{"{}ansi"{}};}
+\DoxyCodeLine{00421\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ extension\ =\ \textcolor{stringliteral}{"{}ansi"{}};}
+\DoxyCodeLine{00423\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00424\ \ \ \ \ \}}
+\DoxyCodeLine{00425\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00426\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00427\ \ \ \ \ \{}
+\DoxyCodeLine{00428\ \textcolor{preprocessor}{\#ifdef\ CAIRO\_HAS\_PNG\_FUNCTIONS}}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ extension\ =\ \textcolor{stringliteral}{"{}png"{}};}
+\DoxyCodeLine{00430\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ extension\ =\ \textcolor{stringliteral}{"{}ansi"{}};}
+\DoxyCodeLine{00432\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00433\ \ \ \ \ \}}
+\DoxyCodeLine{00434\ \ \ \}}
+\DoxyCodeLine{00435\ \ \ \textcolor{keywordflow}{if}\ (0)}
+\DoxyCodeLine{00436\ \ \ \ \ ;}
+\DoxyCodeLine{00437\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ g\_ascii\_strcasecmp\ (extension,\ \textcolor{stringliteral}{"{}ansi"{}}))}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ constructor2\ =\ \_cairo\_ansi\_surface\_create\_for\_stream;}
+\DoxyCodeLine{00439\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_PNG\_FUNCTIONS}}
+\DoxyCodeLine{00440\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ g\_ascii\_strcasecmp\ (extension,\ \textcolor{stringliteral}{"{}png"{}}))}
+\DoxyCodeLine{00441\ \ \ \ \ \ \ constructor2\ =\ \_cairo\_png\_surface\_create\_for\_stream;}
+\DoxyCodeLine{00442\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00443\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_SVG\_SURFACE}}
+\DoxyCodeLine{00444\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ g\_ascii\_strcasecmp\ (extension,\ \textcolor{stringliteral}{"{}svg"{}}))}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ constructor\ =\ cairo\_svg\_surface\_create\_for\_stream;}
+\DoxyCodeLine{00446\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00447\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_PDF\_SURFACE}}
+\DoxyCodeLine{00448\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ g\_ascii\_strcasecmp\ (extension,\ \textcolor{stringliteral}{"{}pdf"{}}))}
+\DoxyCodeLine{00449\ \ \ \ \ \ \ constructor\ =\ cairo\_pdf\_surface\_create\_for\_stream;}
+\DoxyCodeLine{00450\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00451\ \textcolor{preprocessor}{\ \ \#ifdef\ CAIRO\_HAS\_PS\_SURFACE}}
+\DoxyCodeLine{00452\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ g\_ascii\_strcasecmp\ (extension,\ \textcolor{stringliteral}{"{}ps"{}}))}
+\DoxyCodeLine{00453\ \ \ \ \ \ \ constructor\ =\ cairo\_ps\_surface\_create\_for\_stream;}
+\DoxyCodeLine{00454\ \textcolor{preprocessor}{\ \ \ \#ifdef\ HAS\_EPS}}
+\DoxyCodeLine{00455\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (0\ ==\ g\_ascii\_strcasecmp\ (extension,\ \textcolor{stringliteral}{"{}eps"{}}))}
+\DoxyCodeLine{00456\ \ \ \ \ \ \ constructor\ =\ \_cairo\_eps\_surface\_create\_for\_stream;}
+\DoxyCodeLine{00457\ \textcolor{preprocessor}{\ \ \ \#endif}}
+\DoxyCodeLine{00458\ \textcolor{preprocessor}{\ \ \#endif}}
+\DoxyCodeLine{00459\ }
+\DoxyCodeLine{00460\ }
+\DoxyCodeLine{00461\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fr,\ fg,\ fb,\ fa,\ br,\ bg,\ bb,\ ba;}
+\DoxyCodeLine{00462\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *color;}
+\DoxyCodeLine{00463\ \ \ br\ =\ bg\ =\ bb\ =\ 0;\ ba\ =\ 255;}
+\DoxyCodeLine{00464\ \ \ color\ =\ view\_opts-\/>back\ ?\ view\_opts-\/>back\ :\ DEFAULT\_BACK;}
+\DoxyCodeLine{00465\ \ \ sscanf\ (color\ +\ (*color==\textcolor{charliteral}{'\#'}),\ \textcolor{stringliteral}{"{}\%2x\%2x\%2x\%2x"{}},\ \&br,\ \&bg,\ \&bb,\ \&ba);}
+\DoxyCodeLine{00466\ \ \ fr\ =\ fg\ =\ fb\ =\ 0;\ fa\ =\ 255;}
+\DoxyCodeLine{00467\ \ \ color\ =\ view\_opts-\/>fore\ ?\ view\_opts-\/>fore\ :\ DEFAULT\_FORE;}
+\DoxyCodeLine{00468\ \ \ sscanf\ (color\ +\ (*color==\textcolor{charliteral}{'\#'}),\ \textcolor{stringliteral}{"{}\%2x\%2x\%2x\%2x"{}},\ \&fr,\ \&fg,\ \&fb,\ \&fa);}
+\DoxyCodeLine{00469\ }
+\DoxyCodeLine{00470\ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structcontent}{content}}\ ==\ CAIRO\_CONTENT\_ALPHA)}
+\DoxyCodeLine{00471\ \ \ \{}
+\DoxyCodeLine{00472\ \ \ \ \ \textcolor{keywordflow}{if}\ (view\_opts-\/>annotate\ ||}
+\DoxyCodeLine{00473\ \ \ \ \ br\ !=\ bg\ ||\ bg\ !=\ bb\ ||}
+\DoxyCodeLine{00474\ \ \ \ \ fr\ !=\ fg\ ||\ fg\ !=\ fb)}
+\DoxyCodeLine{00475\ \ \ \ \ \ \ \mbox{\hyperlink{structcontent}{content}}\ =\ CAIRO\_CONTENT\_COLOR;}
+\DoxyCodeLine{00476\ \ \ \}}
+\DoxyCodeLine{00477\ \ \ \textcolor{keywordflow}{if}\ (ba\ !=\ 255)}
+\DoxyCodeLine{00478\ \ \ \ \ \mbox{\hyperlink{structcontent}{content}}\ =\ CAIRO\_CONTENT\_COLOR\_ALPHA;}
+\DoxyCodeLine{00479\ }
+\DoxyCodeLine{00480\ \ \ cairo\_surface\_t\ *surface;}
+\DoxyCodeLine{00481\ \ \ FILE\ *f\ =\ out\_opts-\/>out\_fp;}
+\DoxyCodeLine{00482\ \ \ \textcolor{keywordflow}{if}\ (constructor)}
+\DoxyCodeLine{00483\ \ \ \ \ surface\ =\ constructor\ (stdio\_write\_func,\ f,\ w,\ h);}
+\DoxyCodeLine{00484\ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (constructor2)}
+\DoxyCodeLine{00485\ \ \ \ \ surface\ =\ constructor2\ (stdio\_write\_func,\ f,\ w,\ h,\ \mbox{\hyperlink{structcontent}{content}},\ \mbox{\hyperlink{namespaceprotocol}{protocol}});}
+\DoxyCodeLine{00486\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00487\ \ \ \ \ fail\ (\textcolor{keyword}{false},\ \textcolor{stringliteral}{"{}Unknown\ output\ format\ `\%s';\ supported\ formats\ are:\ \%s\%s"{}},}
+\DoxyCodeLine{00488\ \ \ \ \ \ \ extension,}
+\DoxyCodeLine{00489\ \ \ \ \ \ \ g\_strjoinv\ (\textcolor{stringliteral}{"{}/"{}},\ \textcolor{keyword}{const\_cast<}\textcolor{keywordtype}{char}**\textcolor{keyword}{>}\ (helper\_cairo\_supported\_formats)),}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ out\_opts-\/>explicit\_output\_format\ ?\ \textcolor{stringliteral}{"{}"{}}\ :}
+\DoxyCodeLine{00491\ \ \ \ \ \ \ \textcolor{stringliteral}{"{}\(\backslash\)nTry\ setting\ format\ using\ -\/-\/output-\/format"{}});}
+\DoxyCodeLine{00492\ }
+\DoxyCodeLine{00493\ \ \ cairo\_t\ *cr\ =\ cairo\_create\ (surface);}
+\DoxyCodeLine{00494\ \ \ \mbox{\hyperlink{structcontent}{content}}\ =\ cairo\_surface\_get\_content\ (surface);}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \ \ \textcolor{keywordflow}{switch}\ (\mbox{\hyperlink{structcontent}{content}})\ \{}
+\DoxyCodeLine{00497\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_ALPHA:}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ cairo\_set\_operator\ (cr,\ CAIRO\_OPERATOR\_SOURCE);}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ cairo\_set\_source\_rgba\ (cr,\ 1.,\ 1.,\ 1.,\ br\ /\ 255.);}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ cairo\_paint\ (cr);}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ cairo\_set\_source\_rgba\ (cr,\ 1.,\ 1.,\ 1.,}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (fr\ /\ 255.)\ *\ (fa\ /\ 255.)\ +\ (br\ /\ 255)\ *\ (1\ -\/\ (fa\ /\ 255.)));}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00504\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00505\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_COLOR:}
+\DoxyCodeLine{00506\ \ \ \ \ \textcolor{keywordflow}{case}\ CAIRO\_CONTENT\_COLOR\_ALPHA:}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ cairo\_set\_operator\ (cr,\ CAIRO\_OPERATOR\_SOURCE);}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ cairo\_set\_source\_rgba\ (cr,\ br\ /\ 255.,\ bg\ /\ 255.,\ bb\ /\ 255.,\ ba\ /\ 255.);}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ cairo\_paint\ (cr);}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ cairo\_set\_operator\ (cr,\ CAIRO\_OPERATOR\_OVER);}
+\DoxyCodeLine{00511\ \ \ \ \ \ \ cairo\_set\_source\_rgba\ (cr,\ fr\ /\ 255.,\ fg\ /\ 255.,\ fb\ /\ 255.,\ fa\ /\ 255.);}
+\DoxyCodeLine{00512\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00513\ \ \ \}}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \ \ cairo\_surface\_destroy\ (surface);}
+\DoxyCodeLine{00516\ \ \ \textcolor{keywordflow}{return}\ cr;}
+\DoxyCodeLine{00517\ \}}
+\DoxyCodeLine{00518\ }
+\DoxyCodeLine{00519\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00520\ helper\_cairo\_destroy\_context\ (cairo\_t\ *cr)}
+\DoxyCodeLine{00521\ \{}
+\DoxyCodeLine{00522\ \ \ \mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ *closure\ =\ (\mbox{\hyperlink{structfinalize__closure__t}{finalize\_closure\_t}}\ *)}
+\DoxyCodeLine{00523\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cairo\_surface\_get\_user\_data\ (cairo\_get\_target\ (cr),}
+\DoxyCodeLine{00524\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \&finalize\_closure\_key);}
+\DoxyCodeLine{00525\ \ \ \textcolor{keywordflow}{if}\ (closure)}
+\DoxyCodeLine{00526\ \ \ \ \ closure-\/>callback\ (closure);}
+\DoxyCodeLine{00527\ }
+\DoxyCodeLine{00528\ \ \ cairo\_status\_t\ status\ =\ cairo\_status\ (cr);}
+\DoxyCodeLine{00529\ \ \ \textcolor{keywordflow}{if}\ (status\ !=\ CAIRO\_STATUS\_SUCCESS)}
+\DoxyCodeLine{00530\ \ \ \ \ fail\ (\textcolor{keyword}{false},\ \textcolor{stringliteral}{"{}Failed:\ \%s"{}},}
+\DoxyCodeLine{00531\ \ \ \ \ \ \ cairo\_status\_to\_string\ (status));}
+\DoxyCodeLine{00532\ \ \ cairo\_destroy\ (cr);}
+\DoxyCodeLine{00533\ \}}
+\DoxyCodeLine{00534\ }
+\DoxyCodeLine{00535\ }
+\DoxyCodeLine{00536\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhelper__cairo__line__t}{helper\_cairo\_line\_t}}\ \{}
+\DoxyCodeLine{00537\ \ \ cairo\_glyph\_t\ *glyphs;}
+\DoxyCodeLine{00538\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_glyphs;}
+\DoxyCodeLine{00539\ \ \ \textcolor{keywordtype}{char}\ *utf8;}
+\DoxyCodeLine{00540\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ utf8\_len;}
+\DoxyCodeLine{00541\ \ \ cairo\_text\_cluster\_t\ *clusters;}
+\DoxyCodeLine{00542\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_clusters;}
+\DoxyCodeLine{00543\ \ \ cairo\_text\_cluster\_flags\_t\ cluster\_flags;}
+\DoxyCodeLine{00544\ }
+\DoxyCodeLine{00545\ \ \ \textcolor{keywordtype}{void}\ finish\ ()\ \{}
+\DoxyCodeLine{00546\ \ \ \ \ \textcolor{keywordflow}{if}\ (glyphs)}
+\DoxyCodeLine{00547\ \ \ \ \ \ \ cairo\_glyph\_free\ (glyphs);}
+\DoxyCodeLine{00548\ \ \ \ \ \textcolor{keywordflow}{if}\ (clusters)}
+\DoxyCodeLine{00549\ \ \ \ \ \ \ cairo\_text\_cluster\_free\ (clusters);}
+\DoxyCodeLine{00550\ \ \ \ \ \textcolor{keywordflow}{if}\ (utf8)}
+\DoxyCodeLine{00551\ \ \ \ \ \ \ g\_free\ (utf8);}
+\DoxyCodeLine{00552\ \ \ \}}
+\DoxyCodeLine{00553\ }
+\DoxyCodeLine{00554\ \ \ \textcolor{keywordtype}{void}\ get\_advance\ (\textcolor{keywordtype}{double}\ *x\_advance,\ \textcolor{keywordtype}{double}\ *y\_advance)\ \{}
+\DoxyCodeLine{00555\ \ \ \ \ *x\_advance\ =\ glyphs[num\_glyphs].x;}
+\DoxyCodeLine{00556\ \ \ \ \ *y\_advance\ =\ glyphs[num\_glyphs].y;}
+\DoxyCodeLine{00557\ \ \ \}}
+\DoxyCodeLine{00558\ \};}
+\DoxyCodeLine{00559\ }
+\DoxyCodeLine{00560\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00561\ helper\_cairo\_line\_from\_buffer\ (\mbox{\hyperlink{structhelper__cairo__line__t}{helper\_cairo\_line\_t}}\ *l,}
+\DoxyCodeLine{00562\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00563\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ *text,}
+\DoxyCodeLine{00564\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ text\_len,}
+\DoxyCodeLine{00565\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ scale\_bits,}
+\DoxyCodeLine{00566\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_bool\_t\ \ \ \ \ \ \ \ \ \ \ \ utf8\_clusters)}
+\DoxyCodeLine{00567\ \{}
+\DoxyCodeLine{00568\ \ \ memset\ (l,\ 0,\ \textcolor{keyword}{sizeof}\ (*l));}
+\DoxyCodeLine{00569\ }
+\DoxyCodeLine{00570\ \ \ l-\/>num\_glyphs\ =\ hb\_buffer\_get\_length\ (\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00571\ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ *hb\_glyph\ =\ hb\_buffer\_get\_glyph\_infos\ (\mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00572\ \ \ \mbox{\hyperlink{structhb__glyph__position__t}{hb\_glyph\_position\_t}}\ *hb\_position\ =\ hb\_buffer\_get\_glyph\_positions\ (\mbox{\hyperlink{classbuffer}{buffer}},\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00573\ \ \ l-\/>glyphs\ =\ cairo\_glyph\_allocate\ (l-\/>num\_glyphs\ +\ 1);}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ \ \ \textcolor{keywordflow}{if}\ (text)\ \{}
+\DoxyCodeLine{00576\ \ \ \ \ l-\/>utf8\ =\ g\_strndup\ (text,\ text\_len);}
+\DoxyCodeLine{00577\ \ \ \ \ l-\/>utf8\_len\ =\ text\_len;}
+\DoxyCodeLine{00578\ \ \ \ \ l-\/>num\_clusters\ =\ l-\/>num\_glyphs\ ?\ 1\ :\ 0;}
+\DoxyCodeLine{00579\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ l-\/>num\_glyphs;\ i++)}
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_glyph[i].cluster\ !=\ hb\_glyph[i-\/1].cluster)}
+\DoxyCodeLine{00581\ \ \ \ \ l-\/>num\_clusters++;}
+\DoxyCodeLine{00582\ \ \ \ \ l-\/>clusters\ =\ cairo\_text\_cluster\_allocate\ (l-\/>num\_clusters);}
+\DoxyCodeLine{00583\ \ \ \}}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ \ \ \textcolor{keywordflow}{if}\ ((l-\/>num\_glyphs\ \&\&\ !l-\/>glyphs)\ ||}
+\DoxyCodeLine{00586\ \ \ \ \ \ \ (l-\/>utf8\_len\ \&\&\ !l-\/>utf8)\ ||}
+\DoxyCodeLine{00587\ \ \ \ \ \ \ (l-\/>num\_clusters\ \&\&\ !l-\/>clusters))}
+\DoxyCodeLine{00588\ \ \ \{}
+\DoxyCodeLine{00589\ \ \ \ \ l-\/>finish\ ();}
+\DoxyCodeLine{00590\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00591\ \ \ \}}
+\DoxyCodeLine{00592\ }
+\DoxyCodeLine{00593\ \ \ hb\_position\_t\ x\ =\ 0,\ y\ =\ 0;}
+\DoxyCodeLine{00594\ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{00595\ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ (int)\ l-\/>num\_glyphs;\ i++)}
+\DoxyCodeLine{00596\ \ \ \{}
+\DoxyCodeLine{00597\ \ \ \ \ l-\/>glyphs[i].index\ =\ hb\_glyph[i].codepoint;}
+\DoxyCodeLine{00598\ \ \ \ \ l-\/>glyphs[i].x\ =\ scalbn\ ((\textcolor{keywordtype}{double})\ \ hb\_position-\/>x\_offset\ +\ x,\ scale\_bits);}
+\DoxyCodeLine{00599\ \ \ \ \ l-\/>glyphs[i].y\ =\ scalbn\ ((\textcolor{keywordtype}{double})\ -\/hb\_position-\/>y\_offset\ +\ y,\ scale\_bits);}
+\DoxyCodeLine{00600\ \ \ \ \ x\ +=\ \ hb\_position-\/>x\_advance;}
+\DoxyCodeLine{00601\ \ \ \ \ y\ +=\ -\/hb\_position-\/>y\_advance;}
+\DoxyCodeLine{00602\ }
+\DoxyCodeLine{00603\ \ \ \ \ hb\_position++;}
+\DoxyCodeLine{00604\ \ \ \}}
+\DoxyCodeLine{00605\ \ \ l-\/>glyphs[i].index\ =\ -\/1;}
+\DoxyCodeLine{00606\ \ \ l-\/>glyphs[i].x\ =\ scalbn\ ((\textcolor{keywordtype}{double})\ x,\ scale\_bits);}
+\DoxyCodeLine{00607\ \ \ l-\/>glyphs[i].y\ =\ scalbn\ ((\textcolor{keywordtype}{double})\ y,\ scale\_bits);}
+\DoxyCodeLine{00608\ }
+\DoxyCodeLine{00609\ \ \ \textcolor{keywordflow}{if}\ (l-\/>num\_clusters)\ \{}
+\DoxyCodeLine{00610\ \ \ \ \ memset\ ((\textcolor{keywordtype}{void}\ *)\ l-\/>clusters,\ 0,\ l-\/>num\_clusters\ *\ sizeof\ (l-\/>clusters[0]));}
+\DoxyCodeLine{00611\ \ \ \ \ hb\_bool\_t\ backward\ =\ HB\_DIRECTION\_IS\_BACKWARD\ (hb\_buffer\_get\_direction\ (\mbox{\hyperlink{classbuffer}{buffer}}));}
+\DoxyCodeLine{00612\ \ \ \ \ l-\/>cluster\_flags\ =\ backward\ ?\ CAIRO\_TEXT\_CLUSTER\_FLAG\_BACKWARD\ :\ (cairo\_text\_cluster\_flags\_t)\ 0;}
+\DoxyCodeLine{00613\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ cluster\ =\ 0;}
+\DoxyCodeLine{00614\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *start\ =\ l-\/>utf8,\ *end;}
+\DoxyCodeLine{00615\ \ \ \ \ l-\/>clusters[cluster].num\_glyphs++;}
+\DoxyCodeLine{00616\ \ \ \ \ \textcolor{keywordflow}{if}\ (backward)\ \{}
+\DoxyCodeLine{00617\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ l-\/>num\_glyphs\ -\/\ 2;\ i\ >=\ 0;\ i-\/-\/)\ \{}
+\DoxyCodeLine{00618\ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_glyph[i].cluster\ !=\ hb\_glyph[i+1].cluster)\ \{}
+\DoxyCodeLine{00619\ \ \ \ \ \ \ g\_assert\ (hb\_glyph[i].cluster\ >\ hb\_glyph[i+1].cluster);}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (utf8\_clusters)}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \ \ end\ =\ start\ +\ hb\_glyph[i].cluster\ -\/\ hb\_glyph[i+1].cluster;}
+\DoxyCodeLine{00622\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ end\ =\ g\_utf8\_offset\_to\_pointer\ (start,\ hb\_glyph[i].cluster\ -\/\ hb\_glyph[i+1].cluster);}
+\DoxyCodeLine{00624\ \ \ \ \ \ \ l-\/>clusters[cluster].num\_bytes\ =\ end\ -\/\ start;}
+\DoxyCodeLine{00625\ \ \ \ \ \ \ start\ =\ end;}
+\DoxyCodeLine{00626\ \ \ \ \ \ \ cluster++;}
+\DoxyCodeLine{00627\ \ \ \ \ \}}
+\DoxyCodeLine{00628\ \ \ \ \ l-\/>clusters[cluster].num\_glyphs++;}
+\DoxyCodeLine{00629\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00630\ \ \ \ \ \ \ l-\/>clusters[cluster].num\_bytes\ =\ l-\/>utf8\ +\ text\_len\ -\/\ start;}
+\DoxyCodeLine{00631\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00632\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 1;\ i\ <\ (int)\ l-\/>num\_glyphs;\ i++)\ \{}
+\DoxyCodeLine{00633\ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_glyph[i].cluster\ !=\ hb\_glyph[i-\/1].cluster)\ \{}
+\DoxyCodeLine{00634\ \ \ \ \ \ \ g\_assert\ (hb\_glyph[i].cluster\ >\ hb\_glyph[i-\/1].cluster);}
+\DoxyCodeLine{00635\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (utf8\_clusters)}
+\DoxyCodeLine{00636\ \ \ \ \ \ \ \ \ end\ =\ start\ +\ hb\_glyph[i].cluster\ -\/\ hb\_glyph[i-\/1].cluster;}
+\DoxyCodeLine{00637\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00638\ \ \ \ \ \ \ \ \ end\ =\ g\_utf8\_offset\_to\_pointer\ (start,\ hb\_glyph[i].cluster\ -\/\ hb\_glyph[i-\/1].cluster);}
+\DoxyCodeLine{00639\ \ \ \ \ \ \ l-\/>clusters[cluster].num\_bytes\ =\ end\ -\/\ start;}
+\DoxyCodeLine{00640\ \ \ \ \ \ \ start\ =\ end;}
+\DoxyCodeLine{00641\ \ \ \ \ \ \ cluster++;}
+\DoxyCodeLine{00642\ \ \ \ \ \}}
+\DoxyCodeLine{00643\ \ \ \ \ l-\/>clusters[cluster].num\_glyphs++;}
+\DoxyCodeLine{00644\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00645\ \ \ \ \ \ \ l-\/>clusters[cluster].num\_bytes\ =\ l-\/>utf8\ +\ text\_len\ -\/\ start;}
+\DoxyCodeLine{00646\ \ \ \ \ \}}
+\DoxyCodeLine{00647\ \ \ \}}
+\DoxyCodeLine{00648\ \}}
+\DoxyCodeLine{00649\ }
+\DoxyCodeLine{00650\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

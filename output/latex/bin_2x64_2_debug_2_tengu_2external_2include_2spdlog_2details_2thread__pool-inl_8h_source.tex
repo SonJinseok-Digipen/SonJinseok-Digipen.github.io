@@ -1,0 +1,143 @@
+\hypertarget{bin_2x64_2_debug_2_tengu_2external_2include_2spdlog_2details_2thread__pool-inl_8h_source}{}\doxysection{thread\+\_\+pool-\/inl.h}
+\label{bin_2x64_2_debug_2_tengu_2external_2include_2spdlog_2details_2thread__pool-inl_8h_source}\index{Tengu/bin/x64/Debug/Tengu/external/include/spdlog/details/thread\_pool-\/inl.h@{Tengu/bin/x64/Debug/Tengu/external/include/spdlog/details/thread\_pool-\/inl.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright(c)\ 2015-\/present,\ Gabi\ Melman\ \&\ spdlog\ contributors.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Distributed\ under\ the\ MIT\ License\ (http://opensource.org/licenses/MIT)}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#ifndef\ SPDLOG\_HEADER\_ONLY}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#\ \ \ \ include\ <spdlog/details/thread\_pool.h>}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <spdlog/common.h>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <cassert>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{namespace\ }spdlog\ \{}
+\DoxyCodeLine{00014\ \textcolor{keyword}{namespace\ }details\ \{}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ SPDLOG\_INLINE\ thread\_pool::thread\_pool(}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ q\_max\_items,\ \textcolor{keywordtype}{size\_t}\ threads\_n,\ std::function<\textcolor{keywordtype}{void}()>\ on\_thread\_start,\ std::function<\textcolor{keywordtype}{void}()>\ on\_thread\_stop)}
+\DoxyCodeLine{00018\ \ \ \ \ :\ q\_(q\_max\_items)}
+\DoxyCodeLine{00019\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordflow}{if}\ (threads\_n\ ==\ 0\ ||\ threads\_n\ >\ 1000)}
+\DoxyCodeLine{00021\ \ \ \ \ \{}
+\DoxyCodeLine{00022\ \ \ \ \ \ \ \ \ throw\_spdlog\_ex(\textcolor{stringliteral}{"{}spdlog::thread\_pool():\ invalid\ threads\_n\ param\ (valid\ "{}}}
+\DoxyCodeLine{00023\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{stringliteral}{"{}range\ is\ 1-\/1000)"{}});}
+\DoxyCodeLine{00024\ \ \ \ \ \}}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ i\ =\ 0;\ i\ <\ threads\_n;\ i++)}
+\DoxyCodeLine{00026\ \ \ \ \ \{}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ threads\_.emplace\_back([\textcolor{keyword}{this},\ on\_thread\_start,\ on\_thread\_stop]\ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \ \ \ \ on\_thread\_start();}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \ \ \ \ this-\/>thread\_pool::worker\_loop\_();}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \ \ \ \ on\_thread\_stop();}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \});}
+\DoxyCodeLine{00032\ \ \ \ \ \}}
+\DoxyCodeLine{00033\ \}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ SPDLOG\_INLINE\ thread\_pool::thread\_pool(\textcolor{keywordtype}{size\_t}\ q\_max\_items,\ \textcolor{keywordtype}{size\_t}\ threads\_n,\ std::function<\textcolor{keywordtype}{void}()>\ on\_thread\_start)}
+\DoxyCodeLine{00036\ \ \ \ \ :\ thread\_pool(q\_max\_items,\ threads\_n,\ on\_thread\_start,\ []\ \{\})}
+\DoxyCodeLine{00037\ \{\}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ SPDLOG\_INLINE\ thread\_pool::thread\_pool(\textcolor{keywordtype}{size\_t}\ q\_max\_items,\ \textcolor{keywordtype}{size\_t}\ threads\_n)}
+\DoxyCodeLine{00040\ \ \ \ \ :\ thread\_pool(}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \ \ q\_max\_items,\ threads\_n,\ []\ \{\},\ []\ \{\})}
+\DoxyCodeLine{00042\ \{\}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{comment}{//\ message\ all\ threads\ to\ terminate\ gracefully\ join\ them}}
+\DoxyCodeLine{00045\ SPDLOG\_INLINE\ thread\_pool::\string~thread\_pool()}
+\DoxyCodeLine{00046\ \{}
+\DoxyCodeLine{00047\ \ \ \ \ SPDLOG\_TRY}
+\DoxyCodeLine{00048\ \ \ \ \ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ i\ =\ 0;\ i\ <\ threads\_.size();\ i++)}
+\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \ \ \ \ post\_async\_msg\_(async\_msg(async\_msg\_type::terminate),\ async\_overflow\_policy::block);}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ \&t\ :\ threads\_)}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ t.join();}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00058\ \ \ \ \ \}}
+\DoxyCodeLine{00059\ \ \ \ \ SPDLOG\_CATCH\_STD}
+\DoxyCodeLine{00060\ \}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{keywordtype}{void}\ SPDLOG\_INLINE\ thread\_pool::post\_log(async\_logger\_ptr\ \&\&worker\_ptr,\ \textcolor{keyword}{const}\ details::log\_msg\ \&msg,\ async\_overflow\_policy\ overflow\_policy)}
+\DoxyCodeLine{00063\ \{}
+\DoxyCodeLine{00064\ \ \ \ \ async\_msg\ async\_m(std::move(worker\_ptr),\ async\_msg\_type::log,\ msg);}
+\DoxyCodeLine{00065\ \ \ \ \ post\_async\_msg\_(std::move(async\_m),\ overflow\_policy);}
+\DoxyCodeLine{00066\ \}}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{keywordtype}{void}\ SPDLOG\_INLINE\ thread\_pool::post\_flush(async\_logger\_ptr\ \&\&worker\_ptr,\ async\_overflow\_policy\ overflow\_policy)}
+\DoxyCodeLine{00069\ \{}
+\DoxyCodeLine{00070\ \ \ \ \ post\_async\_msg\_(async\_msg(std::move(worker\_ptr),\ async\_msg\_type::flush),\ overflow\_policy);}
+\DoxyCodeLine{00071\ \}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{keywordtype}{size\_t}\ SPDLOG\_INLINE\ thread\_pool::overrun\_counter()}
+\DoxyCodeLine{00074\ \{}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keywordflow}{return}\ q\_.overrun\_counter();}
+\DoxyCodeLine{00076\ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{keywordtype}{void}\ SPDLOG\_INLINE\ thread\_pool::reset\_overrun\_counter()}
+\DoxyCodeLine{00079\ \{}
+\DoxyCodeLine{00080\ \ \ \ \ q\_.reset\_overrun\_counter();}
+\DoxyCodeLine{00081\ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{keywordtype}{size\_t}\ SPDLOG\_INLINE\ thread\_pool::queue\_size()}
+\DoxyCodeLine{00084\ \{}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordflow}{return}\ q\_.size();}
+\DoxyCodeLine{00086\ \}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{keywordtype}{void}\ SPDLOG\_INLINE\ thread\_pool::post\_async\_msg\_(async\_msg\ \&\&new\_msg,\ async\_overflow\_policy\ overflow\_policy)}
+\DoxyCodeLine{00089\ \{}
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keywordflow}{if}\ (overflow\_policy\ ==\ async\_overflow\_policy::block)}
+\DoxyCodeLine{00091\ \ \ \ \ \{}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ q\_.enqueue(std::move(new\_msg));}
+\DoxyCodeLine{00093\ \ \ \ \ \}}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00095\ \ \ \ \ \{}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ q\_.enqueue\_nowait(std::move(new\_msg));}
+\DoxyCodeLine{00097\ \ \ \ \ \}}
+\DoxyCodeLine{00098\ \}}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \textcolor{keywordtype}{void}\ SPDLOG\_INLINE\ thread\_pool::worker\_loop\_()}
+\DoxyCodeLine{00101\ \{}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordflow}{while}\ (process\_next\_msg\_())\ \{\}}
+\DoxyCodeLine{00103\ \}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{comment}{//\ process\ next\ message\ in\ the\ queue}}
+\DoxyCodeLine{00106\ \textcolor{comment}{//\ return\ true\ if\ this\ thread\ should\ still\ be\ active\ (while\ no\ terminate\ msg}}
+\DoxyCodeLine{00107\ \textcolor{comment}{//\ was\ received)}}
+\DoxyCodeLine{00108\ \textcolor{keywordtype}{bool}\ SPDLOG\_INLINE\ thread\_pool::process\_next\_msg\_()}
+\DoxyCodeLine{00109\ \{}
+\DoxyCodeLine{00110\ \ \ \ \ async\_msg\ incoming\_async\_msg;}
+\DoxyCodeLine{00111\ \ \ \ \ q\_.dequeue(incoming\_async\_msg);}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordflow}{switch}\ (incoming\_async\_msg.msg\_type)}
+\DoxyCodeLine{00114\ \ \ \ \ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordflow}{case}\ async\_msg\_type::log:\ \{}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ incoming\_async\_msg.worker\_ptr-\/>backend\_sink\_it\_(incoming\_async\_msg);}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00118\ \ \ \ \ \}}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordflow}{case}\ async\_msg\_type::flush:\ \{}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ incoming\_async\_msg.worker\_ptr-\/>backend\_flush\_();}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00122\ \ \ \ \ \}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keywordflow}{case}\ async\_msg\_type::terminate:\ \{}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00126\ \ \ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordflow}{default}:\ \{}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ assert(\textcolor{keyword}{false});}
+\DoxyCodeLine{00130\ \ \ \ \ \}}
+\DoxyCodeLine{00131\ \ \ \ \ \}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00134\ \}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \}\ \textcolor{comment}{//\ namespace\ details}}
+\DoxyCodeLine{00137\ \}\ \textcolor{comment}{//\ namespace\ spdlog}}
+
+\end{DoxyCode}

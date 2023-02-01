@@ -1,0 +1,154 @@
+\hypertarget{cffparse_8h_source}{}\doxysection{cffparse.\+h}
+\label{cffparse_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/cff/cffparse.h@{AseSprite/aseprite/third\_party/freetype2/src/cff/cffparse.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ cffparse.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ CFF\ token\ stream\ parser\ (specification)}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1996-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#ifndef\ CFFPARSE\_H\_}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ CFFPARSE\_H\_}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <freetype/internal/cfftypes.h>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <freetype/internal/ftobjs.h>}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \textcolor{comment}{/*\ CFF\ uses\ constant\ parser\ stack\ size;\ */}}
+\DoxyCodeLine{00031\ \ \ \textcolor{comment}{/*\ CFF2\ can\ increase\ from\ default\ 193\ \ \ */}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ CFF\_MAX\_STACK\_DEPTH\ \ 96}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ *\ There\ are\ plans\ to\ remove\ the\ `maxstack'\ operator\ in\ a\ forthcoming}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ *\ revision\ of\ the\ CFF2\ specification,\ increasing\ the\ (then\ static)\ stack}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ \ *\ size\ to\ 513.\ \ By\ making\ the\ default\ stack\ size\ equal\ to\ the\ maximum}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ *\ stack\ size,\ the\ operator\ is\ essentially\ disabled,\ which\ has\ the}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ *\ desired\ effect\ in\ FreeType.}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ CFF2\_MAX\_STACK\ \ \ \ \ \ 513}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ CFF2\_DEFAULT\_STACK\ \ 513}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ CFF\_CODE\_TOPDICT\ \ \ \ 0x1000}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ CFF\_CODE\_PRIVATE\ \ \ \ 0x2000}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ CFF2\_CODE\_TOPDICT\ \ \ 0x3000}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#define\ CFF2\_CODE\_FONTDICT\ \ 0x4000}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ CFF2\_CODE\_PRIVATE\ \ \ 0x5000}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_ParserRec\_}}}
+\DoxyCodeLine{00052\ \ \ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \mbox{\hyperlink{struct_f_t___library_rec__}{FT\_Library}}\ \ library;}
+\DoxyCodeLine{00054\ \ \ \ \ FT\_Byte*\ \ \ \ start;}
+\DoxyCodeLine{00055\ \ \ \ \ FT\_Byte*\ \ \ \ limit;}
+\DoxyCodeLine{00056\ \ \ \ \ FT\_Byte*\ \ \ \ cursor;}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ FT\_Byte**\ \ \ stack;}
+\DoxyCodeLine{00059\ \ \ \ \ FT\_Byte**\ \ \ top;}
+\DoxyCodeLine{00060\ \ \ \ \ FT\_UInt\ \ \ \ \ stackSize;\ \ \textcolor{comment}{/*\ allocated\ size\ */}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#ifdef\ CFF\_CONFIG\_OPTION\_OLD\_ENGINE}}
+\DoxyCodeLine{00063\ \ \ \ \ \mbox{\hyperlink{struct_f_t___list_rec__}{FT\_ListRec}}\ \ t2\_strings;}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ CFF\_CONFIG\_OPTION\_OLD\_ENGINE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ FT\_UInt\ \ \ \ \ object\_code;}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ object;}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ FT\_UShort\ \ \ num\_designs;\ \textcolor{comment}{/*\ a\ copy\ of\ `CFF\_FontRecDict-\/>num\_designs'\ */}}
+\DoxyCodeLine{00070\ \ \ \ \ FT\_UShort\ \ \ num\_axes;\ \ \ \ \textcolor{comment}{/*\ a\ copy\ of\ `CFF\_FontRecDict-\/>num\_axes'\ \ \ \ */}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \}\ \mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_ParserRec}},\ *\mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_Parser}};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ FT\_LOCAL(\ FT\_Long\ )}
+\DoxyCodeLine{00076\ \ \ cff\_parse\_num(\ \mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_Parser}}\ \ parser,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte**\ \ \ d\ );}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00080\ \ \ cff\_parser\_init(\ \mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_Parser}}\ \ parser,}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \mbox{\hyperlink{structcode}{code}},}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}*\ \ \ \ \ \ \ \textcolor{keywordtype}{object},}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t___library_rec__}{FT\_Library}}\ \ library,}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ stackSize,}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UShort\ \ \ num\_designs,}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UShort\ \ \ num\_axes\ );}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00089\ \ \ cff\_parser\_done(\ \mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00092\ \ \ cff\_parser\_run(\ \mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_Parser}}\ \ parser,}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ start,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Byte*\ \ \ \ limit\ );}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00098\ \ \ \{}
+\DoxyCodeLine{00099\ \ \ \ \ cff\_kind\_none\ =\ 0,}
+\DoxyCodeLine{00100\ \ \ \ \ cff\_kind\_num,}
+\DoxyCodeLine{00101\ \ \ \ \ cff\_kind\_fixed,}
+\DoxyCodeLine{00102\ \ \ \ \ cff\_kind\_fixed\_thousand,}
+\DoxyCodeLine{00103\ \ \ \ \ cff\_kind\_string,}
+\DoxyCodeLine{00104\ \ \ \ \ cff\_kind\_bool,}
+\DoxyCodeLine{00105\ \ \ \ \ cff\_kind\_delta,}
+\DoxyCodeLine{00106\ \ \ \ \ cff\_kind\_callback,}
+\DoxyCodeLine{00107\ \ \ \ \ cff\_kind\_blend,}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \ \ \ \ cff\_kind\_max\ \ \textcolor{comment}{/*\ do\ not\ remove\ */}}
+\DoxyCodeLine{00110\ \ \ \};}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \textcolor{comment}{/*\ now\ generate\ handlers\ for\ the\ most\ simple\ fields\ */}}
+\DoxyCodeLine{00114\ \ \ \textcolor{keyword}{typedef}\ FT\_Error\ \ (*CFF\_Field\_Reader)(\ \mbox{\hyperlink{struct_c_f_f___parser_rec__}{CFF\_Parser}}\ \ parser\ );}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_c_f_f___field___handler__}{CFF\_Field\_Handler\_}}}
+\DoxyCodeLine{00117\ \ \ \{}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ kind;}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structcode}{code}};}
+\DoxyCodeLine{00120\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ offset;}
+\DoxyCodeLine{00121\ \ \ \ \ FT\_Byte\ \ \ \ \ \ \ \ \ \ \ size;}
+\DoxyCodeLine{00122\ \ \ \ \ CFF\_Field\_Reader\ \ reader;}
+\DoxyCodeLine{00123\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ array\_max;}
+\DoxyCodeLine{00124\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ count\_offset;}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#ifdef\ FT\_DEBUG\_LEVEL\_TRACE}}
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \ \ \ \ \ \ id;}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \}\ \mbox{\hyperlink{struct_c_f_f___field___handler__}{CFF\_Field\_Handler}};}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ FT\_END\_HEADER}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#ifdef\ CFF\_CONFIG\_OPTION\_OLD\_ENGINE}}
+\DoxyCodeLine{00137\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }CFF\_T2\_String\_}
+\DoxyCodeLine{00138\ \ \ \{}
+\DoxyCodeLine{00139\ \ \ \ \ FT\_Byte*\ \ start;}
+\DoxyCodeLine{00140\ \ \ \ \ FT\_Byte*\ \ limit;}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \ \ \}\ CFF\_T2\_StringRec,\ *CFF\_T2\_String;}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ CFF\_CONFIG\_OPTION\_OLD\_ENGINE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ CFFPARSE\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

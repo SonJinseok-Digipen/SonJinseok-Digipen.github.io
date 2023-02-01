@@ -1,0 +1,188 @@
+\hypertarget{pixman-edge-imp_8h_source}{}\doxysection{pixman-\/edge-\/imp.h}
+\label{pixman-edge-imp_8h_source}\index{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/edge-\/imp.h@{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/edge-\/imp.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2004\ Keith\ Packard}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Permission\ to\ use,\ copy,\ modify,\ distribute,\ and\ sell\ this\ software\ and\ its}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ documentation\ for\ any\ purpose\ is\ hereby\ granted\ without\ fee,\ provided\ that}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ the\ above\ copyright\ notice\ appear\ in\ all\ copies\ and\ that\ both\ that}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ copyright\ notice\ and\ this\ permission\ notice\ appear\ in\ supporting}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ documentation,\ and\ that\ the\ name\ of\ Keith\ Packard\ not\ be\ used\ in}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ advertising\ or\ publicity\ pertaining\ to\ distribution\ of\ the\ software\ without}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ specific,\ written\ prior\ permission.\ \ Keith\ Packard\ makes\ no}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ representations\ about\ the\ suitability\ of\ this\ software\ for\ any\ purpose.\ \ It}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ is\ provided\ "{}as\ is"{}\ without\ express\ or\ implied\ warranty.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ KEITH\ PACKARD\ DISCLAIMS\ ALL\ WARRANTIES\ WITH\ REGARD\ TO\ THIS\ SOFTWARE,}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ INCLUDING\ ALL\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND\ FITNESS,\ IN\ NO}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ EVENT\ SHALL\ KEITH\ PACKARD\ BE\ LIABLE\ FOR\ ANY\ SPECIAL,\ INDIRECT\ OR}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ CONSEQUENTIAL\ DAMAGES\ OR\ ANY\ DAMAGES\ WHATSOEVER\ RESULTING\ FROM\ LOSS\ OF\ USE,}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ DATA\ OR\ PROFITS,\ WHETHER\ IN\ AN\ ACTION\ OF\ CONTRACT,\ NEGLIGENCE\ OR\ OTHER}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ TORTIOUS\ ACTION,\ ARISING\ OUT\ OF\ OR\ IN\ CONNECTION\ WITH\ THE\ USE\ OR}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ PERFORMANCE\ OF\ THIS\ SOFTWARE.}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifndef\ rasterize\_span}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00027\ RASTERIZE\_EDGES\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ \ *image,}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__edge}{pixman\_edge\_t}}\ \ *l,}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__edge}{pixman\_edge\_t}}\ \ *r,}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ \ \ t,}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ \ \ \ \ b)}
+\DoxyCodeLine{00032\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ pixman\_fixed\_t\ \ y\ =\ t;}
+\DoxyCodeLine{00034\ \ \ \ \ uint32\_t\ \ *line;}
+\DoxyCodeLine{00035\ \ \ \ \ uint32\_t\ *\mbox{\hyperlink{structbuf}{buf}}\ =\ (image)-\/>bits.bits;}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{int}\ stride\ =\ (image)-\/>bits.rowstride;}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordtype}{int}\ width\ =\ (image)-\/>bits.width;}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \ \ \ \ line\ =\ \mbox{\hyperlink{structbuf}{buf}}\ +\ pixman\_fixed\_to\_int\ (y)\ *\ stride;}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keywordflow}{for}\ (;;)}
+\DoxyCodeLine{00042\ \ \ \ \ \{}
+\DoxyCodeLine{00043\ \ \ \ \ pixman\_fixed\_t\ \ lx;}
+\DoxyCodeLine{00044\ \ \ \ \ pixman\_fixed\_t\ \ \ \ \ \ rx;}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{int}\ lxi;}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{int}\ rxi;}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ lx\ =\ l-\/>x;}
+\DoxyCodeLine{00049\ \ \ \ \ rx\ =\ r-\/>x;}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#if\ N\_BITS\ ==\ 1}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{comment}{/*\ For\ the\ non-\/antialiased\ case,\ round\ the\ coordinates\ up,\ in\ effect}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ \ \ *\ sampling\ just\ slightly\ to\ the\ left\ of\ the\ pixel.\ This\ is\ so\ that}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ \ \ *\ when\ the\ sample\ point\ lies\ exactly\ on\ the\ line,\ we\ round\ towards}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ \ \ *\ north-\/west.}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ \ \ *\ (The\ AA\ case\ does\ a\ similar\ \ adjustment\ in\ RENDER\_SAMPLES\_X)}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00058\ \ \ \ \ lx\ +=\ X\_FRAC\_FIRST(1)\ -\/\ pixman\_fixed\_e;}
+\DoxyCodeLine{00059\ \ \ \ \ rx\ +=\ X\_FRAC\_FIRST(1)\ -\/\ pixman\_fixed\_e;}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{comment}{/*\ clip\ X\ */}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordflow}{if}\ (lx\ <\ 0)}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ lx\ =\ 0;}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordflow}{if}\ (pixman\_fixed\_to\_int\ (rx)\ >=\ width)}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#if\ N\_BITS\ ==\ 1}}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ rx\ =\ pixman\_int\_to\_fixed\ (width);}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Use\ the\ last\ pixel\ of\ the\ scanline,\ covered\ 100\%.}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ We\ can't\ use\ the\ first\ pixel\ following\ the\ scanline,}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ *\ because\ accessing\ it\ could\ result\ in\ a\ buffer\ overrun.}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ rx\ =\ pixman\_int\_to\_fixed\ (width)\ -\/\ 1;}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{/*\ Skip\ empty\ (or\ backwards)\ sections\ */}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordflow}{if}\ (rx\ >\ lx)}
+\DoxyCodeLine{00077\ \ \ \ \ \{}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Find\ pixel\ bounds\ for\ span\ */}}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ lxi\ =\ pixman\_fixed\_to\_int\ (lx);}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ rxi\ =\ pixman\_fixed\_to\_int\ (rx);}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#if\ N\_BITS\ ==\ 1}}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#define\ LEFT\_MASK(x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ (((x)\ \&\ 0x1f)\ ?\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ SCREEN\_SHIFT\_RIGHT\ (0xffffffff,\ (x)\ \&\ 0x1f)\ :\ 0)}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ RIGHT\_MASK(x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ (((32\ -\/\ (x))\ \&\ 0x1f)\ ?\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ SCREEN\_SHIFT\_LEFT\ (0xffffffff,\ (32\ -\/\ (x))\ \&\ 0x1f)\ :\ 0)}}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#define\ MASK\_BITS(x,w,l,n,r)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ n\ =\ (w);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ r\ =\ RIGHT\_MASK\ ((x)\ +\ n);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ l\ =\ LEFT\_MASK\ (x);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (l)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ n\ -\/=\ 32\ -\/\ ((x)\ \&\ 0x1f);\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ if\ (n\ <\ 0)\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ n\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ l\ \&=\ r;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ r\ =\ 0;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ n\ >>=\ 5;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}}}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ uint32\_t\ \ *\mbox{\hyperlink{structa}{a}}\ =\ line;}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ uint32\_t\ \ startmask;}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ uint32\_t\ \ endmask;}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ nmiddle;}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ width\ =\ rxi\ -\/\ lxi;}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ x\ =\ lxi;}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ +=\ x\ >>\ 5;}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ x\ \&=\ 0x1f;}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00118\ \ \ \ \ \ \ \ \ MASK\_BITS\ (x,\ width,\ startmask,\ nmiddle,\ endmask);}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (startmask)\ \{}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \ \ WRITE(image,\ \mbox{\hyperlink{structa}{a}},\ READ(image,\ \mbox{\hyperlink{structa}{a}})\ |\ startmask);}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}++;}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (nmiddle-\/-\/)}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ WRITE(image,\ \mbox{\hyperlink{structa}{a}}++,\ 0xffffffff);}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (endmask)}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ WRITE(image,\ \mbox{\hyperlink{structa}{a}},\ READ(image,\ \mbox{\hyperlink{structa}{a}})\ |\ endmask);}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00130\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ \ \ DEFINE\_ALPHA(line,lxi);}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ lxs;}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ rxs;}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Sample\ coverage\ for\ edge\ pixels\ */}}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ lxs\ =\ RENDER\_SAMPLES\_X\ (lx,\ N\_BITS);}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ rxs\ =\ RENDER\_SAMPLES\_X\ (rx,\ N\_BITS);}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Add\ coverage\ across\ row\ */}}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (lxi\ ==\ rxi)}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ \ \ \ \ ADD\_ALPHA\ (rxs\ -\/\ lxs);}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ xi;}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \ \ \ \ \ \ ADD\_ALPHA\ (N\_X\_FRAC(N\_BITS)\ -\/\ lxs);}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ STEP\_ALPHA;}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (xi\ =\ lxi\ +\ 1;\ xi\ <\ rxi;\ xi++)}
+\DoxyCodeLine{00151\ \ \ \ \ \ \ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \ \ ADD\_ALPHA\ (N\_X\_FRAC(N\_BITS));}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \ \ STEP\_ALPHA;}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00155\ \ \ \ \ \ \ \ \ \ \ \ \ ADD\_ALPHA\ (rxs);}
+\DoxyCodeLine{00156\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00159\ \ \ \ \ \}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordflow}{if}\ (y\ ==\ b)}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#if\ N\_BITS\ >\ 1}}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keywordflow}{if}\ (pixman\_fixed\_frac\ (y)\ !=\ Y\_FRAC\_LAST(N\_BITS))}
+\DoxyCodeLine{00166\ \ \ \ \ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ RENDER\_EDGE\_STEP\_SMALL\ (l);}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ RENDER\_EDGE\_STEP\_SMALL\ (r);}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \ \ y\ +=\ STEP\_Y\_SMALL(N\_BITS);}
+\DoxyCodeLine{00170\ \ \ \ \ \}}
+\DoxyCodeLine{00171\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00173\ \ \ \ \ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ RENDER\_EDGE\_STEP\_BIG\ (l);}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ RENDER\_EDGE\_STEP\_BIG\ (r);}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ y\ +=\ STEP\_Y\_BIG(N\_BITS);}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ line\ +=\ stride;}
+\DoxyCodeLine{00178\ \ \ \ \ \}}
+\DoxyCodeLine{00179\ \ \ \ \ \}}
+\DoxyCodeLine{00180\ \}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\#undef\ rasterize\_span}}
+
+\end{DoxyCode}

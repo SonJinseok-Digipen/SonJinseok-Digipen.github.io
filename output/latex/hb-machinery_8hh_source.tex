@@ -1,0 +1,324 @@
+\hypertarget{hb-machinery_8hh_source}{}\doxysection{hb-\/machinery.hh}
+\label{hb-machinery_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/machinery.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/machinery.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2007,2008,2009,2010\ \ Red\ Hat,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012,2018\ \ Google,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ Red\ Hat\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#ifndef\ HB\_MACHINERY\_HH}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ HB\_MACHINERY\_HH}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/blob.hh"{}}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ "{}hb-\/dispatch.hh"{}}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ "{}hb-\/sanitize.hh"{}}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ "{}hb-\/serialize.hh"{}}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ Casts}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{comment}{/*\ StructAtOffset<T>(P,Ofs)\ returns\ the\ struct\ T\&\ that\ is\ placed\ at\ memory}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ location\ pointed\ to\ by\ P\ plus\ Ofs\ bytes.\ */}}
+\DoxyCodeLine{00046\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00047\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ Type\&\ StructAtOffset(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *P,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset)}
+\DoxyCodeLine{00048\ \{\ \textcolor{keywordflow}{return}\ *\ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }Type*\textcolor{keyword}{>}\ ((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ P\ +\ offset);\ \}}
+\DoxyCodeLine{00049\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00050\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ Type\&\ StructAtOffset(\textcolor{keywordtype}{void}\ *P,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset)}
+\DoxyCodeLine{00051\ \{\ \textcolor{keywordflow}{return}\ *\ \textcolor{keyword}{reinterpret\_cast<}Type*\textcolor{keyword}{>}\ ((\textcolor{keywordtype}{char}\ *)\ P\ +\ offset);\ \}}
+\DoxyCodeLine{00052\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00053\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ Type\&\ StructAtOffsetUnaligned(\textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *P,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset)}
+\DoxyCodeLine{00054\ \{}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ push}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ ignored\ "{}-\/Wcast-\/align"{}}}
+\DoxyCodeLine{00057\ \ \ \textcolor{keywordflow}{return}\ *\ \textcolor{keyword}{reinterpret\_cast<}\textcolor{keyword}{const\ }Type*\textcolor{keyword}{>}\ ((\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *)\ P\ +\ offset);}
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ pop}}
+\DoxyCodeLine{00059\ \}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Type>}
+\DoxyCodeLine{00061\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ Type\&\ StructAtOffsetUnaligned(\textcolor{keywordtype}{void}\ *P,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ offset)}
+\DoxyCodeLine{00062\ \{}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ push}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ ignored\ "{}-\/Wcast-\/align"{}}}
+\DoxyCodeLine{00065\ \ \ \textcolor{keywordflow}{return}\ *\ \textcolor{keyword}{reinterpret\_cast<}Type*\textcolor{keyword}{>}\ ((\textcolor{keywordtype}{char}\ *)\ P\ +\ offset);}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#pragma\ GCC\ diagnostic\ pop}}
+\DoxyCodeLine{00067\ \}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{comment}{/*\ StructAfter<T>(X)\ returns\ the\ struct\ T\&\ that\ is\ placed\ after\ X.}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ *\ Works\ with\ X\ of\ variable\ size\ also.\ \ X\ must\ implement\ get\_size()\ */}}
+\DoxyCodeLine{00071\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ TObject>}
+\DoxyCodeLine{00072\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{const}\ Type\&\ StructAfter(\textcolor{keyword}{const}\ TObject\ \&X)}
+\DoxyCodeLine{00073\ \{\ \textcolor{keywordflow}{return}\ StructAtOffset<Type>(\&X,\ X.get\_size());\ \}}
+\DoxyCodeLine{00074\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Type,\ \textcolor{keyword}{typename}\ TObject>}
+\DoxyCodeLine{00075\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ Type\&\ StructAfter(TObject\ \&X)}
+\DoxyCodeLine{00076\ \{\ \textcolor{keywordflow}{return}\ StructAtOffset<Type>(\&X,\ X.get\_size());\ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ *\ Size\ checking}}
+\DoxyCodeLine{00081\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{comment}{/*\ Size\ signifying\ variable-\/sized\ array\ */}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#ifndef\ HB\_VAR\_ARRAY}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ HB\_VAR\_ARRAY\ 1}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \textcolor{comment}{/*\ Check\ \_assertion\ in\ a\ method\ environment\ */}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ \_DEFINE\_INSTANCE\_ASSERTION1(\_line,\ \_assertion)\ \(\backslash\)}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\ \ void\ \_instance\_assertion\_on\_line\_\#\#\_line\ ()\ const\ \(\backslash\)}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\ \ \{\ static\_assert\ ((\_assertion),\ "{}"{}});\ \}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\#\ define\ \_DEFINE\_INSTANCE\_ASSERTION0(\_line,\ \_assertion)\ \_DEFINE\_INSTANCE\_ASSERTION1\ (\_line,\ \_assertion)}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#\ define\ DEFINE\_INSTANCE\_ASSERTION(\_assertion)\ \_DEFINE\_INSTANCE\_ASSERTION0\ (\_\_LINE\_\_,\ \_assertion)}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{comment}{/*\ Check\ that\ \_code\ compiles\ in\ a\ method\ environment\ */}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#define\ \_DEFINE\_COMPILES\_ASSERTION1(\_line,\ \_code)\ \(\backslash\)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\ \ void\ \_compiles\_assertion\_on\_line\_\#\#\_line\ ()\ const\ \(\backslash\)}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\ \ \{\ \_code;\ \}}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#\ define\ \_DEFINE\_COMPILES\_ASSERTION0(\_line,\ \_code)\ \_DEFINE\_COMPILES\_ASSERTION1\ (\_line,\ \_code)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#\ define\ DEFINE\_COMPILES\_ASSERTION(\_code)\ \_DEFINE\_COMPILES\_ASSERTION0\ (\_\_LINE\_\_,\ \_code)}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#define\ DEFINE\_SIZE\_STATIC(size)\ \(\backslash\)}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\ \ DEFINE\_INSTANCE\_ASSERTION\ (sizeof\ (*this)\ ==\ (size))\ \(\backslash\)}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\ \ unsigned\ int\ get\_size\ ()\ const\ \{\ return\ (size);\ \}\ \(\backslash\)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ null\_size\ =\ (size);\ \(\backslash\)}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ min\_size\ =\ (size);\ \(\backslash\)}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ static\_size\ =\ (size)}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#define\ DEFINE\_SIZE\_UNION(size,\ \_member)\ \(\backslash\)}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\ \ DEFINE\_COMPILES\_ASSERTION\ ((void)\ this-\/>u.\_member.static\_size)\ \(\backslash\)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ DEFINE\_INSTANCE\_ASSERTION\ (sizeof(this-\/>u.\_member)\ ==\ (size))\ \(\backslash\)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ null\_size\ =\ (size);\ \(\backslash\)}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ min\_size\ =\ (size)}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#define\ DEFINE\_SIZE\_MIN(size)\ \(\backslash\)}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\ \ DEFINE\_INSTANCE\_ASSERTION\ (sizeof\ (*this)\ >=\ (size))\ \(\backslash\)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ null\_size\ =\ (size);\ \(\backslash\)}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ min\_size\ =\ (size)}}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#define\ DEFINE\_SIZE\_UNBOUNDED(size)\ \(\backslash\)}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\ \ DEFINE\_INSTANCE\_ASSERTION\ (sizeof\ (*this)\ >=\ (size))\ \(\backslash\)}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ min\_size\ =\ (size)}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#define\ DEFINE\_SIZE\_ARRAY(size,\ array)\ \(\backslash\)}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\ \ DEFINE\_COMPILES\_ASSERTION\ ((void)\ (array)[0].static\_size)\ \(\backslash\)}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\ \ DEFINE\_INSTANCE\_ASSERTION\ (sizeof\ (*this)\ ==\ (size)\ +\ (HB\_VAR\_ARRAY+0)\ *\ sizeof\ ((array)[0]))\ \(\backslash\)}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ null\_size\ =\ (size);\ \(\backslash\)}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\ \ static\ constexpr\ unsigned\ min\_size\ =\ (size)}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ DEFINE\_SIZE\_ARRAY\_SIZED(size,\ array)\ \(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ unsigned\ int\ get\_size\ ()\ const\ \{\ return\ (size\ -\/\ (array).min\_size\ +\ (array).get\_size\ ());\ \}\ \(\backslash\)}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\ \ DEFINE\_SIZE\_ARRAY(size,\ array)}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00138\ \textcolor{comment}{\ *\ Lazy\ loaders.}}
+\DoxyCodeLine{00139\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00140\ }
+\DoxyCodeLine{00141\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Data,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ WheresData>}
+\DoxyCodeLine{00142\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__data__wrapper__t}{hb\_data\_wrapper\_t}}}
+\DoxyCodeLine{00143\ \{}
+\DoxyCodeLine{00144\ \ \ \textcolor{keyword}{static\_assert}\ (WheresData\ >\ 0,\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ Data\ *\ get\_data\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00147\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ *(((Data\ **)\ (\textcolor{keywordtype}{void}\ *)\ \textcolor{keyword}{this})\ -\/\ WheresData);\ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \ \ \textcolor{keywordtype}{bool}\ is\_inert\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !get\_data\ ();\ \}}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Stored,\ \textcolor{keyword}{typename}\ Sub\textcolor{keyword}{class}>}
+\DoxyCodeLine{00152\ \ \ Stored\ *\ call\_create\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ Subclass::create\ (get\_data\ ());\ \}}
+\DoxyCodeLine{00153\ \};}
+\DoxyCodeLine{00154\ \textcolor{keyword}{template}\ <>}
+\DoxyCodeLine{00155\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__data__wrapper__t}{hb\_data\_wrapper\_t}}<void,\ 0>}
+\DoxyCodeLine{00156\ \{}
+\DoxyCodeLine{00157\ \ \ \textcolor{keywordtype}{bool}\ is\_inert\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};\ \}}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Stored,\ \textcolor{keyword}{typename}\ Funcs>}
+\DoxyCodeLine{00160\ \ \ Stored\ *\ call\_create\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ Funcs::create\ ();\ \}}
+\DoxyCodeLine{00161\ \};}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T1,\ \textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__non__void__t}{hb\_non\_void\_t}}\ \{\ \textcolor{keyword}{typedef}\ T1\ \mbox{\hyperlink{classvalue}{value}};\ \};}
+\DoxyCodeLine{00164\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T2>\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__non__void__t}{hb\_non\_void\_t}}<void,\ T2>\ \{\ \textcolor{keyword}{typedef}\ T2\ \mbox{\hyperlink{classvalue}{value}};\ \};}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Returned,}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Subclass\ =\ void,}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Data\ =\ void,}
+\DoxyCodeLine{00169\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ WheresData\ =\ 0,}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Stored\ =\ Returned>}
+\DoxyCodeLine{00171\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__lazy__loader__t}{hb\_lazy\_loader\_t}}\ :\ \mbox{\hyperlink{structhb__data__wrapper__t}{hb\_data\_wrapper\_t}}<Data,\ WheresData>}
+\DoxyCodeLine{00172\ \{}
+\DoxyCodeLine{00173\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{typename}\ \mbox{\hyperlink{structhb__non__void__t}{hb\_non\_void\_t}}<Subclass,}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__lazy__loader__t}{hb\_lazy\_loader\_t<Returned,Subclass,Data,WheresData,Stored>}}}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ >\mbox{\hyperlink{classvalue}{::value}}\ Funcs;}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \ \ \textcolor{keywordtype}{void}\ init0\ ()\ \{\}\ \textcolor{comment}{/*\ Init,\ when\ memory\ is\ already\ set\ to\ 0.\ No-\/op\ for\ us.\ */}}
+\DoxyCodeLine{00178\ \ \ \textcolor{keywordtype}{void}\ init\ ()\ \ \{\ instance.set\_relaxed\ (\textcolor{keyword}{nullptr});\ \}}
+\DoxyCodeLine{00179\ \ \ \textcolor{keywordtype}{void}\ fini\ ()\ \ \{\ do\_destroy\ (instance.get\ ());\ \}}
+\DoxyCodeLine{00180\ }
+\DoxyCodeLine{00181\ \ \ \textcolor{keywordtype}{void}\ free\_instance\ ()}
+\DoxyCodeLine{00182\ \ \ \{}
+\DoxyCodeLine{00183\ \ \ retry:}
+\DoxyCodeLine{00184\ \ \ \ \ Stored\ *p\ =\ instance.get\ ();}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (p\ \&\&\ !cmpexch\ (p,\ \textcolor{keyword}{nullptr})))}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \textcolor{keywordflow}{goto}\ retry;}
+\DoxyCodeLine{00187\ \ \ \ \ do\_destroy\ (p);}
+\DoxyCodeLine{00188\ \ \ \}}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ do\_destroy\ (Stored\ *p)}
+\DoxyCodeLine{00191\ \ \ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \textcolor{keywordflow}{if}\ (p\ \&\&\ p\ !=\ \textcolor{keyword}{const\_cast<}Stored\ *\textcolor{keyword}{>}\ (Funcs::get\_null\ ()))}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ Funcs::destroy\ (p);}
+\DoxyCodeLine{00194\ \ \ \}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \textcolor{keyword}{const}\ Returned\ *\ operator\ -\/>\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ get\ ();\ \}}
+\DoxyCodeLine{00197\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ U\ =\ Returned,\ hb\_enable\_if\ (!hb\_is\_same\ (U,\ \textcolor{keywordtype}{void}))>}
+\DoxyCodeLine{00198\ \ \ \textcolor{keyword}{const}\ U\ \&\ operator\ *\ ()\textcolor{keyword}{\ const\ \ }\{\ \textcolor{keywordflow}{return}\ *get\ ();\ \}}
+\DoxyCodeLine{00199\ \ \ \textcolor{keyword}{explicit}\ \textcolor{keyword}{operator}\ bool\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00200\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ get\_stored\ ()\ !=\ Funcs::get\_null\ ();\ \}}
+\DoxyCodeLine{00201\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ C>\ \textcolor{keyword}{operator}\ \textcolor{keyword}{const}\ C\ *\ ()\ \textcolor{keyword}{const}\ \{\ \textcolor{keywordflow}{return}\ get\ ();\ \}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ Stored\ *\ get\_stored\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00204\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00205\ \ \ retry:}
+\DoxyCodeLine{00206\ \ \ \ \ Stored\ *p\ =\ this-\/>instance.get\ ();}
+\DoxyCodeLine{00207\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!p))}
+\DoxyCodeLine{00208\ \ \ \ \ \{}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (this-\/>is\_inert\ ()))}
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{const\_cast<}Stored\ *\textcolor{keyword}{>}\ (Funcs::get\_null\ ());}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \ \ \ \ \ \ p\ =\ this-\/>\textcolor{keyword}{template}\ call\_create<Stored,\ Funcs>\ ();}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!p))}
+\DoxyCodeLine{00214\ \ \ \ \ p\ =\ \textcolor{keyword}{const\_cast<}Stored\ *\textcolor{keyword}{>}\ (Funcs::get\_null\ ());}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!cmpexch\ (\textcolor{keyword}{nullptr},\ p)))}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00218\ \ \ \ \ do\_destroy\ (p);}
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keywordflow}{goto}\ retry;}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00221\ \ \ \ \ \}}
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{keywordflow}{return}\ p;}
+\DoxyCodeLine{00223\ \ \ \}}
+\DoxyCodeLine{00224\ \ \ Stored\ *\ get\_stored\_relaxed\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00225\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>instance.get\_relaxed\ ();}
+\DoxyCodeLine{00227\ \ \ \}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \textcolor{keywordtype}{bool}\ cmpexch\ (Stored\ *current,\ Stored\ *\mbox{\hyperlink{classvalue}{value}})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00230\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00231\ \ \ \ \ \textcolor{comment}{/*\ This\ *must*\ be\ called\ when\ there\ are\ no\ other\ threads\ accessing.\ */}}
+\DoxyCodeLine{00232\ \ \ \ \ \textcolor{keywordflow}{return}\ this-\/>instance.cmpexch\ (current,\ \mbox{\hyperlink{classvalue}{value}});}
+\DoxyCodeLine{00233\ \ \ \}}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \ \ \textcolor{keyword}{const}\ Returned\ *\ get\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ Funcs::convert\ (get\_stored\ ());\ \}}
+\DoxyCodeLine{00236\ \ \ \textcolor{keyword}{const}\ Returned\ *\ get\_relaxed\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ Funcs::convert\ (get\_stored\_relaxed\ ());\ \}}
+\DoxyCodeLine{00237\ \ \ Returned\ *\ get\_unconst\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{const\_cast<}Returned\ *\textcolor{keyword}{>}\ (Funcs::convert\ (get\_stored\ ()));\ \}}
+\DoxyCodeLine{00238\ }
+\DoxyCodeLine{00239\ \ \ \textcolor{comment}{/*\ To\ be\ possibly\ overloaded\ by\ subclasses.\ */}}
+\DoxyCodeLine{00240\ \ \ \textcolor{keyword}{static}\ Returned*\ convert\ (Stored\ *p)\ \{\ \textcolor{keywordflow}{return}\ p;\ \}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \textcolor{comment}{/*\ By\ default\ null/init/fini\ the\ object.\ */}}
+\DoxyCodeLine{00243\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ Stored*\ get\_null\ ()\ \{\ \textcolor{keywordflow}{return}\ \&\mbox{\hyperlink{struct_null}{Null}}\ (Stored);\ \}}
+\DoxyCodeLine{00244\ \ \ \textcolor{keyword}{static}\ Stored\ *create\ (Data\ *\mbox{\hyperlink{structdata}{data}})}
+\DoxyCodeLine{00245\ \ \ \{}
+\DoxyCodeLine{00246\ \ \ \ \ Stored\ *p\ =\ (Stored\ *)\ hb\_calloc\ (1,\ \textcolor{keyword}{sizeof}\ (Stored));}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (p))}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ p\ =\ \textcolor{keyword}{new}\ (p)\ Stored\ (\mbox{\hyperlink{structdata}{data}});}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keywordflow}{return}\ p;}
+\DoxyCodeLine{00250\ \ \ \}}
+\DoxyCodeLine{00251\ \ \ \textcolor{keyword}{static}\ Stored\ *create\ ()}
+\DoxyCodeLine{00252\ \ \ \{}
+\DoxyCodeLine{00253\ \ \ \ \ Stored\ *p\ =\ (Stored\ *)\ hb\_calloc\ (1,\ \textcolor{keyword}{sizeof}\ (Stored));}
+\DoxyCodeLine{00254\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (p))}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ p\ =\ \textcolor{keyword}{new}\ (p)\ Stored\ ();}
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keywordflow}{return}\ p;}
+\DoxyCodeLine{00257\ \ \ \}}
+\DoxyCodeLine{00258\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ destroy\ (Stored\ *p)}
+\DoxyCodeLine{00259\ \ \ \{}
+\DoxyCodeLine{00260\ \ \ \ \ p-\/>\string~Stored\ ();}
+\DoxyCodeLine{00261\ \ \ \ \ hb\_free\ (p);}
+\DoxyCodeLine{00262\ \ \ \}}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \textcolor{comment}{//\ \ private:}}
+\DoxyCodeLine{00265\ \ \ \textcolor{comment}{/*\ Must\ only\ have\ one\ pointer.\ */}}
+\DoxyCodeLine{00266\ \ \ \mbox{\hyperlink{structhb__atomic__ptr__t}{hb\_atomic\_ptr\_t<Stored\ *>}}\ instance;}
+\DoxyCodeLine{00267\ \};}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \textcolor{comment}{/*\ Specializations.\ */}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ WheresFace>}
+\DoxyCodeLine{00272\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__face__lazy__loader__t}{hb\_face\_lazy\_loader\_t}}\ :\ \mbox{\hyperlink{structhb__lazy__loader__t}{hb\_lazy\_loader\_t}}<T,}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__face__lazy__loader__t}{hb\_face\_lazy\_loader\_t<T,\ WheresFace>}},}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__face__t}{hb\_face\_t}},\ WheresFace>\ \{\};}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ WheresFace,\ \textcolor{keywordtype}{bool}\ core=false>}
+\DoxyCodeLine{00277\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__table__lazy__loader__t}{hb\_table\_lazy\_loader\_t}}\ :\ \mbox{\hyperlink{structhb__lazy__loader__t}{hb\_lazy\_loader\_t}}<T,}
+\DoxyCodeLine{00278\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_table\_lazy\_loader\_t<T,\ WheresFace,\ core>,}
+\DoxyCodeLine{00279\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_face\_t,\ WheresFace,}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_blob\_t>}
+\DoxyCodeLine{00281\ \{}
+\DoxyCodeLine{00282\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *create\ (\mbox{\hyperlink{structhb__face__t}{hb\_face\_t}}\ *face)}
+\DoxyCodeLine{00283\ \ \ \{}
+\DoxyCodeLine{00284\ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ \mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ ();}
+\DoxyCodeLine{00285\ \ \ \ \ \textcolor{keywordflow}{if}\ (core)}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ c.set\_num\_glyphs\ (0);\ \textcolor{comment}{//\ So\ we\ don't\ recurse\ ad\ infinitum...}}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordflow}{return}\ c.reference\_table<T>\ (face);}
+\DoxyCodeLine{00288\ \ \ \}}
+\DoxyCodeLine{00289\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ destroy\ (\mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *p)\ \{\ hb\_blob\_destroy\ (p);\ \}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *get\_null\ ()}
+\DoxyCodeLine{00292\ \ \ \{\ \textcolor{keywordflow}{return}\ hb\_blob\_get\_empty\ ();\ \}}
+\DoxyCodeLine{00293\ }
+\DoxyCodeLine{00294\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ T*\ convert\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}\ *blob)}
+\DoxyCodeLine{00295\ \ \ \{\ \textcolor{keywordflow}{return}\ blob-\/>as<T>\ ();\ \}}
+\DoxyCodeLine{00296\ }
+\DoxyCodeLine{00297\ \ \ \mbox{\hyperlink{structhb__blob__t}{hb\_blob\_t}}*\ get\_blob\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ this-\/>get\_stored\ ();\ \}}
+\DoxyCodeLine{00298\ \};}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sub\textcolor{keyword}{class}>}
+\DoxyCodeLine{00301\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__font__funcs__lazy__loader__t}{hb\_font\_funcs\_lazy\_loader\_t}}\ :\ \mbox{\hyperlink{structhb__lazy__loader__t}{hb\_lazy\_loader\_t}}<hb\_font\_funcs\_t,\ Subclass>}
+\DoxyCodeLine{00302\ \{}
+\DoxyCodeLine{00303\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ destroy\ (\mbox{\hyperlink{structhb__font__funcs__t}{hb\_font\_funcs\_t}}\ *p)}
+\DoxyCodeLine{00304\ \ \ \{\ hb\_font\_funcs\_destroy\ (p);\ \}}
+\DoxyCodeLine{00305\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__font__funcs__t}{hb\_font\_funcs\_t}}\ *get\_null\ ()}
+\DoxyCodeLine{00306\ \ \ \{\ \textcolor{keywordflow}{return}\ hb\_font\_funcs\_get\_empty\ ();\ \}}
+\DoxyCodeLine{00307\ \};}
+\DoxyCodeLine{00308\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sub\textcolor{keyword}{class}>}
+\DoxyCodeLine{00309\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__unicode__funcs__lazy__loader__t}{hb\_unicode\_funcs\_lazy\_loader\_t}}\ :\ \mbox{\hyperlink{structhb__lazy__loader__t}{hb\_lazy\_loader\_t}}<hb\_unicode\_funcs\_t,\ Subclass>}
+\DoxyCodeLine{00310\ \{}
+\DoxyCodeLine{00311\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ destroy\ (\mbox{\hyperlink{structhb__unicode__funcs__t}{hb\_unicode\_funcs\_t}}\ *p)}
+\DoxyCodeLine{00312\ \ \ \{\ hb\_unicode\_funcs\_destroy\ (p);\ \}}
+\DoxyCodeLine{00313\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__unicode__funcs__t}{hb\_unicode\_funcs\_t}}\ *get\_null\ ()}
+\DoxyCodeLine{00314\ \ \ \{\ \textcolor{keywordflow}{return}\ hb\_unicode\_funcs\_get\_empty\ ();\ \}}
+\DoxyCodeLine{00315\ \};}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_MACHINERY\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

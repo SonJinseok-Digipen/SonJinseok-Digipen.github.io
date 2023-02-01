@@ -1,0 +1,152 @@
+.TH "md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index" 3 "Wed Feb 1 2023" "Version Version 0.0" "My Project" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+md__ase_sprite_aseprite_third_party__i_x_web_socket_docs_index \- Hello world 
+.PP
+IXWebSocket is a C++ library for WebSocket client and server development\&. It has minimal dependencies (no boost), is very simple to use and support everything you'll likely need for websocket dev (SSL, deflate compression, compiles on most platforms, etc\&.\&.\&.)\&. \fBHTTP\fP client and server code is also available, but it hasn't received as much testing\&.
+.PP
+It is been used on big mobile video game titles sending and receiving tons of messages since 2017 (iOS and Android)\&. It was tested on macOS, iOS, Linux, Android, Windows and FreeBSD\&. Note that the MinGW compiler is not supported at this point\&. Two important design goals are simplicity and correctness\&.
+.PP
+\fBA\fP bad security bug affecting users compiling with SSL enabled and OpenSSL as the backend was just fixed in newly released version 11\&.0\&.0\&. Please upgrade ! (more details in the [https://github.com/machinezone/IXWebSocket/pull/250](PR)\&.
+.PP
+.PP
+.nf
+/*
+ *  main\&.cpp
+ *  Author: Benjamin Sergeant
+ *  Copyright (c) 2020 Machine Zone, Inc\&. All rights reserved\&.
+ *
+ *  Super simple standalone example\&. See ws folder, unittest and doc/usage\&.md for more\&.
+ *
+ *  On macOS
+ *  $ mkdir \-p build ; (cd build ; cmake \-DUSE_TLS=1 \&.\&. ; make \-j ; make install)
+ *  $ clang++ \-\-std=c++11 \-\-stdlib=libc++ main\&.cpp \-lixwebsocket \-lz \-framework Security \-framework Foundation
+ *  $ \&./a\&.out
+ *
+ *  Or use cmake \-DBUILD_DEMO=ON option for other platforms
+ */
+
+#include <ixwebsocket/IXNetSystem\&.h>
+#include <ixwebsocket/IXWebSocket\&.h>
+#include <ixwebsocket/IXUserAgent\&.h>
+#include <iostream>
+
+int main()
+{
+    // Required on Windows
+    ix::initNetSystem();
+
+    // Our websocket object
+    ix::WebSocket webSocket;
+
+    // Connect to a server with encryption
+    // See https://machinezone\&.github\&.io/IXWebSocket/usage/#tls\-support\-and\-configuration
+    std::string url("wss://echo\&.websocket\&.org");
+    webSocket\&.setUrl(url);
+
+    std::cout << "Connecting to " << url << "\&.\&.\&." << std::endl;
+
+    // Setup a callback to be fired (in a background thread, watch out for race conditions !)
+    // when a message or an event (open, close, error) is received
+    webSocket\&.setOnMessageCallback([](const ix::WebSocketMessagePtr& msg)
+        {
+            if (msg\->type == ix::WebSocketMessageType::Message)
+            {
+                std::cout << "received message: " << msg\->str << std::endl;
+                std::cout << "> " << std::flush;
+            }
+            else if (msg\->type == ix::WebSocketMessageType::Open)
+            {
+                std::cout << "Connection established" << std::endl;
+                std::cout << "> " << std::flush;
+            }
+            else if (msg\->type == ix::WebSocketMessageType::Error)
+            {
+                // Maybe SSL is not configured properly
+                std::cout << "Connection error: " << msg\->errorInfo\&.reason << std::endl;
+                std::cout << "> " << std::flush;
+            }
+        }
+    );
+
+    // Now that our callback is setup, we can start our background thread and receive messages
+    webSocket\&.start();
+
+    // Send a message to the server (default to TEXT mode)
+    webSocket\&.send("hello world");
+
+    // Display a prompt
+    std::cout << "> " << std::flush;
+
+    std::string text;
+    // Read text from the console and send messages in text mode\&.
+    // Exit with Ctrl\-D on Unix or Ctrl\-Z on Windows\&.
+    while (std::getline(std::cin, text))
+    {
+        webSocket\&.send(text);
+        std::cout << "> " << std::flush;
+    }
+
+    return 0;
+}
+.fi
+.PP
+.PP
+Interested? Go read the \fCdocs\fP! If things don't work as expected, please create an issue on GitHub, or even better a pull request if you know how to fix your problem\&.
+.PP
+IXWebSocket is actively being developed, check out the \fCchangelog\fP to know what's cooking\&. If you are looking for a real time messaging service (the chat-like 'server' your websocket code will talk to) with many features such as history, backed by Redis, look at \fCcobra\fP\&.
+.PP
+IXWebSocket client code is autobahn compliant beginning with the 6\&.0\&.0 version\&. See the current \fCtest results\fP\&. Some tests are still failing in the server code\&.
+.PP
+Starting with the 11\&.0\&.8 release, IXWebSocket should be fully C++11 compatible\&.
+.SH "Users"
+.PP
+If your company or project is using this library, feel free to open an issue or PR to amend this list\&.
+.PP
+.IP "\(bu" 2
+\fCMachine Zone\fP
+.IP "\(bu" 2
+\fCTokio\fP, a discord library focused on audio playback with node bindings\&.
+.IP "\(bu" 2
+\fClibDiscordBot\fP, an easy to use Discord-bot framework\&.
+.IP "\(bu" 2
+\fCgwebsocket\fP, a websocket (lua) module for Garry's Mod
+.IP "\(bu" 2
+\fCDisCPP\fP, a simple but feature rich Discord API wrapper
+.IP "\(bu" 2
+\fCdiscord\&.cpp\fP, a discord library for making bots
+.IP "\(bu" 2
+\fCTeleport\fP, Teleport is your own personal remote robot avatar
+.PP
+.SH "Alternative libraries"
+.PP
+There are plenty of great websocket libraries out there, which might work for you\&. Here are a couple of serious ones\&.
+.PP
+.IP "\(bu" 2
+\fCwebsocketpp\fP - C++
+.IP "\(bu" 2
+\fCbeast\fP - C++
+.IP "\(bu" 2
+\fClibwebsockets\fP - C
+.IP "\(bu" 2
+\fCµWebSockets\fP - C
+.IP "\(bu" 2
+\fCwslay\fP - C
+.PP
+.PP
+\fCuvweb\fP is a library written by the IXWebSocket author which is built on top of \fCuvw\fP, which is a C++ wrapper for \fClibuv\fP\&. It has more dependencies and does not support SSL at this point, but it can be used to open multiple connections within a single OS thread thanks to libuv\&.
+.PP
+To check the performance of a websocket library, you can look at the \fCautoroute\fP project\&.
+.SH "Continuous Integration"
+.PP
+OS   TLS   Sanitizer   Status    Linux   OpenSSL   None   \fC\fP    macOS   Secure Transport   Thread Sanitizer   \fC\fP    macOS   OpenSSL   Thread Sanitizer   \fC\fP    macOS   MbedTLS   Thread Sanitizer   \fC\fP    Windows   Disabled   None   \fC\fP    UWP   Disabled   None   \fC\fP    Linux   OpenSSL   Address Sanitizer   \fC\fP    Mingw   Disabled   None   \fC\fP   
+.PP
+.IP "\(bu" 2
+ASAN fails on Linux because of a known problem, we need a
+.IP "\(bu" 2
+Some tests are disabled on Windows/UWP because of a pathing problem
+.IP "\(bu" 2
+TLS and ZLIB are disabled on Windows/UWP because enabling make the CI run takes a lot of time, for setting up vcpkg\&. 
+.PP
+

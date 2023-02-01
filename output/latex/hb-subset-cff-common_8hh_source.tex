@@ -1,0 +1,932 @@
+\hypertarget{hb-subset-cff-common_8hh_source}{}\doxysection{hb-\/subset-\/cff-\/common.hh}
+\label{hb-subset-cff-common_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/subset-\/cff-\/common.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/subset-\/cff-\/common.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2018\ Adobe\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Adobe\ Author(s):\ Michiharu\ Ariza}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_SUBSET\_CFF\_COMMON\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_SUBSET\_CFF\_COMMON\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb-\/subset-\/plan.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/cff-\/interp-\/cs-\/common.hh"{}}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{namespace\ }CFF\ \{}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{/*\ Used\ for\ writing\ a\ temporary\ charstring\ */}}
+\DoxyCodeLine{00038\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1str__encoder__t}{str\_encoder\_t}}}
+\DoxyCodeLine{00039\ \{}
+\DoxyCodeLine{00040\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1str__encoder__t}{str\_encoder\_t}}\ (\mbox{\hyperlink{structhb__vector__t}{str\_buff\_t}}\ \&buff\_)}
+\DoxyCodeLine{00041\ \ \ \ \ :\ buff\ (buff\_),\ error\ (\textcolor{keyword}{false})\ \{\}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \textcolor{keywordtype}{void}\ reset\ ()\ \{\ buff.resize\ (0);\ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{keywordtype}{void}\ encode\_byte\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ b)}
+\DoxyCodeLine{00046\ \ \ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (buff.push\ (b)\ ==\ \&Crap\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char})))}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00049\ \ \ \}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \ \ \textcolor{keywordtype}{void}\ encode\_int\ (\textcolor{keywordtype}{int}\ v)}
+\DoxyCodeLine{00052\ \ \ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordflow}{if}\ ((-\/1131\ <=\ v)\ \&\&\ (v\ <=\ 1131))}
+\DoxyCodeLine{00054\ \ \ \ \ \{}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((-\/107\ <=\ v)\ \&\&\ (v\ <=\ 107))}
+\DoxyCodeLine{00056\ \ \ \ \ encode\_byte\ (v\ +\ 139);}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (v\ >\ 0)}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00059\ \ \ \ \ v\ -\/=\ 108;}
+\DoxyCodeLine{00060\ \ \ \ \ encode\_byte\ ((v\ >>\ 8)\ +\ OpCode\_TwoBytePosInt0);}
+\DoxyCodeLine{00061\ \ \ \ \ encode\_byte\ (v\ \&\ 0xFF);}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00065\ \ \ \ \ v\ =\ -\/v\ -\/\ 108;}
+\DoxyCodeLine{00066\ \ \ \ \ encode\_byte\ ((v\ >>\ 8)\ +\ OpCode\_TwoByteNegInt0);}
+\DoxyCodeLine{00067\ \ \ \ \ encode\_byte\ (v\ \&\ 0xFF);}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00069\ \ \ \ \ \}}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00071\ \ \ \ \ \{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (v\ <\ -\/32768))}
+\DoxyCodeLine{00073\ \ \ \ \ v\ =\ -\/32768;}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (v\ >\ 32767))}
+\DoxyCodeLine{00075\ \ \ \ \ v\ =\ 32767;}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ encode\_byte\ (OpCode\_shortint);}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ encode\_byte\ ((v\ >>\ 8)\ \&\ 0xFF);}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ encode\_byte\ (v\ \&\ 0xFF);}
+\DoxyCodeLine{00079\ \ \ \ \ \}}
+\DoxyCodeLine{00080\ \ \ \}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \textcolor{keywordtype}{void}\ encode\_num\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\&\ n)}
+\DoxyCodeLine{00083\ \ \ \{}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordflow}{if}\ (n.in\_int\_range\ ())}
+\DoxyCodeLine{00085\ \ \ \ \ \{}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ encode\_int\ (n.to\_int\ ());}
+\DoxyCodeLine{00087\ \ \ \ \ \}}
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00089\ \ \ \ \ \{}
+\DoxyCodeLine{00090\ \ \ \ \ \ \ int32\_t\ v\ =\ n.to\_fixed\ ();}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ encode\_byte\ (OpCode\_fixedcs);}
+\DoxyCodeLine{00092\ \ \ \ \ \ \ encode\_byte\ ((v\ >>\ 24)\ \&\ 0xFF);}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ encode\_byte\ ((v\ >>\ 16)\ \&\ 0xFF);}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ encode\_byte\ ((v\ >>\ 8)\ \&\ 0xFF);}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ encode\_byte\ (v\ \&\ 0xFF);}
+\DoxyCodeLine{00096\ \ \ \ \ \}}
+\DoxyCodeLine{00097\ \ \ \}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \textcolor{keywordtype}{void}\ encode\_op\ (op\_code\_t\ op)}
+\DoxyCodeLine{00100\ \ \ \{}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordflow}{if}\ (Is\_OpCode\_ESC\ (op))}
+\DoxyCodeLine{00102\ \ \ \ \ \{}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ encode\_byte\ (OpCode\_escape);}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ encode\_byte\ (Unmake\_OpCode\_ESC\ (op));}
+\DoxyCodeLine{00105\ \ \ \ \ \}}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ encode\_byte\ (op);}
+\DoxyCodeLine{00108\ \ \ \}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \ \ \textcolor{keywordtype}{void}\ copy\_str\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ \&str)}
+\DoxyCodeLine{00111\ \ \ \{}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ offset\ =\ buff.length;}
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!buff.resize\ (offset\ +\ str.length)))}
+\DoxyCodeLine{00114\ \ \ \ \ \{}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00117\ \ \ \ \ \}}
+\DoxyCodeLine{00118\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (buff.length\ <\ offset\ +\ str.length))}
+\DoxyCodeLine{00119\ \ \ \ \ \{}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ set\_error\ ();}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00122\ \ \ \ \ \}}
+\DoxyCodeLine{00123\ \ \ \ \ memcpy\ (\&buff[offset],\ \&str[0],\ str.length);}
+\DoxyCodeLine{00124\ \ \ \}}
+\DoxyCodeLine{00125\ }
+\DoxyCodeLine{00126\ \ \ \textcolor{keywordtype}{bool}\ is\_error\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ error;\ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00129\ \ \ \textcolor{keywordtype}{void}\ set\_error\ ()\ \{\ error\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \mbox{\hyperlink{structhb__vector__t}{str\_buff\_t}}\ \&buff;}
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ error;}
+\DoxyCodeLine{00133\ \};}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1cff__sub__table__info__t}{cff\_sub\_table\_info\_t}}\ \{}
+\DoxyCodeLine{00136\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1cff__sub__table__info__t}{cff\_sub\_table\_info\_t}}\ ()}
+\DoxyCodeLine{00137\ \ \ \ \ :\ fd\_array\_link\ (0),}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ char\_strings\_link\ (0)}
+\DoxyCodeLine{00139\ \ \ \{}
+\DoxyCodeLine{00140\ \ \ \ \ fd\_select.init\ ();}
+\DoxyCodeLine{00141\ \ \ \}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1table__info__t}{table\_info\_t}}\ \ \ \ \ fd\_select;}
+\DoxyCodeLine{00144\ \ \ objidx\_t\ \ \ \ \ \ \ \ \ fd\_array\_link;}
+\DoxyCodeLine{00145\ \ \ objidx\_t\ \ \ \ \ \ \ \ \ char\_strings\_link;}
+\DoxyCodeLine{00146\ \};}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ OPSTR=op\_str\_t>}
+\DoxyCodeLine{00149\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1cff__top__dict__op__serializer__t}{cff\_top\_dict\_op\_serializer\_t}}\ :\ \mbox{\hyperlink{struct_c_f_f_1_1op__serializer__t}{op\_serializer\_t}}}
+\DoxyCodeLine{00150\ \{}
+\DoxyCodeLine{00151\ \ \ \textcolor{keywordtype}{bool}\ serialize\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{00152\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ OPSTR\ \&opstr,}
+\DoxyCodeLine{00153\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1cff__sub__table__info__t}{cff\_sub\_table\_info\_t}}\ \&info)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00154\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00155\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ \ \ \textcolor{keywordflow}{switch}\ (opstr.op)}
+\DoxyCodeLine{00158\ \ \ \ \ \{}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_CharStrings:}
+\DoxyCodeLine{00160\ \ \ \ \ return\_trace\ (FontDict::serialize\_link4\_op(c,\ opstr.op,\ info.char\_strings\_link,\ whence\_t::Absolute));}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_FDArray:}
+\DoxyCodeLine{00163\ \ \ \ \ return\_trace\ (FontDict::serialize\_link4\_op(c,\ opstr.op,\ info.fd\_array\_link,\ whence\_t::Absolute));}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_FDSelect:}
+\DoxyCodeLine{00166\ \ \ \ \ return\_trace\ (FontDict::serialize\_link4\_op(c,\ opstr.op,\ info.fd\_select.link,\ whence\_t::Absolute));}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00169\ \ \ \ \ return\_trace\ (copy\_opstr\ (c,\ opstr));}
+\DoxyCodeLine{00170\ \ \ \ \ \}}
+\DoxyCodeLine{00171\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00172\ \ \ \}}
+\DoxyCodeLine{00173\ \};}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00175\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1cff__font__dict__op__serializer__t}{cff\_font\_dict\_op\_serializer\_t}}\ :\ \mbox{\hyperlink{struct_c_f_f_1_1op__serializer__t}{op\_serializer\_t}}}
+\DoxyCodeLine{00176\ \{}
+\DoxyCodeLine{00177\ \ \ \textcolor{keywordtype}{bool}\ serialize\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1op__str__t}{op\_str\_t}}\ \&opstr,}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1table__info__t}{table\_info\_t}}\ \&privateDictInfo)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00180\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00181\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ \ \ \textcolor{keywordflow}{if}\ (opstr.op\ ==\ OpCode\_Private)}
+\DoxyCodeLine{00184\ \ \ \ \ \{}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \textcolor{comment}{/*\ serialize\ the\ private\ dict\ size\ \&\ offset\ as\ 2-\/byte\ \&\ 4-\/byte\ integers\ */}}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ return\_trace\ (UnsizedByteStr::serialize\_int2\ (c,\ privateDictInfo.size)\ \&\&}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ \ \ Dict::serialize\_link4\_op\ (c,\ opstr.op,\ privateDictInfo.link,\ whence\_t::Absolute));}
+\DoxyCodeLine{00188\ \ \ \ \ \}}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00190\ \ \ \ \ \{}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}\ *d\ =\ c-\/>allocate\_size<\mbox{\hyperlink{struct_o_t_1_1_int_type}{HBUINT8}}>\ (opstr.str.length);}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!d))\ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ memcpy\ (d,\ \&opstr.str[0],\ opstr.str.length);}
+\DoxyCodeLine{00194\ \ \ \ \ \}}
+\DoxyCodeLine{00195\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00196\ \ \ \}}
+\DoxyCodeLine{00197\ \};}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1cff__private__dict__op__serializer__t}{cff\_private\_dict\_op\_serializer\_t}}\ :\ \mbox{\hyperlink{struct_c_f_f_1_1op__serializer__t}{op\_serializer\_t}}}
+\DoxyCodeLine{00200\ \{}
+\DoxyCodeLine{00201\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1cff__private__dict__op__serializer__t}{cff\_private\_dict\_op\_serializer\_t}}\ (\textcolor{keywordtype}{bool}\ desubroutinize\_,\ \textcolor{keywordtype}{bool}\ drop\_hints\_)}
+\DoxyCodeLine{00202\ \ \ \ \ :\ desubroutinize\ (desubroutinize\_),\ drop\_hints\ (drop\_hints\_)\ \{\}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \textcolor{keywordtype}{bool}\ serialize\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1op__str__t}{op\_str\_t}}\ \&opstr,}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ objidx\_t\ subrs\_link)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00207\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00208\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keywordflow}{if}\ (drop\_hints\ \&\&\ dict\_opset\_t::is\_hint\_op\ (opstr.op))}
+\DoxyCodeLine{00211\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00212\ \ \ \ \ \textcolor{keywordflow}{if}\ (opstr.op\ ==\ OpCode\_Subrs)}
+\DoxyCodeLine{00213\ \ \ \ \ \{}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (desubroutinize\ ||\ !subrs\_link)}
+\DoxyCodeLine{00215\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00217\ \ \ \ \ return\_trace\ (FontDict::serialize\_link2\_op\ (c,\ opstr.op,\ subrs\_link));}
+\DoxyCodeLine{00218\ \ \ \ \ \}}
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ return\_trace\ (copy\_opstr\ (c,\ opstr));}
+\DoxyCodeLine{00221\ \ \ \}}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00224\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ \ desubroutinize;}
+\DoxyCodeLine{00225\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ \ drop\_hints;}
+\DoxyCodeLine{00226\ \};}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1flatten__param__t}{flatten\_param\_t}}}
+\DoxyCodeLine{00229\ \{}
+\DoxyCodeLine{00230\ \ \ \mbox{\hyperlink{structhb__vector__t}{str\_buff\_t}}\ \ \ \ \ \&flatStr;}
+\DoxyCodeLine{00231\ \ \ \textcolor{keywordtype}{bool}\ \ drop\_hints;}
+\DoxyCodeLine{00232\ \};}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ACC,\ \textcolor{keyword}{typename}\ ENV,\ \textcolor{keyword}{typename}\ OPSET,\ op\_code\_t\ end\textcolor{keywordtype}{char}\_op=OpCode\_Inval\textcolor{keywordtype}{id}>}
+\DoxyCodeLine{00235\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1subr__flattener__t}{subr\_flattener\_t}}}
+\DoxyCodeLine{00236\ \{}
+\DoxyCodeLine{00237\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__flattener__t}{subr\_flattener\_t}}\ (\textcolor{keyword}{const}\ ACC\ \&acc\_,}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan\_)}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ \ \ \ \ \ :\ acc\ (acc\_),\ plan\ (plan\_)\ \{\}}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \textcolor{keywordtype}{bool}\ flatten\ (\mbox{\hyperlink{struct_c_f_f_1_1str__buff__vec__t}{str\_buff\_vec\_t}}\ \&flat\_charstrings)}
+\DoxyCodeLine{00242\ \ \ \{}
+\DoxyCodeLine{00243\ \ \ \ \ \textcolor{keywordflow}{if}\ (!flat\_charstrings.resize\ (plan-\/>num\_output\_glyphs\ ()))}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00245\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ plan-\/>num\_output\_glyphs\ ();\ i++)}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ flat\_charstrings[i].init\ ();}
+\DoxyCodeLine{00247\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ plan-\/>num\_output\_glyphs\ ();\ i++)}
+\DoxyCodeLine{00248\ \ \ \ \ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ hb\_codepoint\_t\ \ glyph;}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!plan-\/>old\_gid\_for\_new\_gid\ (i,\ \&glyph))}
+\DoxyCodeLine{00251\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{comment}{/*\ add\ an\ endchar\ only\ charstring\ for\ a\ missing\ glyph\ if\ CFF1\ */}}
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keywordflow}{if}\ (endchar\_op\ !=\ OpCode\_Invalid)\ flat\_charstrings[i].push\ (endchar\_op);}
+\DoxyCodeLine{00254\ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00255\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ str\ =\ (*acc.charStrings)[glyph];}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd\ =\ acc.fdSelect-\/>get\_fd\ (glyph);}
+\DoxyCodeLine{00258\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (fd\ >=\ acc.fdCount))}
+\DoxyCodeLine{00259\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00260\ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1cs__interpreter__t}{cs\_interpreter\_t<ENV,\ OPSET,\ flatten\_param\_t>}}\ interp;}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ interp.env.init\ (str,\ acc,\ fd);}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1flatten__param__t}{flatten\_param\_t}}\ \ param\ =\ \{}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ flat\_charstrings[i],}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ (bool)\ (plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NO\_HINTING)}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \};}
+\DoxyCodeLine{00266\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!interp.interpret\ (param)))}
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00268\ \ \ \ \ \}}
+\DoxyCodeLine{00269\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00270\ \ \ \}}
+\DoxyCodeLine{00271\ }
+\DoxyCodeLine{00272\ \ \ \textcolor{keyword}{const}\ ACC\ \&acc;}
+\DoxyCodeLine{00273\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan;}
+\DoxyCodeLine{00274\ \};}
+\DoxyCodeLine{00275\ }
+\DoxyCodeLine{00276\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1subr__closures__t}{subr\_closures\_t}}}
+\DoxyCodeLine{00277\ \{}
+\DoxyCodeLine{00278\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__closures__t}{subr\_closures\_t}}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd\_count)\ :\ valid\ (\textcolor{keyword}{false}),\ global\_closure\ (),\ local\_closures\ ()}
+\DoxyCodeLine{00279\ \ \ \{}
+\DoxyCodeLine{00280\ \ \ \ \ valid\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00281\ \ \ \ \ \textcolor{keywordflow}{if}\ (!local\_closures.resize\ (fd\_count))}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ valid\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00283\ \ \ \}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \ \ \textcolor{keywordtype}{void}\ reset\ ()}
+\DoxyCodeLine{00286\ \ \ \{}
+\DoxyCodeLine{00287\ \ \ \ \ global\_closure.clear();}
+\DoxyCodeLine{00288\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ local\_closures.length;\ i++)}
+\DoxyCodeLine{00289\ \ \ \ \ \ \ local\_closures[i].clear();}
+\DoxyCodeLine{00290\ \ \ \}}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \ \ \textcolor{keywordtype}{bool}\ is\_valid\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ valid;\ \}}
+\DoxyCodeLine{00293\ \ \ \textcolor{keywordtype}{bool}\ \ valid;}
+\DoxyCodeLine{00294\ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ \ global\_closure;}
+\DoxyCodeLine{00295\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<hb\_set\_t>}}\ local\_closures;}
+\DoxyCodeLine{00296\ \};}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__op__t}{parsed\_cs\_op\_t}}\ :\ \mbox{\hyperlink{struct_c_f_f_1_1op__str__t}{op\_str\_t}}}
+\DoxyCodeLine{00299\ \{}
+\DoxyCodeLine{00300\ \ \ \textcolor{keywordtype}{void}\ init\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ subr\_num\_\ =\ 0)}
+\DoxyCodeLine{00301\ \ \ \{}
+\DoxyCodeLine{00302\ \ \ \ \ subr\_num\ =\ subr\_num\_;}
+\DoxyCodeLine{00303\ \ \ \ \ drop\_flag\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00304\ \ \ \ \ keep\_flag\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00305\ \ \ \ \ skip\_flag\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00306\ \ \ \}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \ \ \textcolor{keywordtype}{bool}\ for\_drop\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ drop\_flag;\ \}}
+\DoxyCodeLine{00309\ \ \ \textcolor{keywordtype}{void}\ set\_drop\ ()\ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{if}\ (!for\_keep\ ())\ drop\_flag\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00310\ }
+\DoxyCodeLine{00311\ \ \ \textcolor{keywordtype}{bool}\ for\_keep\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ keep\_flag;\ \}}
+\DoxyCodeLine{00312\ \ \ \textcolor{keywordtype}{void}\ set\_keep\ ()\ \ \ \ \ \ \ \{\ keep\_flag\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \textcolor{keywordtype}{bool}\ for\_skip\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ skip\_flag;\ \}}
+\DoxyCodeLine{00315\ \ \ \textcolor{keywordtype}{void}\ set\_skip\ ()\ \ \ \ \ \ \ \{\ skip\_flag\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00316\ }
+\DoxyCodeLine{00317\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ subr\_num;}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00320\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ drop\_flag\ :\ 1;}
+\DoxyCodeLine{00321\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ keep\_flag\ :\ 1;}
+\DoxyCodeLine{00322\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ skip\_flag\ :\ 1;}
+\DoxyCodeLine{00323\ \};}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__t}{parsed\_cs\_str\_t}}\ :\ \mbox{\hyperlink{struct_c_f_f_1_1parsed__values__t}{parsed\_values\_t}}<parsed\_cs\_op\_t>}
+\DoxyCodeLine{00326\ \{}
+\DoxyCodeLine{00327\ \ \ \textcolor{keywordtype}{void}\ init\ ()}
+\DoxyCodeLine{00328\ \ \ \{}
+\DoxyCodeLine{00329\ \ \ \ \ SUPER::init\ ();}
+\DoxyCodeLine{00330\ \ \ \ \ parsed\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00331\ \ \ \ \ hint\_dropped\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00332\ \ \ \ \ has\_prefix\_\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00333\ \ \ \}}
+\DoxyCodeLine{00334\ }
+\DoxyCodeLine{00335\ \ \ \textcolor{keywordtype}{void}\ add\_op\ (op\_code\_t\ op,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\&\ str\_ref)}
+\DoxyCodeLine{00336\ \ \ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \textcolor{keywordflow}{if}\ (!is\_parsed\ ())}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ SUPER::add\_op\ (op,\ str\_ref);}
+\DoxyCodeLine{00339\ \ \ \}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \ \ \textcolor{keywordtype}{void}\ add\_call\_op\ (op\_code\_t\ op,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__ref__t}{byte\_str\_ref\_t}}\&\ str\_ref,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ subr\_num)}
+\DoxyCodeLine{00342\ \ \ \{}
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{keywordflow}{if}\ (!is\_parsed\ ())}
+\DoxyCodeLine{00344\ \ \ \ \ \{}
+\DoxyCodeLine{00345\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ parsed\_len\ =\ get\_count\ ();}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (parsed\_len\ >\ 0))}
+\DoxyCodeLine{00347\ \ \ \ \ values[parsed\_len-\/1].set\_skip\ ();}
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__op__t}{parsed\_cs\_op\_t}}\ val;}
+\DoxyCodeLine{00350\ \ \ \ \ \ \ val.init\ (subr\_num);}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ SUPER::add\_op\ (op,\ str\_ref,\ val);}
+\DoxyCodeLine{00352\ \ \ \ \ \}}
+\DoxyCodeLine{00353\ \ \ \}}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \ \ \textcolor{keywordtype}{void}\ set\_prefix\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&num,\ op\_code\_t\ op\ =\ OpCode\_Invalid)}
+\DoxyCodeLine{00356\ \ \ \{}
+\DoxyCodeLine{00357\ \ \ \ \ has\_prefix\_\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00358\ \ \ \ \ prefix\_op\_\ =\ op;}
+\DoxyCodeLine{00359\ \ \ \ \ prefix\_num\_\ =\ num;}
+\DoxyCodeLine{00360\ \ \ \}}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \textcolor{keywordtype}{bool}\ at\_end\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pos)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00363\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordflow}{return}\ ((pos\ +\ 1\ >=\ values.length)\ \textcolor{comment}{/*\ CFF2\ */}}
+\DoxyCodeLine{00365\ \ \ \ \ ||\ (values[pos\ +\ 1].op\ ==\ OpCode\_return));}
+\DoxyCodeLine{00366\ \ \ \}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \textcolor{keywordtype}{bool}\ is\_parsed\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ parsed;\ \}}
+\DoxyCodeLine{00369\ \ \ \textcolor{keywordtype}{void}\ set\_parsed\ ()\ \ \ \ \ \ \{\ parsed\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00370\ }
+\DoxyCodeLine{00371\ \ \ \textcolor{keywordtype}{bool}\ is\_hint\_dropped\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hint\_dropped;\ \}}
+\DoxyCodeLine{00372\ \ \ \textcolor{keywordtype}{void}\ set\_hint\_dropped\ ()\ \ \ \ \ \ \{\ hint\_dropped\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00373\ }
+\DoxyCodeLine{00374\ \ \ \textcolor{keywordtype}{bool}\ is\_vsindex\_dropped\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ vsindex\_dropped;\ \}}
+\DoxyCodeLine{00375\ \ \ \textcolor{keywordtype}{void}\ set\_vsindex\_dropped\ ()\ \ \ \ \ \ \{\ vsindex\_dropped\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00376\ }
+\DoxyCodeLine{00377\ \ \ \textcolor{keywordtype}{bool}\ has\_prefix\ ()\textcolor{keyword}{\ const\ \ \ \ \ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ has\_prefix\_;\ \}}
+\DoxyCodeLine{00378\ \ \ op\_code\_t\ prefix\_op\ ()\textcolor{keyword}{\ const\ \ \ \ \ \ \ \ \ }\{\ \textcolor{keywordflow}{return}\ prefix\_op\_;\ \}}
+\DoxyCodeLine{00379\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \&prefix\_num\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ prefix\_num\_;\ \}}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00382\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ parsed;}
+\DoxyCodeLine{00383\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ hint\_dropped;}
+\DoxyCodeLine{00384\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ vsindex\_dropped;}
+\DoxyCodeLine{00385\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ has\_prefix\_;}
+\DoxyCodeLine{00386\ \ \ op\_code\_t\ prefix\_op\_;}
+\DoxyCodeLine{00387\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1number__t}{number\_t}}\ \ prefix\_num\_;}
+\DoxyCodeLine{00388\ }
+\DoxyCodeLine{00389\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00390\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_c_f_f_1_1parsed__values__t}{parsed\_values\_t<parsed\_cs\_op\_t>}}\ \mbox{\hyperlink{struct_c_f_f_1_1parsed__values__t}{SUPER}};}
+\DoxyCodeLine{00391\ \};}
+\DoxyCodeLine{00392\ }
+\DoxyCodeLine{00393\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__vec__t}{parsed\_cs\_str\_vec\_t}}\ :\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t}}<parsed\_cs\_str\_t>}
+\DoxyCodeLine{00394\ \{}
+\DoxyCodeLine{00395\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00396\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<parsed\_cs\_str\_t>}}\ \mbox{\hyperlink{structhb__vector__t}{SUPER}};}
+\DoxyCodeLine{00397\ \};}
+\DoxyCodeLine{00398\ }
+\DoxyCodeLine{00399\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1subr__subset__param__t}{subr\_subset\_param\_t}}}
+\DoxyCodeLine{00400\ \{}
+\DoxyCodeLine{00401\ \ \ \textcolor{keywordtype}{void}\ init\ (\mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__t}{parsed\_cs\_str\_t}}\ *parsed\_charstring\_,}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__vec__t}{parsed\_cs\_str\_vec\_t}}\ *parsed\_global\_subrs\_,\ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__vec__t}{parsed\_cs\_str\_vec\_t}}\ *parsed\_local\_subrs\_,}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ *global\_closure\_,\ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ *local\_closure\_,}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ drop\_hints\_)}
+\DoxyCodeLine{00405\ \ \ \{}
+\DoxyCodeLine{00406\ \ \ \ \ parsed\_charstring\ =\ parsed\_charstring\_;}
+\DoxyCodeLine{00407\ \ \ \ \ current\_parsed\_str\ =\ parsed\_charstring;}
+\DoxyCodeLine{00408\ \ \ \ \ parsed\_global\_subrs\ =\ parsed\_global\_subrs\_;}
+\DoxyCodeLine{00409\ \ \ \ \ parsed\_local\_subrs\ =\ parsed\_local\_subrs\_;}
+\DoxyCodeLine{00410\ \ \ \ \ global\_closure\ =\ global\_closure\_;}
+\DoxyCodeLine{00411\ \ \ \ \ local\_closure\ =\ local\_closure\_;}
+\DoxyCodeLine{00412\ \ \ \ \ drop\_hints\ =\ drop\_hints\_;}
+\DoxyCodeLine{00413\ \ \ \}}
+\DoxyCodeLine{00414\ }
+\DoxyCodeLine{00415\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__t}{parsed\_cs\_str\_t}}\ *get\_parsed\_str\_for\_context\ (\mbox{\hyperlink{struct_c_f_f_1_1call__context__t}{call\_context\_t}}\ \&context)}
+\DoxyCodeLine{00416\ \ \ \{}
+\DoxyCodeLine{00417\ \ \ \ \ \textcolor{keywordflow}{switch}\ (context.type)}
+\DoxyCodeLine{00418\ \ \ \ \ \{}
+\DoxyCodeLine{00419\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ CSType\_CharString:}
+\DoxyCodeLine{00420\ \ \ \ \ \textcolor{keywordflow}{return}\ parsed\_charstring;}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ CSType\_LocalSubr:}
+\DoxyCodeLine{00423\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (context.subr\_num\ <\ parsed\_local\_subrs-\/>length))}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&(*parsed\_local\_subrs)[context.subr\_num];}
+\DoxyCodeLine{00425\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ CSType\_GlobalSubr:}
+\DoxyCodeLine{00428\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ (context.subr\_num\ <\ parsed\_global\_subrs-\/>length))}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \&(*parsed\_global\_subrs)[context.subr\_num];}
+\DoxyCodeLine{00430\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00431\ \ \ \ \ \}}
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00433\ \ \ \}}
+\DoxyCodeLine{00434\ }
+\DoxyCodeLine{00435\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ ENV>}
+\DoxyCodeLine{00436\ \ \ \textcolor{keywordtype}{void}\ set\_current\_str\ (ENV\ \&env,\ \textcolor{keywordtype}{bool}\ calling)}
+\DoxyCodeLine{00437\ \ \ \{}
+\DoxyCodeLine{00438\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__t}{parsed\_cs\_str\_t}}\ *parsed\_str\ =\ get\_parsed\_str\_for\_context\ (env.context);}
+\DoxyCodeLine{00439\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!parsed\_str))}
+\DoxyCodeLine{00440\ \ \ \ \ \{}
+\DoxyCodeLine{00441\ \ \ \ \ \ \ env.set\_error\ ();}
+\DoxyCodeLine{00442\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00443\ \ \ \ \ \}}
+\DoxyCodeLine{00444\ \ \ \ \ \textcolor{comment}{/*\ If\ the\ called\ subroutine\ is\ parsed\ partially\ but\ not\ completely\ yet,}}
+\DoxyCodeLine{00445\ \textcolor{comment}{\ \ \ \ \ *\ it\ must\ be\ because\ we\ are\ calling\ it\ recursively.}}
+\DoxyCodeLine{00446\ \textcolor{comment}{\ \ \ \ \ *\ Handle\ it\ as\ an\ error.\ */}}
+\DoxyCodeLine{00447\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (calling\ \&\&\ !parsed\_str-\/>is\_parsed\ ()\ \&\&\ (parsed\_str-\/>values.length\ >\ 0)))}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ env.set\_error\ ();}
+\DoxyCodeLine{00449\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00450\ \ \ \ \ \ \ current\_parsed\_str\ =\ parsed\_str;}
+\DoxyCodeLine{00451\ \ \ \}}
+\DoxyCodeLine{00452\ }
+\DoxyCodeLine{00453\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__t}{parsed\_cs\_str\_t}}\ \ \ \ *current\_parsed\_str;}
+\DoxyCodeLine{00454\ }
+\DoxyCodeLine{00455\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__t}{parsed\_cs\_str\_t}}\ \ \ \ *parsed\_charstring;}
+\DoxyCodeLine{00456\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__vec__t}{parsed\_cs\_str\_vec\_t}}\ \ \ \ *parsed\_global\_subrs;}
+\DoxyCodeLine{00457\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__vec__t}{parsed\_cs\_str\_vec\_t}}\ \ \ \ *parsed\_local\_subrs;}
+\DoxyCodeLine{00458\ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ \ \ \ \ \ *global\_closure;}
+\DoxyCodeLine{00459\ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ \ \ \ \ \ *local\_closure;}
+\DoxyCodeLine{00460\ \ \ \textcolor{keywordtype}{bool}\ \ \ \ drop\_hints;}
+\DoxyCodeLine{00461\ \};}
+\DoxyCodeLine{00462\ }
+\DoxyCodeLine{00463\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1subr__remap__t}{subr\_remap\_t}}\ :\ \mbox{\hyperlink{structhb__inc__bimap__t}{hb\_inc\_bimap\_t}}}
+\DoxyCodeLine{00464\ \{}
+\DoxyCodeLine{00465\ \ \ \textcolor{keywordtype}{void}\ create\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ *closure)}
+\DoxyCodeLine{00466\ \ \ \{}
+\DoxyCodeLine{00467\ \ \ \ \ \textcolor{comment}{/*\ create\ a\ remapping\ of\ subroutine\ numbers\ from\ old\ to\ new.}}
+\DoxyCodeLine{00468\ \textcolor{comment}{\ \ \ \ \ *\ no\ optimization\ based\ on\ usage\ counts.\ fonttools\ doesn't\ appear\ doing\ that\ either.}}
+\DoxyCodeLine{00469\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ \ \ \ \ hb\_codepoint\_t\ old\_num\ =\ HB\_SET\_VALUE\_INVALID;}
+\DoxyCodeLine{00472\ \ \ \ \ \textcolor{keywordflow}{while}\ (hb\_set\_next\ (closure,\ \&old\_num))}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ add\ (old\_num);}
+\DoxyCodeLine{00474\ }
+\DoxyCodeLine{00475\ \ \ \ \ \textcolor{keywordflow}{if}\ (get\_population\ ()\ <\ 1240)}
+\DoxyCodeLine{00476\ \ \ \ \ \ \ bias\ =\ 107;}
+\DoxyCodeLine{00477\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (get\_population\ ()\ <\ 33900)}
+\DoxyCodeLine{00478\ \ \ \ \ \ \ bias\ =\ 1131;}
+\DoxyCodeLine{00479\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00480\ \ \ \ \ \ \ bias\ =\ 32768;}
+\DoxyCodeLine{00481\ \ \ \}}
+\DoxyCodeLine{00482\ }
+\DoxyCodeLine{00483\ \ \ \textcolor{keywordtype}{int}\ biased\_num\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ old\_num)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00484\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00485\ \ \ \ \ hb\_codepoint\_t\ new\_num\ =\ get\ (old\_num);}
+\DoxyCodeLine{00486\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keywordtype}{int})new\_num\ -\/\ bias;}
+\DoxyCodeLine{00487\ \ \ \}}
+\DoxyCodeLine{00488\ }
+\DoxyCodeLine{00489\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00490\ \ \ \textcolor{keywordtype}{int}\ bias;}
+\DoxyCodeLine{00491\ \};}
+\DoxyCodeLine{00492\ }
+\DoxyCodeLine{00493\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1subr__remaps__t}{subr\_remaps\_t}}}
+\DoxyCodeLine{00494\ \{}
+\DoxyCodeLine{00495\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__remaps__t}{subr\_remaps\_t}}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fdCount)}
+\DoxyCodeLine{00496\ \ \ \{}
+\DoxyCodeLine{00497\ \ \ \ \ local\_remaps.resize\ (fdCount);}
+\DoxyCodeLine{00498\ \ \ \}}
+\DoxyCodeLine{00499\ }
+\DoxyCodeLine{00500\ \ \ \textcolor{keywordtype}{bool}\ in\_error()}
+\DoxyCodeLine{00501\ \ \ \{}
+\DoxyCodeLine{00502\ \ \ \ \ \textcolor{keywordflow}{return}\ local\_remaps.in\_error\ ();}
+\DoxyCodeLine{00503\ \ \ \}}
+\DoxyCodeLine{00504\ }
+\DoxyCodeLine{00505\ \ \ \textcolor{keywordtype}{void}\ create\ (\mbox{\hyperlink{struct_c_f_f_1_1subr__closures__t}{subr\_closures\_t}}\&\ closures)}
+\DoxyCodeLine{00506\ \ \ \{}
+\DoxyCodeLine{00507\ \ \ \ \ global\_remap.create\ (\&closures.global\_closure);}
+\DoxyCodeLine{00508\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ local\_remaps.length;\ i++)}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ local\_remaps[i].create\ (\&closures.local\_closures[i]);}
+\DoxyCodeLine{00510\ \ \ \}}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__remap__t}{subr\_remap\_t}}\ \ \ \ \ \ \ \ \ global\_remap;}
+\DoxyCodeLine{00513\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<subr\_remap\_t>}}\ \ local\_remaps;}
+\DoxyCodeLine{00514\ \};}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ SUBSETTER,\ \textcolor{keyword}{typename}\ SUBRS,\ \textcolor{keyword}{typename}\ ACC,\ \textcolor{keyword}{typename}\ ENV,\ \textcolor{keyword}{typename}\ OPSET,\ op\_code\_t\ end\textcolor{keywordtype}{char}\_op=OpCode\_Inval\textcolor{keywordtype}{id}>}
+\DoxyCodeLine{00517\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1subr__subsetter__t}{subr\_subsetter\_t}}}
+\DoxyCodeLine{00518\ \{}
+\DoxyCodeLine{00519\ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__subsetter__t}{subr\_subsetter\_t}}\ (ACC\ \&acc\_,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan\_)}
+\DoxyCodeLine{00520\ \ \ \ \ \ \ :\ acc\ (acc\_),\ plan\ (plan\_),\ closures(acc\_.fdCount),\ remaps(acc\_.fdCount)}
+\DoxyCodeLine{00521\ \ \ \{\}}
+\DoxyCodeLine{00522\ }
+\DoxyCodeLine{00523\ \ \ \textcolor{comment}{/*\ Subroutine\ subsetting\ with\ -\/-\/no-\/desubroutinize\ runs\ in\ phases:}}
+\DoxyCodeLine{00524\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00525\ \textcolor{comment}{\ \ \ *\ 1.\ execute\ charstrings/subroutines\ to\ determine\ subroutine\ closures}}
+\DoxyCodeLine{00526\ \textcolor{comment}{\ \ \ *\ 2.\ parse\ out\ all\ operators\ and\ numbers}}
+\DoxyCodeLine{00527\ \textcolor{comment}{\ \ \ *\ 3.\ mark\ hint\ operators\ and\ operands\ for\ removal\ if\ -\/-\/no-\/hinting}}
+\DoxyCodeLine{00528\ \textcolor{comment}{\ \ \ *\ 4.\ re-\/encode\ all\ charstrings\ and\ subroutines\ with\ new\ subroutine\ numbers}}
+\DoxyCodeLine{00529\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00530\ \textcolor{comment}{\ \ \ *\ Phases\ \#1\ and\ \#2\ are\ done\ at\ the\ same\ time\ in\ collect\_subrs\ ().}}
+\DoxyCodeLine{00531\ \textcolor{comment}{\ \ \ *\ Phase\ \#3\ walks\ charstrings/subroutines\ forward\ then\ backward\ (hence\ parsing\ required),}}
+\DoxyCodeLine{00532\ \textcolor{comment}{\ \ \ *\ because\ we\ can't\ tell\ if\ a\ number\ belongs\ to\ a\ hint\ op\ until\ we\ see\ the\ first\ moveto.}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ *\ Assumption:\ a\ callsubr/callgsubr\ operator\ must\ immediately\ follow\ a\ (biased)\ subroutine\ number}}
+\DoxyCodeLine{00535\ \textcolor{comment}{\ \ \ *\ within\ the\ same\ charstring/subroutine,\ e.g.,\ not\ split\ across\ a\ charstring\ and\ a\ subroutine.}}
+\DoxyCodeLine{00536\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00537\ \ \ \textcolor{keywordtype}{bool}\ subset\ (\textcolor{keywordtype}{void})}
+\DoxyCodeLine{00538\ \ \ \{}
+\DoxyCodeLine{00539\ \ \ \ \ parsed\_charstrings.resize\ (plan-\/>num\_output\_glyphs\ ());}
+\DoxyCodeLine{00540\ \ \ \ \ parsed\_global\_subrs.resize\ (acc.globalSubrs-\/>count);}
+\DoxyCodeLine{00541\ }
+\DoxyCodeLine{00542\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (remaps.in\_error()}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ parsed\_charstrings.in\_error\ ()}
+\DoxyCodeLine{00544\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ parsed\_global\_subrs.in\_error\ ()))\ \{}
+\DoxyCodeLine{00545\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00546\ \ \ \ \ \}}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!parsed\_local\_subrs.resize\ (acc.fdCount)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00549\ }
+\DoxyCodeLine{00550\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ acc.fdCount;\ i++)}
+\DoxyCodeLine{00551\ \ \ \ \ \{}
+\DoxyCodeLine{00552\ \ \ \ \ \ \ parsed\_local\_subrs[i].resize\ (acc.privateDicts[i].localSubrs-\/>count);}
+\DoxyCodeLine{00553\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (parsed\_local\_subrs[i].in\_error\ ()))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00554\ \ \ \ \ \}}
+\DoxyCodeLine{00555\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!closures.valid))}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00557\ }
+\DoxyCodeLine{00558\ \ \ \ \ \textcolor{comment}{/*\ phase\ 1\ \&\ 2\ */}}
+\DoxyCodeLine{00559\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ plan-\/>num\_output\_glyphs\ ();\ i++)}
+\DoxyCodeLine{00560\ \ \ \ \ \{}
+\DoxyCodeLine{00561\ \ \ \ \ \ \ hb\_codepoint\_t\ \ glyph;}
+\DoxyCodeLine{00562\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!plan-\/>old\_gid\_for\_new\_gid\ (i,\ \&glyph))}
+\DoxyCodeLine{00563\ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00564\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1byte__str__t}{byte\_str\_t}}\ str\ =\ (*acc.charStrings)[glyph];}
+\DoxyCodeLine{00565\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd\ =\ acc.fdSelect-\/>get\_fd\ (glyph);}
+\DoxyCodeLine{00566\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (fd\ >=\ acc.fdCount))}
+\DoxyCodeLine{00567\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00568\ }
+\DoxyCodeLine{00569\ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1cs__interpreter__t}{cs\_interpreter\_t<ENV,\ OPSET,\ subr\_subset\_param\_t>}}\ interp;}
+\DoxyCodeLine{00570\ \ \ \ \ \ \ interp.env.init\ (str,\ acc,\ fd);}
+\DoxyCodeLine{00571\ }
+\DoxyCodeLine{00572\ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__subset__param__t}{subr\_subset\_param\_t}}\ \ param;}
+\DoxyCodeLine{00573\ \ \ \ \ \ \ param.init\ (\&parsed\_charstrings[i],}
+\DoxyCodeLine{00574\ \ \ \ \ \ \ \ \ \ \ \&parsed\_global\_subrs,\ \ \&parsed\_local\_subrs[fd],}
+\DoxyCodeLine{00575\ \ \ \ \ \ \ \ \ \ \ \&closures.global\_closure,\ \&closures.local\_closures[fd],}
+\DoxyCodeLine{00576\ \ \ \ \ \ \ \ \ \ \ plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NO\_HINTING);}
+\DoxyCodeLine{00577\ }
+\DoxyCodeLine{00578\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!interp.interpret\ (param)))}
+\DoxyCodeLine{00579\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00580\ }
+\DoxyCodeLine{00581\ \ \ \ \ \ \ \textcolor{comment}{/*\ complete\ parsed\ string\ esp.\ copy\ CFF1\ width\ or\ CFF2\ vsindex\ to\ the\ parsed\ charstring\ for\ encoding\ */}}
+\DoxyCodeLine{00582\ \ \ \ \ \ \ SUBSETTER::complete\_parsed\_str\ (interp.env,\ param,\ parsed\_charstrings[i]);}
+\DoxyCodeLine{00583\ \ \ \ \ \}}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ \ \ \ \ \textcolor{keywordflow}{if}\ (plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NO\_HINTING)}
+\DoxyCodeLine{00586\ \ \ \ \ \{}
+\DoxyCodeLine{00587\ \ \ \ \ \ \ \textcolor{comment}{/*\ mark\ hint\ ops\ and\ arguments\ for\ drop\ */}}
+\DoxyCodeLine{00588\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ plan-\/>num\_output\_glyphs\ ();\ i++)}
+\DoxyCodeLine{00589\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00590\ \ \ \ \ hb\_codepoint\_t\ \ glyph;}
+\DoxyCodeLine{00591\ \ \ \ \ \textcolor{keywordflow}{if}\ (!plan-\/>old\_gid\_for\_new\_gid\ (i,\ \&glyph))}
+\DoxyCodeLine{00592\ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00593\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd\ =\ acc.fdSelect-\/>get\_fd\ (glyph);}
+\DoxyCodeLine{00594\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (fd\ >=\ acc.fdCount))}
+\DoxyCodeLine{00595\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00596\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__subset__param__t}{subr\_subset\_param\_t}}\ \ param;}
+\DoxyCodeLine{00597\ \ \ \ \ param.init\ (\&parsed\_charstrings[i],}
+\DoxyCodeLine{00598\ \ \ \ \ \ \ \ \ \ \ \ \ \&parsed\_global\_subrs,\ \ \&parsed\_local\_subrs[fd],}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ \ \ \ \ \ \ \&closures.global\_closure,\ \&closures.local\_closures[fd],}
+\DoxyCodeLine{00600\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NO\_HINTING);}
+\DoxyCodeLine{00601\ }
+\DoxyCodeLine{00602\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__subsetter__t_1_1drop__hints__param__t}{drop\_hints\_param\_t}}\ \ drop;}
+\DoxyCodeLine{00603\ \ \ \ \ \textcolor{keywordflow}{if}\ (drop\_hints\_in\_str\ (parsed\_charstrings[i],\ param,\ drop))}
+\DoxyCodeLine{00604\ \ \ \ \ \{}
+\DoxyCodeLine{00605\ \ \ \ \ \ \ parsed\_charstrings[i].set\_hint\_dropped\ ();}
+\DoxyCodeLine{00606\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (drop.vsindex\_dropped)}
+\DoxyCodeLine{00607\ \ \ \ \ \ \ \ \ parsed\_charstrings[i].set\_vsindex\_dropped\ ();}
+\DoxyCodeLine{00608\ \ \ \ \ \}}
+\DoxyCodeLine{00609\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00610\ }
+\DoxyCodeLine{00611\ \ \ \ \ \ \ \textcolor{comment}{/*\ after\ dropping\ hints\ recreate\ closures\ of\ actually\ used\ subrs\ */}}
+\DoxyCodeLine{00612\ \ \ \ \ \ \ closures.reset\ ();}
+\DoxyCodeLine{00613\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ plan-\/>num\_output\_glyphs\ ();\ i++)}
+\DoxyCodeLine{00614\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00615\ \ \ \ \ hb\_codepoint\_t\ \ glyph;}
+\DoxyCodeLine{00616\ \ \ \ \ \textcolor{keywordflow}{if}\ (!plan-\/>old\_gid\_for\_new\_gid\ (i,\ \&glyph))}
+\DoxyCodeLine{00617\ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00618\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd\ =\ acc.fdSelect-\/>get\_fd\ (glyph);}
+\DoxyCodeLine{00619\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (fd\ >=\ acc.fdCount))}
+\DoxyCodeLine{00620\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00621\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__subset__param__t}{subr\_subset\_param\_t}}\ \ param;}
+\DoxyCodeLine{00622\ \ \ \ \ param.init\ (\&parsed\_charstrings[i],}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \ \ \ \ \ \ \&parsed\_global\_subrs,\ \ \&parsed\_local\_subrs[fd],}
+\DoxyCodeLine{00624\ \ \ \ \ \ \ \ \ \ \ \ \ \&closures.global\_closure,\ \&closures.local\_closures[fd],}
+\DoxyCodeLine{00625\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_NO\_HINTING);}
+\DoxyCodeLine{00626\ \ \ \ \ collect\_subr\_refs\_in\_str\ (parsed\_charstrings[i],\ param);}
+\DoxyCodeLine{00627\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00628\ \ \ \ \ \}}
+\DoxyCodeLine{00629\ }
+\DoxyCodeLine{00630\ \ \ \ \ remaps.create\ (closures);}
+\DoxyCodeLine{00631\ }
+\DoxyCodeLine{00632\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00633\ \ \ \}}
+\DoxyCodeLine{00634\ }
+\DoxyCodeLine{00635\ \ \ \textcolor{keywordtype}{bool}\ encode\_charstrings\ (\mbox{\hyperlink{struct_c_f_f_1_1str__buff__vec__t}{str\_buff\_vec\_t}}\ \&buffArray)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00636\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00637\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!buffArray.resize\ (plan-\/>num\_output\_glyphs\ ())))}
+\DoxyCodeLine{00638\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00639\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ plan-\/>num\_output\_glyphs\ ();\ i++)}
+\DoxyCodeLine{00640\ \ \ \ \ \{}
+\DoxyCodeLine{00641\ \ \ \ \ \ \ hb\_codepoint\_t\ \ glyph;}
+\DoxyCodeLine{00642\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!plan-\/>old\_gid\_for\_new\_gid\ (i,\ \&glyph))}
+\DoxyCodeLine{00643\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00644\ \ \ \ \ \textcolor{comment}{/*\ add\ an\ endchar\ only\ charstring\ for\ a\ missing\ glyph\ if\ CFF1\ */}}
+\DoxyCodeLine{00645\ \ \ \ \ \textcolor{keywordflow}{if}\ (endchar\_op\ !=\ OpCode\_Invalid)\ buffArray[i].push\ (endchar\_op);}
+\DoxyCodeLine{00646\ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00647\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00648\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ fd\ =\ acc.fdSelect-\/>get\_fd\ (glyph);}
+\DoxyCodeLine{00649\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (fd\ >=\ acc.fdCount))}
+\DoxyCodeLine{00650\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00651\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!encode\_str\ (parsed\_charstrings[i],\ fd,\ buffArray[i])))}
+\DoxyCodeLine{00652\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00653\ \ \ \ \ \}}
+\DoxyCodeLine{00654\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00655\ \ \ \}}
+\DoxyCodeLine{00656\ }
+\DoxyCodeLine{00657\ \ \ \textcolor{keywordtype}{bool}\ encode\_subrs\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__vec__t}{parsed\_cs\_str\_vec\_t}}\ \&subrs,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1subr__remap__t}{subr\_remap\_t}}\&\ remap,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd,\ \mbox{\hyperlink{struct_c_f_f_1_1str__buff__vec__t}{str\_buff\_vec\_t}}\ \&buffArray)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00658\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00659\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ count\ =\ remap.get\_population\ ();}
+\DoxyCodeLine{00660\ }
+\DoxyCodeLine{00661\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!buffArray.resize\ (count)))}
+\DoxyCodeLine{00662\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00663\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ old\_num\ =\ 0;\ old\_num\ <\ subrs.length;\ old\_num++)}
+\DoxyCodeLine{00664\ \ \ \ \ \{}
+\DoxyCodeLine{00665\ \ \ \ \ \ \ hb\_codepoint\_t\ new\_num\ =\ remap[old\_num];}
+\DoxyCodeLine{00666\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (new\_num\ !=\ CFF\_UNDEF\_CODE)}
+\DoxyCodeLine{00667\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00668\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!encode\_str\ (subrs[old\_num],\ fd,\ buffArray[new\_num])))}
+\DoxyCodeLine{00669\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00670\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00671\ \ \ \ \ \}}
+\DoxyCodeLine{00672\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00673\ \ \ \}}
+\DoxyCodeLine{00674\ }
+\DoxyCodeLine{00675\ \ \ \textcolor{keywordtype}{bool}\ encode\_globalsubrs\ (\mbox{\hyperlink{struct_c_f_f_1_1str__buff__vec__t}{str\_buff\_vec\_t}}\ \&buffArray)}
+\DoxyCodeLine{00676\ \ \ \{}
+\DoxyCodeLine{00677\ \ \ \ \ \textcolor{keywordflow}{return}\ encode\_subrs\ (parsed\_global\_subrs,\ remaps.global\_remap,\ 0,\ buffArray);}
+\DoxyCodeLine{00678\ \ \ \}}
+\DoxyCodeLine{00679\ }
+\DoxyCodeLine{00680\ \ \ \textcolor{keywordtype}{bool}\ encode\_localsubrs\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd,\ \mbox{\hyperlink{struct_c_f_f_1_1str__buff__vec__t}{str\_buff\_vec\_t}}\ \&buffArray)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00681\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00682\ \ \ \ \ \textcolor{keywordflow}{return}\ encode\_subrs\ (parsed\_local\_subrs[fd],\ remaps.local\_remaps[fd],\ fd,\ buffArray);}
+\DoxyCodeLine{00683\ \ \ \}}
+\DoxyCodeLine{00684\ }
+\DoxyCodeLine{00685\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00686\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_c_f_f_1_1subr__subsetter__t_1_1drop__hints__param__t}{drop\_hints\_param\_t}}}
+\DoxyCodeLine{00687\ \ \ \{}
+\DoxyCodeLine{00688\ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1subr__subsetter__t_1_1drop__hints__param__t}{drop\_hints\_param\_t}}\ ()}
+\DoxyCodeLine{00689\ \ \ \ \ \ \ :\ seen\_moveto\ (\textcolor{keyword}{false}),}
+\DoxyCodeLine{00690\ \ \ \ \ ends\_in\_hint\ (\textcolor{keyword}{false}),}
+\DoxyCodeLine{00691\ \ \ \ \ all\_dropped\ (\textcolor{keyword}{false}),}
+\DoxyCodeLine{00692\ \ \ \ \ vsindex\_dropped\ (\textcolor{keyword}{false})\ \{\}}
+\DoxyCodeLine{00693\ }
+\DoxyCodeLine{00694\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ seen\_moveto;}
+\DoxyCodeLine{00695\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ ends\_in\_hint;}
+\DoxyCodeLine{00696\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ all\_dropped;}
+\DoxyCodeLine{00697\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ vsindex\_dropped;}
+\DoxyCodeLine{00698\ \ \ \};}
+\DoxyCodeLine{00699\ }
+\DoxyCodeLine{00700\ \ \ \textcolor{keywordtype}{bool}\ drop\_hints\_in\_subr\ (\mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__t}{parsed\_cs\_str\_t}}\ \&str,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pos,}
+\DoxyCodeLine{00701\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_c_f_f_1_1parsed__cs__str__vec__t}{parsed\_cs\_str\_vec\_t}}\ \&subrs,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ subr\_num,}
+\DoxyCodeLine{00702\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1subr__subset__param__t}{subr\_subset\_param\_t}}\ \&param,\ \mbox{\hyperlink{struct_c_f_f_1_1subr__subsetter__t_1_1drop__hints__param__t}{drop\_hints\_param\_t}}\ \&drop)}
+\DoxyCodeLine{00703\ \ \ \{}
+\DoxyCodeLine{00704\ \ \ \ \ drop.ends\_in\_hint\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00705\ \ \ \ \ \textcolor{keywordtype}{bool}\ has\_hint\ =\ drop\_hints\_in\_str\ (subrs[subr\_num],\ param,\ drop);}
+\DoxyCodeLine{00706\ }
+\DoxyCodeLine{00707\ \ \ \ \ \textcolor{comment}{/*\ if\ this\ subr\ ends\ with\ a\ stem\ hint\ (i.e.,\ not\ a\ number;\ potential\ argument\ for\ moveto),}}
+\DoxyCodeLine{00708\ \textcolor{comment}{\ \ \ \ \ *\ then\ this\ entire\ subroutine\ must\ be\ a\ hint.\ drop\ its\ call.\ */}}
+\DoxyCodeLine{00709\ \ \ \ \ \textcolor{keywordflow}{if}\ (drop.ends\_in\_hint)}
+\DoxyCodeLine{00710\ \ \ \ \ \{}
+\DoxyCodeLine{00711\ \ \ \ \ \ \ str.values[pos].set\_drop\ ();}
+\DoxyCodeLine{00712\ \ \ \ \ \ \ \textcolor{comment}{/*\ if\ this\ subr\ call\ is\ at\ the\ end\ of\ the\ parent\ subr,\ propagate\ the\ flag}}
+\DoxyCodeLine{00713\ \textcolor{comment}{\ \ \ \ \ \ \ *\ otherwise\ reset\ the\ flag\ */}}
+\DoxyCodeLine{00714\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!str.at\_end\ (pos))}
+\DoxyCodeLine{00715\ \ \ \ \ drop.ends\_in\_hint\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00716\ \ \ \ \ \}}
+\DoxyCodeLine{00717\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (drop.all\_dropped)}
+\DoxyCodeLine{00718\ \ \ \ \ \{}
+\DoxyCodeLine{00719\ \ \ \ \ \ \ str.values[pos].set\_drop\ ();}
+\DoxyCodeLine{00720\ \ \ \ \ \}}
+\DoxyCodeLine{00721\ }
+\DoxyCodeLine{00722\ \ \ \ \ \textcolor{keywordflow}{return}\ has\_hint;}
+\DoxyCodeLine{00723\ \ \ \}}
+\DoxyCodeLine{00724\ }
+\DoxyCodeLine{00725\ \ \ \textcolor{comment}{/*\ returns\ true\ if\ it\ sees\ a\ hint\ op\ before\ the\ first\ moveto\ */}}
+\DoxyCodeLine{00726\ \ \ \textcolor{keywordtype}{bool}\ drop\_hints\_in\_str\ (parsed\_cs\_str\_t\ \&str,\ \textcolor{keyword}{const}\ subr\_subset\_param\_t\ \&param,\ drop\_hints\_param\_t\ \&drop)}
+\DoxyCodeLine{00727\ \ \ \{}
+\DoxyCodeLine{00728\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ seen\_hint\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00729\ }
+\DoxyCodeLine{00730\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pos\ =\ 0;\ pos\ <\ str.values.length;\ pos++)}
+\DoxyCodeLine{00731\ \ \ \ \ \{}
+\DoxyCodeLine{00732\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \ has\_hint\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00733\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (str.values[pos].op)}
+\DoxyCodeLine{00734\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00735\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_callsubr:}
+\DoxyCodeLine{00736\ \ \ \ \ \ \ has\_hint\ =\ drop\_hints\_in\_subr\ (str,\ pos,}
+\DoxyCodeLine{00737\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *param.parsed\_local\_subrs,\ str.values[pos].subr\_num,}
+\DoxyCodeLine{00738\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ param,\ drop);}
+\DoxyCodeLine{00739\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00740\ }
+\DoxyCodeLine{00741\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_callgsubr:}
+\DoxyCodeLine{00742\ \ \ \ \ \ \ has\_hint\ =\ drop\_hints\_in\_subr\ (str,\ pos,}
+\DoxyCodeLine{00743\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *param.parsed\_global\_subrs,\ str.values[pos].subr\_num,}
+\DoxyCodeLine{00744\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ param,\ drop);}
+\DoxyCodeLine{00745\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00746\ }
+\DoxyCodeLine{00747\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_rmoveto:}
+\DoxyCodeLine{00748\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_hmoveto:}
+\DoxyCodeLine{00749\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_vmoveto:}
+\DoxyCodeLine{00750\ \ \ \ \ \ \ drop.seen\_moveto\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00751\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00752\ }
+\DoxyCodeLine{00753\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_hintmask:}
+\DoxyCodeLine{00754\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_cntrmask:}
+\DoxyCodeLine{00755\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (drop.seen\_moveto)}
+\DoxyCodeLine{00756\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00757\ \ \ \ \ \ \ \ \ str.values[pos].set\_drop\ ();}
+\DoxyCodeLine{00758\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00759\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00760\ \ \ \ \ \ \ HB\_FALLTHROUGH;}
+\DoxyCodeLine{00761\ }
+\DoxyCodeLine{00762\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_hstemhm:}
+\DoxyCodeLine{00763\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_vstemhm:}
+\DoxyCodeLine{00764\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_hstem:}
+\DoxyCodeLine{00765\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_vstem:}
+\DoxyCodeLine{00766\ \ \ \ \ \ \ has\_hint\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00767\ \ \ \ \ \ \ str.values[pos].set\_drop\ ();}
+\DoxyCodeLine{00768\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (str.at\_end\ (pos))}
+\DoxyCodeLine{00769\ \ \ \ \ \ \ \ \ drop.ends\_in\_hint\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00770\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00771\ }
+\DoxyCodeLine{00772\ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_dotsection:}
+\DoxyCodeLine{00773\ \ \ \ \ \ \ str.values[pos].set\_drop\ ();}
+\DoxyCodeLine{00774\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00775\ }
+\DoxyCodeLine{00776\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00777\ \ \ \ \ \ \ \textcolor{comment}{/*\ NONE\ */}}
+\DoxyCodeLine{00778\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00779\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00780\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (has\_hint)}
+\DoxyCodeLine{00781\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00782\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ pos\ -\/\ 1;\ i\ >=\ 0;\ i-\/-\/)}
+\DoxyCodeLine{00783\ \ \ \ \ \{}
+\DoxyCodeLine{00784\ \ \ \ \ \ \ parsed\_cs\_op\_t\ \ \&csop\ =\ str.values[(unsigned)i];}
+\DoxyCodeLine{00785\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (csop.for\_drop\ ())}
+\DoxyCodeLine{00786\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00787\ \ \ \ \ \ \ csop.set\_drop\ ();}
+\DoxyCodeLine{00788\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (csop.op\ ==\ OpCode\_vsindexcs)}
+\DoxyCodeLine{00789\ \ \ \ \ \ \ \ \ drop.vsindex\_dropped\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00790\ \ \ \ \ \}}
+\DoxyCodeLine{00791\ \ \ \ \ seen\_hint\ |=\ has\_hint;}
+\DoxyCodeLine{00792\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00793\ \ \ \ \ \}}
+\DoxyCodeLine{00794\ }
+\DoxyCodeLine{00795\ \ \ \ \ \textcolor{comment}{/*\ Raise\ all\_dropped\ flag\ if\ all\ operators\ except\ return\ are\ dropped\ from\ a\ subr.}}
+\DoxyCodeLine{00796\ \textcolor{comment}{\ \ \ \ \ *\ It\ may\ happen\ even\ after\ seeing\ the\ first\ moveto\ if\ a\ subr\ contains}}
+\DoxyCodeLine{00797\ \textcolor{comment}{\ \ \ \ \ *\ only\ (usually\ one)\ hintmask\ operator,\ then\ calls\ to\ this\ subr\ can\ be\ dropped.}}
+\DoxyCodeLine{00798\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00799\ \ \ \ \ drop.all\_dropped\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00800\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pos\ =\ 0;\ pos\ <\ str.values.length;\ pos++)}
+\DoxyCodeLine{00801\ \ \ \ \ \{}
+\DoxyCodeLine{00802\ \ \ \ \ \ \ parsed\_cs\_op\_t\ \ \&csop\ =\ str.values[pos];}
+\DoxyCodeLine{00803\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (csop.op\ ==\ OpCode\_return)}
+\DoxyCodeLine{00804\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00805\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!csop.for\_drop\ ())}
+\DoxyCodeLine{00806\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00807\ \ \ \ \ drop.all\_dropped\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00808\ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00809\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00810\ \ \ \ \ \}}
+\DoxyCodeLine{00811\ }
+\DoxyCodeLine{00812\ \ \ \ \ \textcolor{keywordflow}{return}\ seen\_hint;}
+\DoxyCodeLine{00813\ \ \ \}}
+\DoxyCodeLine{00814\ }
+\DoxyCodeLine{00815\ \ \ \textcolor{keywordtype}{void}\ collect\_subr\_refs\_in\_subr\ (parsed\_cs\_str\_t\ \&str,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pos,}
+\DoxyCodeLine{00816\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ subr\_num,\ parsed\_cs\_str\_vec\_t\ \&subrs,}
+\DoxyCodeLine{00817\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ *closure,}
+\DoxyCodeLine{00818\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ subr\_subset\_param\_t\ \&param)}
+\DoxyCodeLine{00819\ \ \ \{}
+\DoxyCodeLine{00820\ \ \ \ \ closure-\/>add\ (subr\_num);}
+\DoxyCodeLine{00821\ \ \ \ \ collect\_subr\_refs\_in\_str\ (subrs[subr\_num],\ param);}
+\DoxyCodeLine{00822\ \ \ \}}
+\DoxyCodeLine{00823\ }
+\DoxyCodeLine{00824\ \ \ \textcolor{keywordtype}{void}\ collect\_subr\_refs\_in\_str\ (parsed\_cs\_str\_t\ \&str,\ \textcolor{keyword}{const}\ subr\_subset\_param\_t\ \&param)}
+\DoxyCodeLine{00825\ \ \ \{}
+\DoxyCodeLine{00826\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ pos\ =\ 0;\ pos\ <\ str.values.length;\ pos++)}
+\DoxyCodeLine{00827\ \ \ \ \ \{}
+\DoxyCodeLine{00828\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!str.values[pos].for\_drop\ ())}
+\DoxyCodeLine{00829\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00830\ \ \ \ \ \textcolor{keywordflow}{switch}\ (str.values[pos].op)}
+\DoxyCodeLine{00831\ \ \ \ \ \{}
+\DoxyCodeLine{00832\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_callsubr:}
+\DoxyCodeLine{00833\ \ \ \ \ \ \ \ \ collect\_subr\_refs\_in\_subr\ (str,\ pos,}
+\DoxyCodeLine{00834\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ str.values[pos].subr\_num,\ *param.parsed\_local\_subrs,}
+\DoxyCodeLine{00835\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ param.local\_closure,\ param);}
+\DoxyCodeLine{00836\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00837\ }
+\DoxyCodeLine{00838\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_callgsubr:}
+\DoxyCodeLine{00839\ \ \ \ \ \ \ \ \ collect\_subr\_refs\_in\_subr\ (str,\ pos,}
+\DoxyCodeLine{00840\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ str.values[pos].subr\_num,\ *param.parsed\_global\_subrs,}
+\DoxyCodeLine{00841\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ param.global\_closure,\ param);}
+\DoxyCodeLine{00842\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00843\ }
+\DoxyCodeLine{00844\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00845\ \ \ \ \ \}}
+\DoxyCodeLine{00846\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00847\ \ \ \ \ \}}
+\DoxyCodeLine{00848\ \ \ \}}
+\DoxyCodeLine{00849\ }
+\DoxyCodeLine{00850\ \ \ \textcolor{keywordtype}{bool}\ encode\_str\ (\textcolor{keyword}{const}\ parsed\_cs\_str\_t\ \&str,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd,\ str\_buff\_t\ \&buff)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00851\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00852\ \ \ \ \ buff.init\ ();}
+\DoxyCodeLine{00853\ \ \ \ \ str\_encoder\_t\ \ encoder\ (buff);}
+\DoxyCodeLine{00854\ \ \ \ \ encoder.reset\ ();}
+\DoxyCodeLine{00855\ \ \ \ \ \textcolor{comment}{/*\ if\ a\ prefix\ (CFF1\ width\ or\ CFF2\ vsindex)\ has\ been\ removed\ along\ with\ hints,}}
+\DoxyCodeLine{00856\ \textcolor{comment}{\ \ \ \ \ *\ re-\/insert\ it\ at\ the\ beginning\ of\ charstreing\ */}}
+\DoxyCodeLine{00857\ \ \ \ \ \textcolor{keywordflow}{if}\ (str.has\_prefix\ ()\ \&\&\ str.is\_hint\_dropped\ ())}
+\DoxyCodeLine{00858\ \ \ \ \ \{}
+\DoxyCodeLine{00859\ \ \ \ \ \ \ encoder.encode\_num\ (str.prefix\_num\ ());}
+\DoxyCodeLine{00860\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (str.prefix\_op\ ()\ !=\ OpCode\_Invalid)}
+\DoxyCodeLine{00861\ \ \ \ \ encoder.encode\_op\ (str.prefix\_op\ ());}
+\DoxyCodeLine{00862\ \ \ \ \ \}}
+\DoxyCodeLine{00863\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ str.get\_count();\ i++)}
+\DoxyCodeLine{00864\ \ \ \ \ \{}
+\DoxyCodeLine{00865\ \ \ \ \ \ \ \textcolor{keyword}{const}\ parsed\_cs\_op\_t\ \ \&opstr\ =\ str.values[i];}
+\DoxyCodeLine{00866\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!opstr.for\_drop\ ()\ \&\&\ !opstr.for\_skip\ ())}
+\DoxyCodeLine{00867\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00868\ \ \ \ \ \textcolor{keywordflow}{switch}\ (opstr.op)}
+\DoxyCodeLine{00869\ \ \ \ \ \{}
+\DoxyCodeLine{00870\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_callsubr:}
+\DoxyCodeLine{00871\ \ \ \ \ \ \ \ \ encoder.encode\_int\ (remaps.local\_remaps[fd].biased\_num\ (opstr.subr\_num));}
+\DoxyCodeLine{00872\ \ \ \ \ \ \ \ \ encoder.encode\_op\ (OpCode\_callsubr);}
+\DoxyCodeLine{00873\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00874\ }
+\DoxyCodeLine{00875\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ OpCode\_callgsubr:}
+\DoxyCodeLine{00876\ \ \ \ \ \ \ \ \ encoder.encode\_int\ (remaps.global\_remap.biased\_num\ (opstr.subr\_num));}
+\DoxyCodeLine{00877\ \ \ \ \ \ \ \ \ encoder.encode\_op\ (OpCode\_callgsubr);}
+\DoxyCodeLine{00878\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00879\ }
+\DoxyCodeLine{00880\ \ \ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{00881\ \ \ \ \ \ \ \ \ encoder.copy\_str\ (opstr.str);}
+\DoxyCodeLine{00882\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00883\ \ \ \ \ \}}
+\DoxyCodeLine{00884\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00885\ \ \ \ \ \}}
+\DoxyCodeLine{00886\ \ \ \ \ \textcolor{keywordflow}{return}\ !encoder.is\_error\ ();}
+\DoxyCodeLine{00887\ \ \ \}}
+\DoxyCodeLine{00888\ }
+\DoxyCodeLine{00889\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00890\ \ \ \textcolor{keyword}{const}\ ACC\ \ \ \ \ \ \ \ \ \&acc;}
+\DoxyCodeLine{00891\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ \ \ \ *plan;}
+\DoxyCodeLine{00892\ }
+\DoxyCodeLine{00893\ \ \ subr\_closures\_t\ \ \ \ \ \ \ closures;}
+\DoxyCodeLine{00894\ }
+\DoxyCodeLine{00895\ \ \ parsed\_cs\_str\_vec\_t\ \ \ \ \ \ \ parsed\_charstrings;}
+\DoxyCodeLine{00896\ \ \ parsed\_cs\_str\_vec\_t\ \ \ \ \ \ \ parsed\_global\_subrs;}
+\DoxyCodeLine{00897\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<parsed\_cs\_str\_vec\_t>}}\ \ parsed\_local\_subrs;}
+\DoxyCodeLine{00898\ }
+\DoxyCodeLine{00899\ \ \ subr\_remaps\_t\ \ \ \ \ \ \ \ \ remaps;}
+\DoxyCodeLine{00900\ }
+\DoxyCodeLine{00901\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00902\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{typename}\ SUBRS::count\_type\ subr\_count\_type;}
+\DoxyCodeLine{00903\ \};}
+\DoxyCodeLine{00904\ }
+\DoxyCodeLine{00905\ \}\ \textcolor{comment}{/*\ namespace\ CFF\ */}}
+\DoxyCodeLine{00906\ }
+\DoxyCodeLine{00907\ HB\_INTERNAL\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00908\ hb\_plan\_subset\_cff\_fdselect\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan,}
+\DoxyCodeLine{00909\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fdCount,}
+\DoxyCodeLine{00910\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1_f_d_select}{CFF::FDSelect}}\ \&src,\ \textcolor{comment}{/*\ IN\ */}}
+\DoxyCodeLine{00911\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \&subset\_fd\_count\ \textcolor{comment}{/*\ OUT\ */},}
+\DoxyCodeLine{00912\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \&subset\_fdselect\_size\ \textcolor{comment}{/*\ OUT\ */},}
+\DoxyCodeLine{00913\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \&subset\_fdselect\_format\ \textcolor{comment}{/*\ OUT\ */},}
+\DoxyCodeLine{00914\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<CFF::code\_pair\_t>}}\ \&fdselect\_ranges\ \textcolor{comment}{/*\ OUT\ */},}
+\DoxyCodeLine{00915\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__inc__bimap__t}{hb\_inc\_bimap\_t}}\ \&fdmap\ \textcolor{comment}{/*\ OUT\ */});}
+\DoxyCodeLine{00916\ }
+\DoxyCodeLine{00917\ HB\_INTERNAL\ \textcolor{keywordtype}{bool}}
+\DoxyCodeLine{00918\ hb\_serialize\_cff\_fdselect\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{00919\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_glyphs,}
+\DoxyCodeLine{00920\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_c_f_f_1_1_f_d_select}{CFF::FDSelect}}\ \&src,}
+\DoxyCodeLine{00921\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fd\_count,}
+\DoxyCodeLine{00922\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fdselect\_format,}
+\DoxyCodeLine{00923\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size,}
+\DoxyCodeLine{00924\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<CFF::code\_pair\_t>}}\ \&fdselect\_ranges);}
+\DoxyCodeLine{00925\ }
+\DoxyCodeLine{00926\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_SUBSET\_CFF\_COMMON\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

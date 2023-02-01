@@ -1,0 +1,551 @@
+\hypertarget{controllers_8h_source}{}\doxysection{controllers.\+h}
+\label{controllers_8h_source}\index{AseSprite/aseprite/src/app/tools/controllers.h@{AseSprite/aseprite/src/app/tools/controllers.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}app/snap\_to\_grid.h"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}base/gcd.h"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}base/pi.h"{}}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <cmath>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00016\ \textcolor{keyword}{namespace\ }tools\ \{}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{using\ namespace\ }gfx;}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{comment}{//\ Shared\ logic\ between\ controllers\ that\ can\ move/displace\ all\ points}}
+\DoxyCodeLine{00021\ \textcolor{comment}{//\ using\ the\ space\ bar.}}
+\DoxyCodeLine{00022\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_move_origin_capability}{MoveOriginCapability}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_controller}{Controller}}\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00024\ \ \ \textcolor{keywordtype}{void}\ pressButton(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00025\ \ \ \ \ m\_last\ =\ pt;}
+\DoxyCodeLine{00026\ \ \ \}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00029\ \ \ \textcolor{keywordtype}{bool}\ isMovingOrigin(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\ \{}
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordtype}{bool}\ used\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keywordtype}{int}(loop-\/>getModifiers())\ \&\ \textcolor{keywordtype}{int}(ToolLoopModifiers::kMoveOrigin))\ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{Point}}\ delta(pt.x\ -\/\ m\_last.x,}
+\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pt.y\ -\/\ m\_last.y);}
+\DoxyCodeLine{00035\ \ \ \ \ \ \ stroke.offset(delta);}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ \ \ onMoveOrigin(delta);}
+\DoxyCodeLine{00038\ \ \ \ \ \ \ used\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00039\ \ \ \ \ \}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ \ \ m\_last\ =\ pt;}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordflow}{return}\ used;}
+\DoxyCodeLine{00043\ \ \ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ onMoveOrigin(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{Point}}\&\ delta)\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{00047\ \ \ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00050\ \ \ \textcolor{comment}{//\ Last\ known\ mouse\ position\ used\ to\ calculate\ delta\ values\ (dx,\ dy)}}
+\DoxyCodeLine{00051\ \ \ \textcolor{comment}{//\ with\ the\ new\ mouse\ position\ to\ displace\ all\ points.}}
+\DoxyCodeLine{00052\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\ m\_last;}
+\DoxyCodeLine{00053\ \};}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{comment}{//\ Controls\ clicks\ for\ tools\ like\ pencil}}
+\DoxyCodeLine{00056\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_freehand_controller}{FreehandController}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_controller}{Controller}}\ \{}
+\DoxyCodeLine{00057\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00058\ \ \ \textcolor{keywordtype}{bool}\ isFreehand()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\ getLastPoint()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_last;\ \}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \textcolor{keywordtype}{void}\ pressButton(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00063\ \ \ \ \ m\_last\ =\ pt;}
+\DoxyCodeLine{00064\ \ \ \ \ stroke.addPoint(pt);}
+\DoxyCodeLine{00065\ \ \ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \textcolor{keywordtype}{bool}\ releaseButton(\mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00069\ \ \ \}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \textcolor{keywordtype}{void}\ movement(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00072\ \ \ \ \ m\_last\ =\ pt;}
+\DoxyCodeLine{00073\ \ \ \ \ stroke.addPoint(pt);}
+\DoxyCodeLine{00074\ \ \ \}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordtype}{void}\ getStrokeToInterwine(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ \mbox{\hyperlink{structinput}{input}},\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structinput}{input}}.size()\ ==\ 1)\ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ output.addPoint(\mbox{\hyperlink{structinput}{input}}[0]);}
+\DoxyCodeLine{00079\ \ \ \ \ \}}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structinput}{input}}.size()\ >=\ 2)\ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \textcolor{comment}{//\ The\ freehand\ controller\ returns\ only\ the\ last\ two\ points\ to}}
+\DoxyCodeLine{00082\ \ \ \ \ \ \ \textcolor{comment}{//\ interwine\ because\ we\ accumulate\ (TracePolicy::Accumulate)\ the}}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ \textcolor{comment}{//\ previously\ painted\ points\ (i.e.\ don't\ want\ to\ redraw\ all\ the}}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \textcolor{comment}{//\ stroke\ from\ the\ very\ beginning)}}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ output.addPoint(\mbox{\hyperlink{structinput}{input}}[\mbox{\hyperlink{structinput}{input}}.size()-\/2]);}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ output.addPoint(\mbox{\hyperlink{structinput}{input}}[\mbox{\hyperlink{structinput}{input}}.size()-\/1]);}
+\DoxyCodeLine{00087\ \ \ \ \ \}}
+\DoxyCodeLine{00088\ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordtype}{void}\ getStatusBarText(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ std::string\&\ text)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00091\ \ \ \ \ ASSERT(!stroke.empty());}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.empty())}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ offset\ =\ loop-\/>statusBarPositionOffset();}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[1024];}
+\DoxyCodeLine{00097\ \ \ \ \ sprintf(\mbox{\hyperlink{structbuf}{buf}},\ \textcolor{stringliteral}{"{}:start:\ \%d\ \%d\ :end:\ \%d\ \%d"{}},}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.firstPoint().x+offset.x,}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.firstPoint().y+offset.y,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.lastPoint().x+offset.x,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.lastPoint().y+offset.y);}
+\DoxyCodeLine{00102\ \ \ \ \ text\ =\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00103\ \ \ \}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00106\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\ m\_last;}
+\DoxyCodeLine{00107\ \};}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{comment}{//\ Controls\ clicks\ for\ tools\ like\ line}}
+\DoxyCodeLine{00110\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_two_points_controller}{TwoPointsController}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_move_origin_capability}{MoveOriginCapability}}\ \{}
+\DoxyCodeLine{00111\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00112\ \ \ \textcolor{keywordtype}{bool}\ isTwoPoints()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \textcolor{keywordtype}{void}\ pressButton(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00115\ \ \ \ \ MoveOriginCapability::pressButton(loop,\ stroke,\ pt);}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \ \ m\_first\ =\ m\_center\ =\ pt;}
+\DoxyCodeLine{00118\ \ \ \ \ m\_angle\ =\ 0.0;}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ stroke.addPoint(pt);}
+\DoxyCodeLine{00121\ \ \ \ \ stroke.addPoint(pt);}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>isSelectingTiles())}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ snapPointsToGridTiles(loop,\ stroke);}
+\DoxyCodeLine{00125\ \ \ \}}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \textcolor{keywordtype}{bool}\ releaseButton(\mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00129\ \ \ \}}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ \textcolor{keywordtype}{void}\ movement(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00132\ \ \ \ \ ASSERT(stroke.size()\ >=\ 2);}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ <\ 2)}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordflow}{if}\ (MoveOriginCapability::isMovingOrigin(loop,\ stroke,\ pt))}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keywordflow}{if}\ (!loop-\/>getIntertwine()-\/>snapByAngle()\ \&\&}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}(loop-\/>getModifiers())\ \&\ \textcolor{keywordtype}{int}(ToolLoopModifiers::kRotateShape))\ \{}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((\textcolor{keywordtype}{int}(loop-\/>getModifiers())\ \&\ \textcolor{keywordtype}{int}(ToolLoopModifiers::kFromCenter)))\ \{}
+\DoxyCodeLine{00142\ \ \ \ \ \ \ \ \ m\_center\ =\ m\_first;}
+\DoxyCodeLine{00143\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00145\ \ \ \ \ \ \ \ \ m\_center.x\ =\ (stroke[0].x+stroke[1].x)/2;}
+\DoxyCodeLine{00146\ \ \ \ \ \ \ \ \ m\_center.y\ =\ (stroke[0].y+stroke[1].y)/2;}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ m\_angle\ =\ std::atan2(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{double}\textcolor{keyword}{>}(pt.y-\/m\_center.y),}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{double}\textcolor{keyword}{>}(pt.x-\/m\_center.x));}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00151\ \ \ \ \ \}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \ \ \ \ stroke[0]\ =\ m\_first;}
+\DoxyCodeLine{00154\ \ \ \ \ stroke[1]\ =\ pt;}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \textcolor{keywordtype}{bool}\ isoAngle\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \ \ \textcolor{keywordflow}{if}\ ((\textcolor{keywordtype}{int}(loop-\/>getModifiers())\ \&\ \textcolor{keywordtype}{int}(ToolLoopModifiers::kSquareAspect)))\ \{}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ dx\ =\ stroke[1].x\ -\/\ m\_first.x;}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ dy\ =\ stroke[1].y\ -\/\ m\_first.y;}
+\DoxyCodeLine{00161\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ minsize\ =\ std::min(ABS(dx),\ ABS(dy));}
+\DoxyCodeLine{00162\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ maxsize\ =\ std::max(ABS(dx),\ ABS(dy));}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \ \ \ \ \textcolor{comment}{//\ Lines}}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getIntertwine()-\/>snapByAngle())\ \{}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ angle\ =\ 180.0\ *\ std::atan(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{double}\textcolor{keyword}{>}(-\/dy)\ /}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{double}\textcolor{keyword}{>}(dx))\ /\ PI;}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ angle\ =\ ABS(angle);}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Snap\ horizontally}}
+\DoxyCodeLine{00171\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (angle\ <\ 18.0)\ \{}
+\DoxyCodeLine{00172\ \ \ \ \ \ \ \ \ \ \ stroke[1].y\ =\ m\_first.y;}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00174\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Snap\ at\ 26.565}}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (angle\ <\ 36.0)\ \{}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ stroke[1].x\ =\ m\_first.x\ +\ SGN(dx)*maxsize;}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ stroke[1].y\ =\ m\_first.y\ +\ SGN(dy)*maxsize/2;}
+\DoxyCodeLine{00178\ \ \ \ \ \ \ \ \ \ \ isoAngle\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00179\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Snap\ at\ 45}}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (angle\ <\ 54.0)\ \{}
+\DoxyCodeLine{00182\ \ \ \ \ \ \ \ \ \ \ stroke[1].x\ =\ m\_first.x\ +\ SGN(dx)*minsize;}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \ \ \ \ stroke[1].y\ =\ m\_first.y\ +\ SGN(dy)*minsize;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00185\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Snap\ at\ 63.435}}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (angle\ <\ 72.0)\ \{}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ \ \ \ \ stroke[1].x\ =\ m\_first.x\ +\ SGN(dx)*maxsize/2;}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \ \ \ \ stroke[1].y\ =\ m\_first.y\ +\ SGN(dy)*maxsize;}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \ \ \ \ isoAngle\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00190\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00191\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Snap\ vertically}}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \ \ \ \ stroke[1].x\ =\ m\_first.x;}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00195\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00196\ \ \ \ \ \ \ \textcolor{comment}{//\ Rectangles\ and\ ellipses}}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ \ \ stroke[1].x\ =\ m\_first.x\ +\ SGN(dx)*minsize;}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ stroke[1].y\ =\ m\_first.y\ +\ SGN(dy)*minsize;}
+\DoxyCodeLine{00200\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00201\ \ \ \ \ \}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keywordflow}{if}\ (hasAngle())\ \{}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ rx\ =\ stroke[1].x\ -\/\ m\_center.x;}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ ry\ =\ stroke[1].y\ -\/\ m\_center.y;}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ stroke[0].x\ =\ m\_center.x\ -\/\ rx;}
+\DoxyCodeLine{00207\ \ \ \ \ \ \ stroke[0].y\ =\ m\_center.y\ -\/\ ry;}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ stroke[1].x\ =\ m\_center.x\ +\ rx;}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ stroke[1].y\ =\ m\_center.y\ +\ ry;}
+\DoxyCodeLine{00210\ \ \ \ \ \}}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ ((\textcolor{keywordtype}{int}(loop-\/>getModifiers())\ \&\ \textcolor{keywordtype}{int}(ToolLoopModifiers::kFromCenter)))\ \{}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ rx\ =\ stroke[1].x\ -\/\ m\_first.x;}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ ry\ =\ stroke[1].y\ -\/\ m\_first.y;}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ stroke[0].x\ =\ m\_first.x\ -\/\ rx\ +\ (isoAngle\ \&\&\ ABS(rx)\ >\ ABS(ry)\ ?\ SGN(rx)*(rx\ \&\ 1):\ 0);}
+\DoxyCodeLine{00215\ \ \ \ \ \ \ stroke[0].y\ =\ m\_first.y\ -\/\ ry\ +\ (isoAngle\ \&\&\ ABS(rx)\ <\ ABS(ry)\ ?\ SGN(ry)*(ry\ \&\ 1):\ 0);}
+\DoxyCodeLine{00216\ \ \ \ \ \ \ stroke[1].x\ =\ m\_first.x\ +\ rx;}
+\DoxyCodeLine{00217\ \ \ \ \ \ \ stroke[1].y\ =\ m\_first.y\ +\ ry;}
+\DoxyCodeLine{00218\ \ \ \ \ \}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{comment}{//\ Adjust\ points\ for\ selection\ like\ tools\ (so\ we\ can\ select\ tiles)}}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getController()-\/>canSnapToGrid()\ \&\&}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ loop-\/>getSnapToGrid())\ \{}
+\DoxyCodeLine{00223\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ bounds\ =\ loop-\/>getBrush()-\/>bounds();}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>isSelectingTiles())\ \{}
+\DoxyCodeLine{00226\ \ \ \ \ \ \ \ \ snapPointsToGridTiles(loop,\ stroke);}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00228\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00229\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke[0].x\ <\ stroke[1].x)}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ stroke[1].x\ -\/=\ bounds.w;}
+\DoxyCodeLine{00231\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke[0].x\ >\ stroke[1].x)}
+\DoxyCodeLine{00232\ \ \ \ \ \ \ \ \ \ \ stroke[0].x\ -\/=\ bounds.w;}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke[0].y\ <\ stroke[1].y)}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ stroke[1].y\ -\/=\ bounds.h;}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (stroke[0].y\ >\ stroke[1].y)}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ \ \ \ \ stroke[0].y\ -\/=\ bounds.h;}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00239\ \ \ \ \ \}}
+\DoxyCodeLine{00240\ \ \ \}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ \ \ \textcolor{keywordtype}{void}\ getStrokeToInterwine(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ \mbox{\hyperlink{structinput}{input}},\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00243\ \ \ \ \ ASSERT(\mbox{\hyperlink{structinput}{input}}.size()\ >=\ 2);}
+\DoxyCodeLine{00244\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structinput}{input}}.size()\ <\ 2)}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \ \ output.addPoint(\mbox{\hyperlink{structinput}{input}}[0]);}
+\DoxyCodeLine{00248\ \ \ \ \ output.addPoint(\mbox{\hyperlink{structinput}{input}}[1]);}
+\DoxyCodeLine{00249\ \ \ \}}
+\DoxyCodeLine{00250\ }
+\DoxyCodeLine{00251\ \ \ \textcolor{keywordtype}{void}\ getStatusBarText(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ std::string\&\ text)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00252\ \ \ \ \ ASSERT(stroke.size()\ >=\ 2);}
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ <\ 2)}
+\DoxyCodeLine{00254\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \ \ \textcolor{keywordtype}{int}\ w\ =\ ABS(stroke[1].x-\/stroke[0].x)+1;}
+\DoxyCodeLine{00257\ \ \ \ \ \textcolor{keywordtype}{int}\ h\ =\ ABS(stroke[1].y-\/stroke[0].y)+1;}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ offset\ =\ loop-\/>statusBarPositionOffset();}
+\DoxyCodeLine{00260\ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[1024];}
+\DoxyCodeLine{00261\ \ \ \ \ \textcolor{keywordtype}{int}\ gcd\ =\ base::gcd(w,\ h);}
+\DoxyCodeLine{00262\ \ \ \ \ sprintf(\mbox{\hyperlink{structbuf}{buf}},\ \textcolor{stringliteral}{"{}:start:\ \%d\ \%d\ :end:\ \%d\ \%d\ :size:\ \%d\ \%d\ :distance:\ \%.1f"{}},}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[0].x+offset.x,\ stroke[0].y+offset.y,}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[1].x+offset.x,\ stroke[1].y+offset.y,}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ \ \ w,\ h,\ std::sqrt(w*w\ +\ h*h));}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordflow}{if}\ (hasAngle()\ ||}
+\DoxyCodeLine{00268\ \ \ \ \ \ \ \ \ loop-\/>getIntertwine()-\/>snapByAngle())\ \{}
+\DoxyCodeLine{00269\ \ \ \ \ \ \ \textcolor{keywordtype}{double}\ angle;}
+\DoxyCodeLine{00270\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hasAngle())}
+\DoxyCodeLine{00271\ \ \ \ \ \ \ \ \ angle\ =\ m\_angle;}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00273\ \ \ \ \ \ \ \ \ angle\ =\ std::atan2(\textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{double}\textcolor{keyword}{>}(stroke[0].y-\/stroke[1].y),}
+\DoxyCodeLine{00274\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}\textcolor{keywordtype}{double}\textcolor{keyword}{>}(stroke[1].x-\/stroke[0].x));}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ sprintf(\mbox{\hyperlink{structbuf}{buf}}+strlen(\mbox{\hyperlink{structbuf}{buf}}),\ \textcolor{stringliteral}{"{}\ :angle:\ \%.1f"{}},\ 180.0\ *\ angle\ /\ PI);}
+\DoxyCodeLine{00276\ \ \ \ \ \}}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \ \ \ \ \textcolor{comment}{//\ Aspect\ ratio\ at\ the\ end}}
+\DoxyCodeLine{00279\ \ \ \ \ sprintf(\mbox{\hyperlink{structbuf}{buf}}+strlen(\mbox{\hyperlink{structbuf}{buf}}),\ \textcolor{stringliteral}{"{}\ :aspect\_ratio:\ \%d:\%d"{}},}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ \ \ \ \ \ \ w/gcd,\ h/gcd);}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ \ \ text\ =\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00283\ \ \ \}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \ \ \textcolor{keywordtype}{double}\ getShapeAngle()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00286\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_angle;}
+\DoxyCodeLine{00287\ \ \ \}}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00290\ \ \ \textcolor{keywordtype}{void}\ snapPointsToGridTiles(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke)\ \{}
+\DoxyCodeLine{00291\ \ \ \ \ \textcolor{keyword}{auto}\ grid\ =\ loop-\/>getGridBounds();}
+\DoxyCodeLine{00292\ }
+\DoxyCodeLine{00293\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{Rect}}\ \mbox{\hyperlink{structa}{a}}(snap\_to\_grid(grid,\ stroke[0].toPoint(),\ PreferSnapTo::BoxOrigin),}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ snap\_to\_grid(grid,\ stroke[0].toPoint(),\ PreferSnapTo::BoxEnd));}
+\DoxyCodeLine{00295\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_rect_t}{Rect}}\ b(snap\_to\_grid(grid,\ stroke[1].toPoint(),\ PreferSnapTo::BoxOrigin),}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ snap\_to\_grid(grid,\ stroke[1].toPoint(),\ PreferSnapTo::BoxEnd));}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ |=\ b;}
+\DoxyCodeLine{00299\ }
+\DoxyCodeLine{00300\ \ \ \ \ stroke[0]\ =\ \mbox{\hyperlink{structa}{a}}.origin();}
+\DoxyCodeLine{00301\ \ \ \ \ stroke[1]\ =\ \mbox{\hyperlink{structa}{a}}.point2()\ -\/\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}(1,\ 1);}
+\DoxyCodeLine{00302\ \ \ \}}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ \ \ \textcolor{keywordtype}{bool}\ hasAngle()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00305\ \ \ \ \ \textcolor{keywordflow}{return}\ (ABS(m\_angle)\ >\ 0.001);}
+\DoxyCodeLine{00306\ \ \ \}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \ \ \textcolor{keywordtype}{void}\ onMoveOrigin(\textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{Point}}\&\ delta)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00309\ \ \ \ \ m\_first.x\ +=\ delta.x;}
+\DoxyCodeLine{00310\ \ \ \ \ m\_first.y\ +=\ delta.y;}
+\DoxyCodeLine{00311\ \ \ \ \ m\_center.x\ +=\ delta.x;}
+\DoxyCodeLine{00312\ \ \ \ \ m\_center.y\ +=\ delta.y;}
+\DoxyCodeLine{00313\ \ \ \}}
+\DoxyCodeLine{00314\ }
+\DoxyCodeLine{00315\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\ m\_first;}
+\DoxyCodeLine{00316\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\ m\_center;}
+\DoxyCodeLine{00317\ \ \ \textcolor{keywordtype}{double}\ m\_angle;}
+\DoxyCodeLine{00318\ \};}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \textcolor{comment}{//\ Controls\ clicks\ for\ tools\ like\ polygon}}
+\DoxyCodeLine{00321\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_point_by_point_controller}{PointByPointController}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_move_origin_capability}{MoveOriginCapability}}\ \{}
+\DoxyCodeLine{00322\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \ \ \textcolor{keywordtype}{void}\ pressButton(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00325\ \ \ \ \ MoveOriginCapability::pressButton(loop,\ stroke,\ pt);}
+\DoxyCodeLine{00326\ }
+\DoxyCodeLine{00327\ \ \ \ \ stroke.addPoint(pt);}
+\DoxyCodeLine{00328\ \ \ \ \ stroke.addPoint(pt);}
+\DoxyCodeLine{00329\ \ \ \}}
+\DoxyCodeLine{00330\ }
+\DoxyCodeLine{00331\ \ \ \textcolor{keywordtype}{bool}\ releaseButton(\mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00332\ \ \ \ \ ASSERT(!stroke.empty());}
+\DoxyCodeLine{00333\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.empty())}
+\DoxyCodeLine{00334\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke[stroke.size()-\/2]\ ==\ pt\ \&\&}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \ \ stroke[stroke.size()-\/1]\ ==\ pt)}
+\DoxyCodeLine{00338\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Click\ in\ the\ same\ point\ (no-\/drag),\ we\ are\ done}}
+\DoxyCodeLine{00339\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00340\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Continue\ adding\ points}}
+\DoxyCodeLine{00341\ \ \ \}}
+\DoxyCodeLine{00342\ }
+\DoxyCodeLine{00343\ \ \ \textcolor{keywordtype}{void}\ movement(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00344\ \ \ \ \ ASSERT(!stroke.empty());}
+\DoxyCodeLine{00345\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.empty())}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ \ \ \ \ \textcolor{keywordflow}{if}\ (MoveOriginCapability::isMovingOrigin(loop,\ stroke,\ pt))}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00350\ }
+\DoxyCodeLine{00351\ \ \ \ \ stroke[stroke.size()-\/1]\ =\ pt;}
+\DoxyCodeLine{00352\ \ \ \}}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \ \ \textcolor{keywordtype}{void}\ getStrokeToInterwine(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ \mbox{\hyperlink{structinput}{input}},\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00355\ \ \ \ \ output\ =\ \mbox{\hyperlink{structinput}{input}};}
+\DoxyCodeLine{00356\ \ \ \}}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \textcolor{keywordtype}{void}\ getStatusBarText(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ std::string\&\ text)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00359\ \ \ \ \ ASSERT(!stroke.empty());}
+\DoxyCodeLine{00360\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.empty())}
+\DoxyCodeLine{00361\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00362\ }
+\DoxyCodeLine{00363\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ offset\ =\ loop-\/>statusBarPositionOffset();}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[1024];}
+\DoxyCodeLine{00365\ \ \ \ \ sprintf(\mbox{\hyperlink{structbuf}{buf}},\ \textcolor{stringliteral}{"{}:start:\ \%d\ \%d\ :end:\ \%d\ \%d"{}},}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.firstPoint().x+offset.x,}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.firstPoint().y+offset.y,}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.lastPoint().x+offset.x,}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \ \ \ \ \ \ stroke.lastPoint().y+offset.y);}
+\DoxyCodeLine{00370\ \ \ \ \ text\ =\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00371\ \ \ \}}
+\DoxyCodeLine{00372\ }
+\DoxyCodeLine{00373\ \};}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_one_point_controller}{OnePointController}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_controller}{Controller}}\ \{}
+\DoxyCodeLine{00376\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00377\ \ \ \textcolor{comment}{//\ Do\ not\ apply\ grid\ to\ "{}one\ point\ tools"{}\ (e.g.\ magic\ wand,\ flood\ fill,\ etc.)}}
+\DoxyCodeLine{00378\ \ \ \textcolor{keywordtype}{bool}\ canSnapToGrid()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};\ \}}
+\DoxyCodeLine{00379\ \ \ \textcolor{keywordtype}{bool}\ isOnePoint()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00380\ }
+\DoxyCodeLine{00381\ \ \ \textcolor{keywordtype}{void}\ pressButton(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00382\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 0)}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ stroke.addPoint(pt);}
+\DoxyCodeLine{00384\ \ \ \}}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \textcolor{keywordtype}{bool}\ releaseButton(\mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00387\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00388\ \ \ \}}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \ \ \textcolor{keywordtype}{void}\ movement(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00391\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{00392\ \ \ \}}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \ \ \textcolor{keywordtype}{void}\ getStrokeToInterwine(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ \mbox{\hyperlink{structinput}{input}},\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00395\ \ \ \ \ output\ =\ \mbox{\hyperlink{structinput}{input}};}
+\DoxyCodeLine{00396\ \ \ \}}
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ \ \ \textcolor{keywordtype}{void}\ getStatusBarText(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ std::string\&\ text)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00399\ \ \ \ \ ASSERT(!stroke.empty());}
+\DoxyCodeLine{00400\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.empty())}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ offset\ =\ loop-\/>statusBarPositionOffset();}
+\DoxyCodeLine{00404\ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[1024];}
+\DoxyCodeLine{00405\ \ \ \ \ sprintf(\mbox{\hyperlink{structbuf}{buf}},\ \textcolor{stringliteral}{"{}:pos:\ \%d\ \%d"{}},}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[0].x+offset.x,}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[0].y+offset.y);}
+\DoxyCodeLine{00408\ \ \ \ \ text\ =\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00409\ \ \ \}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \};}
+\DoxyCodeLine{00412\ }
+\DoxyCodeLine{00413\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_four_points_controller}{FourPointsController}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_move_origin_capability}{MoveOriginCapability}}\ \{}
+\DoxyCodeLine{00414\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ \ \ \textcolor{keywordtype}{void}\ pressButton(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00417\ \ \ \ \ MoveOriginCapability::pressButton(loop,\ stroke,\ pt);}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ ==\ 0)\ \{}
+\DoxyCodeLine{00420\ \ \ \ \ \ \ stroke.reset(4,\ pt);}
+\DoxyCodeLine{00421\ \ \ \ \ \ \ m\_clickCounter\ =\ 0;}
+\DoxyCodeLine{00422\ \ \ \ \ \}}
+\DoxyCodeLine{00423\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ m\_clickCounter++;}
+\DoxyCodeLine{00425\ \ \ \}}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \ \ \textcolor{keywordtype}{bool}\ releaseButton(\mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00428\ \ \ \ \ m\_clickCounter++;}
+\DoxyCodeLine{00429\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_clickCounter\ <\ 4;}
+\DoxyCodeLine{00430\ \ \ \}}
+\DoxyCodeLine{00431\ }
+\DoxyCodeLine{00432\ \ \ \textcolor{keywordtype}{void}\ movement(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00433\ \ \ \ \ \textcolor{keywordflow}{if}\ (MoveOriginCapability::isMovingOrigin(loop,\ stroke,\ pt))}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \ \ \ \ \textcolor{keywordflow}{switch}\ (m\_clickCounter)\ \{}
+\DoxyCodeLine{00437\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 0:}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i=1;\ i<stroke.size();\ ++i)}
+\DoxyCodeLine{00439\ \ \ \ \ \ \ \ \ \ \ stroke[i]\ =\ pt;}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00441\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 1:}
+\DoxyCodeLine{00442\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 2:}
+\DoxyCodeLine{00443\ \ \ \ \ \ \ \ \ stroke[1]\ =\ pt;}
+\DoxyCodeLine{00444\ \ \ \ \ \ \ \ \ stroke[2]\ =\ pt;}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00446\ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ 3:}
+\DoxyCodeLine{00447\ \ \ \ \ \ \ \ \ stroke[2]\ =\ pt;}
+\DoxyCodeLine{00448\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00449\ \ \ \ \ \}}
+\DoxyCodeLine{00450\ \ \ \}}
+\DoxyCodeLine{00451\ }
+\DoxyCodeLine{00452\ \ \ \textcolor{keywordtype}{void}\ getStrokeToInterwine(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ \mbox{\hyperlink{structinput}{input}},\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00453\ \ \ \ \ output\ =\ \mbox{\hyperlink{structinput}{input}};}
+\DoxyCodeLine{00454\ \ \ \}}
+\DoxyCodeLine{00455\ }
+\DoxyCodeLine{00456\ \ \ \textcolor{keywordtype}{void}\ getStatusBarText(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ std::string\&\ text)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00457\ \ \ \ \ ASSERT(stroke.size()\ >=\ 4);}
+\DoxyCodeLine{00458\ \ \ \ \ \textcolor{keywordflow}{if}\ (stroke.size()\ <\ 4)}
+\DoxyCodeLine{00459\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00460\ }
+\DoxyCodeLine{00461\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ offset\ =\ loop-\/>statusBarPositionOffset();}
+\DoxyCodeLine{00462\ \ \ \ \ \textcolor{keywordtype}{char}\ \mbox{\hyperlink{structbuf}{buf}}[1024];}
+\DoxyCodeLine{00463\ \ \ \ \ sprintf(\mbox{\hyperlink{structbuf}{buf}},\ \textcolor{stringliteral}{"{}:start:\ \%d\ \%d\ :end:\ \%d\ \%d\ (\%d\ \%d\ -\/\ \%d\ \%d)"{}},}
+\DoxyCodeLine{00464\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[0].x+offset.x,\ stroke[0].y+offset.y,}
+\DoxyCodeLine{00465\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[3].x+offset.x,\ stroke[3].y+offset.y,}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[1].x+offset.x,\ stroke[1].y+offset.y,}
+\DoxyCodeLine{00467\ \ \ \ \ \ \ \ \ \ \ \ \ stroke[2].x+offset.x,\ stroke[2].y+offset.y);}
+\DoxyCodeLine{00468\ }
+\DoxyCodeLine{00469\ \ \ \ \ text\ =\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00470\ \ \ \}}
+\DoxyCodeLine{00471\ }
+\DoxyCodeLine{00472\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00473\ \ \ \textcolor{keywordtype}{int}\ m\_clickCounter;}
+\DoxyCodeLine{00474\ \};}
+\DoxyCodeLine{00475\ }
+\DoxyCodeLine{00476\ \textcolor{comment}{//\ Controls\ the\ shift+click\ to\ draw\ a\ two-\/points\ line\ and\ then}}
+\DoxyCodeLine{00477\ \textcolor{comment}{//\ freehand\ until\ the\ mouse\ is\ released.}}
+\DoxyCodeLine{00478\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_line_freehand_controller}{LineFreehandController}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_controller}{Controller}}\ \{}
+\DoxyCodeLine{00479\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00480\ \ \ \textcolor{keywordtype}{bool}\ isFreehand()\textcolor{keyword}{\ override\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00481\ }
+\DoxyCodeLine{00482\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\ getLastPoint()\textcolor{keyword}{\ const\ override\ }\{\ \textcolor{keywordflow}{return}\ m\_last;\ \}}
+\DoxyCodeLine{00483\ }
+\DoxyCodeLine{00484\ \ \ \textcolor{keywordtype}{void}\ prepareController(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00485\ \ \ \ \ m\_controller\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00486\ \ \ \}}
+\DoxyCodeLine{00487\ }
+\DoxyCodeLine{00488\ \ \ \textcolor{keywordtype}{void}\ pressButton(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00489\ \ \ \ \ m\_last\ =\ pt;}
+\DoxyCodeLine{00490\ }
+\DoxyCodeLine{00491\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_controller\ ==\ \textcolor{keyword}{nullptr})}
+\DoxyCodeLine{00492\ \ \ \ \ \ \ m\_controller\ =\ \&m\_twoPoints;}
+\DoxyCodeLine{00493\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (m\_controller\ ==\ \&m\_twoPoints)\ \{}
+\DoxyCodeLine{00494\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((\textcolor{keywordtype}{int}(loop-\/>getModifiers())\ \&\ \textcolor{keywordtype}{int}(ToolLoopModifiers::kSquareAspect)))\ \{}
+\DoxyCodeLine{00495\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Don't\ switch\ to\ freehand,\ just\ continue\ with\ lines\ if\ we}}
+\DoxyCodeLine{00496\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ have\ the\ square\ aspect\ key\ pressed\ (e.g.\ Ctrl+Shift).\ In}}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ this\ way\ we\ avoid\ to\ paint\ two\ straight\ lines:\ 1)\ from\ the}}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ very\ beginning,\ and\ 2)\ from\ the\ end\ of\ the\ first\ straight}}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ line\ to\ the\ new\ "{}pt"{}.}}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00502\ \ \ \ \ \ \ \ \ m\_controller\ =\ \&m\_freehand;}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \textcolor{keywordflow}{return};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Don't\ send\ first\ pressButton()\ click\ to\ the\ freehand\ controller}}
+\DoxyCodeLine{00505\ \ \ \ \ \}}
+\DoxyCodeLine{00506\ }
+\DoxyCodeLine{00507\ \ \ \ \ m\_controller-\/>pressButton(loop,\ stroke,\ pt);}
+\DoxyCodeLine{00508\ \ \ \}}
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \ \ \textcolor{keywordtype}{bool}\ releaseButton(\mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00511\ \ \ \ \ \textcolor{keywordflow}{if}\ (!stroke.empty())}
+\DoxyCodeLine{00512\ \ \ \ \ \ \ m\_last\ =\ stroke.lastPoint();}
+\DoxyCodeLine{00513\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00514\ \ \ \}}
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \ \ \textcolor{keywordtype}{void}\ movement(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\&\ pt)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00517\ \ \ \ \ m\_last\ =\ pt;}
+\DoxyCodeLine{00518\ \ \ \ \ m\_controller-\/>movement(loop,\ stroke,\ pt);}
+\DoxyCodeLine{00519\ \ \ \}}
+\DoxyCodeLine{00520\ }
+\DoxyCodeLine{00521\ \ \ \textcolor{keywordtype}{void}\ getStrokeToInterwine(\textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ \mbox{\hyperlink{structinput}{input}},\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ output)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00522\ \ \ \ \ m\_controller-\/>getStrokeToInterwine(\mbox{\hyperlink{structinput}{input}},\ output);}
+\DoxyCodeLine{00523\ \ \ \}}
+\DoxyCodeLine{00524\ }
+\DoxyCodeLine{00525\ \ \ \textcolor{keywordtype}{void}\ getStatusBarText(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{classapp_1_1tools_1_1_stroke}{Stroke}}\&\ stroke,\ std::string\&\ text)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00526\ \ \ \ \ m\_controller-\/>getStatusBarText(loop,\ stroke,\ text);}
+\DoxyCodeLine{00527\ \ \ \}}
+\DoxyCodeLine{00528\ }
+\DoxyCodeLine{00529\ \ \ \textcolor{keywordtype}{bool}\ handleTracePolicy()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00530\ \ \ \ \ \textcolor{keywordflow}{return}\ (m\_controller\ ==\ \&m\_twoPoints);}
+\DoxyCodeLine{00531\ \ \ \}}
+\DoxyCodeLine{00532\ }
+\DoxyCodeLine{00533\ \ \ TracePolicy\ getTracePolicy()\textcolor{keyword}{\ const\ override\ }\{}
+\DoxyCodeLine{00534\ \ \ \ \ \textcolor{keywordflow}{return}\ TracePolicy::Last;}
+\DoxyCodeLine{00535\ \ \ \}}
+\DoxyCodeLine{00536\ }
+\DoxyCodeLine{00537\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00538\ \ \ \mbox{\hyperlink{structapp_1_1tools_1_1_stroke_1_1_pt}{Stroke::Pt}}\ m\_last;}
+\DoxyCodeLine{00539\ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_two_points_controller}{TwoPointsController}}\ m\_twoPoints;}
+\DoxyCodeLine{00540\ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_freehand_controller}{FreehandController}}\ m\_freehand;}
+\DoxyCodeLine{00541\ \ \ \mbox{\hyperlink{classapp_1_1tools_1_1_controller}{Controller}}*\ m\_controller;}
+\DoxyCodeLine{00542\ \};}
+\DoxyCodeLine{00543\ }
+\DoxyCodeLine{00544\ \}\ \textcolor{comment}{//\ namespace\ tools}}
+\DoxyCodeLine{00545\ \}\ \textcolor{comment}{//\ namespace\ app}}
+
+\end{DoxyCode}

@@ -1,0 +1,155 @@
+\hypertarget{_convert_u_t_f_8h_source}{}\doxysection{Convert\+UTF.\+h}
+\label{_convert_u_t_f_8h_source}\index{AseSprite/aseprite/third\_party/simpleini/ConvertUTF.h@{AseSprite/aseprite/third\_party/simpleini/ConvertUTF.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ 2001-\/2004\ Unicode,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ }}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Disclaimer}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ }}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ This\ source\ code\ is\ provided\ as\ is\ by\ Unicode,\ Inc.\ No\ claims\ are}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ made\ as\ to\ fitness\ for\ any\ particular\ purpose.\ No\ warranties\ of\ any}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ kind\ are\ expressed\ or\ implied.\ The\ recipient\ agrees\ to\ determine}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ applicability\ of\ information\ provided.\ If\ this\ file\ has\ been}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ purchased\ on\ magnetic\ or\ optical\ media\ from\ Unicode,\ Inc.,\ the}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ sole\ remedy\ for\ any\ claim\ will\ be\ exchange\ of\ defective\ media}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ within\ 90\ days\ of\ receipt.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ }}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ Limitations\ on\ Rights\ to\ Redistribute\ This\ Code}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ }}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ Unicode,\ Inc.\ hereby\ grants\ the\ right\ to\ freely\ use\ the\ information}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ supplied\ in\ this\ file\ in\ the\ creation\ of\ products\ supporting\ the}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ Unicode\ Standard,\ and\ to\ make\ copies\ of\ this\ file\ in\ any\ form}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ for\ internal\ or\ external\ distribution\ as\ long\ as\ this\ notice}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ remains\ attached.}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00024\ \textcolor{comment}{}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ \ \ \ Conversions\ between\ UTF32,\ UTF-\/16,\ and\ UTF-\/8.\ \ Header\ file.}}
+\DoxyCodeLine{00026\ \textcolor{comment}{}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ \ \ Several\ funtions\ are\ included\ here,\ forming\ a\ complete\ set\ of}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ \ \ \ conversions\ between\ the\ three\ formats.\ \ UTF-\/7\ is\ not\ included}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ \ \ \ here,\ but\ is\ handled\ in\ a\ separate\ source\ file.}}
+\DoxyCodeLine{00030\ \textcolor{comment}{}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ \ Each\ of\ these\ routines\ takes\ pointers\ to\ input\ buffers\ and\ output}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ \ buffers.\ \ The\ input\ buffers\ are\ const.}}
+\DoxyCodeLine{00033\ \textcolor{comment}{}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ \ Each\ routine\ converts\ the\ text\ between\ *sourceStart\ and\ sourceEnd,}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ \ putting\ the\ result\ into\ the\ buffer\ between\ *targetStart\ and}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ \ targetEnd.\ Note:\ the\ end\ pointers\ are\ *after*\ the\ last\ item:\ e.g.\ }}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ \ \ *(sourceEnd\ -\/\ 1)\ is\ the\ last\ item.}}
+\DoxyCodeLine{00038\ \textcolor{comment}{}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ \ The\ return\ result\ indicates\ whether\ the\ conversion\ was\ successful,}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ \ and\ if\ not,\ whether\ the\ problem\ was\ in\ the\ source\ or\ target\ buffers.}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ \ \ \ (Only\ the\ first\ encountered\ problem\ is\ indicated.)}}
+\DoxyCodeLine{00042\ \textcolor{comment}{}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ \ \ \ After\ the\ conversion,\ *sourceStart\ and\ *targetStart\ are\ both}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ \ \ \ updated\ to\ point\ to\ the\ end\ of\ last\ text\ successfully\ converted\ in}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ \ \ \ the\ respective\ buffers.}}
+\DoxyCodeLine{00046\ \textcolor{comment}{}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ \ \ \ Input\ parameters:}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ \ \ \ sourceStart\ -\/\ pointer\ to\ a\ pointer\ to\ the\ source\ buffer.}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ \ \ \ \ \ The\ contents\ of\ this\ are\ modified\ on\ return\ so\ that}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ \ \ \ \ \ it\ points\ at\ the\ next\ thing\ to\ be\ converted.}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ \ targetStart\ -\/\ similarly,\ pointer\ to\ pointer\ to\ the\ target\ buffer.}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ \ sourceEnd,\ targetEnd\ -\/\ respectively\ pointers\ to\ the\ ends\ of\ the}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ \ \ \ \ \ \ \ two\ buffers,\ for\ overflow\ checking\ only.}}
+\DoxyCodeLine{00054\ \textcolor{comment}{}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ \ These\ conversion\ functions\ take\ a\ ConversionFlags\ argument.\ When\ this}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ \ \ \ flag\ is\ set\ to\ strict,\ both\ irregular\ sequences\ and\ isolated\ surrogates}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ \ will\ cause\ an\ error.\ \ When\ the\ flag\ is\ set\ to\ lenient,\ both\ irregular}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ \ \ \ sequences\ and\ isolated\ surrogates\ are\ converted.}}
+\DoxyCodeLine{00059\ \textcolor{comment}{}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ \ \ \ Whether\ the\ flag\ is\ strict\ or\ lenient,\ all\ illegal\ sequences\ will\ cause}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ \ an\ error\ return.\ This\ includes\ sequences\ such\ as:\ <F4\ 90\ 80\ 80>,\ <C0\ 80>,}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ \ \ \ or\ <A0>\ in\ UTF-\/8,\ and\ values\ above\ 0x10FFFF\ in\ UTF-\/32.\ Conformant\ code}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ \ must\ check\ for\ illegal\ sequences.}}
+\DoxyCodeLine{00064\ \textcolor{comment}{}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ \ \ \ When\ the\ flag\ is\ set\ to\ lenient,\ characters\ over\ 0x10FFFF\ are\ converted}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ \ to\ the\ replacement\ character;\ otherwise\ (when\ the\ flag\ is\ set\ to\ strict)}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ \ they\ constitute\ an\ error.}}
+\DoxyCodeLine{00068\ \textcolor{comment}{}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ \ \ \ Output\ parameters:}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ \ \ \ The\ value\ "{}sourceIllegal"{}\ is\ returned\ from\ some\ routines\ if\ the\ input}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ \ \ \ sequence\ is\ malformed.\ \ When\ "{}sourceIllegal"{}\ is\ returned,\ the\ source}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ \ \ \ value\ will\ point\ to\ the\ illegal\ value\ that\ caused\ the\ problem.\ E.g.,}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ \ \ \ in\ UTF-\/8\ when\ a\ sequence\ is\ malformed,\ it\ points\ to\ the\ start\ of\ the}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ \ \ \ malformed\ sequence.\ \ }}
+\DoxyCodeLine{00075\ \textcolor{comment}{}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ \ \ \ Author:\ Mark\ E.\ Davis,\ 1994.}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ \ \ \ Rev\ History:\ Rick\ McGowan,\ fixes\ \&\ updates\ May\ 2001.}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ Fixes\ \&\ updates,\ Sept\ 2001.}}
+\DoxyCodeLine{00079\ \textcolor{comment}{}}
+\DoxyCodeLine{00080\ \textcolor{comment}{-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ \ \ \ The\ following\ 4\ definitions\ are\ compiler-\/specific.}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ \ \ \ The\ C\ standard\ does\ not\ guarantee\ that\ wchar\_t\ has\ at\ least}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ \ \ \ 16\ bits,\ so\ wchar\_t\ is\ no\ less\ portable\ than\ unsigned\ short!}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ \ \ \ All\ should\ be\ unsigned\ values\ to\ avoid\ sign\ extension\ during}}
+\DoxyCodeLine{00087\ \textcolor{comment}{\ \ \ \ bit\ mask\ \&\ shift\ operations.}}
+\DoxyCodeLine{00088\ \textcolor{comment}{-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ UTF32;\ \ \textcolor{comment}{/*\ at\ least\ 32\ bits\ */}}
+\DoxyCodeLine{00091\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{short}\ \ UTF16;\ \ \textcolor{comment}{/*\ at\ least\ 16\ bits\ */}}
+\DoxyCodeLine{00092\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \ \ UTF8;\ \ \ \textcolor{comment}{/*\ typically\ 8\ bits\ */}}
+\DoxyCodeLine{00093\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ \ \ Boolean;\ \textcolor{comment}{/*\ 0\ or\ 1\ */}}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{comment}{/*\ Some\ fundamental\ constants\ */}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#define\ UNI\_REPLACEMENT\_CHAR\ (UTF32)0x0000FFFD}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#define\ UNI\_MAX\_BMP\ (UTF32)0x0000FFFF}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#define\ UNI\_MAX\_UTF16\ (UTF32)0x0010FFFF}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#define\ UNI\_MAX\_UTF32\ (UTF32)0x7FFFFFFF}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#define\ UNI\_MAX\_LEGAL\_UTF32\ (UTF32)0x0010FFFF}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00103\ \ \ \ \ conversionOK,\ \ \ \ \ \ \ \textcolor{comment}{/*\ conversion\ successful\ */}}
+\DoxyCodeLine{00104\ \ \ \ \ sourceExhausted,\ \ \ \ \textcolor{comment}{/*\ partial\ character\ in\ source,\ but\ hit\ end\ */}}
+\DoxyCodeLine{00105\ \ \ \ \ targetExhausted,\ \ \ \ \textcolor{comment}{/*\ insuff.\ room\ in\ target\ for\ conversion\ */}}
+\DoxyCodeLine{00106\ \ \ \ \ sourceIllegal\ \ \ \ \ \ \ \textcolor{comment}{/*\ source\ sequence\ is\ illegal/malformed\ */}}
+\DoxyCodeLine{00107\ \}\ ConversionResult;}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00110\ \ \ \ \ strictConversion\ =\ 0,}
+\DoxyCodeLine{00111\ \ \ \ \ lenientConversion}
+\DoxyCodeLine{00112\ \}\ ConversionFlags;}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{comment}{/*\ This\ is\ for\ C++\ and\ does\ no\ harm\ in\ C\ */}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00116\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ ConversionResult\ ConvertUTF8toUTF16\ (}
+\DoxyCodeLine{00120\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ UTF8**\ sourceStart,\ \textcolor{keyword}{const}\ UTF8*\ sourceEnd,\ }
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ UTF16**\ targetStart,\ UTF16*\ targetEnd,\ ConversionFlags\ flags);}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ ConversionResult\ ConvertUTF16toUTF8\ (}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ UTF16**\ sourceStart,\ \textcolor{keyword}{const}\ UTF16*\ sourceEnd,\ }
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ UTF8**\ targetStart,\ UTF8*\ targetEnd,\ ConversionFlags\ flags);}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00127\ ConversionResult\ ConvertUTF8toUTF32\ (}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ UTF8**\ sourceStart,\ \textcolor{keyword}{const}\ UTF8*\ sourceEnd,\ }
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ UTF32**\ targetStart,\ UTF32*\ targetEnd,\ ConversionFlags\ flags);}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ ConversionResult\ ConvertUTF32toUTF8\ (}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ UTF32**\ sourceStart,\ \textcolor{keyword}{const}\ UTF32*\ sourceEnd,\ }
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ UTF8**\ targetStart,\ UTF8*\ targetEnd,\ ConversionFlags\ flags);}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00135\ ConversionResult\ ConvertUTF16toUTF32\ (}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ UTF16**\ sourceStart,\ \textcolor{keyword}{const}\ UTF16*\ sourceEnd,\ }
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ UTF32**\ targetStart,\ UTF32*\ targetEnd,\ ConversionFlags\ flags);}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ ConversionResult\ ConvertUTF32toUTF16\ (}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ UTF32**\ sourceStart,\ \textcolor{keyword}{const}\ UTF32*\ sourceEnd,\ }
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \ \ UTF16**\ targetStart,\ UTF16*\ targetEnd,\ ConversionFlags\ flags);}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ Boolean\ isLegalUTF8Sequence(\textcolor{keyword}{const}\ UTF8\ *source,\ \textcolor{keyword}{const}\ UTF8\ *sourceEnd);}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00146\ \}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{comment}{/*\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/\ */}}
+
+\end{DoxyCode}

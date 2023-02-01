@@ -1,0 +1,255 @@
+\hypertarget{clip__win__wic_8h_source}{}\doxysection{clip\+\_\+win\+\_\+wic.\+h}
+\label{clip__win__wic_8h_source}\index{AseSprite/aseprite/src/clip/clip\_win\_wic.h@{AseSprite/aseprite/src/clip/clip\_win\_wic.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Clip\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2020-\/2022\ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}clip.h"{}}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <algorithm>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <shlwapi.h>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <wincodec.h>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{namespace\ }clip\ \{}
+\DoxyCodeLine{00016\ \textcolor{keyword}{namespace\ }win\ \{}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{comment}{//\ Successful\ calls\ to\ CoInitialize()\ (S\_OK\ or\ S\_FALSE)\ must\ match}}
+\DoxyCodeLine{00019\ \textcolor{comment}{//\ the\ calls\ to\ CoUninitialize().}}
+\DoxyCodeLine{00020\ \textcolor{comment}{//\ From:\ https://docs.microsoft.com/en-\/us/windows/win32/api/combaseapi/nf-\/combaseapi-\/couninitialize\#remarks}}
+\DoxyCodeLine{00021\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structclip_1_1win_1_1coinit}{coinit}}\ \{}
+\DoxyCodeLine{00022\ \ \ HRESULT\ hr;}
+\DoxyCodeLine{00023\ \ \ \mbox{\hyperlink{structclip_1_1win_1_1coinit}{coinit}}()\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ hr\ =\ CoInitialize(\textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00025\ \ \ \}}
+\DoxyCodeLine{00026\ \ \ \mbox{\hyperlink{structclip_1_1win_1_1coinit}{\string~coinit}}()\ \{}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordflow}{if}\ (hr\ ==\ S\_OK\ ||\ hr\ ==\ S\_FALSE)}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ CoUninitialize();}
+\DoxyCodeLine{00029\ \ \ \}}
+\DoxyCodeLine{00030\ \};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ T>}
+\DoxyCodeLine{00033\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr}}\ \{}
+\DoxyCodeLine{00034\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00035\ \ \ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr}}()\ \{\ \}}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{explicit}\ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr}}(T*\ ptr)\ :\ m\_ptr(ptr)\ \{\ \}}
+\DoxyCodeLine{00037\ \ \ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00038\ \ \ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr}}\&)\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00039\ \ \ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{\string~comptr}}()\ \{\ reset();\ \}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \ \ T**\ operator\&()\ \{\ \textcolor{keywordflow}{return}\ \&m\_ptr;\ \}}
+\DoxyCodeLine{00042\ \ \ T*\ operator-\/>()\ \{\ \textcolor{keywordflow}{return}\ m\_ptr;\ \}}
+\DoxyCodeLine{00043\ \ \ \textcolor{keywordtype}{bool}\ operator!()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !m\_ptr;\ \}}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ T*\ get()\ \{\ \textcolor{keywordflow}{return}\ m\_ptr;\ \}}
+\DoxyCodeLine{00046\ \ \ \textcolor{keywordtype}{void}\ reset()\ \{}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_ptr)\ \{}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ m\_ptr-\/>Release();}
+\DoxyCodeLine{00049\ \ \ \ \ \ \ m\_ptr\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00050\ \ \ \ \ \}}
+\DoxyCodeLine{00051\ \ \ \}}
+\DoxyCodeLine{00052\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00053\ \ \ T*\ m\_ptr\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00054\ \};}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ Encode\ the\ image\ as\ PNG\ format}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{keywordtype}{bool}\ write\_png\_on\_stream(\textcolor{keyword}{const}\ \mbox{\hyperlink{classclip_1_1image}{image}}\&\ \mbox{\hyperlink{classclip_1_1image}{image}},}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IStream*\ stream)\ \{}
+\DoxyCodeLine{00061\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structclip_1_1image__spec}{image\_spec}}\&\ spec\ =\ \mbox{\hyperlink{classclip_1_1image}{image}}.spec();}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr<IWICBitmapEncoder>}}\ encoder;}
+\DoxyCodeLine{00064\ \ \ HRESULT\ hr\ =\ CoCreateInstance(CLSID\_WICPngEncoder,}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ CLSCTX\_INPROC\_SERVER,}
+\DoxyCodeLine{00066\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IID\_PPV\_ARGS(\&encoder));}
+\DoxyCodeLine{00067\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ hr\ =\ encoder-\/>Initialize(stream,\ WICBitmapEncoderNoCache);}
+\DoxyCodeLine{00071\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr<IWICBitmapFrameEncode>}}\ frame;}
+\DoxyCodeLine{00075\ \ \ \mbox{\hyperlink{classclip_1_1win_1_1comptr}{comptr<IPropertyBag2>}}\ options;}
+\DoxyCodeLine{00076\ \ \ hr\ =\ encoder-\/>CreateNewFrame(\&frame,\ \&options);}
+\DoxyCodeLine{00077\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \ \ hr\ =\ frame-\/>Initialize(options.get());}
+\DoxyCodeLine{00081\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \textcolor{comment}{//\ PNG\ encoder\ (and\ decoder)\ only\ supports\ GUID\_WICPixelFormat32bppBGRA\ for\ 32bpp.}}
+\DoxyCodeLine{00085\ \ \ \textcolor{comment}{//\ See:\ https://docs.microsoft.com/en-\/us/windows/win32/wic/-\/wic-\/codec-\/native-\/pixel-\/formats\#png-\/native-\/codec}}
+\DoxyCodeLine{00086\ \ \ WICPixelFormatGUID\ pixelFormat\ =\ GUID\_WICPixelFormat32bppBGRA;}
+\DoxyCodeLine{00087\ \ \ hr\ =\ frame-\/>SetPixelFormat(\&pixelFormat);}
+\DoxyCodeLine{00088\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ hr\ =\ frame-\/>SetSize(spec.width,\ spec.height);}
+\DoxyCodeLine{00092\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ std::vector<uint32\_t>\ \mbox{\hyperlink{structbuf}{buf}};}
+\DoxyCodeLine{00096\ \ \ uint8\_t*\ ptr\ =\ (uint8\_t*)\mbox{\hyperlink{classclip_1_1image}{image}}.data();}
+\DoxyCodeLine{00097\ \ \ \textcolor{keywordtype}{int}\ bytes\_per\_row\ =\ spec.bytes\_per\_row;}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \textcolor{comment}{//\ Convert\ to\ GUID\_WICPixelFormat32bppBGRA\ if\ needed}}
+\DoxyCodeLine{00100\ \ \ \textcolor{keywordflow}{if}\ (spec.red\_mask\ !=\ 0xff0000\ ||}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ spec.green\_mask\ !=\ 0xff00\ ||}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ spec.blue\_mask\ !=\ 0xff\ ||}
+\DoxyCodeLine{00103\ \ \ \ \ \ \ spec.alpha\_mask\ !=\ 0xff000000)\ \{}
+\DoxyCodeLine{00104\ \ \ \ \ \mbox{\hyperlink{structbuf}{buf}}.resize(spec.width\ *\ spec.height);}
+\DoxyCodeLine{00105\ \ \ \ \ uint32\_t*\ dst\ =\ (uint32\_t*)\&\mbox{\hyperlink{structbuf}{buf}}[0];}
+\DoxyCodeLine{00106\ \ \ \ \ uint32\_t*\ src\ =\ (uint32\_t*)\mbox{\hyperlink{classclip_1_1image}{image}}.data();}
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ y=0;\ y<spec.height;\ ++y)\ \{}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ src\_line\_start\ =\ src;}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ x=0;\ x<spec.width;\ ++x)\ \{}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ uint32\_t\ c\ =\ *src;}
+\DoxyCodeLine{00111\ \ \ \ \ \ \ \ \ *dst\ =\ ((((c\ \&\ spec.red\_mask\ \ )\ >>\ spec.red\_shift\ \ )\ <<\ 16)\ |}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (((c\ \&\ spec.green\_mask)\ >>\ spec.green\_shift)\ <<\ \ 8)\ |}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (((c\ \&\ spec.blue\_mask\ )\ >>\ spec.blue\_shift\ )\ \ \ \ \ \ )\ |}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (((c\ \&\ spec.alpha\_mask)\ >>\ spec.alpha\_shift)\ <<\ 24));}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ ++dst;}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ ++src;}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00118\ \ \ \ \ \ \ src\ =\ (uint32\_t*)(((uint8\_t*)src\_line\_start)\ +\ spec.bytes\_per\_row);}
+\DoxyCodeLine{00119\ \ \ \ \ \}}
+\DoxyCodeLine{00120\ \ \ \ \ ptr\ =\ (uint8\_t*)\&\mbox{\hyperlink{structbuf}{buf}}[0];}
+\DoxyCodeLine{00121\ \ \ \ \ bytes\_per\_row\ =\ 4\ *\ spec.width;}
+\DoxyCodeLine{00122\ \ \ \}}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \ \ hr\ =\ frame-\/>WritePixels(spec.height,}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bytes\_per\_row,}
+\DoxyCodeLine{00126\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bytes\_per\_row\ *\ spec.height,}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (BYTE*)ptr);}
+\DoxyCodeLine{00128\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \ \ hr\ =\ frame-\/>Commit();}
+\DoxyCodeLine{00132\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \ \ hr\ =\ encoder-\/>Commit();}
+\DoxyCodeLine{00136\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00140\ \}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ HGLOBAL\ write\_png(\textcolor{keyword}{const}\ image\&\ image)\ \{}
+\DoxyCodeLine{00143\ \ \ coinit\ com;}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ comptr<IStream>\ stream;}
+\DoxyCodeLine{00146\ \ \ HRESULT\ hr\ =\ CreateStreamOnHGlobal(\textcolor{keyword}{nullptr},\ \textcolor{keyword}{false},\ \&stream);}
+\DoxyCodeLine{00147\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00148\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \textcolor{keywordtype}{bool}\ result\ =\ write\_png\_on\_stream(image,\ stream.get());}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ HGLOBAL\ handle;}
+\DoxyCodeLine{00153\ \ \ hr\ =\ GetHGlobalFromStream(stream.get(),\ \&handle);}
+\DoxyCodeLine{00154\ \ \ \textcolor{keywordflow}{if}\ (result)}
+\DoxyCodeLine{00155\ \ \ \ \ \textcolor{keywordflow}{return}\ handle;}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ \ \ GlobalFree(handle);}
+\DoxyCodeLine{00158\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00159\ \}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00162\ \textcolor{comment}{//\ Decode\ the\ clipboard\ data\ from\ PNG\ format}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{keywordtype}{bool}\ read\_png(\textcolor{keyword}{const}\ uint8\_t*\ \mbox{\hyperlink{structbuf}{buf}},}
+\DoxyCodeLine{00165\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ UINT\ len,}
+\DoxyCodeLine{00166\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image*\ output\_image,}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image\_spec*\ output\_spec)\ \{}
+\DoxyCodeLine{00168\ \ \ coinit\ com;}
+\DoxyCodeLine{00169\ }
+\DoxyCodeLine{00170\ \ \ comptr<IStream>\ stream(SHCreateMemStream(\mbox{\hyperlink{structbuf}{buf}},\ len));}
+\DoxyCodeLine{00171\ \ \ \textcolor{keywordflow}{if}\ (!stream)}
+\DoxyCodeLine{00172\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \ \ comptr<IWICBitmapDecoder>\ decoder;}
+\DoxyCodeLine{00175\ \ \ HRESULT\ hr\ =\ CoCreateInstance(CLSID\_WICPngDecoder2,}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ CLSCTX\_INPROC\_SERVER,}
+\DoxyCodeLine{00177\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IID\_PPV\_ARGS(\&decoder));}
+\DoxyCodeLine{00178\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))\ \{}
+\DoxyCodeLine{00179\ \ \ \ \ hr\ =\ CoCreateInstance(CLSID\_WICPngDecoder1,}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ CLSCTX\_INPROC\_SERVER,}
+\DoxyCodeLine{00181\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ IID\_PPV\_ARGS(\&decoder));}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00184\ \ \ \}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \ \ \textcolor{comment}{//\ Can\ decoder\ be\ nullptr\ if\ hr\ is\ S\_OK/successful?\ We've\ received}}
+\DoxyCodeLine{00187\ \ \ \textcolor{comment}{//\ some\ crash\ reports\ that\ might\ indicate\ this.}}
+\DoxyCodeLine{00188\ \ \ \textcolor{keywordflow}{if}\ (!decoder)}
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ hr\ =\ decoder-\/>Initialize(stream.get(),\ WICDecodeMetadataCacheOnDemand);}
+\DoxyCodeLine{00192\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00193\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ comptr<IWICBitmapFrameDecode>\ frame;}
+\DoxyCodeLine{00196\ \ \ hr\ =\ decoder-\/>GetFrame(0,\ \&frame);}
+\DoxyCodeLine{00197\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00198\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ WICPixelFormatGUID\ pixelFormat;}
+\DoxyCodeLine{00201\ \ \ hr\ =\ frame-\/>GetPixelFormat(\&pixelFormat);}
+\DoxyCodeLine{00202\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00203\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \textcolor{comment}{//\ Only\ support\ this\ pixel\ format}}
+\DoxyCodeLine{00206\ \ \ \textcolor{comment}{//\ TODO\ add\ support\ for\ more\ pixel\ formats}}
+\DoxyCodeLine{00207\ \ \ \textcolor{keywordflow}{if}\ (pixelFormat\ !=\ GUID\_WICPixelFormat32bppBGRA)}
+\DoxyCodeLine{00208\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ UINT\ width\ =\ 0,\ height\ =\ 0;}
+\DoxyCodeLine{00211\ \ \ hr\ =\ frame-\/>GetSize(\&width,\ \&height);}
+\DoxyCodeLine{00212\ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))}
+\DoxyCodeLine{00213\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ image\_spec\ spec;}
+\DoxyCodeLine{00216\ \ \ spec.width\ =\ width;}
+\DoxyCodeLine{00217\ \ \ spec.height\ =\ height;}
+\DoxyCodeLine{00218\ \ \ spec.bits\_per\_pixel\ =\ 32;}
+\DoxyCodeLine{00219\ \ \ spec.bytes\_per\_row\ =\ 4\ *\ width;}
+\DoxyCodeLine{00220\ \ \ spec.red\_mask\ \ \ \ =\ 0xff0000;}
+\DoxyCodeLine{00221\ \ \ spec.green\_mask\ \ =\ 0xff00;}
+\DoxyCodeLine{00222\ \ \ spec.blue\_mask\ \ \ =\ 0xff;}
+\DoxyCodeLine{00223\ \ \ spec.alpha\_mask\ \ =\ 0xff000000;}
+\DoxyCodeLine{00224\ \ \ spec.red\_shift\ \ \ =\ 16;}
+\DoxyCodeLine{00225\ \ \ spec.green\_shift\ =\ 8;}
+\DoxyCodeLine{00226\ \ \ spec.blue\_shift\ \ =\ 0;}
+\DoxyCodeLine{00227\ \ \ spec.alpha\_shift\ =\ 24;}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \textcolor{keywordflow}{if}\ (output\_spec)}
+\DoxyCodeLine{00230\ \ \ \ \ *output\_spec\ =\ spec;}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \textcolor{keywordflow}{if}\ (output\_image)\ \{}
+\DoxyCodeLine{00233\ \ \ \ \ image\ img(spec);}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \ \ \ \ hr\ =\ frame-\/>CopyPixels(}
+\DoxyCodeLine{00236\ \ \ \ \ \ \ \textcolor{keyword}{nullptr},\ \textcolor{comment}{//\ Entire\ bitmap}}
+\DoxyCodeLine{00237\ \ \ \ \ \ \ spec.bytes\_per\_row,}
+\DoxyCodeLine{00238\ \ \ \ \ \ \ spec.bytes\_per\_row\ *\ spec.height,}
+\DoxyCodeLine{00239\ \ \ \ \ \ \ (BYTE*)img.data());}
+\DoxyCodeLine{00240\ \ \ \ \ \textcolor{keywordflow}{if}\ (FAILED(hr))\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00242\ \ \ \ \ \}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \ \ std::swap(*output\_image,\ img);}
+\DoxyCodeLine{00245\ \ \ \}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00248\ \}}
+\DoxyCodeLine{00249\ }
+\DoxyCodeLine{00250\ \}\ \textcolor{comment}{//\ namespace\ win}}
+\DoxyCodeLine{00251\ \}\ \textcolor{comment}{//\ namespace\ clip}}
+
+\end{DoxyCode}

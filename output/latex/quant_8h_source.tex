@@ -1,0 +1,91 @@
+\hypertarget{quant_8h_source}{}\doxysection{quant.\+h}
+\label{quant_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dsp/quant.h@{AseSprite/aseprite/third\_party/libwebp/src/dsp/quant.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2018\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DSP\_QUANT\_H\_}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#define\ WEBP\_DSP\_QUANT\_H\_}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}src/dsp/dsp.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}src/webp/types.h"{}}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#if\ defined(WEBP\_USE\_NEON)\ \&\&\ !defined(WEBP\_ANDROID\_NEON)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\ \ \ \ !defined(WEBP\_HAVE\_NEON\_RTCD)}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <arm\_neon.h>}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ IsFlat\ IsFlat\_NEON}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{static}\ uint32x2\_t\ horizontal\_add\_uint32x4(\textcolor{keyword}{const}\ uint32x4\_t\ \mbox{\hyperlink{structa}{a}})\ \{}
+\DoxyCodeLine{00025\ \ \ \textcolor{keyword}{const}\ uint64x2\_t\ b\ =\ vpaddlq\_u32(\mbox{\hyperlink{structa}{a}});}
+\DoxyCodeLine{00026\ \ \ \textcolor{keywordflow}{return}\ vadd\_u32(vreinterpret\_u32\_u64(vget\_low\_u64(b)),}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ vreinterpret\_u32\_u64(vget\_high\_u64(b)));}
+\DoxyCodeLine{00028\ \}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ IsFlat(\textcolor{keyword}{const}\ int16\_t*\ levels,\ \textcolor{keywordtype}{int}\ num\_blocks,}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ thresh)\ \{}
+\DoxyCodeLine{00032\ \ \ \textcolor{keyword}{const}\ int16x8\_t\ tst\_ones\ =\ vdupq\_n\_s16(-\/1);}
+\DoxyCodeLine{00033\ \ \ uint32x4\_t\ sum\ =\ vdupq\_n\_u32(0);}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ num\_blocks;\ ++i)\ \{}
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{comment}{//\ Set\ DC\ to\ zero.}}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{const}\ int16x8\_t\ a\_0\ =\ vsetq\_lane\_s16(0,\ vld1q\_s16(levels),\ 0);}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keyword}{const}\ int16x8\_t\ a\_1\ =\ vld1q\_s16(levels\ +\ 8);}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{const}\ uint16x8\_t\ b\_0\ =\ vshrq\_n\_u16(vtstq\_s16(a\_0,\ tst\_ones),\ 15);}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{const}\ uint16x8\_t\ b\_1\ =\ vshrq\_n\_u16(vtstq\_s16(a\_1,\ tst\_ones),\ 15);}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \ \ \ \ sum\ =\ vpadalq\_u16(sum,\ b\_0);}
+\DoxyCodeLine{00044\ \ \ \ \ sum\ =\ vpadalq\_u16(sum,\ b\_1);}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ levels\ +=\ 16;}
+\DoxyCodeLine{00047\ \ \ \}}
+\DoxyCodeLine{00048\ \ \ \textcolor{keywordflow}{return}\ thresh\ >=\ (int32\_t)vget\_lane\_u32(horizontal\_add\_uint32x4(sum),\ 0);}
+\DoxyCodeLine{00049\ \}}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#define\ IsFlat\ IsFlat\_C}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ IsFlat(\textcolor{keyword}{const}\ int16\_t*\ levels,\ \textcolor{keywordtype}{int}\ num\_blocks,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ thresh)\ \{}
+\DoxyCodeLine{00057\ \ \ \textcolor{keywordtype}{int}\ score\ =\ 0;}
+\DoxyCodeLine{00058\ \ \ \textcolor{keywordflow}{while}\ (num\_blocks-\/-\/\ >\ 0)\ \{\ \ \ \ \ \ \textcolor{comment}{//\ TODO(skal):\ refine\ positional\ scoring?}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 1;\ i\ <\ 16;\ ++i)\ \{\ \ \ \ \textcolor{comment}{//\ omit\ DC,\ we're\ only\ interested\ in\ AC}}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ score\ +=\ (levels[i]\ !=\ 0);}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (score\ >\ thresh)\ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00063\ \ \ \ \ \}}
+\DoxyCodeLine{00064\ \ \ \ \ levels\ +=\ 16;}
+\DoxyCodeLine{00065\ \ \ \}}
+\DoxyCodeLine{00066\ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00067\ \}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ defined(WEBP\_USE\_NEON)\ \&\&\ !defined(WEBP\_ANDROID\_NEON)\ \&\&}}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ !defined(WEBP\_HAVE\_NEON\_RTCD)}}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ IsFlatSource16(\textcolor{keyword}{const}\ uint8\_t*\ src)\ \{}
+\DoxyCodeLine{00073\ \ \ \textcolor{keyword}{const}\ uint32\_t\ v\ =\ src[0]\ *\ 0x01010101u;}
+\DoxyCodeLine{00074\ \ \ \textcolor{keywordtype}{int}\ i;}
+\DoxyCodeLine{00075\ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 0;\ i\ <\ 16;\ ++i)\ \{}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordflow}{if}\ (memcmp(src\ +\ 0,\ \&v,\ 4)\ ||\ memcmp(src\ +\ \ 4,\ \&v,\ 4)\ ||}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ memcmp(src\ +\ 8,\ \&v,\ 4)\ ||\ memcmp(src\ +\ 12,\ \&v,\ 4))\ \{}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{00079\ \ \ \ \ \}}
+\DoxyCodeLine{00080\ \ \ \ \ src\ +=\ BPS;}
+\DoxyCodeLine{00081\ \ \ \}}
+\DoxyCodeLine{00082\ \ \ \textcolor{keywordflow}{return}\ 1;}
+\DoxyCodeLine{00083\ \}}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DSP\_QUANT\_H\_}}
+
+\end{DoxyCode}

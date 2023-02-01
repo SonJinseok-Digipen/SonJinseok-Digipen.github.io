@@ -1,0 +1,162 @@
+\hypertarget{curl__memory_8h_source}{}\doxysection{curl\+\_\+memory.\+h}
+\label{curl__memory_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/curl\_memory.h@{AseSprite/aseprite/third\_party/curl/lib/curl\_memory.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_MEMORY\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_MEMORY\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1998\ -\/\ 2020,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Nasty\ internal\ details\ ahead...}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *\ File\ curl\_memory.h\ must\ be\ included\ by\ \_all\_\ *.c\ source\ files}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ that\ use\ memory\ related\ functions\ strdup,\ malloc,\ calloc,\ realloc}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ *\ or\ free,\ and\ given\ source\ file\ is\ used\ to\ build\ libcurl\ library.}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ *\ It\ should\ be\ included\ immediately\ before\ memdebug.h\ as\ the\ last\ files}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ *\ included\ to\ avoid\ undesired\ interaction\ with\ other\ memory\ function}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ *\ headers\ in\ dependent\ libraries.}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ *\ There\ is\ nearly\ no\ exception\ to\ above\ rule.\ All\ libcurl\ source}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ files\ in\ 'lib'\ subdirectory\ as\ well\ as\ those\ living\ deep\ inside}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ 'packages'\ subdirectories\ and\ linked\ together\ in\ order\ to\ build}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ libcurl\ library\ shall\ follow\ it.}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ File\ lib/strdup.c\ is\ an\ exception,\ given\ that\ it\ provides\ a\ strdup}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ clone\ implementation\ while\ using\ malloc.\ Extra\ care\ needed\ inside}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ this\ one.}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ The\ need\ for\ curl\_memory.h\ inclusion\ is\ due\ to\ libcurl's\ feature}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ of\ allowing\ library\ user\ to\ provide\ memory\ replacement\ functions,}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ memory\ callbacks,\ at\ runtime\ with\ curl\_global\_init\_mem()}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ Any\ *.c\ source\ file\ used\ to\ build\ libcurl\ library\ that\ does\ not}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ include\ curl\_memory.h\ and\ uses\ any\ memory\ function\ of\ the\ five}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ mentioned\ above\ will\ compile\ without\ any\ indication,\ but\ it\ will}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ trigger\ weird\ memory\ related\ issues\ at\ runtime.}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ OTOH\ some\ source\ files\ from\ 'lib'\ subdirectory\ may\ additionally\ be}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *\ used\ directly\ as\ source\ code\ when\ using\ some\ curlx\_\ functions\ by}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *\ third\ party\ programs\ that\ don't\ even\ use\ libcurl\ at\ all.\ When\ using}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *\ these\ source\ files\ in\ this\ way\ it\ is\ necessary\ these\ are\ compiled}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ *\ with\ CURLX\_NO\_MEMORY\_CALLBACKS\ defined,\ in\ order\ to\ ensure\ that\ no}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ *\ attempt\ of\ calling\ libcurl's\ memory\ callbacks\ is\ done\ from\ code}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ which\ can\ not\ use\ this\ machinery.}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ *\ Notice\ that\ libcurl's\ 'memory\ tracking'\ system\ works\ chaining\ into}}
+\DoxyCodeLine{00062\ \textcolor{comment}{\ *\ the\ memory\ callback\ machinery.\ This\ implies\ that\ when\ compiling}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ *\ 'lib'\ source\ files\ with\ CURLX\_NO\_MEMORY\_CALLBACKS\ defined\ this\ file}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ *\ disengages\ usage\ of\ libcurl's\ 'memory\ tracking'\ system,\ defining}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ *\ MEMDEBUG\_NODEFINES\ and\ overriding\ CURLDEBUG\ purpose.}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ *\ CURLX\_NO\_MEMORY\_CALLBACKS\ takes\ precedence\ over\ CURLDEBUG.\ This\ is}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ *\ done\ in\ order\ to\ allow\ building\ a\ 'memory\ tracking'\ enabled\ libcurl}}
+\DoxyCodeLine{00069\ \textcolor{comment}{\ *\ and\ at\ the\ same\ time\ allow\ building\ programs\ which\ do\ not\ use\ it.}}
+\DoxyCodeLine{00070\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00071\ \textcolor{comment}{\ *\ Programs\ and\ libraries\ in\ 'tests'\ subdirectories\ have\ specific}}
+\DoxyCodeLine{00072\ \textcolor{comment}{\ *\ purposes\ and\ needs,\ and\ as\ such\ each\ one\ will\ use\ whatever\ fits}}
+\DoxyCodeLine{00073\ \textcolor{comment}{\ *\ best,\ depending\ additionally\ whether\ it\ links\ with\ libcurl\ or\ not.}}
+\DoxyCodeLine{00074\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00075\ \textcolor{comment}{\ *\ Caveat\ emptor.\ Proper\ curlx\_*\ separation\ is\ a\ work\ in\ progress}}
+\DoxyCodeLine{00076\ \textcolor{comment}{\ *\ the\ same\ as\ CURLX\_NO\_MEMORY\_CALLBACKS\ usage,\ some\ adjustments\ may}}
+\DoxyCodeLine{00077\ \textcolor{comment}{\ *\ still\ be\ required.\ IOW\ don't\ use\ them\ yet,\ there\ are\ sharp\ edges.}}
+\DoxyCodeLine{00078\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#ifdef\ HEADER\_CURL\_MEMDEBUG\_H}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#error\ "{}Header\ memdebug.h\ shall\ not\ be\ included\ before\ curl\_memory.h"{}}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#ifndef\ CURLX\_NO\_MEMORY\_CALLBACKS}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\#ifndef\ CURL\_DID\_MEMORY\_FUNC\_TYPEDEFS\ }\textcolor{comment}{/*\ only\ if\ not\ already\ done\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00087\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ *\ The\ following\ memory\ function\ replacement\ typedef's\ are\ COPIED\ from}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ *\ curl/curl.h\ and\ MUST\ match\ the\ originals.\ We\ copy\ them\ to\ avoid\ having\ to}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ *\ include\ curl/curl.h\ here.\ We\ avoid\ that\ include\ since\ it\ includes\ stdio.h}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ *\ and\ other\ headers\ that\ may\ get\ messed\ up\ with\ defines\ done\ here.}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00093\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{void}\ *(*curl\_malloc\_callback)(\textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00094\ \textcolor{keyword}{typedef}\ void\ (*curl\_free\_callback)(\textcolor{keywordtype}{void}\ *ptr);}
+\DoxyCodeLine{00095\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{void}\ *(*curl\_realloc\_callback)(\textcolor{keywordtype}{void}\ *ptr,\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00096\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{char}\ *(*curl\_strdup\_callback)(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *str);}
+\DoxyCodeLine{00097\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{void}\ *(*curl\_calloc\_callback)(\textcolor{keywordtype}{size\_t}\ nmemb,\ \textcolor{keywordtype}{size\_t}\ size);}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#define\ CURL\_DID\_MEMORY\_FUNC\_TYPEDEFS}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \textcolor{keyword}{extern}\ curl\_malloc\_callback\ Curl\_cmalloc;}
+\DoxyCodeLine{00102\ \textcolor{keyword}{extern}\ curl\_free\_callback\ Curl\_cfree;}
+\DoxyCodeLine{00103\ \textcolor{keyword}{extern}\ curl\_realloc\_callback\ Curl\_crealloc;}
+\DoxyCodeLine{00104\ \textcolor{keyword}{extern}\ curl\_strdup\_callback\ Curl\_cstrdup;}
+\DoxyCodeLine{00105\ \textcolor{keyword}{extern}\ curl\_calloc\_callback\ Curl\_ccalloc;}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#if\ defined(WIN32)\ \&\&\ defined(UNICODE)}}
+\DoxyCodeLine{00107\ \textcolor{keyword}{extern}\ curl\_wcsdup\_callback\ Curl\_cwcsdup;}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#ifndef\ CURLDEBUG}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ *\ libcurl's\ 'memory\ tracking'\ system\ defines\ strdup,\ malloc,\ calloc,}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ *\ realloc\ and\ free,\ along\ with\ others,\ in\ memdebug.h\ in\ a\ different}}
+\DoxyCodeLine{00115\ \textcolor{comment}{\ *\ way\ although\ still\ using\ memory\ callbacks\ forward\ declared\ above.}}
+\DoxyCodeLine{00116\ \textcolor{comment}{\ *\ When\ using\ the\ 'memory\ tracking'\ system\ (CURLDEBUG\ defined)\ we\ do}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ *\ not\ define\ here\ the\ five\ memory\ functions\ given\ that\ definitions}}
+\DoxyCodeLine{00118\ \textcolor{comment}{\ *\ from\ memdebug.h\ are\ the\ ones\ that\ shall\ be\ used.}}
+\DoxyCodeLine{00119\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#undef\ strdup}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#define\ strdup(ptr)\ Curl\_cstrdup(ptr)}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#undef\ malloc}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#define\ malloc(size)\ Curl\_cmalloc(size)}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#undef\ calloc}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#define\ calloc(nbelem,size)\ Curl\_ccalloc(nbelem,\ size)}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#undef\ realloc}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#define\ realloc(ptr,size)\ Curl\_crealloc(ptr,\ size)}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#undef\ free}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#define\ free(ptr)\ Curl\_cfree(ptr)}}
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#ifdef\ WIN32}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#\ \ ifdef\ UNICODE}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#\ \ \ \ undef\ wcsdup}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#\ \ \ \ define\ wcsdup(ptr)\ Curl\_cwcsdup(ptr)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\#\ \ \ \ undef\ \_wcsdup}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#\ \ \ \ define\ \_wcsdup(ptr)\ Curl\_cwcsdup(ptr)}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#\ \ \ \ undef\ \_tcsdup}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#\ \ \ \ define\ \_tcsdup(ptr)\ Curl\_cwcsdup(ptr)}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#\ \ else}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#\ \ \ \ undef\ \_tcsdup}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#\ \ \ \ define\ \_tcsdup(ptr)\ Curl\_cstrdup(ptr)}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#\ \ endif}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ CURLDEBUG\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\#else\ }\textcolor{comment}{/*\ CURLX\_NO\_MEMORY\_CALLBACKS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\#ifndef\ MEMDEBUG\_NODEFINES}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\#define\ MEMDEBUG\_NODEFINES}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ CURLX\_NO\_MEMORY\_CALLBACKS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_MEMORY\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

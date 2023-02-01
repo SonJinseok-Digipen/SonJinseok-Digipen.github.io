@@ -1,0 +1,633 @@
+\hypertarget{hb-buffer_8hh_source}{}\doxysection{hb-\/buffer.hh}
+\label{hb-buffer_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/buffer.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/buffer.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 1998-\/2004\ \ David\ Turner\ and\ Werner\ Lemberg}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2004,2007,2009,2010\ \ Red\ Hat,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ Copyright\ ©\ 2011,2012\ \ Google,\ Inc.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Red\ Hat\ Author(s):\ Owen\ Taylor,\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#ifndef\ HB\_BUFFER\_HH}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_HH}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb-\/unicode.hh"{}}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#ifndef\ HB\_BUFFER\_MAX\_LEN\_FACTOR}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_MAX\_LEN\_FACTOR\ 64}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#ifndef\ HB\_BUFFER\_MAX\_LEN\_MIN}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_MAX\_LEN\_MIN\ 16384}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#ifndef\ HB\_BUFFER\_MAX\_LEN\_DEFAULT}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_MAX\_LEN\_DEFAULT\ 0x3FFFFFFF\ }\textcolor{comment}{/*\ Shaping\ more\ than\ a\ billion\ chars?\ Let\ us\ know!\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#ifndef\ HB\_BUFFER\_MAX\_OPS\_FACTOR}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_MAX\_OPS\_FACTOR\ 1024}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#ifndef\ HB\_BUFFER\_MAX\_OPS\_MIN}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_MAX\_OPS\_MIN\ 16384}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#ifndef\ HB\_BUFFER\_MAX\_OPS\_DEFAULT}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_MAX\_OPS\_DEFAULT\ 0x1FFFFFFF\ }\textcolor{comment}{/*\ Shaping\ more\ than\ a\ billion\ operations?\ Let\ us\ know!\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \textcolor{keyword}{static\_assert}\ ((\textcolor{keyword}{sizeof}\ (\mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}})\ ==\ 20),\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00058\ \textcolor{keyword}{static\_assert}\ ((\textcolor{keyword}{sizeof}\ (\mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}})\ ==\ \textcolor{keyword}{sizeof}\ (\mbox{\hyperlink{structhb__glyph__position__t}{hb\_glyph\_position\_t}})),\ \textcolor{stringliteral}{"{}"{}});}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ HB\_MARK\_AS\_FLAG\_T\ (hb\_buffer\_flags\_t);}
+\DoxyCodeLine{00061\ HB\_MARK\_AS\_FLAG\_T\ (hb\_buffer\_serialize\_flags\_t);}
+\DoxyCodeLine{00062\ HB\_MARK\_AS\_FLAG\_T\ (hb\_buffer\_diff\_flags\_t);}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{keyword}{enum}\ hb\_buffer\_scratch\_flags\_t\ \{}
+\DoxyCodeLine{00065\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_DEFAULT\ \ \ \ \ \ \ \ \ \ \ \ =\ 0x00000000u,}
+\DoxyCodeLine{00066\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_NON\_ASCII\ \ \ \ \ \ \ \ \ \ =\ 0x00000001u,}
+\DoxyCodeLine{00067\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_DEFAULT\_IGNORABLES\ \ \ \ \ =\ 0x00000002u,}
+\DoxyCodeLine{00068\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_SPACE\_FALLBACK\ \ \ \ \ =\ 0x00000004u,}
+\DoxyCodeLine{00069\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_GPOS\_ATTACHMENT\ \ \ \ \ \ \ \ =\ 0x00000008u,}
+\DoxyCodeLine{00070\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_CGJ\ \ \ \ \ \ \ \ \ \ \ \ =\ 0x00000010u,}
+\DoxyCodeLine{00071\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_GLYPH\_FLAGS\ \ \ \ \ \ \ \ =\ 0x00000020u,}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \textcolor{comment}{/*\ Reserved\ for\ complex\ shapers'\ internal\ use.\ */}}
+\DoxyCodeLine{00074\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_COMPLEX0\ \ \ \ \ \ \ \ \ \ \ =\ 0x01000000u,}
+\DoxyCodeLine{00075\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_COMPLEX1\ \ \ \ \ \ \ \ \ \ \ =\ 0x02000000u,}
+\DoxyCodeLine{00076\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_COMPLEX2\ \ \ \ \ \ \ \ \ \ \ =\ 0x04000000u,}
+\DoxyCodeLine{00077\ \ \ HB\_BUFFER\_SCRATCH\_FLAG\_COMPLEX3\ \ \ \ \ \ \ \ \ \ \ =\ 0x08000000u,}
+\DoxyCodeLine{00078\ \};}
+\DoxyCodeLine{00079\ HB\_MARK\_AS\_FLAG\_T\ (hb\_buffer\_scratch\_flags\_t);}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ *\ hb\_buffer\_t}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}}
+\DoxyCodeLine{00087\ \{}
+\DoxyCodeLine{00088\ \ \ \mbox{\hyperlink{structhb__object__header__t}{hb\_object\_header\_t}}\ header;}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ *\ Information\ about\ how\ the\ text\ in\ the\ buffer\ should\ be\ treated.}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \mbox{\hyperlink{structhb__unicode__funcs__t}{hb\_unicode\_funcs\_t}}\ *unicode;\ \textcolor{comment}{/*\ Unicode\ functions\ */}}
+\DoxyCodeLine{00095\ \ \ hb\_buffer\_flags\_t\ flags;\ \textcolor{comment}{/*\ BOT\ /\ EOT\ /\ etc.\ */}}
+\DoxyCodeLine{00096\ \ \ hb\_buffer\_cluster\_level\_t\ cluster\_level;}
+\DoxyCodeLine{00097\ \ \ hb\_codepoint\_t\ replacement;\ \textcolor{comment}{/*\ U+FFFD\ or\ something\ else.\ */}}
+\DoxyCodeLine{00098\ \ \ hb\_codepoint\_t\ invisible;\ \textcolor{comment}{/*\ 0\ or\ something\ else.\ */}}
+\DoxyCodeLine{00099\ \ \ hb\_codepoint\_t\ not\_found;\ \textcolor{comment}{/*\ 0\ or\ something\ else.\ */}}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ *\ Buffer\ contents}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00104\ }
+\DoxyCodeLine{00105\ \ \ hb\_buffer\_content\_type\_t\ content\_type;}
+\DoxyCodeLine{00106\ \ \ \mbox{\hyperlink{structhb__segment__properties__t}{hb\_segment\_properties\_t}}\ props;\ \textcolor{comment}{/*\ Script,\ language,\ direction\ */}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \textcolor{keywordtype}{bool}\ successful;\ \textcolor{comment}{/*\ Allocations\ successful\ */}}
+\DoxyCodeLine{00109\ \ \ \textcolor{keywordtype}{bool}\ have\_output;\ \textcolor{comment}{/*\ Whether\ we\ have\ an\ output\ buffer\ going\ on\ */}}
+\DoxyCodeLine{00110\ \ \ \textcolor{keywordtype}{bool}\ have\_positions;\ \textcolor{comment}{/*\ Whether\ we\ have\ positions\ */}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ idx;\ \textcolor{comment}{/*\ Cursor\ into\ -\/>info\ and\ -\/>pos\ arrays\ */}}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ len;\ \textcolor{comment}{/*\ Length\ of\ -\/>info\ and\ -\/>pos\ arrays\ */}}
+\DoxyCodeLine{00114\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ out\_len;\ \textcolor{comment}{/*\ Length\ of\ -\/>out\_info\ array\ if\ have\_output\ */}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ allocated;\ \textcolor{comment}{/*\ Length\ of\ allocated\ arrays\ */}}
+\DoxyCodeLine{00117\ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \ \ \ \ *info;}
+\DoxyCodeLine{00118\ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \ \ \ \ *out\_info;}
+\DoxyCodeLine{00119\ \ \ \mbox{\hyperlink{structhb__glyph__position__t}{hb\_glyph\_position\_t}}\ *pos;}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \textcolor{comment}{/*\ Text\ before\ /\ after\ the\ main\ buffer\ contents.}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ \ \ *\ Always\ in\ Unicode,\ and\ ordered\ outward.}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ \ \ *\ Index\ 0\ is\ for\ "{}pre-\/context"{},\ 1\ for\ "{}post-\/context"{}.\ */}}
+\DoxyCodeLine{00124\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ CONTEXT\_LENGTH\ =\ 5u;}
+\DoxyCodeLine{00125\ \ \ hb\_codepoint\_t\ context[2][CONTEXT\_LENGTH];}
+\DoxyCodeLine{00126\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ context\_len[2];}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00130\ \textcolor{comment}{\ \ \ *\ Managed\ by\ enter\ /\ leave}}
+\DoxyCodeLine{00131\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#ifndef\ HB\_NDEBUG}}
+\DoxyCodeLine{00134\ \ \ uint8\_t\ allocated\_var\_bits;}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00136\ \ \ uint8\_t\ serial;}
+\DoxyCodeLine{00137\ \ \ hb\_buffer\_scratch\_flags\_t\ scratch\_flags;\ \textcolor{comment}{/*\ Have\ space-\/fallback,\ etc.\ */}}
+\DoxyCodeLine{00138\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ max\_len;\ \textcolor{comment}{/*\ Maximum\ allowed\ len.\ */}}
+\DoxyCodeLine{00139\ \ \ \textcolor{keywordtype}{int}\ max\_ops;\ \textcolor{comment}{/*\ Maximum\ allowed\ operations.\ */}}
+\DoxyCodeLine{00140\ \ \ \textcolor{comment}{/*\ The\ bits\ here\ reflect\ current\ allocations\ of\ the\ bytes\ in\ glyph\_info\_t's\ var1\ and\ var2.\ */}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ \ \ *\ Messaging\ callback}}
+\DoxyCodeLine{00145\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_BUFFER\_MESSAGE}}
+\DoxyCodeLine{00148\ \ \ hb\_buffer\_message\_func\_t\ message\_func;}
+\DoxyCodeLine{00149\ \ \ \textcolor{keywordtype}{void}\ *message\_data;}
+\DoxyCodeLine{00150\ \ \ hb\_destroy\_func\_t\ message\_destroy;}
+\DoxyCodeLine{00151\ \ \ \textcolor{keywordtype}{unsigned}\ message\_depth;\ \textcolor{comment}{/*\ How\ deeply\ are\ we\ inside\ a\ message\ callback?\ */}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ message\_depth\ =\ 0u;}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \ \ \textcolor{comment}{/*\ Methods\ */}}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00160\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ in\_error\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !successful;\ \}}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \ \ \textcolor{keywordtype}{void}\ allocate\_var\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count)}
+\DoxyCodeLine{00163\ \ \ \{}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#ifndef\ HB\_NDEBUG}}
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ start\ +\ count;}
+\DoxyCodeLine{00166\ \ \ \ \ assert\ (end\ <=\ 8);}
+\DoxyCodeLine{00167\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ bits\ =\ (1u<<end)\ -\/\ (1u<<start);}
+\DoxyCodeLine{00168\ \ \ \ \ assert\ (0\ ==\ (allocated\_var\_bits\ \&\ bits));}
+\DoxyCodeLine{00169\ \ \ \ \ allocated\_var\_bits\ |=\ bits;}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00171\ \ \ \}}
+\DoxyCodeLine{00172\ \ \ \textcolor{keywordtype}{void}\ deallocate\_var\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count)}
+\DoxyCodeLine{00173\ \ \ \{}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#ifndef\ HB\_NDEBUG}}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ start\ +\ count;}
+\DoxyCodeLine{00176\ \ \ \ \ assert\ (end\ <=\ 8);}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ bits\ =\ (1u<<end)\ -\/\ (1u<<start);}
+\DoxyCodeLine{00178\ \ \ \ \ assert\ (bits\ ==\ (allocated\_var\_bits\ \&\ bits));}
+\DoxyCodeLine{00179\ \ \ \ \ allocated\_var\_bits\ \&=\ \string~bits;}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00181\ \ \ \}}
+\DoxyCodeLine{00182\ \ \ \textcolor{keywordtype}{void}\ assert\_var\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count)}
+\DoxyCodeLine{00183\ \ \ \{}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\#ifndef\ HB\_NDEBUG}}
+\DoxyCodeLine{00185\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ start\ +\ count;}
+\DoxyCodeLine{00186\ \ \ \ \ assert\ (end\ <=\ 8);}
+\DoxyCodeLine{00187\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ bits\ =\ (1u<<end)\ -\/\ (1u<<start);}
+\DoxyCodeLine{00188\ \ \ \ \ assert\ (bits\ ==\ (allocated\_var\_bits\ \&\ bits));}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00190\ \ \ \}}
+\DoxyCodeLine{00191\ \ \ \textcolor{keywordtype}{void}\ deallocate\_var\_all\ ()}
+\DoxyCodeLine{00192\ \ \ \{}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#ifndef\ HB\_NDEBUG}}
+\DoxyCodeLine{00194\ \ \ \ \ allocated\_var\_bits\ =\ 0;}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00196\ \ \ \}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&cur\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0)\ \{\ \textcolor{keywordflow}{return}\ info[idx\ +\ i];\ \}}
+\DoxyCodeLine{00199\ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ cur\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ info[idx\ +\ i];\ \}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \ \ \mbox{\hyperlink{structhb__glyph__position__t}{hb\_glyph\_position\_t}}\ \&cur\_pos\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0)\ \{\ \textcolor{keywordflow}{return}\ pos[idx\ +\ i];\ \}}
+\DoxyCodeLine{00202\ \ \ \mbox{\hyperlink{structhb__glyph__position__t}{hb\_glyph\_position\_t}}\ cur\_pos\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ pos[idx\ +\ i];\ \}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&prev\ ()\ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ out\_info[out\_len\ ?\ out\_len\ -\/\ 1\ :\ 0];\ \}}
+\DoxyCodeLine{00205\ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ prev\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ out\_info[out\_len\ ?\ out\_len\ -\/\ 1\ :\ 0];\ \}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ similar\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ \&src);}
+\DoxyCodeLine{00208\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ reset\ ();}
+\DoxyCodeLine{00209\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ clear\ ();}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \textcolor{comment}{/*\ Called\ around\ shape()\ */}}
+\DoxyCodeLine{00212\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ enter\ ();}
+\DoxyCodeLine{00213\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ leave\ ();}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_BUFFER\_VERIFY}}
+\DoxyCodeLine{00216\ \ \ HB\_INTERNAL}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00218\ \ \ \textcolor{keywordtype}{bool}\ verify\ (\mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}}\ \ \ \ \ \ \ \ *text\_buffer,}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ \ \ \ \ \ \ \ \ \ *font,}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__feature__t}{hb\_feature\_t}}\ *features,}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ num\_features,}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \textcolor{keyword}{const}\ *shapers)}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\#ifndef\ HB\_NO\_BUFFER\_VERIFY}}
+\DoxyCodeLine{00224\ \ \ ;}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00226\ \ \ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ backtrack\_len\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ have\_output\ ?\ out\_len\ :\ idx;\ \}}
+\DoxyCodeLine{00230\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ lookahead\_len\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ len\ -\/\ idx;\ \}}
+\DoxyCodeLine{00231\ \ \ uint8\_t\ next\_serial\ ()\ \{\ \textcolor{keywordflow}{return}\ ++serial\ ?\ serial\ :\ ++serial;\ \}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ add\ (hb\_codepoint\_t\ \ codepoint,}
+\DoxyCodeLine{00234\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ cluster);}
+\DoxyCodeLine{00235\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ add\_info\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&glyph\_info);}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \ \ \textcolor{keywordtype}{void}\ reverse\_range\ (\textcolor{keywordtype}{unsigned}\ start,\ \textcolor{keywordtype}{unsigned}\ end)}
+\DoxyCodeLine{00238\ \ \ \{}
+\DoxyCodeLine{00239\ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<hb\_glyph\_info\_t>}}\ (info,\ len).reverse\ (start,\ end);}
+\DoxyCodeLine{00240\ \ \ \ \ \textcolor{keywordflow}{if}\ (have\_positions)}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<hb\_glyph\_position\_t>}}\ (pos,\ len).reverse\ (start,\ end);}
+\DoxyCodeLine{00242\ \ \ \}}
+\DoxyCodeLine{00243\ \ \ \textcolor{keywordtype}{void}\ reverse\ ()\ \{\ reverse\_range\ (0,\ len);\ \}}
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ FuncType>}
+\DoxyCodeLine{00246\ \ \ \textcolor{keywordtype}{void}\ reverse\_groups\ (\textcolor{keyword}{const}\ FuncType\&\ \mbox{\hyperlink{structgroup}{group}},}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ merge\_clusters\ =\ \textcolor{keyword}{false})}
+\DoxyCodeLine{00248\ \ \ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!len))}
+\DoxyCodeLine{00250\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ start\ =\ 0;}
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ i;}
+\DoxyCodeLine{00254\ \ \ \ \ \textcolor{keywordflow}{for}\ (i\ =\ 1;\ i\ <\ len;\ i++)}
+\DoxyCodeLine{00255\ \ \ \ \ \{}
+\DoxyCodeLine{00256\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!\mbox{\hyperlink{structgroup}{group}}\ (info[i\ -\/\ 1],\ info[i]))}
+\DoxyCodeLine{00257\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00258\ \ \ \ \ \textcolor{keywordflow}{if}\ (merge\_clusters)}
+\DoxyCodeLine{00259\ \ \ \ \ \ \ this-\/>merge\_clusters\ (start,\ i);}
+\DoxyCodeLine{00260\ \ \ \ \ reverse\_range\ (start,\ i);}
+\DoxyCodeLine{00261\ \ \ \ \ start\ =\ i;}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00263\ \ \ \ \ \}}
+\DoxyCodeLine{00264\ \ \ \ \ \textcolor{keywordflow}{if}\ (merge\_clusters)}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ this-\/>merge\_clusters\ (start,\ i);}
+\DoxyCodeLine{00266\ \ \ \ \ reverse\_range\ (start,\ i);}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \ \ reverse\ ();}
+\DoxyCodeLine{00269\ \ \ \}}
+\DoxyCodeLine{00270\ }
+\DoxyCodeLine{00271\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ FuncType>}
+\DoxyCodeLine{00272\ \ \ \textcolor{keywordtype}{unsigned}\ group\_end\ (\textcolor{keywordtype}{unsigned}\ start,\ \textcolor{keyword}{const}\ FuncType\&\ \mbox{\hyperlink{structgroup}{group}})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00273\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00274\ \ \ \ \ \textcolor{keywordflow}{while}\ (++start\ <\ len\ \&\&\ \mbox{\hyperlink{structgroup}{group}}\ (info[start\ -\/\ 1],\ info[start]))}
+\DoxyCodeLine{00275\ \ \ \ \ \ \ ;}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \ \ \textcolor{keywordflow}{return}\ start;}
+\DoxyCodeLine{00278\ \ \ \}}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{bool}\ \_cluster\_group\_func\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\&\ \mbox{\hyperlink{structa}{a}},}
+\DoxyCodeLine{00281\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\&\ b)}
+\DoxyCodeLine{00282\ \ \ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}}.cluster\ ==\ b.cluster;\ \}}
+\DoxyCodeLine{00283\ }
+\DoxyCodeLine{00284\ \ \ \textcolor{keywordtype}{void}\ reverse\_clusters\ ()\ \{\ reverse\_groups\ (\_cluster\_group\_func);\ \}}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ guess\_segment\_properties\ ();}
+\DoxyCodeLine{00287\ }
+\DoxyCodeLine{00288\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ sync\ ();}
+\DoxyCodeLine{00289\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ clear\_output\ ();}
+\DoxyCodeLine{00290\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ clear\_positions\ ();}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00293\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ replace\_glyphs\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_in,}
+\DoxyCodeLine{00294\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_out,}
+\DoxyCodeLine{00295\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ T\ *glyph\_data)}
+\DoxyCodeLine{00296\ \ \ \{}
+\DoxyCodeLine{00297\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!make\_room\_for\ (num\_in,\ num\_out)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00298\ }
+\DoxyCodeLine{00299\ \ \ \ \ assert\ (idx\ +\ num\_in\ <=\ len);}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \ \ \ \ merge\_clusters\ (idx,\ idx\ +\ num\_in);}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&orig\_info\ =\ idx\ <\ len\ ?\ cur()\ :\ prev();}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00305\ \ \ \ \ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ *pinfo\ =\ \&out\_info[out\_len];}
+\DoxyCodeLine{00306\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ num\_out;\ i++)}
+\DoxyCodeLine{00307\ \ \ \ \ \{}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ *pinfo\ =\ orig\_info;}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ pinfo-\/>codepoint\ =\ glyph\_data[i];}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ pinfo++;}
+\DoxyCodeLine{00311\ \ \ \ \ \}}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \ \ \ \ idx\ \ +=\ num\_in;}
+\DoxyCodeLine{00314\ \ \ \ \ out\_len\ +=\ num\_out;}
+\DoxyCodeLine{00315\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00316\ \ \ \}}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ replace\_glyph\ (hb\_codepoint\_t\ glyph\_index)}
+\DoxyCodeLine{00319\ \ \ \{\ \textcolor{keywordflow}{return}\ replace\_glyphs\ (1,\ 1,\ \&glyph\_index);\ \}}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \ \ \textcolor{comment}{/*\ Makes\ a\ copy\ of\ the\ glyph\ at\ idx\ to\ output\ and\ replace\ glyph\_index\ */}}
+\DoxyCodeLine{00322\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ output\_glyph\ (hb\_codepoint\_t\ glyph\_index)}
+\DoxyCodeLine{00323\ \ \ \{\ \textcolor{keywordflow}{return}\ replace\_glyphs\ (0,\ 1,\ \&glyph\_index);\ \}}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ output\_info\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&glyph\_info)}
+\DoxyCodeLine{00326\ \ \ \{}
+\DoxyCodeLine{00327\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!make\_room\_for\ (0,\ 1)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \ \ \ \ out\_info[out\_len]\ =\ glyph\_info;}
+\DoxyCodeLine{00330\ }
+\DoxyCodeLine{00331\ \ \ \ \ out\_len++;}
+\DoxyCodeLine{00332\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00333\ \ \ \}}
+\DoxyCodeLine{00334\ \ \ \textcolor{comment}{/*\ Copies\ glyph\ at\ idx\ to\ output\ but\ doesn't\ advance\ idx\ */}}
+\DoxyCodeLine{00335\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ copy\_glyph\ ()}
+\DoxyCodeLine{00336\ \ \ \{}
+\DoxyCodeLine{00337\ \ \ \ \ \textcolor{comment}{/*\ Extra\ copy\ because\ cur()'s\ return\ can\ be\ freed\ within}}
+\DoxyCodeLine{00338\ \textcolor{comment}{\ \ \ \ \ *\ output\_info()\ call\ if\ buffer\ reallocates.\ */}}
+\DoxyCodeLine{00339\ \ \ \ \ \textcolor{keywordflow}{return}\ output\_info\ (\mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ (cur()));}
+\DoxyCodeLine{00340\ \ \ \}}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \ \ \textcolor{comment}{/*\ Copies\ glyph\ at\ idx\ to\ output\ and\ advance\ idx.}}
+\DoxyCodeLine{00343\ \textcolor{comment}{\ \ \ *\ If\ there's\ no\ output,\ just\ advance\ idx.\ */}}
+\DoxyCodeLine{00344\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ next\_glyph\ ()}
+\DoxyCodeLine{00345\ \ \ \{}
+\DoxyCodeLine{00346\ \ \ \ \ \textcolor{keywordflow}{if}\ (have\_output)}
+\DoxyCodeLine{00347\ \ \ \ \ \{}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (out\_info\ !=\ info\ ||\ out\_len\ !=\ idx)}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00350\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!make\_room\_for\ (1,\ 1)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00351\ \ \ \ \ out\_info[out\_len]\ =\ info[idx];}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ out\_len++;}
+\DoxyCodeLine{00354\ \ \ \ \ \}}
+\DoxyCodeLine{00355\ }
+\DoxyCodeLine{00356\ \ \ \ \ idx++;}
+\DoxyCodeLine{00357\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00358\ \ \ \}}
+\DoxyCodeLine{00359\ \ \ \textcolor{comment}{/*\ Copies\ n\ glyphs\ at\ idx\ to\ output\ and\ advance\ idx.}}
+\DoxyCodeLine{00360\ \textcolor{comment}{\ \ \ *\ If\ there's\ no\ output,\ just\ advance\ idx.\ */}}
+\DoxyCodeLine{00361\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ next\_glyphs\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ n)}
+\DoxyCodeLine{00362\ \ \ \{}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keywordflow}{if}\ (have\_output)}
+\DoxyCodeLine{00364\ \ \ \ \ \{}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (out\_info\ !=\ info\ ||\ out\_len\ !=\ idx)}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00367\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!make\_room\_for\ (n,\ n)))\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00368\ \ \ \ \ memmove\ (out\_info\ +\ out\_len,\ info\ +\ idx,\ n\ *\ \textcolor{keyword}{sizeof}\ (out\_info[0]));}
+\DoxyCodeLine{00369\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ out\_len\ +=\ n;}
+\DoxyCodeLine{00371\ \ \ \ \ \}}
+\DoxyCodeLine{00372\ }
+\DoxyCodeLine{00373\ \ \ \ \ idx\ +=\ n;}
+\DoxyCodeLine{00374\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00375\ \ \ \}}
+\DoxyCodeLine{00376\ \ \ \textcolor{comment}{/*\ Advance\ idx\ without\ copying\ to\ output.\ */}}
+\DoxyCodeLine{00377\ \ \ \textcolor{keywordtype}{void}\ skip\_glyph\ ()\ \{\ idx++;\ \}}
+\DoxyCodeLine{00378\ \ \ \textcolor{keywordtype}{void}\ reset\_masks\ (hb\_mask\_t\ mask)}
+\DoxyCodeLine{00379\ \ \ \{}
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ len;\ j++)}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ info[j].mask\ =\ mask;}
+\DoxyCodeLine{00382\ \ \ \}}
+\DoxyCodeLine{00383\ \ \ \textcolor{keywordtype}{void}\ add\_masks\ (hb\_mask\_t\ mask)}
+\DoxyCodeLine{00384\ \ \ \{}
+\DoxyCodeLine{00385\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ len;\ j++)}
+\DoxyCodeLine{00386\ \ \ \ \ \ \ info[j].mask\ |=\ mask;}
+\DoxyCodeLine{00387\ \ \ \}}
+\DoxyCodeLine{00388\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ set\_masks\ (hb\_mask\_t\ \mbox{\hyperlink{classvalue}{value}},\ hb\_mask\_t\ mask,}
+\DoxyCodeLine{00389\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ cluster\_start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ cluster\_end);}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \ \ \textcolor{keywordtype}{void}\ merge\_clusters\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end)}
+\DoxyCodeLine{00392\ \ \ \{}
+\DoxyCodeLine{00393\ \ \ \ \ \textcolor{keywordflow}{if}\ (end\ -\/\ start\ <\ 2)}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00395\ \ \ \ \ merge\_clusters\_impl\ (start,\ end);}
+\DoxyCodeLine{00396\ \ \ \}}
+\DoxyCodeLine{00397\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ merge\_clusters\_impl\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end);}
+\DoxyCodeLine{00398\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ merge\_out\_clusters\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end);}
+\DoxyCodeLine{00399\ \ \ \textcolor{comment}{/*\ Merge\ clusters\ for\ deleting\ current\ glyph,\ and\ skip\ it.\ */}}
+\DoxyCodeLine{00400\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ delete\_glyph\ ();}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \ \ \textcolor{comment}{/*\ Adds\ glyph\ flags\ in\ mask\ to\ infos\ with\ clusters\ between\ start\ and\ end.}}
+\DoxyCodeLine{00404\ \textcolor{comment}{\ \ \ *\ The\ start\ index\ will\ be\ from\ out-\/buffer\ if\ from\_out\_buffer\ is\ true.}}
+\DoxyCodeLine{00405\ \textcolor{comment}{\ \ \ *\ If\ interior\ is\ true,\ then\ the\ cluster\ having\ the\ minimum\ value\ is\ skipped.\ */}}
+\DoxyCodeLine{00406\ \ \ \textcolor{keywordtype}{void}\ \_set\_glyph\_flags\ (hb\_mask\_t\ mask,}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ start\ =\ 0,}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ end\ =\ (\textcolor{keywordtype}{unsigned})\ -\/1,}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ interior\ =\ \textcolor{keyword}{false},}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ from\_out\_buffer\ =\ \textcolor{keyword}{false})}
+\DoxyCodeLine{00411\ \ \ \{}
+\DoxyCodeLine{00412\ \ \ \ \ end\ =\ hb\_min\ (end,\ len);}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \ \ \ \ \textcolor{keywordflow}{if}\ (interior\ \&\&\ !from\_out\_buffer\ \&\&\ end\ -\/\ start\ <\ 2)}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \ \ \ \ scratch\_flags\ |=\ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_GLYPH\_FLAGS;}
+\DoxyCodeLine{00418\ }
+\DoxyCodeLine{00419\ \ \ \ \ \textcolor{keywordflow}{if}\ (!from\_out\_buffer\ ||\ !have\_output)}
+\DoxyCodeLine{00420\ \ \ \ \ \{}
+\DoxyCodeLine{00421\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!interior)}
+\DoxyCodeLine{00422\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00423\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ start;\ i\ <\ end;\ i++)}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ info[i].mask\ |=\ mask;}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00426\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00428\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ cluster\ =\ \_infos\_find\_min\_cluster\ (info,\ start,\ end);}
+\DoxyCodeLine{00429\ \ \ \ \ \_infos\_set\_glyph\_flags\ (info,\ start,\ end,\ cluster,\ mask);}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00431\ \ \ \ \ \}}
+\DoxyCodeLine{00432\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00433\ \ \ \ \ \{}
+\DoxyCodeLine{00434\ \ \ \ \ \ \ assert\ (start\ <=\ out\_len);}
+\DoxyCodeLine{00435\ \ \ \ \ \ \ assert\ (idx\ <=\ end);}
+\DoxyCodeLine{00436\ }
+\DoxyCodeLine{00437\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!interior)}
+\DoxyCodeLine{00438\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00439\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ start;\ i\ <\ out\_len;\ i++)}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ out\_info[i].mask\ |=\ mask;}
+\DoxyCodeLine{00441\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ idx;\ i\ <\ end;\ i++)}
+\DoxyCodeLine{00442\ \ \ \ \ \ \ info[i].mask\ |=\ mask;}
+\DoxyCodeLine{00443\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00444\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00445\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00446\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ cluster\ =\ \_infos\_find\_min\_cluster\ (info,\ idx,\ end);}
+\DoxyCodeLine{00447\ \ \ \ \ cluster\ =\ \_infos\_find\_min\_cluster\ (out\_info,\ start,\ out\_len,\ cluster);}
+\DoxyCodeLine{00448\ }
+\DoxyCodeLine{00449\ \ \ \ \ \_infos\_set\_glyph\_flags\ (out\_info,\ start,\ out\_len,\ cluster,\ mask);}
+\DoxyCodeLine{00450\ \ \ \ \ \_infos\_set\_glyph\_flags\ (info,\ idx,\ end,\ cluster,\ mask);}
+\DoxyCodeLine{00451\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00452\ \ \ \ \ \}}
+\DoxyCodeLine{00453\ \ \ \}}
+\DoxyCodeLine{00454\ }
+\DoxyCodeLine{00455\ \ \ \textcolor{keywordtype}{void}\ unsafe\_to\_break\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ 0,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ -\/1)}
+\DoxyCodeLine{00456\ \ \ \{}
+\DoxyCodeLine{00457\ \ \ \ \ \_set\_glyph\_flags\ (HB\_GLYPH\_FLAG\_UNSAFE\_TO\_BREAK\ |\ HB\_GLYPH\_FLAG\_UNSAFE\_TO\_CONCAT,}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ start,\ end,}
+\DoxyCodeLine{00459\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true});}
+\DoxyCodeLine{00460\ \ \ \}}
+\DoxyCodeLine{00461\ \ \ \textcolor{keywordtype}{void}\ unsafe\_to\_concat\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ 0,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ -\/1)}
+\DoxyCodeLine{00462\ \ \ \{}
+\DoxyCodeLine{00463\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ ((flags\ \&\ HB\_BUFFER\_FLAG\_PRODUCE\_UNSAFE\_TO\_CONCAT)\ ==\ 0))}
+\DoxyCodeLine{00464\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00465\ \ \ \ \ \_set\_glyph\_flags\ (HB\_GLYPH\_FLAG\_UNSAFE\_TO\_CONCAT,}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ start,\ end,}
+\DoxyCodeLine{00467\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true});}
+\DoxyCodeLine{00468\ \ \ \}}
+\DoxyCodeLine{00469\ \ \ \textcolor{keywordtype}{void}\ unsafe\_to\_break\_from\_outbuffer\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ 0,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ -\/1)}
+\DoxyCodeLine{00470\ \ \ \{}
+\DoxyCodeLine{00471\ \ \ \ \ \_set\_glyph\_flags\ (HB\_GLYPH\_FLAG\_UNSAFE\_TO\_BREAK\ |\ HB\_GLYPH\_FLAG\_UNSAFE\_TO\_CONCAT,}
+\DoxyCodeLine{00472\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ start,\ end,}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{true},\ \textcolor{keyword}{true});}
+\DoxyCodeLine{00474\ \ \ \}}
+\DoxyCodeLine{00475\ \ \ \textcolor{keywordtype}{void}\ unsafe\_to\_concat\_from\_outbuffer\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start\ =\ 0,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end\ =\ -\/1)}
+\DoxyCodeLine{00476\ \ \ \{}
+\DoxyCodeLine{00477\ \ \ \ \ \textcolor{keywordflow}{if}\ (likely\ ((flags\ \&\ HB\_BUFFER\_FLAG\_PRODUCE\_UNSAFE\_TO\_CONCAT)\ ==\ 0))}
+\DoxyCodeLine{00478\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00479\ \ \ \ \ \_set\_glyph\_flags\ (HB\_GLYPH\_FLAG\_UNSAFE\_TO\_CONCAT,}
+\DoxyCodeLine{00480\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ start,\ end,}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{false},\ \textcolor{keyword}{true});}
+\DoxyCodeLine{00482\ \ \ \}}
+\DoxyCodeLine{00483\ }
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \ \ \textcolor{comment}{/*\ Internal\ methods\ */}}
+\DoxyCodeLine{00486\ \ \ HB\_NODISCARD\ HB\_INTERNAL\ \textcolor{keywordtype}{bool}\ move\_to\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i);\ \textcolor{comment}{/*\ i\ is\ output-\/buffer\ index.\ */}}
+\DoxyCodeLine{00487\ }
+\DoxyCodeLine{00488\ \ \ HB\_NODISCARD\ HB\_INTERNAL\ \textcolor{keywordtype}{bool}\ enlarge\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size);}
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ ensure\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size)}
+\DoxyCodeLine{00491\ \ \ \{\ \textcolor{keywordflow}{return}\ likely\ (!size\ ||\ size\ <\ allocated)\ ?\ true\ :\ enlarge\ (size);\ \}}
+\DoxyCodeLine{00492\ }
+\DoxyCodeLine{00493\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ ensure\_inplace\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ size)}
+\DoxyCodeLine{00494\ \ \ \{\ \textcolor{keywordflow}{return}\ likely\ (!size\ ||\ size\ <\ allocated);\ \}}
+\DoxyCodeLine{00495\ }
+\DoxyCodeLine{00496\ \ \ \textcolor{keywordtype}{void}\ assert\_glyphs\ ()}
+\DoxyCodeLine{00497\ \ \ \{}
+\DoxyCodeLine{00498\ \ \ \ \ assert\ ((content\_type\ ==\ HB\_BUFFER\_CONTENT\_TYPE\_GLYPHS)\ ||}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ \ \ (!len\ \&\&\ (content\_type\ ==\ HB\_BUFFER\_CONTENT\_TYPE\_INVALID)));}
+\DoxyCodeLine{00500\ \ \ \}}
+\DoxyCodeLine{00501\ \ \ \textcolor{keywordtype}{void}\ assert\_unicode\ ()}
+\DoxyCodeLine{00502\ \ \ \{}
+\DoxyCodeLine{00503\ \ \ \ \ assert\ ((content\_type\ ==\ HB\_BUFFER\_CONTENT\_TYPE\_UNICODE)\ ||}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \ \ (!len\ \&\&\ (content\_type\ ==\ HB\_BUFFER\_CONTENT\_TYPE\_INVALID)));}
+\DoxyCodeLine{00505\ \ \ \}}
+\DoxyCodeLine{00506\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ ensure\_glyphs\ ()}
+\DoxyCodeLine{00507\ \ \ \{}
+\DoxyCodeLine{00508\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (content\_type\ !=\ HB\_BUFFER\_CONTENT\_TYPE\_GLYPHS))}
+\DoxyCodeLine{00509\ \ \ \ \ \{}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (content\_type\ !=\ HB\_BUFFER\_CONTENT\_TYPE\_INVALID)}
+\DoxyCodeLine{00511\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00512\ \ \ \ \ \ \ assert\ (len\ ==\ 0);}
+\DoxyCodeLine{00513\ \ \ \ \ \ \ content\_type\ =\ HB\_BUFFER\_CONTENT\_TYPE\_GLYPHS;}
+\DoxyCodeLine{00514\ \ \ \ \ \}}
+\DoxyCodeLine{00515\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00516\ \ \ \}}
+\DoxyCodeLine{00517\ \ \ HB\_NODISCARD\ \textcolor{keywordtype}{bool}\ ensure\_unicode\ ()}
+\DoxyCodeLine{00518\ \ \ \{}
+\DoxyCodeLine{00519\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (content\_type\ !=\ HB\_BUFFER\_CONTENT\_TYPE\_UNICODE))}
+\DoxyCodeLine{00520\ \ \ \ \ \{}
+\DoxyCodeLine{00521\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (content\_type\ !=\ HB\_BUFFER\_CONTENT\_TYPE\_INVALID)}
+\DoxyCodeLine{00522\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00523\ \ \ \ \ \ \ assert\ (len\ ==\ 0);}
+\DoxyCodeLine{00524\ \ \ \ \ \ \ content\_type\ =\ HB\_BUFFER\_CONTENT\_TYPE\_UNICODE;}
+\DoxyCodeLine{00525\ \ \ \ \ \}}
+\DoxyCodeLine{00526\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00527\ \ \ \}}
+\DoxyCodeLine{00528\ }
+\DoxyCodeLine{00529\ \ \ HB\_NODISCARD\ HB\_INTERNAL\ \textcolor{keywordtype}{bool}\ make\_room\_for\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_in,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ num\_out);}
+\DoxyCodeLine{00530\ \ \ HB\_NODISCARD\ HB\_INTERNAL\ \textcolor{keywordtype}{bool}\ shift\_forward\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ count);}
+\DoxyCodeLine{00531\ }
+\DoxyCodeLine{00532\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{long}\ scratch\_buffer\_t;}
+\DoxyCodeLine{00533\ \ \ HB\_INTERNAL\ scratch\_buffer\_t\ *get\_scratch\_buffer\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ *size);}
+\DoxyCodeLine{00534\ }
+\DoxyCodeLine{00535\ \ \ \textcolor{keywordtype}{void}\ clear\_context\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ side)\ \{\ context\_len[side]\ =\ 0;\ \}}
+\DoxyCodeLine{00536\ }
+\DoxyCodeLine{00537\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{void}\ sort\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end,\ \textcolor{keywordtype}{int}(*compar)(\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ *,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ *));}
+\DoxyCodeLine{00538\ }
+\DoxyCodeLine{00539\ \ \ \textcolor{keywordtype}{bool}\ messaging\ ()}
+\DoxyCodeLine{00540\ \ \ \{}
+\DoxyCodeLine{00541\ \textcolor{preprocessor}{\#ifdef\ HB\_NO\_BUFFER\_MESSAGE}}
+\DoxyCodeLine{00542\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00543\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00544\ \ \ \ \ \textcolor{keywordflow}{return}\ unlikely\ (message\_func);}
+\DoxyCodeLine{00545\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00546\ \ \ \}}
+\DoxyCodeLine{00547\ \ \ \textcolor{keywordtype}{bool}\ message\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,\ ...)\ HB\_PRINTF\_FUNC(3,\ 4)}
+\DoxyCodeLine{00548\ \ \ \{}
+\DoxyCodeLine{00549\ \textcolor{preprocessor}{\#ifdef\ HB\_NO\_BUFFER\_MESSAGE}}
+\DoxyCodeLine{00550\ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00551\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00552\ \ \ \ \ \textcolor{keywordflow}{if}\ (!messaging\ ())}
+\DoxyCodeLine{00553\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00554\ }
+\DoxyCodeLine{00555\ \ \ \ \ message\_depth++;}
+\DoxyCodeLine{00556\ }
+\DoxyCodeLine{00557\ \ \ \ \ va\_list\ ap;}
+\DoxyCodeLine{00558\ \ \ \ \ va\_start\ (ap,\ fmt);}
+\DoxyCodeLine{00559\ \ \ \ \ \textcolor{keywordtype}{bool}\ ret\ =\ message\_impl\ (font,\ fmt,\ ap);}
+\DoxyCodeLine{00560\ \ \ \ \ va\_end\ (ap);}
+\DoxyCodeLine{00561\ }
+\DoxyCodeLine{00562\ \ \ \ \ message\_depth-\/-\/;}
+\DoxyCodeLine{00563\ }
+\DoxyCodeLine{00564\ \ \ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00565\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00566\ \ \ \}}
+\DoxyCodeLine{00567\ \ \ HB\_INTERNAL\ \textcolor{keywordtype}{bool}\ message\_impl\ (\mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,\ va\_list\ ap)\ HB\_PRINTF\_FUNC(3,\ 0);}
+\DoxyCodeLine{00568\ }
+\DoxyCodeLine{00569\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00570\ \ \ set\_cluster\ (\mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ \&inf,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ cluster,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ mask\ =\ 0)}
+\DoxyCodeLine{00571\ \ \ \{}
+\DoxyCodeLine{00572\ \ \ \ \ \textcolor{keywordflow}{if}\ (inf.cluster\ !=\ cluster)}
+\DoxyCodeLine{00573\ \ \ \ \ \ \ inf.mask\ =\ (inf.mask\ \&\ \string~HB\_GLYPH\_FLAG\_DEFINED)\ |\ (mask\ \&\ HB\_GLYPH\_FLAG\_DEFINED);}
+\DoxyCodeLine{00574\ \ \ \ \ inf.cluster\ =\ cluster;}
+\DoxyCodeLine{00575\ \ \ \}}
+\DoxyCodeLine{00576\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00577\ \ \ \_infos\_set\_glyph\_flags\ (\mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ *infos,}
+\DoxyCodeLine{00578\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ start,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ end,}
+\DoxyCodeLine{00579\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ cluster,}
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hb\_mask\_t\ mask)}
+\DoxyCodeLine{00581\ \ \ \{}
+\DoxyCodeLine{00582\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ start;\ i\ <\ end;\ i++)}
+\DoxyCodeLine{00583\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (cluster\ !=\ infos[i].cluster)}
+\DoxyCodeLine{00584\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00585\ \ \ \ \ scratch\_flags\ |=\ HB\_BUFFER\_SCRATCH\_FLAG\_HAS\_GLYPH\_FLAGS;}
+\DoxyCodeLine{00586\ \ \ \ \ infos[i].mask\ |=\ mask;}
+\DoxyCodeLine{00587\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00588\ \ \ \}}
+\DoxyCodeLine{00589\ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{unsigned}}
+\DoxyCodeLine{00590\ \ \ \_infos\_find\_min\_cluster\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__glyph__info__t}{hb\_glyph\_info\_t}}\ *infos,}
+\DoxyCodeLine{00591\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ start,\ \textcolor{keywordtype}{unsigned}\ end,}
+\DoxyCodeLine{00592\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ cluster\ =\ UINT\_MAX)}
+\DoxyCodeLine{00593\ \ \ \{}
+\DoxyCodeLine{00594\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ start;\ i\ <\ end;\ i++)}
+\DoxyCodeLine{00595\ \ \ \ \ \ \ cluster\ =\ hb\_min\ (cluster,\ infos[i].cluster);}
+\DoxyCodeLine{00596\ \ \ \ \ \textcolor{keywordflow}{return}\ cluster;}
+\DoxyCodeLine{00597\ \ \ \}}
+\DoxyCodeLine{00598\ }
+\DoxyCodeLine{00599\ \ \ \textcolor{keywordtype}{void}\ clear\_glyph\_flags\ (hb\_mask\_t\ mask\ =\ 0)}
+\DoxyCodeLine{00600\ \ \ \{}
+\DoxyCodeLine{00601\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ len;\ i++)}
+\DoxyCodeLine{00602\ \ \ \ \ \ \ info[i].mask\ =\ (info[i].mask\ \&\ \string~HB\_GLYPH\_FLAG\_DEFINED)\ |\ (mask\ \&\ HB\_GLYPH\_FLAG\_DEFINED);}
+\DoxyCodeLine{00603\ \ \ \}}
+\DoxyCodeLine{00604\ \};}
+\DoxyCodeLine{00605\ DECLARE\_NULL\_INSTANCE\ (\mbox{\hyperlink{structhb__buffer__t}{hb\_buffer\_t}});}
+\DoxyCodeLine{00606\ }
+\DoxyCodeLine{00607\ }
+\DoxyCodeLine{00608\ \textcolor{preprocessor}{\#define\ foreach\_group(buffer,\ start,\ end,\ group\_func)\ \(\backslash\)}}
+\DoxyCodeLine{00609\ \textcolor{preprocessor}{\ \ for\ (unsigned\ int\ \(\backslash\)}}
+\DoxyCodeLine{00610\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \_count\ =\ buffer-\/>len,\ \(\backslash\)}}
+\DoxyCodeLine{00611\ \textcolor{preprocessor}{\ \ \ \ \ \ \ start\ =\ 0,\ end\ =\ \_count\ ?\ buffer-\/>group\_end\ (0,\ group\_func)\ :\ 0;\ \(\backslash\)}}
+\DoxyCodeLine{00612\ \textcolor{preprocessor}{\ \ \ \ \ \ \ start\ <\ \_count;\ \(\backslash\)}}
+\DoxyCodeLine{00613\ \textcolor{preprocessor}{\ \ \ \ \ \ \ start\ =\ end,\ end\ =\ buffer-\/>group\_end\ (start,\ group\_func))}}
+\DoxyCodeLine{00614\ }
+\DoxyCodeLine{00615\ \textcolor{preprocessor}{\#define\ foreach\_cluster(buffer,\ start,\ end)\ \(\backslash\)}}
+\DoxyCodeLine{00616\ \textcolor{preprocessor}{\ \ \ \ foreach\_group\ (buffer,\ start,\ end,\ hb\_buffer\_t::\_cluster\_group\_func)}}
+\DoxyCodeLine{00617\ }
+\DoxyCodeLine{00618\ }
+\DoxyCodeLine{00619\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_XALLOCATE\_VAR(b,\ func,\ var)\ \(\backslash\)}}
+\DoxyCodeLine{00620\ \textcolor{preprocessor}{\ \ b-\/>func\ (offsetof\ (hb\_glyph\_info\_t,\ var)\ -\/\ offsetof(hb\_glyph\_info\_t,\ var1),\ \(\backslash\)}}
+\DoxyCodeLine{00621\ \textcolor{preprocessor}{\ \ \ \ \ \ \ sizeof\ (b-\/>info[0].var))}}
+\DoxyCodeLine{00622\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_ALLOCATE\_VAR(b,\ var)\ \ \ \ \ \ HB\_BUFFER\_XALLOCATE\_VAR\ (b,\ allocate\_var,\ \ \ var\ ())}}
+\DoxyCodeLine{00623\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_DEALLOCATE\_VAR(b,\ var)\ \ \ \ HB\_BUFFER\_XALLOCATE\_VAR\ (b,\ deallocate\_var,\ var\ ())}}
+\DoxyCodeLine{00624\ \textcolor{preprocessor}{\#define\ HB\_BUFFER\_ASSERT\_VAR(b,\ var)\ \ \ \ \ \ \ \ HB\_BUFFER\_XALLOCATE\_VAR\ (b,\ assert\_var,\ \ \ \ \ var\ ())}}
+\DoxyCodeLine{00625\ }
+\DoxyCodeLine{00626\ }
+\DoxyCodeLine{00627\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_BUFFER\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

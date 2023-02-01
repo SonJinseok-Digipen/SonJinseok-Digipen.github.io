@@ -1,0 +1,407 @@
+\hypertarget{hb-ot-var-hvar-table_8hh_source}{}\doxysection{hb-\/ot-\/var-\/hvar-\/table.hh}
+\label{hb-ot-var-hvar-table_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/var-\/hvar-\/table.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/ot-\/var-\/hvar-\/table.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2017\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ HB\_OT\_VAR\_HVAR\_TABLE\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ HB\_OT\_VAR\_HVAR\_TABLE\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/layout-\/common.hh"{}}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}hb-\/ot-\/var-\/common.hh"{}}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{namespace\ }OT\ \{}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1index__map__subset__plan__t}{index\_map\_subset\_plan\_t}}}
+\DoxyCodeLine{00037\ \{}
+\DoxyCodeLine{00038\ \ \ \textcolor{keyword}{enum}\ index\_map\_index\_t\ \{}
+\DoxyCodeLine{00039\ \ \ \ \ ADV\_INDEX,}
+\DoxyCodeLine{00040\ \ \ \ \ LSB\_INDEX,\ \ \textcolor{comment}{/*\ dual\ as\ TSB\ */}}
+\DoxyCodeLine{00041\ \ \ \ \ RSB\_INDEX,\ \ \textcolor{comment}{/*\ dual\ as\ BSB\ */}}
+\DoxyCodeLine{00042\ \ \ \ \ VORG\_INDEX}
+\DoxyCodeLine{00043\ \ \ \};}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \textcolor{keywordtype}{void}\ init\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_delta_set_index_map}{DeltaSetIndexMap}}\ \ \&index\_map,}
+\DoxyCodeLine{00046\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__inc__bimap__t}{hb\_inc\_bimap\_t}}\ \ \ \ \ \ \ \ \&outer\_map,}
+\DoxyCodeLine{00047\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<hb\_set\_t\ *>}}\ \&inner\_sets,}
+\DoxyCodeLine{00048\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ \ *plan)}
+\DoxyCodeLine{00049\ \ \ \{}
+\DoxyCodeLine{00050\ \ \ \ \ map\_count\ =\ 0;}
+\DoxyCodeLine{00051\ \ \ \ \ outer\_bit\_count\ =\ 0;}
+\DoxyCodeLine{00052\ \ \ \ \ inner\_bit\_count\ =\ 1;}
+\DoxyCodeLine{00053\ \ \ \ \ max\_inners.init\ ();}
+\DoxyCodeLine{00054\ \ \ \ \ output\_map.init\ ();}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordflow}{if}\ (\&index\_map\ ==\ \&\mbox{\hyperlink{struct_null}{Null}}\ (\mbox{\hyperlink{struct_o_t_1_1_delta_set_index_map}{DeltaSetIndexMap}}))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ last\_val\ =\ (\textcolor{keywordtype}{unsigned}\ int)-\/1;}
+\DoxyCodeLine{00059\ \ \ \ \ hb\_codepoint\_t\ \ last\_gid\ =\ (hb\_codepoint\_t)-\/1;}
+\DoxyCodeLine{00060\ \ \ \ \ hb\_codepoint\_t\ \ gid\ =\ (hb\_codepoint\_t)\ hb\_min\ (index\_map.get\_map\_count\ (),\ plan-\/>num\_output\_glyphs\ ());}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ outer\_bit\_count\ =\ (index\_map.get\_width\ ()\ *\ 8)\ -\/\ index\_map.get\_inner\_bit\_count\ ();}
+\DoxyCodeLine{00063\ \ \ \ \ max\_inners.resize\ (inner\_sets.length);}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ i\ =\ 0;\ i\ <\ inner\_sets.length;\ i++)\ max\_inners[i]\ =\ 0;}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{comment}{/*\ Search\ backwards\ for\ a\ map\ value\ different\ from\ the\ last\ map\ value\ */}}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ gid\ >\ 0;\ gid-\/-\/)}
+\DoxyCodeLine{00068\ \ \ \ \ \{}
+\DoxyCodeLine{00069\ \ \ \ \ \ \ hb\_codepoint\_t\ \ \ \ old\_gid;}
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!plan-\/>old\_gid\_for\_new\_gid\ (gid\ -\/\ 1,\ \&old\_gid))}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordflow}{if}\ (last\_gid\ ==\ (hb\_codepoint\_t)\ -\/1)}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ v\ =\ index\_map.map\ (old\_gid);}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (last\_gid\ ==\ (hb\_codepoint\_t)\ -\/1)}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00081\ \ \ \ \ last\_val\ =\ v;}
+\DoxyCodeLine{00082\ \ \ \ \ last\_gid\ =\ gid;}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00084\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (v\ !=\ last\_val)\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ \ \ \ \ last\_gid\ =\ gid;}
+\DoxyCodeLine{00088\ \ \ \ \ \}}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (last\_gid\ ==\ (hb\_codepoint\_t)-\/1))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00091\ \ \ \ \ map\_count\ =\ last\_gid;}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordflow}{for}\ (gid\ =\ 0;\ gid\ <\ map\_count;\ gid++)}
+\DoxyCodeLine{00093\ \ \ \ \ \{}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ hb\_codepoint\_t\ \ \ \ old\_gid;}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (plan-\/>old\_gid\_for\_new\_gid\ (gid,\ \&old\_gid))}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ v\ =\ index\_map.map\ (old\_gid);}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ outer\ =\ v\ >>\ 16;}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ inner\ =\ v\ \&\ 0xFFFF;}
+\DoxyCodeLine{00100\ \ \ \ \ outer\_map.add\ (outer);}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordflow}{if}\ (inner\ >\ max\_inners[outer])\ max\_inners[outer]\ =\ inner;}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordflow}{if}\ (outer\ >=\ inner\_sets.length)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00103\ \ \ \ \ inner\_sets[outer]-\/>add\ (inner);}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00105\ \ \ \ \ \}}
+\DoxyCodeLine{00106\ \ \ \}}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \textcolor{keywordtype}{void}\ fini\ ()}
+\DoxyCodeLine{00109\ \ \ \{}
+\DoxyCodeLine{00110\ \ \ \ \ max\_inners.fini\ ();}
+\DoxyCodeLine{00111\ \ \ \ \ output\_map.fini\ ();}
+\DoxyCodeLine{00112\ \ \ \}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \textcolor{keywordtype}{void}\ remap\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_delta_set_index_map}{DeltaSetIndexMap}}\ *input\_map,}
+\DoxyCodeLine{00115\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__inc__bimap__t}{hb\_inc\_bimap\_t}}\ \&outer\_map,}
+\DoxyCodeLine{00116\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<hb\_inc\_bimap\_t>}}\ \&inner\_maps,}
+\DoxyCodeLine{00117\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan)}
+\DoxyCodeLine{00118\ \ \ \{}
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordflow}{if}\ (input\_map\ ==\ \&\mbox{\hyperlink{struct_null}{Null}}\ (\mbox{\hyperlink{struct_o_t_1_1_delta_set_index_map}{DeltaSetIndexMap}}))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ max\_inners.length;\ i++)}
+\DoxyCodeLine{00122\ \ \ \ \ \{}
+\DoxyCodeLine{00123\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (inner\_maps[i].get\_population\ ()\ ==\ 0)\ \textcolor{keywordflow}{continue};}
+\DoxyCodeLine{00124\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ bit\_count\ =\ (max\_inners[i]==0)?\ 1:\ hb\_bit\_storage\ (inner\_maps[i][max\_inners[i]]);}
+\DoxyCodeLine{00125\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (bit\_count\ >\ inner\_bit\_count)\ inner\_bit\_count\ =\ bit\_count;}
+\DoxyCodeLine{00126\ \ \ \ \ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ output\_map.resize\ (map\_count);}
+\DoxyCodeLine{00129\ \ \ \ \ \textcolor{keywordflow}{for}\ (hb\_codepoint\_t\ gid\ =\ 0;\ gid\ <\ output\_map.length;\ gid++)}
+\DoxyCodeLine{00130\ \ \ \ \ \{}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ hb\_codepoint\_t\ \ \ \ old\_gid;}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (plan-\/>old\_gid\_for\_new\_gid\ (gid,\ \&old\_gid))}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00134\ \ \ \ \ uint32\_t\ v\ =\ input\_map-\/>map\ (old\_gid);}
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ outer\ =\ v\ >>\ 16;}
+\DoxyCodeLine{00136\ \ \ \ \ output\_map[gid]\ =\ (outer\_map[outer]\ <<\ 16)\ |\ (inner\_maps[outer][v\ \&\ 0xFFFF]);}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00139\ \ \ \ \ output\_map[gid]\ =\ 0;\ \ \ \ \textcolor{comment}{/*\ Map\ unused\ glyph\ to\ outer/inner=0/0\ */}}
+\DoxyCodeLine{00140\ \ \ \ \ \}}
+\DoxyCodeLine{00141\ \ \ \}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_inner\_bit\_count\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ inner\_bit\_count;\ \}}
+\DoxyCodeLine{00144\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_width\ ()\textcolor{keyword}{\ \ \ \ \ \ \ \ \ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ ((outer\_bit\_count\ +\ inner\_bit\_count\ +\ 7)\ /\ 8);\ \}}
+\DoxyCodeLine{00145\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_map\_count\ ()\textcolor{keyword}{\ \ \ \ \ \ \ const\ }\{\ \textcolor{keywordflow}{return}\ map\_count;\ \}}
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ get\_size\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00148\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ (map\_count?\ (DeltaSetIndexMap::min\_size\ +\ get\_width\ ()\ *\ map\_count):\ 0);\ \}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \ \ \textcolor{keywordtype}{bool}\ is\_identity\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ get\_output\_map\ ().length\ ==\ 0;\ \}}
+\DoxyCodeLine{00151\ \ \ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<const\ uint32\_t>}}\ get\_output\_map\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ output\_map.as\_array\ ();\ \}}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00154\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ map\_count;}
+\DoxyCodeLine{00155\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<unsigned\ int>}}\ max\_inners;}
+\DoxyCodeLine{00156\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ outer\_bit\_count;}
+\DoxyCodeLine{00157\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ inner\_bit\_count;}
+\DoxyCodeLine{00158\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<uint32\_t>}}\ output\_map;}
+\DoxyCodeLine{00159\ \};}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1hvarvvar__subset__plan__t}{hvarvvar\_subset\_plan\_t}}}
+\DoxyCodeLine{00162\ \{}
+\DoxyCodeLine{00163\ \ \ \mbox{\hyperlink{struct_o_t_1_1hvarvvar__subset__plan__t}{hvarvvar\_subset\_plan\_t}}()\ :\ inner\_maps\ (),\ index\_map\_plans\ ()\ \{\}}
+\DoxyCodeLine{00164\ \ \ \mbox{\hyperlink{struct_o_t_1_1hvarvvar__subset__plan__t}{\string~hvarvvar\_subset\_plan\_t}}()\ \{\ fini\ ();\ \}}
+\DoxyCodeLine{00165\ }
+\DoxyCodeLine{00166\ \ \ \textcolor{keywordtype}{void}\ init\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<const\ DeltaSetIndexMap\ *>}}\ \&index\_maps,}
+\DoxyCodeLine{00167\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_variation_store}{VariationStore}}\ \&\_var\_store,}
+\DoxyCodeLine{00168\ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__subset__plan__t}{hb\_subset\_plan\_t}}\ *plan)}
+\DoxyCodeLine{00169\ \ \ \{}
+\DoxyCodeLine{00170\ \ \ \ \ index\_map\_plans.resize\ (index\_maps.length);}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \ \ \ \ var\_store\ =\ \&\_var\_store;}
+\DoxyCodeLine{00173\ \ \ \ \ inner\_sets.resize\ (var\_store-\/>get\_sub\_table\_count\ ());}
+\DoxyCodeLine{00174\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ inner\_sets.length;\ i++)}
+\DoxyCodeLine{00175\ \ \ \ \ \ \ inner\_sets[i]\ =\ hb\_set\_create\ ();}
+\DoxyCodeLine{00176\ \ \ \ \ adv\_set\ =\ hb\_set\_create\ ();}
+\DoxyCodeLine{00177\ }
+\DoxyCodeLine{00178\ \ \ \ \ inner\_maps.resize\ (var\_store-\/>get\_sub\_table\_count\ ());}
+\DoxyCodeLine{00179\ }
+\DoxyCodeLine{00180\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!index\_map\_plans.length\ ||\ !inner\_sets.length\ ||\ !inner\_maps.length))\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keywordtype}{bool}\ retain\_adv\_map\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00183\ \ \ \ \ index\_map\_plans[0].init\ (*index\_maps[0],\ outer\_map,\ inner\_sets,\ plan);}
+\DoxyCodeLine{00184\ \ \ \ \ \textcolor{keywordflow}{if}\ (index\_maps[0]\ ==\ \&\mbox{\hyperlink{struct_null}{Null}}\ (\mbox{\hyperlink{struct_o_t_1_1_delta_set_index_map}{DeltaSetIndexMap}}))}
+\DoxyCodeLine{00185\ \ \ \ \ \{}
+\DoxyCodeLine{00186\ \ \ \ \ \ \ retain\_adv\_map\ =\ plan-\/>flags\ \&\ HB\_SUBSET\_FLAGS\_RETAIN\_GIDS;}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ outer\_map.add\ (0);}
+\DoxyCodeLine{00188\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (hb\_codepoint\_t\ gid\ =\ 0;\ gid\ <\ plan-\/>num\_output\_glyphs\ ();\ gid++)}
+\DoxyCodeLine{00189\ \ \ \ \ \ \ \{}
+\DoxyCodeLine{00190\ \ \ \ \ hb\_codepoint\_t\ old\_gid;}
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordflow}{if}\ (plan-\/>old\_gid\_for\_new\_gid\ (gid,\ \&old\_gid))}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ inner\_sets[0]-\/>add\ (old\_gid);}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00194\ \ \ \ \ \ \ hb\_set\_union\ (adv\_set,\ inner\_sets[0]);}
+\DoxyCodeLine{00195\ \ \ \ \ \}}
+\DoxyCodeLine{00196\ }
+\DoxyCodeLine{00197\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ index\_maps.length;\ i++)}
+\DoxyCodeLine{00198\ \ \ \ \ \ \ index\_map\_plans[i].init\ (*index\_maps[i],\ outer\_map,\ inner\_sets,\ plan);}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \ \ \ \ outer\_map.sort\ ();}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keywordflow}{if}\ (retain\_adv\_map)}
+\DoxyCodeLine{00203\ \ \ \ \ \{}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (hb\_codepoint\_t\ gid\ =\ 0;\ gid\ <\ plan-\/>num\_output\_glyphs\ ();\ gid++)}
+\DoxyCodeLine{00205\ \ \ \ \ \textcolor{keywordflow}{if}\ (inner\_sets[0]-\/>has\ (gid))}
+\DoxyCodeLine{00206\ \ \ \ \ \ \ inner\_maps[0].add\ (gid);}
+\DoxyCodeLine{00207\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00208\ \ \ \ \ \ \ inner\_maps[0].skip\ ();}
+\DoxyCodeLine{00209\ \ \ \ \ \}}
+\DoxyCodeLine{00210\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00211\ \ \ \ \ \{}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ inner\_maps[0].add\_set\ (adv\_set);}
+\DoxyCodeLine{00213\ \ \ \ \ \ \ hb\_set\_subtract\ (inner\_sets[0],\ adv\_set);}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ inner\_maps[0].add\_set\ (inner\_sets[0]);}
+\DoxyCodeLine{00215\ \ \ \ \ \}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ inner\_maps.length;\ i++)}
+\DoxyCodeLine{00218\ \ \ \ \ \ \ inner\_maps[i].add\_set\ (inner\_sets[i]);}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ index\_maps.length;\ i++)}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ index\_map\_plans[i].remap\ (index\_maps[i],\ outer\_map,\ inner\_maps,\ plan);}
+\DoxyCodeLine{00222\ \ \ \}}
+\DoxyCodeLine{00223\ }
+\DoxyCodeLine{00224\ \ \ \textcolor{keywordtype}{void}\ fini\ ()}
+\DoxyCodeLine{00225\ \ \ \{}
+\DoxyCodeLine{00226\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ inner\_sets.length;\ i++)}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ hb\_set\_destroy\ (inner\_sets[i]);}
+\DoxyCodeLine{00228\ \ \ \ \ hb\_set\_destroy\ (adv\_set);}
+\DoxyCodeLine{00229\ \ \ \ \ inner\_maps.fini\ ();}
+\DoxyCodeLine{00230\ \ \ \ \ index\_map\_plans.fini\ ();}
+\DoxyCodeLine{00231\ \ \ \}}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \ \ \mbox{\hyperlink{structhb__inc__bimap__t}{hb\_inc\_bimap\_t}}\ outer\_map;}
+\DoxyCodeLine{00234\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<hb\_inc\_bimap\_t>}}\ inner\_maps;}
+\DoxyCodeLine{00235\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<index\_map\_subset\_plan\_t>}}\ index\_map\_plans;}
+\DoxyCodeLine{00236\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_o_t_1_1_variation_store}{VariationStore}}\ *var\_store;}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00239\ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<hb\_set\_t\ *>}}\ inner\_sets;}
+\DoxyCodeLine{00240\ \ \ \mbox{\hyperlink{structhb__set__t}{hb\_set\_t}}\ *adv\_set;}
+\DoxyCodeLine{00241\ \};}
+\DoxyCodeLine{00242\ }
+\DoxyCodeLine{00243\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00244\ \textcolor{comment}{\ *\ HVAR\ -\/-\/\ Horizontal\ Metrics\ Variations}}
+\DoxyCodeLine{00245\ \textcolor{comment}{\ *\ https://docs.microsoft.com/en-\/us/typography/opentype/spec/hvar}}
+\DoxyCodeLine{00246\ \textcolor{comment}{\ *\ VVAR\ -\/-\/\ Vertical\ Metrics\ Variations}}
+\DoxyCodeLine{00247\ \textcolor{comment}{\ *\ https://docs.microsoft.com/en-\/us/typography/opentype/spec/vvar}}
+\DoxyCodeLine{00248\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\#define\ HB\_OT\_TAG\_HVAR\ HB\_TAG('H','V','A','R')}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\#define\ HB\_OT\_TAG\_VVAR\ HB\_TAG('V','V','A','R')}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1_h_v_a_r_v_v_a_r}{HVARVVAR}}}
+\DoxyCodeLine{00253\ \{}
+\DoxyCodeLine{00254\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ hb\_tag\_t\ HVARTag\ =\ HB\_OT\_TAG\_HVAR;}
+\DoxyCodeLine{00255\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ hb\_tag\_t\ VVARTag\ =\ HB\_OT\_TAG\_VVAR;}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \ \ \textcolor{keywordtype}{bool}\ sanitize\ (\mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ *c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00258\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00259\ \ \ \ \ TRACE\_SANITIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00260\ \ \ \ \ return\_trace\ (version.sanitize\ (c)\ \&\&}
+\DoxyCodeLine{00261\ \ \ \ \ \ \ \ \ \ \ likely\ (version.major\ ==\ 1)\ \&\&}
+\DoxyCodeLine{00262\ \ \ \ \ \ \ \ \ \ \ varStore.sanitize\ (c,\ \textcolor{keyword}{this})\ \&\&}
+\DoxyCodeLine{00263\ \ \ \ \ \ \ \ \ \ \ advMap.sanitize\ (c,\ \textcolor{keyword}{this})\ \&\&}
+\DoxyCodeLine{00264\ \ \ \ \ \ \ \ \ \ \ lsbMap.sanitize\ (c,\ \textcolor{keyword}{this})\ \&\&}
+\DoxyCodeLine{00265\ \ \ \ \ \ \ \ \ \ \ rsbMap.sanitize\ (c,\ \textcolor{keyword}{this}));}
+\DoxyCodeLine{00266\ \ \ \}}
+\DoxyCodeLine{00267\ }
+\DoxyCodeLine{00268\ \ \ \textcolor{keywordtype}{void}\ listup\_index\_maps\ (\mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<const\ DeltaSetIndexMap\ *>}}\ \&index\_maps)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00269\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00270\ \ \ \ \ index\_maps.push\ (\&(\textcolor{keyword}{this}+advMap));}
+\DoxyCodeLine{00271\ \ \ \ \ index\_maps.push\ (\&(\textcolor{keyword}{this}+lsbMap));}
+\DoxyCodeLine{00272\ \ \ \ \ index\_maps.push\ (\&(\textcolor{keyword}{this}+rsbMap));}
+\DoxyCodeLine{00273\ \ \ \}}
+\DoxyCodeLine{00274\ }
+\DoxyCodeLine{00275\ \ \ \textcolor{keywordtype}{bool}\ serialize\_index\_maps\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{00276\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<index\_map\_subset\_plan\_t>}}\ \&im\_plans)}
+\DoxyCodeLine{00277\ \ \ \{}
+\DoxyCodeLine{00278\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00279\ \ \ \ \ \textcolor{keywordflow}{if}\ (im\_plans[index\_map\_subset\_plan\_t::ADV\_INDEX].is\_identity\ ())}
+\DoxyCodeLine{00280\ \ \ \ \ \ \ advMap\ =\ 0;}
+\DoxyCodeLine{00281\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (!advMap.serialize\_serialize\ (c,\ im\_plans[index\_map\_subset\_plan\_t::ADV\_INDEX])))}
+\DoxyCodeLine{00282\ \ \ \ \ \ \ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keywordflow}{if}\ (im\_plans[index\_map\_subset\_plan\_t::LSB\_INDEX].is\_identity\ ())}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ lsbMap\ =\ 0;}
+\DoxyCodeLine{00285\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (!lsbMap.serialize\_serialize\ (c,\ im\_plans[index\_map\_subset\_plan\_t::LSB\_INDEX])))}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordflow}{if}\ (im\_plans[index\_map\_subset\_plan\_t::RSB\_INDEX].is\_identity\ ())}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ rsbMap\ =\ 0;}
+\DoxyCodeLine{00289\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (!rsbMap.serialize\_serialize\ (c,\ im\_plans[index\_map\_subset\_plan\_t::RSB\_INDEX])))}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00293\ \ \ \}}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00296\ \ \ \textcolor{keywordtype}{bool}\ \_subset\ (\mbox{\hyperlink{structhb__subset__context__t}{hb\_subset\_context\_t}}\ *c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00297\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00298\ \ \ \ \ TRACE\_SUBSET\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00299\ \ \ \ \ \mbox{\hyperlink{struct_o_t_1_1hvarvvar__subset__plan__t}{hvarvvar\_subset\_plan\_t}}\ \ \ \ hvar\_plan;}
+\DoxyCodeLine{00300\ \ \ \ \ \mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<const\ DeltaSetIndexMap\ *>}}}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ index\_maps;}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \ \ \ \ ((T*)\textcolor{keyword}{this})-\/>listup\_index\_maps\ (index\_maps);}
+\DoxyCodeLine{00304\ \ \ \ \ hvar\_plan.init\ (index\_maps.as\_array\ (),\ \textcolor{keyword}{this}+varStore,\ c-\/>plan);}
+\DoxyCodeLine{00305\ }
+\DoxyCodeLine{00306\ \ \ \ \ T\ *out\ =\ c-\/>serializer-\/>allocate\_min<T>\ ();}
+\DoxyCodeLine{00307\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!out))\ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \ \ out-\/>version.major\ =\ 1;}
+\DoxyCodeLine{00310\ \ \ \ \ out-\/>version.minor\ =\ 0;}
+\DoxyCodeLine{00311\ }
+\DoxyCodeLine{00312\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!out-\/>varStore}
+\DoxyCodeLine{00313\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ .serialize\_serialize\ (c-\/>serializer,}
+\DoxyCodeLine{00314\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hvar\_plan.var\_store,}
+\DoxyCodeLine{00315\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hvar\_plan.inner\_maps.as\_array\ ())))}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ \ \ \ \ return\_trace\ (out-\/>T::serialize\_index\_maps\ (c-\/>serializer,}
+\DoxyCodeLine{00319\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hvar\_plan.index\_map\_plans.as\_array\ ()));}
+\DoxyCodeLine{00320\ \ \ \}}
+\DoxyCodeLine{00321\ }
+\DoxyCodeLine{00322\ \ \ \textcolor{keywordtype}{float}\ get\_advance\_var\ (hb\_codepoint\_t\ glyph,\ \mbox{\hyperlink{structhb__font__t}{hb\_font\_t}}\ *font)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00323\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00324\ \ \ \ \ uint32\_t\ varidx\ =\ (\textcolor{keyword}{this}+advMap).map\ (glyph);}
+\DoxyCodeLine{00325\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{this}+varStore).get\_delta\ (varidx,\ font-\/>coords,\ font-\/>num\_coords);}
+\DoxyCodeLine{00326\ \ \ \}}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \ \ \textcolor{keywordtype}{float}\ get\_side\_bearing\_var\ (hb\_codepoint\_t\ glyph,}
+\DoxyCodeLine{00329\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ *coords,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ coord\_count)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00330\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00331\ \ \ \ \ \textcolor{keywordflow}{if}\ (!has\_side\_bearing\_deltas\ ())\ \textcolor{keywordflow}{return}\ 0.f;}
+\DoxyCodeLine{00332\ \ \ \ \ uint32\_t\ varidx\ =\ (\textcolor{keyword}{this}+lsbMap).map\ (glyph);}
+\DoxyCodeLine{00333\ \ \ \ \ \textcolor{keywordflow}{return}\ (\textcolor{keyword}{this}+varStore).get\_delta\ (varidx,\ coords,\ coord\_count);}
+\DoxyCodeLine{00334\ \ \ \}}
+\DoxyCodeLine{00335\ }
+\DoxyCodeLine{00336\ \ \ \textcolor{keywordtype}{bool}\ has\_side\_bearing\_deltas\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ lsbMap\ \&\&\ rsbMap;\ \}}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00339\ \ \ \mbox{\hyperlink{struct_o_t_1_1_fixed_version}{FixedVersion<>}}version;\ \ \textcolor{comment}{/*\ Version\ of\ the\ metrics\ variation\ table}}
+\DoxyCodeLine{00340\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ initially\ set\ to\ 0x00010000u\ */}}
+\DoxyCodeLine{00341\ \ \ \mbox{\hyperlink{struct_o_t_1_1_offset_to}{Offset32To<VariationStore>}}}
+\DoxyCodeLine{00342\ \ \ \ \ \ \ \ \ varStore;\ \ \ \textcolor{comment}{/*\ Offset\ to\ item\ variation\ store\ table.\ */}}
+\DoxyCodeLine{00343\ \ \ \mbox{\hyperlink{struct_o_t_1_1_offset_to}{Offset32To<DeltaSetIndexMap>}}}
+\DoxyCodeLine{00344\ \ \ \ \ \ \ \ \ advMap;\ \ \ \ \ \textcolor{comment}{/*\ Offset\ to\ advance\ var-\/idx\ mapping.\ */}}
+\DoxyCodeLine{00345\ \ \ \mbox{\hyperlink{struct_o_t_1_1_offset_to}{Offset32To<DeltaSetIndexMap>}}}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \ \ lsbMap;\ \ \ \ \ \textcolor{comment}{/*\ Offset\ to\ lsb/tsb\ var-\/idx\ mapping.\ */}}
+\DoxyCodeLine{00347\ \ \ \mbox{\hyperlink{struct_o_t_1_1_offset_to}{Offset32To<DeltaSetIndexMap>}}}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ \ \ rsbMap;\ \ \ \ \ \textcolor{comment}{/*\ Offset\ to\ rsb/bsb\ var-\/idx\ mapping.\ */}}
+\DoxyCodeLine{00349\ }
+\DoxyCodeLine{00350\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00351\ \ \ DEFINE\_SIZE\_STATIC\ (20);}
+\DoxyCodeLine{00352\ \};}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1_h_v_a_r}{HVAR}}\ :\ \mbox{\hyperlink{struct_o_t_1_1_h_v_a_r_v_v_a_r}{HVARVVAR}}\ \{}
+\DoxyCodeLine{00355\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ hb\_tag\_t\ tableTag\ =\ HB\_OT\_TAG\_HVAR;}
+\DoxyCodeLine{00356\ \ \ \textcolor{keywordtype}{bool}\ subset\ (\mbox{\hyperlink{structhb__subset__context__t}{hb\_subset\_context\_t}}\ *c)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ HVARVVAR::\_subset<HVAR>\ (c);\ \}}
+\DoxyCodeLine{00357\ \};}
+\DoxyCodeLine{00358\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_o_t_1_1_v_v_a_r}{VVAR}}\ :\ \mbox{\hyperlink{struct_o_t_1_1_h_v_a_r_v_v_a_r}{HVARVVAR}}\ \{}
+\DoxyCodeLine{00359\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ hb\_tag\_t\ tableTag\ =\ HB\_OT\_TAG\_VVAR;}
+\DoxyCodeLine{00360\ }
+\DoxyCodeLine{00361\ \ \ \textcolor{keywordtype}{bool}\ sanitize\ (\mbox{\hyperlink{structhb__sanitize__context__t}{hb\_sanitize\_context\_t}}\ *c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00362\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00363\ \ \ \ \ TRACE\_SANITIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00364\ \ \ \ \ return\_trace\ (\textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }\mbox{\hyperlink{struct_o_t_1_1_h_v_a_r_v_v_a_r}{HVARVVAR}}\ *\textcolor{keyword}{>}\ (\textcolor{keyword}{this})-\/>sanitize\ (c)\ \&\&}
+\DoxyCodeLine{00365\ \ \ \ \ \ \ \ \ \ \ vorgMap.sanitize\ (c,\ \textcolor{keyword}{this}));}
+\DoxyCodeLine{00366\ \ \ \}}
+\DoxyCodeLine{00367\ }
+\DoxyCodeLine{00368\ \ \ \textcolor{keywordtype}{void}\ listup\_index\_maps\ (\mbox{\hyperlink{structhb__vector__t}{hb\_vector\_t<const\ DeltaSetIndexMap\ *>}}\ \&index\_maps)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00369\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00370\ \ \ \ \ HVARVVAR::listup\_index\_maps\ (index\_maps);}
+\DoxyCodeLine{00371\ \ \ \ \ index\_maps.push\ (\&(\textcolor{keyword}{this}+vorgMap));}
+\DoxyCodeLine{00372\ \ \ \}}
+\DoxyCodeLine{00373\ }
+\DoxyCodeLine{00374\ \ \ \textcolor{keywordtype}{bool}\ serialize\_index\_maps\ (\mbox{\hyperlink{structhb__serialize__context__t}{hb\_serialize\_context\_t}}\ *c,}
+\DoxyCodeLine{00375\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<index\_map\_subset\_plan\_t>}}\ \&im\_plans)}
+\DoxyCodeLine{00376\ \ \ \{}
+\DoxyCodeLine{00377\ \ \ \ \ TRACE\_SERIALIZE\ (\textcolor{keyword}{this});}
+\DoxyCodeLine{00378\ \ \ \ \ \textcolor{keywordflow}{if}\ (unlikely\ (!HVARVVAR::serialize\_index\_maps\ (c,\ im\_plans)))}
+\DoxyCodeLine{00379\ \ \ \ \ \ \ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00380\ \ \ \ \ \textcolor{keywordflow}{if}\ (!im\_plans[index\_map\_subset\_plan\_t::VORG\_INDEX].get\_map\_count\ ())}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ vorgMap\ =\ 0;}
+\DoxyCodeLine{00382\ \ \ \ \ \textcolor{keywordflow}{else}\ \textcolor{keywordflow}{if}\ (unlikely\ (!vorgMap.serialize\_serialize\ (c,\ im\_plans[index\_map\_subset\_plan\_t::VORG\_INDEX])))}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ return\_trace\ (\textcolor{keyword}{false});}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \ \ \ \ return\_trace\ (\textcolor{keyword}{true});}
+\DoxyCodeLine{00386\ \ \ \}}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \ \ \textcolor{keywordtype}{bool}\ subset\ (\mbox{\hyperlink{structhb__subset__context__t}{hb\_subset\_context\_t}}\ *c)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ HVARVVAR::\_subset<VVAR>\ (c);\ \}}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00391\ \ \ \mbox{\hyperlink{struct_o_t_1_1_offset_to}{Offset32To<DeltaSetIndexMap>}}}
+\DoxyCodeLine{00392\ \ \ \ \ \ \ \ \ vorgMap;\ \ \ \ \textcolor{comment}{/*\ Offset\ to\ vertical-\/origin\ var-\/idx\ mapping.\ */}}
+\DoxyCodeLine{00393\ }
+\DoxyCodeLine{00394\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00395\ \ \ DEFINE\_SIZE\_STATIC\ (24);}
+\DoxyCodeLine{00396\ \};}
+\DoxyCodeLine{00397\ }
+\DoxyCodeLine{00398\ \}\ \textcolor{comment}{/*\ namespace\ OT\ */}}
+\DoxyCodeLine{00399\ }
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_OT\_VAR\_HVAR\_TABLE\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

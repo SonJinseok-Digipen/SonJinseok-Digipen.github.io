@@ -1,0 +1,1894 @@
+\hypertarget{ink__processing_8h_source}{}\doxysection{ink\+\_\+processing.\+h}
+\label{ink__processing_8h_source}\index{AseSprite/aseprite/src/app/tools/ink\_processing.h@{AseSprite/aseprite/src/app/tools/ink\_processing.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2019-\/2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}app/color\_utils.h"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}app/util/wrap\_point.h"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}app/util/wrap\_value.h"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}doc/blend\_funcs.h"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}doc/blend\_internals.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}doc/image\_impl.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}doc/layer.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}doc/palette.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}doc/remap.h"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}doc/rgbmap.h"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}doc/sprite.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}filters/neighboring\_pixels.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}gfx/hsv.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}gfx/rgb.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}render/dithering.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}render/gradient.h"{}}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00026\ \textcolor{keyword}{namespace\ }tools\ \{}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{using\ namespace\ }gfx;}
+\DoxyCodeLine{00029\ \textcolor{keyword}{using\ namespace\ }filters;}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1tools_1_1_base_ink_processing}{BaseInkProcessing}}\ \{}
+\DoxyCodeLine{00032\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{virtual}\ \mbox{\hyperlink{classapp_1_1tools_1_1_base_ink_processing}{\string~BaseInkProcessing}}()\ \{\ \}}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ processScanline(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y,\ \textcolor{keywordtype}{int}\ x2,\ \mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop)\ =\ 0;}
+\DoxyCodeLine{00035\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ prepareForStrokes(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ Strokes\&\ strokes)\ \{\ \}}
+\DoxyCodeLine{00036\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ prepareForPointShape(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{\ \}}
+\DoxyCodeLine{00037\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ prepareVForPointShape(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keywordtype}{int}\ y)\ \{\ \}}
+\DoxyCodeLine{00038\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ prepareUForPointShapeWholeScanline(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keywordtype}{int}\ x1)\ \{\ \}}
+\DoxyCodeLine{00039\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ prepareUForPointShapeSlicedScanline(\mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop,\ \textcolor{keywordtype}{bool}\ leftSlice,\ \textcolor{keywordtype}{int}\ x1)\ \{\ \}}
+\DoxyCodeLine{00040\ \};}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{typedef}\ std::unique\_ptr<BaseInkProcessing>\ InkProcessingPtr;}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{keyword}{namespace\ }\{}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00047\ \textcolor{comment}{//\ Ink\ Processing}}
+\DoxyCodeLine{00049\ \textcolor{comment}{}}
+\DoxyCodeLine{00050\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Derived>}
+\DoxyCodeLine{00051\ \textcolor{keyword}{class\ }InkProcessing\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classapp_1_1tools_1_1_base_ink_processing}{BaseInkProcessing}}\ \{}
+\DoxyCodeLine{00052\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00053\ \ \ \textcolor{keywordtype}{void}\ processScanline(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y,\ \textcolor{keywordtype}{int}\ x2,\ \mbox{\hyperlink{classapp_1_1tools_1_1_tool_loop}{ToolLoop}}*\ loop)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{int}\ x;}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{comment}{//\ Use\ mask}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>useMask())\ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{Point}}\ maskOrigin(loop-\/>getMaskOrigin());}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_rect_t}{Rect}}\&\ maskBounds(loop-\/>getMask()-\/>bounds());}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ ((y\ <\ maskOrigin.y)\ ||\ (y\ >=\ maskOrigin.y+maskBounds.h))}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1\ <\ maskOrigin.x)}
+\DoxyCodeLine{00065\ \ \ \ \ \ \ \ \ x1\ =\ maskOrigin.x;}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x2\ >\ maskOrigin.x+maskBounds.w-\/1)}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ x2\ =\ maskOrigin.x+maskBounds.w-\/1;}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ bitmap\ =\ loop-\/>getMask()-\/>bitmap())\ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}Derived*\textcolor{keyword}{>}(\textcolor{keyword}{this})-\/>initIterators(loop,\ x1,\ y);}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (x=x1;\ x<=x2;\ ++x)\ \{}
+\DoxyCodeLine{00074\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (bitmap-\/>getPixel(x-\/maskOrigin.x,\ y-\/maskOrigin.y))}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}Derived*\textcolor{keyword}{>}(\textcolor{keyword}{this})-\/>processPixel(x,\ y);}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}Derived*\textcolor{keyword}{>}(\textcolor{keyword}{this})-\/>moveIterators();}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00081\ \ \ \ \ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keyword}{static\_cast<}Derived*\textcolor{keyword}{>}(\textcolor{keyword}{this})-\/>initIterators(loop,\ x1,\ y);}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordflow}{for}\ (x=x1;\ x<=x2;\ ++x)\ \{}
+\DoxyCodeLine{00085\ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}Derived*\textcolor{keyword}{>}(\textcolor{keyword}{this})-\/>processPixel(x,\ y);}
+\DoxyCodeLine{00086\ \ \ \ \ \ \ \textcolor{keyword}{static\_cast<}Derived*\textcolor{keyword}{>}(\textcolor{keyword}{this})-\/>moveIterators();}
+\DoxyCodeLine{00087\ \ \ \ \ \}}
+\DoxyCodeLine{00088\ \ \ \}}
+\DoxyCodeLine{00089\ \};}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Derived,\ \textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00092\ \textcolor{keyword}{class\ }SimpleInkProcessing\ :\ \textcolor{keyword}{public}\ InkProcessing<Derived>\ \{}
+\DoxyCodeLine{00093\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00094\ \ \ \textcolor{keywordtype}{void}\ initIterators(ToolLoop*\ loop,\ \textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00095\ \ \ \ \ m\_dstAddress\ =\ (\textcolor{keyword}{typename}\ ImageTraits::address\_t)loop-\/>getDstImage()-\/>getPixelAddress(x1,\ y);}
+\DoxyCodeLine{00096\ \ \ \}}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordtype}{void}\ moveIterators()\ \{}
+\DoxyCodeLine{00099\ \ \ \ \ ++m\_dstAddress;}
+\DoxyCodeLine{00100\ \ \ \}}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00103\ \ \ \textcolor{keyword}{typename}\ ImageTraits::address\_t\ m\_dstAddress;}
+\DoxyCodeLine{00104\ \};}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Derived,\ \textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00107\ \textcolor{keyword}{class\ }DoubleInkProcessing\ :\ \textcolor{keyword}{public}\ InkProcessing<Derived>\ \{}
+\DoxyCodeLine{00108\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00109\ \ \ \textcolor{keywordtype}{void}\ initIterators(ToolLoop*\ loop,\ \textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00110\ \ \ \ \ m\_srcAddress\ =\ (\textcolor{keyword}{typename}\ ImageTraits::address\_t)loop-\/>getSrcImage()-\/>getPixelAddress(x1,\ y);}
+\DoxyCodeLine{00111\ \ \ \ \ m\_dstAddress\ =\ (\textcolor{keyword}{typename}\ ImageTraits::address\_t)loop-\/>getDstImage()-\/>getPixelAddress(x1,\ y);}
+\DoxyCodeLine{00112\ \ \ \}}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \textcolor{keywordtype}{void}\ moveIterators()\ \{}
+\DoxyCodeLine{00115\ \ \ \ \ ++m\_srcAddress;}
+\DoxyCodeLine{00116\ \ \ \ \ ++m\_dstAddress;}
+\DoxyCodeLine{00117\ \ \ \}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00120\ \ \ \textcolor{keyword}{typename}\ ImageTraits::address\_t\ m\_srcAddress;}
+\DoxyCodeLine{00121\ \ \ \textcolor{keyword}{typename}\ ImageTraits::address\_t\ m\_dstAddress;}
+\DoxyCodeLine{00122\ \};}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{//\ Copy\ Ink}}
+\DoxyCodeLine{00127\ \textcolor{comment}{}}
+\DoxyCodeLine{00128\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00129\ \textcolor{keyword}{class\ }CopyInkProcessing\ :\ \textcolor{keyword}{public}\ SimpleInkProcessing<CopyInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00130\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00131\ \ \ CopyInkProcessing(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{00132\ \ \ \}}
+\DoxyCodeLine{00133\ }
+\DoxyCodeLine{00134\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00135\ \ \ \ \ m\_color\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getLayer()-\/>isBackground())\ \{}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (loop-\/>sprite()-\/>pixelFormat())\ \{}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ m\_color\ |=\ rgba\_a\_mask;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ m\_color\ |=\ graya\_a\_mask;\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00141\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00142\ \ \ \ \ \}}
+\DoxyCodeLine{00143\ \ \ \}}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00146\ \ \ \ \ *this-\/>m\_dstAddress\ =\ m\_color;}
+\DoxyCodeLine{00147\ \ \ \}}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00150\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00151\ \};}
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00154\ \textcolor{comment}{//\ LockAlpha\ Ink}}
+\DoxyCodeLine{00156\ \textcolor{comment}{}}
+\DoxyCodeLine{00157\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00158\ \textcolor{keyword}{class\ }LockAlphaInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<LockAlphaInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00159\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00160\ \ \ LockAlphaInkProcessing(ToolLoop*\ loop)}
+\DoxyCodeLine{00161\ \ \ \ \ :\ m\_opacity(loop-\/>getOpacity())\ \{}
+\DoxyCodeLine{00162\ \ \ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00165\ \ \ \ \ m\_color\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{00166\ \ \ \}}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00168\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{00170\ \ \ \}}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00173\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00174\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00175\ \};}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00178\ \textcolor{keywordtype}{void}\ LockAlphaInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00179\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ result\ =\ rgba\_blender\_normal(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00180\ \ \ *m\_dstAddress\ =\ doc::rgba(}
+\DoxyCodeLine{00181\ \ \ \ \ rgba\_getr(result),}
+\DoxyCodeLine{00182\ \ \ \ \ rgba\_getg(result),}
+\DoxyCodeLine{00183\ \ \ \ \ rgba\_getb(result),}
+\DoxyCodeLine{00184\ \ \ \ \ rgba\_geta(*m\_srcAddress));}
+\DoxyCodeLine{00185\ \}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00188\ \textcolor{keywordtype}{void}\ LockAlphaInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00189\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ result\ =\ graya\_blender\_normal(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00190\ \ \ *m\_dstAddress\ =\ graya(}
+\DoxyCodeLine{00191\ \ \ \ \ graya\_getv(result),}
+\DoxyCodeLine{00192\ \ \ \ \ graya\_geta(*m\_srcAddress));}
+\DoxyCodeLine{00193\ \}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00196\ \textcolor{keyword}{class\ }LockAlphaInkProcessing<\mbox{\hyperlink{structdoc_1_1_indexed_traits}{IndexedTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<LockAlphaInkProcessing<IndexedTraits>,\ IndexedTraits>\ \{}
+\DoxyCodeLine{00197\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00198\ \ \ LockAlphaInkProcessing(ToolLoop*\ loop)}
+\DoxyCodeLine{00199\ \ \ \ \ :\ m\_palette(loop-\/>getPalette())}
+\DoxyCodeLine{00200\ \ \ \ \ ,\ m\_rgbmap(loop-\/>getRgbMap())}
+\DoxyCodeLine{00201\ \ \ \ \ ,\ m\_opacity(loop-\/>getOpacity())}
+\DoxyCodeLine{00202\ \ \ \ \ ,\ m\_maskIndex(loop-\/>getLayer()-\/>isBackground()\ ?\ -\/1:\ loop-\/>sprite()-\/>transparentColor())\ \{}
+\DoxyCodeLine{00203\ \ \ \}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00206\ \ \ \ \ m\_color\ =\ m\_palette-\/>getEntry(loop-\/>getPrimaryColor());}
+\DoxyCodeLine{00207\ \ \ \}}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00210\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ *m\_srcAddress;}
+\DoxyCodeLine{00211\ \ \ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keywordtype}{int}(c)\ ==\ m\_maskIndex)}
+\DoxyCodeLine{00212\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c)\ \&\ rgba\_rgb\_mask;\ \ \textcolor{comment}{//\ Alpha\ =\ 0}}
+\DoxyCodeLine{00213\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00214\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ result\ =\ rgba\_blender\_normal(c,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00217\ \ \ \ \ \textcolor{comment}{//\ TODO\ should\ we\ use\ m\_rgbmap-\/>mapColor\ instead?}}
+\DoxyCodeLine{00218\ \ \ \ \ *m\_dstAddress\ =\ m\_palette-\/>findBestfit(}
+\DoxyCodeLine{00219\ \ \ \ \ \ \ rgba\_getr(result),}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ rgba\_getg(result),}
+\DoxyCodeLine{00221\ \ \ \ \ \ \ rgba\_getb(result),}
+\DoxyCodeLine{00222\ \ \ \ \ \ \ rgba\_geta(c),\ m\_maskIndex);}
+\DoxyCodeLine{00223\ \ \ \}}
+\DoxyCodeLine{00224\ }
+\DoxyCodeLine{00225\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00226\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00227\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{00228\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00229\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00230\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_maskIndex;}
+\DoxyCodeLine{00231\ \};}
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00234\ \textcolor{comment}{//\ Transparent\ Ink}}
+\DoxyCodeLine{00236\ \textcolor{comment}{}}
+\DoxyCodeLine{00237\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00238\ \textcolor{keyword}{class\ }TransparentInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<TransparentInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00239\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00240\ \ \ TransparentInkProcessing(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{00241\ \ \ \ \ m\_opacity\ =\ loop-\/>getOpacity();}
+\DoxyCodeLine{00242\ \ \ \}}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00245\ \ \ \ \ m\_color\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{00246\ \ \ \}}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00249\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{00250\ \ \ \}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00253\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00254\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00255\ \};}
+\DoxyCodeLine{00256\ }
+\DoxyCodeLine{00257\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00258\ \textcolor{keywordtype}{void}\ TransparentInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00259\ \ \ *m\_dstAddress\ =\ rgba\_blender\_normal(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00260\ \}}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00263\ \textcolor{keywordtype}{void}\ TransparentInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00264\ \ \ *m\_dstAddress\ =\ graya\_blender\_normal(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00265\ \}}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00268\ \textcolor{keyword}{class\ }TransparentInkProcessing<\mbox{\hyperlink{structdoc_1_1_indexed_traits}{IndexedTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<TransparentInkProcessing<IndexedTraits>,\ IndexedTraits>\ \{}
+\DoxyCodeLine{00269\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00270\ \ \ TransparentInkProcessing(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{00271\ \ \ \ \ m\_palette(loop-\/>getPalette()),}
+\DoxyCodeLine{00272\ \ \ \ \ m\_rgbmap(loop-\/>getRgbMap()),}
+\DoxyCodeLine{00273\ \ \ \ \ m\_opacity(loop-\/>getOpacity()),}
+\DoxyCodeLine{00274\ \ \ \ \ m\_maskIndex(loop-\/>getLayer()-\/>isBackground()\ ?\ -\/1:\ loop-\/>sprite()-\/>transparentColor()),}
+\DoxyCodeLine{00275\ \ \ \ \ m\_colorIndex(loop-\/>getFgColor())\ \{}
+\DoxyCodeLine{00276\ \ \ \}}
+\DoxyCodeLine{00277\ }
+\DoxyCodeLine{00278\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00279\ \ \ \ \ m\_color\ =\ m\_palette-\/>getEntry(loop-\/>getPrimaryColor());}
+\DoxyCodeLine{00280\ \ \ \}}
+\DoxyCodeLine{00281\ }
+\DoxyCodeLine{00282\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00283\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_colorIndex\ ==\ m\_maskIndex)}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ *m\_srcAddress;}
+\DoxyCodeLine{00287\ \ \ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keywordtype}{int}(c)\ ==\ m\_maskIndex)}
+\DoxyCodeLine{00288\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c)\ \&\ rgba\_rgb\_mask;\ \ \textcolor{comment}{//\ Alpha\ =\ 0}}
+\DoxyCodeLine{00289\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \ \ \ \ c\ =\ rgba\_blender\_normal(c,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00293\ \ \ \ \ *m\_dstAddress\ =\ m\_rgbmap-\/>mapColor(c);}
+\DoxyCodeLine{00294\ \ \ \}}
+\DoxyCodeLine{00295\ }
+\DoxyCodeLine{00296\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00297\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00298\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{00299\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00300\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00301\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_maskIndex;}
+\DoxyCodeLine{00302\ \ \ \textcolor{keywordtype}{int}\ m\_colorIndex;}
+\DoxyCodeLine{00303\ \};}
+\DoxyCodeLine{00304\ }
+\DoxyCodeLine{00306\ \textcolor{comment}{//\ Merge\ Ink}}
+\DoxyCodeLine{00308\ \textcolor{comment}{}}
+\DoxyCodeLine{00309\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00310\ \textcolor{keyword}{class\ }MergeInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<MergeInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00311\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00312\ \ \ MergeInkProcessing(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{00313\ \ \ \ \ m\_opacity\ =\ loop-\/>getOpacity();}
+\DoxyCodeLine{00314\ \ \ \}}
+\DoxyCodeLine{00315\ }
+\DoxyCodeLine{00316\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00317\ \ \ \ \ m\_color\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{00318\ \ \ \}}
+\DoxyCodeLine{00319\ }
+\DoxyCodeLine{00320\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00321\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{00322\ \ \ \}}
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00325\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00326\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00327\ \};}
+\DoxyCodeLine{00328\ }
+\DoxyCodeLine{00329\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00330\ \textcolor{keywordtype}{void}\ MergeInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00331\ \ \ *m\_dstAddress\ =\ rgba\_blender\_merge(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00332\ \}}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00335\ \textcolor{keywordtype}{void}\ MergeInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00336\ \ \ *m\_dstAddress\ =\ graya\_blender\_merge(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00337\ \}}
+\DoxyCodeLine{00338\ }
+\DoxyCodeLine{00339\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00340\ \textcolor{keyword}{class\ }MergeInkProcessing<\mbox{\hyperlink{structdoc_1_1_indexed_traits}{IndexedTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<MergeInkProcessing<IndexedTraits>,\ IndexedTraits>\ \{}
+\DoxyCodeLine{00341\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00342\ \ \ MergeInkProcessing(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{00343\ \ \ \ \ m\_palette(loop-\/>getPalette()),}
+\DoxyCodeLine{00344\ \ \ \ \ m\_rgbmap(loop-\/>getRgbMap()),}
+\DoxyCodeLine{00345\ \ \ \ \ m\_opacity(loop-\/>getOpacity()),}
+\DoxyCodeLine{00346\ \ \ \ \ m\_maskIndex(loop-\/>getLayer()-\/>isBackground()\ ?\ -\/1:\ loop-\/>sprite()-\/>transparentColor())\ \{}
+\DoxyCodeLine{00347\ \ \ \}}
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00350\ \ \ \ \ m\_color\ =\ (int(loop-\/>getPrimaryColor())\ ==\ m\_maskIndex\ ?}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (m\_palette-\/>getEntry(loop-\/>getPrimaryColor())\ \&\ rgba\_rgb\_mask):}
+\DoxyCodeLine{00352\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (m\_palette-\/>getEntry(loop-\/>getPrimaryColor())));}
+\DoxyCodeLine{00353\ \ \ \}}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00356\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ *m\_srcAddress;}
+\DoxyCodeLine{00357\ \ \ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keywordtype}{int}(c)\ ==\ m\_maskIndex)}
+\DoxyCodeLine{00358\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c)\ \&\ rgba\_rgb\_mask;\ \ \textcolor{comment}{//\ Alpha\ =\ 0}}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00360\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{00361\ }
+\DoxyCodeLine{00362\ \ \ \ \ c\ =\ rgba\_blender\_merge(c,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00363\ \ \ \ \ *m\_dstAddress\ =\ m\_rgbmap-\/>mapColor(c);}
+\DoxyCodeLine{00364\ \ \ \}}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00367\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00368\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{00369\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00370\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_maskIndex;}
+\DoxyCodeLine{00371\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00372\ \};}
+\DoxyCodeLine{00373\ }
+\DoxyCodeLine{00375\ \textcolor{comment}{//\ Blur\ Ink}}
+\DoxyCodeLine{00377\ \textcolor{comment}{}}
+\DoxyCodeLine{00378\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00379\ \textcolor{keyword}{class\ }BlurInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<BlurInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00380\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00381\ \ \ BlurInkProcessing(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{00382\ \ \ \}}
+\DoxyCodeLine{00383\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00384\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing\ (it's\ specialized\ for\ each\ case)}}
+\DoxyCodeLine{00385\ \ \ \}}
+\DoxyCodeLine{00386\ \};}
+\DoxyCodeLine{00387\ }
+\DoxyCodeLine{00388\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00389\ \textcolor{keyword}{class\ }BlurInkProcessing<\mbox{\hyperlink{structdoc_1_1_rgb_traits}{RgbTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<BlurInkProcessing<RgbTraits>,\ RgbTraits>\ \{}
+\DoxyCodeLine{00390\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00391\ \ \ BlurInkProcessing(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{00392\ \ \ \ \ m\_opacity(loop-\/>getOpacity()),}
+\DoxyCodeLine{00393\ \ \ \ \ m\_tiledMode(loop-\/>getTiledMode()),}
+\DoxyCodeLine{00394\ \ \ \ \ m\_srcImage(loop-\/>getSrcImage())\ \{}
+\DoxyCodeLine{00395\ \ \ \}}
+\DoxyCodeLine{00396\ }
+\DoxyCodeLine{00397\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00398\ \ \ \ \ m\_area.reset();}
+\DoxyCodeLine{00399\ \ \ \ \ get\_neighboring\_pixels<RgbTraits>(m\_srcImage,\ x,\ y,\ 3,\ 3,\ 1,\ 1,\ m\_tiledMode,\ m\_area);}
+\DoxyCodeLine{00400\ }
+\DoxyCodeLine{00401\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_area.count\ >\ 0)\ \{}
+\DoxyCodeLine{00402\ \ \ \ \ \ \ m\_area.r\ /=\ m\_area.count;}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ m\_area.g\ /=\ m\_area.count;}
+\DoxyCodeLine{00404\ \ \ \ \ \ \ m\_area.b\ /=\ m\_area.count;}
+\DoxyCodeLine{00405\ \ \ \ \ \ \ m\_area.a\ /=\ 9;}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ *m\_dstAddress\ =}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ rgba\_blender\_merge(*m\_srcAddress,}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc::rgba(m\_area.r,\ m\_area.g,\ m\_area.b,\ m\_area.a),}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_opacity);}
+\DoxyCodeLine{00410\ \ \ \ \ \}}
+\DoxyCodeLine{00411\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ *m\_dstAddress\ =\ *m\_srcAddress;}
+\DoxyCodeLine{00413\ \ \ \ \ \}}
+\DoxyCodeLine{00414\ \ \ \}}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00417\ \ \ \textcolor{keyword}{struct\ }GetPixelsDelegate\ \{}
+\DoxyCodeLine{00418\ \ \ \ \ \textcolor{keywordtype}{int}\ count,\ r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \ \ \ \ \textcolor{keywordtype}{void}\ reset()\ \{\ count\ =\ r\ =\ g\ =\ b\ =\ \mbox{\hyperlink{structa}{a}}\ =\ 0;\ \}}
+\DoxyCodeLine{00421\ }
+\DoxyCodeLine{00422\ \ \ \ \ \textcolor{keywordtype}{void}\ operator()(RgbTraits::pixel\_t\ color)\ \{}
+\DoxyCodeLine{00423\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(color)\ !=\ 0)\ \{}
+\DoxyCodeLine{00424\ \ \ \ \ \ \ \ \ r\ +=\ rgba\_getr(color);}
+\DoxyCodeLine{00425\ \ \ \ \ \ \ \ \ g\ +=\ rgba\_getg(color);}
+\DoxyCodeLine{00426\ \ \ \ \ \ \ \ \ b\ +=\ rgba\_getb(color);}
+\DoxyCodeLine{00427\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ +=\ rgba\_geta(color);}
+\DoxyCodeLine{00428\ \ \ \ \ \ \ \ \ ++count;}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00430\ \ \ \ \ \}}
+\DoxyCodeLine{00431\ \ \ \};}
+\DoxyCodeLine{00432\ }
+\DoxyCodeLine{00433\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00434\ \ \ TiledMode\ m\_tiledMode;}
+\DoxyCodeLine{00435\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_srcImage;}
+\DoxyCodeLine{00436\ \ \ GetPixelsDelegate\ m\_area;}
+\DoxyCodeLine{00437\ \};}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00440\ \textcolor{keyword}{class\ }BlurInkProcessing<\mbox{\hyperlink{structdoc_1_1_grayscale_traits}{GrayscaleTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<BlurInkProcessing<GrayscaleTraits>,\ GrayscaleTraits>\ \{}
+\DoxyCodeLine{00441\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00442\ \ \ BlurInkProcessing(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{00443\ \ \ \ \ m\_opacity(loop-\/>getOpacity()),}
+\DoxyCodeLine{00444\ \ \ \ \ m\_tiledMode(loop-\/>getTiledMode()),}
+\DoxyCodeLine{00445\ \ \ \ \ m\_srcImage(loop-\/>getSrcImage())\ \{}
+\DoxyCodeLine{00446\ \ \ \}}
+\DoxyCodeLine{00447\ }
+\DoxyCodeLine{00448\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00449\ \ \ \ \ m\_area.reset();}
+\DoxyCodeLine{00450\ \ \ \ \ get\_neighboring\_pixels<GrayscaleTraits>(m\_srcImage,\ x,\ y,\ 3,\ 3,\ 1,\ 1,\ m\_tiledMode,\ m\_area);}
+\DoxyCodeLine{00451\ }
+\DoxyCodeLine{00452\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_area.count\ >\ 0)\ \{}
+\DoxyCodeLine{00453\ \ \ \ \ \ \ m\_area.v\ /=\ m\_area.count;}
+\DoxyCodeLine{00454\ \ \ \ \ \ \ m\_area.a\ /=\ 9;}
+\DoxyCodeLine{00455\ \ \ \ \ \ \ *m\_dstAddress\ =}
+\DoxyCodeLine{00456\ \ \ \ \ \ \ \ \ graya\_blender\_merge(*m\_srcAddress,}
+\DoxyCodeLine{00457\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya(m\_area.v,\ m\_area.a),}
+\DoxyCodeLine{00458\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_opacity);}
+\DoxyCodeLine{00459\ \ \ \ \ \}}
+\DoxyCodeLine{00460\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00461\ \ \ \ \ \ \ *m\_dstAddress\ =\ *m\_srcAddress;}
+\DoxyCodeLine{00462\ \ \ \ \ \}}
+\DoxyCodeLine{00463\ \ \ \}}
+\DoxyCodeLine{00464\ }
+\DoxyCodeLine{00465\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00466\ \ \ \textcolor{keyword}{struct\ }GetPixelsDelegate\ \{}
+\DoxyCodeLine{00467\ \ \ \ \ \textcolor{keywordtype}{int}\ count,\ v,\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00468\ }
+\DoxyCodeLine{00469\ \ \ \ \ \textcolor{keywordtype}{void}\ reset()\ \{\ count\ =\ v\ =\ \mbox{\hyperlink{structa}{a}}\ =\ 0;\ \}}
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ \ \ \ \ \textcolor{keywordtype}{void}\ operator()(GrayscaleTraits::pixel\_t\ color)}
+\DoxyCodeLine{00472\ \ \ \ \ \{}
+\DoxyCodeLine{00473\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (graya\_geta(color)\ >\ 0)\ \{}
+\DoxyCodeLine{00474\ \ \ \ \ \ \ \ \ v\ +=\ graya\_getv(color);}
+\DoxyCodeLine{00475\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ +=\ graya\_geta(color);}
+\DoxyCodeLine{00476\ \ \ \ \ \ \ \ \ ++count;}
+\DoxyCodeLine{00477\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00478\ \ \ \ \ \}}
+\DoxyCodeLine{00479\ \ \ \};}
+\DoxyCodeLine{00480\ }
+\DoxyCodeLine{00481\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00482\ \ \ TiledMode\ m\_tiledMode;}
+\DoxyCodeLine{00483\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_srcImage;}
+\DoxyCodeLine{00484\ \ \ GetPixelsDelegate\ m\_area;}
+\DoxyCodeLine{00485\ \};}
+\DoxyCodeLine{00486\ }
+\DoxyCodeLine{00487\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00488\ \textcolor{keyword}{class\ }BlurInkProcessing<\mbox{\hyperlink{structdoc_1_1_indexed_traits}{IndexedTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<BlurInkProcessing<IndexedTraits>,\ IndexedTraits>\ \{}
+\DoxyCodeLine{00489\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00490\ \ \ BlurInkProcessing(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{00491\ \ \ \ \ m\_palette(loop-\/>getPalette()),}
+\DoxyCodeLine{00492\ \ \ \ \ m\_rgbmap(loop-\/>getRgbMap()),}
+\DoxyCodeLine{00493\ \ \ \ \ m\_opacity(loop-\/>getOpacity()),}
+\DoxyCodeLine{00494\ \ \ \ \ m\_tiledMode(loop-\/>getTiledMode()),}
+\DoxyCodeLine{00495\ \ \ \ \ m\_srcImage(loop-\/>getSrcImage()),}
+\DoxyCodeLine{00496\ \ \ \ \ m\_area(loop-\/>getPalette(),}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \ \ \ \ \ loop-\/>getLayer()-\/>isBackground()\ ?\ -\/1:\ loop-\/>sprite()-\/>transparentColor())\ \{}
+\DoxyCodeLine{00498\ \ \ \}}
+\DoxyCodeLine{00499\ }
+\DoxyCodeLine{00500\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00501\ \ \ \ \ m\_area.reset();}
+\DoxyCodeLine{00502\ \ \ \ \ get\_neighboring\_pixels<IndexedTraits>(m\_srcImage,\ x,\ y,\ 3,\ 3,\ 1,\ 1,\ m\_tiledMode,\ m\_area);}
+\DoxyCodeLine{00503\ }
+\DoxyCodeLine{00504\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_area.count\ >\ 0)\ \{}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ m\_area.r\ /=\ m\_area.count;}
+\DoxyCodeLine{00506\ \ \ \ \ \ \ m\_area.g\ /=\ m\_area.count;}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ m\_area.b\ /=\ m\_area.count;}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ m\_area.a\ /=\ 9;}
+\DoxyCodeLine{00509\ }
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =}
+\DoxyCodeLine{00511\ \ \ \ \ \ \ \ \ rgba\_blender\_merge(m\_palette-\/>getEntry(*m\_srcAddress),}
+\DoxyCodeLine{00512\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc::rgba(m\_area.r,\ m\_area.g,\ m\_area.b,\ m\_area.a),}
+\DoxyCodeLine{00513\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_opacity);}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_rgbmap-\/>mapColor(c);}
+\DoxyCodeLine{00516\ \ \ \ \ \}}
+\DoxyCodeLine{00517\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00518\ \ \ \ \ \ \ *m\_dstAddress\ =\ *m\_srcAddress;}
+\DoxyCodeLine{00519\ \ \ \ \ \}}
+\DoxyCodeLine{00520\ \ \ \}}
+\DoxyCodeLine{00521\ }
+\DoxyCodeLine{00522\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00523\ \ \ \textcolor{keyword}{struct\ }GetPixelsDelegate\ \{}
+\DoxyCodeLine{00524\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ pal;}
+\DoxyCodeLine{00525\ \ \ \ \ \textcolor{keywordtype}{int}\ count,\ r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00526\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ maskColor;}
+\DoxyCodeLine{00527\ }
+\DoxyCodeLine{00528\ \ \ \ \ GetPixelsDelegate(\textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ pal,}
+\DoxyCodeLine{00529\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ maskColor)}
+\DoxyCodeLine{00530\ \ \ \ \ \ \ :\ pal(pal),\ maskColor(maskColor)\ \{\ \}}
+\DoxyCodeLine{00531\ }
+\DoxyCodeLine{00532\ \ \ \ \ \textcolor{keywordtype}{void}\ reset()\ \{\ count\ =\ r\ =\ g\ =\ b\ =\ \mbox{\hyperlink{structa}{a}}\ =\ 0;\ \}}
+\DoxyCodeLine{00533\ }
+\DoxyCodeLine{00534\ \ \ \ \ \textcolor{keywordtype}{void}\ operator()(IndexedTraits::pixel\_t\ color)}
+\DoxyCodeLine{00535\ \ \ \ \ \{}
+\DoxyCodeLine{00536\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (color\ ==\ maskColor)}
+\DoxyCodeLine{00537\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00538\ }
+\DoxyCodeLine{00539\ \ \ \ \ \ \ uint32\_t\ color32\ =\ pal-\/>getEntry(color);}
+\DoxyCodeLine{00540\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(color32)\ >\ 0)\ \{}
+\DoxyCodeLine{00541\ \ \ \ \ \ \ \ \ r\ +=\ rgba\_getr(color32);}
+\DoxyCodeLine{00542\ \ \ \ \ \ \ \ \ g\ +=\ rgba\_getg(color32);}
+\DoxyCodeLine{00543\ \ \ \ \ \ \ \ \ b\ +=\ rgba\_getb(color32);}
+\DoxyCodeLine{00544\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ +=\ rgba\_geta(color32);}
+\DoxyCodeLine{00545\ \ \ \ \ \ \ \ \ ++count;}
+\DoxyCodeLine{00546\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00547\ \ \ \ \ \}}
+\DoxyCodeLine{00548\ \ \ \};}
+\DoxyCodeLine{00549\ }
+\DoxyCodeLine{00550\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00551\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{00552\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00553\ \ \ TiledMode\ m\_tiledMode;}
+\DoxyCodeLine{00554\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_srcImage;}
+\DoxyCodeLine{00555\ \ \ GetPixelsDelegate\ m\_area;}
+\DoxyCodeLine{00556\ \};}
+\DoxyCodeLine{00557\ }
+\DoxyCodeLine{00559\ \textcolor{comment}{//\ Replace\ Ink}}
+\DoxyCodeLine{00561\ \textcolor{comment}{}}
+\DoxyCodeLine{00562\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00563\ \textcolor{keyword}{class\ }ReplaceInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<ReplaceInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00564\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00565\ \ \ ReplaceInkProcessing(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{00566\ \ \ \ \ m\_color1\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{00567\ \ \ \ \ m\_color2\ =\ loop-\/>getSecondaryColor();}
+\DoxyCodeLine{00568\ \ \ \ \ m\_opacity\ =\ loop-\/>getOpacity();}
+\DoxyCodeLine{00569\ \ \ \}}
+\DoxyCodeLine{00570\ }
+\DoxyCodeLine{00571\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00572\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing\ (it's\ specialized\ for\ each\ case)}}
+\DoxyCodeLine{00573\ \ \ \}}
+\DoxyCodeLine{00574\ }
+\DoxyCodeLine{00575\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00576\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color1;}
+\DoxyCodeLine{00577\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color2;}
+\DoxyCodeLine{00578\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00579\ \};}
+\DoxyCodeLine{00580\ }
+\DoxyCodeLine{00581\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00582\ \textcolor{keywordtype}{void}\ ReplaceInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00583\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ src\ =\ (*m\_srcAddress);}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ \ \ \textcolor{comment}{//\ Colors\ (m\_srcAddress\ and\ m\_color1)\ match\ if:}}
+\DoxyCodeLine{00586\ \ \ \textcolor{comment}{//\ *\ They\ are\ both\ completely\ transparent\ (alpha\ ==\ 0)}}
+\DoxyCodeLine{00587\ \ \ \textcolor{comment}{//\ *\ Or\ they\ are\ not\ transparent\ and\ the\ RGB\ values\ are\ the\ same}}
+\DoxyCodeLine{00588\ \ \ \textcolor{keywordflow}{if}\ ((rgba\_geta(src)\ ==\ 0\ \&\&\ rgba\_geta(m\_color1)\ ==\ 0)\ ||}
+\DoxyCodeLine{00589\ \ \ \ \ \ \ (rgba\_geta(src)\ >\ 0\ \&\&\ rgba\_geta(m\_color1)\ >\ 0\ \&\&}
+\DoxyCodeLine{00590\ \ \ \ \ \ \ \ ((src\ \&\ rgba\_rgb\_mask)\ ==\ (m\_color1\ \&\ rgba\_rgb\_mask))))\ \{}
+\DoxyCodeLine{00591\ \ \ \ \ *m\_dstAddress\ =\ rgba\_blender\_merge(src,\ m\_color2,\ m\_opacity);}
+\DoxyCodeLine{00592\ \ \ \}}
+\DoxyCodeLine{00593\ \}}
+\DoxyCodeLine{00594\ }
+\DoxyCodeLine{00595\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00596\ \textcolor{keywordtype}{void}\ ReplaceInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00597\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ src\ =\ (*m\_srcAddress);}
+\DoxyCodeLine{00598\ }
+\DoxyCodeLine{00599\ \ \ \textcolor{keywordflow}{if}\ ((graya\_geta(src)\ ==\ 0\ \&\&\ graya\_geta(m\_color1)\ ==\ 0)\ ||}
+\DoxyCodeLine{00600\ \ \ \ \ \ \ (graya\_geta(src)\ >\ 0\ \&\&\ graya\_geta(m\_color1)\ >\ 0\ \&\&}
+\DoxyCodeLine{00601\ \ \ \ \ \ \ \ ((src\ \&\ graya\_v\_mask)\ ==\ (m\_color1\ \&\ graya\_v\_mask))))\ \{}
+\DoxyCodeLine{00602\ \ \ \ \ *m\_dstAddress\ =\ graya\_blender\_merge(src,\ m\_color2,\ m\_opacity);}
+\DoxyCodeLine{00603\ \ \ \}}
+\DoxyCodeLine{00604\ \}}
+\DoxyCodeLine{00605\ }
+\DoxyCodeLine{00606\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00607\ \textcolor{keyword}{class\ }ReplaceInkProcessing<\mbox{\hyperlink{structdoc_1_1_indexed_traits}{IndexedTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<ReplaceInkProcessing<IndexedTraits>,\ IndexedTraits>\ \{}
+\DoxyCodeLine{00608\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00609\ \ \ ReplaceInkProcessing(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{00610\ \ \ \ \ m\_palette\ =\ loop-\/>getPalette();}
+\DoxyCodeLine{00611\ \ \ \ \ m\_rgbmap\ =\ loop-\/>getRgbMap();}
+\DoxyCodeLine{00612\ \ \ \ \ m\_color1\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{00613\ \ \ \ \ m\_color2\ =\ loop-\/>getSecondaryColor();}
+\DoxyCodeLine{00614\ \ \ \ \ m\_opacity\ =\ loop-\/>getOpacity();}
+\DoxyCodeLine{00615\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_opacity\ <\ 255)}
+\DoxyCodeLine{00616\ \ \ \ \ \ \ m\_color2\ =\ m\_palette-\/>getEntry(m\_color2);}
+\DoxyCodeLine{00617\ \ \ \}}
+\DoxyCodeLine{00618\ }
+\DoxyCodeLine{00619\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00620\ \ \ \ \ \textcolor{keywordflow}{if}\ (*m\_srcAddress\ ==\ m\_color1)\ \{}
+\DoxyCodeLine{00621\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_opacity\ ==\ 255)}
+\DoxyCodeLine{00622\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_color2;}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00624\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ rgba\_blender\_normal(}
+\DoxyCodeLine{00625\ \ \ \ \ \ \ \ \ \ \ m\_palette-\/>getEntry(*m\_srcAddress),\ m\_color2,\ m\_opacity);}
+\DoxyCodeLine{00626\ }
+\DoxyCodeLine{00627\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_rgbmap-\/>mapColor(c);}
+\DoxyCodeLine{00628\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00629\ \ \ \ \ \}}
+\DoxyCodeLine{00630\ \ \ \}}
+\DoxyCodeLine{00631\ }
+\DoxyCodeLine{00632\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00633\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00634\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{00635\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color1;}
+\DoxyCodeLine{00636\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color2;}
+\DoxyCodeLine{00637\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00638\ \};}
+\DoxyCodeLine{00639\ }
+\DoxyCodeLine{00640\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00641\ \textcolor{keywordtype}{void}\ ReplaceInkProcessing<TilemapTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00642\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ *m\_srcAddress;}
+\DoxyCodeLine{00643\ \ \ *m\_dstAddress\ =\ (c\ ==\ m\_color1\ ?\ m\_color2:\ c);}
+\DoxyCodeLine{00644\ \}}
+\DoxyCodeLine{00645\ }
+\DoxyCodeLine{00647\ \textcolor{comment}{//\ Jumble\ Ink}}
+\DoxyCodeLine{00649\ \textcolor{comment}{}}
+\DoxyCodeLine{00650\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00651\ \textcolor{keyword}{class\ }JumbleInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<JumbleInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00652\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00653\ \ \ JumbleInkProcessing(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{00654\ \ \ \ \ m\_palette(loop-\/>getPalette()),}
+\DoxyCodeLine{00655\ \ \ \ \ m\_rgbmap(loop-\/>getRgbMap()),}
+\DoxyCodeLine{00656\ \ \ \ \ m\_speed(loop-\/>getSpeed()\ /\ 4),}
+\DoxyCodeLine{00657\ \ \ \ \ m\_opacity(loop-\/>getOpacity()),}
+\DoxyCodeLine{00658\ \ \ \ \ m\_tiledMode(loop-\/>getTiledMode()),}
+\DoxyCodeLine{00659\ \ \ \ \ m\_srcImage(loop-\/>getSrcImage()),}
+\DoxyCodeLine{00660\ \ \ \ \ m\_srcImageWidth(m\_srcImage-\/>width()),}
+\DoxyCodeLine{00661\ \ \ \ \ m\_srcImageHeight(m\_srcImage-\/>height())\ \{}
+\DoxyCodeLine{00662\ \ \ \}}
+\DoxyCodeLine{00663\ }
+\DoxyCodeLine{00664\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00665\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing\ (it's\ specialized\ for\ each\ case)}}
+\DoxyCodeLine{00666\ \ \ \}}
+\DoxyCodeLine{00667\ }
+\DoxyCodeLine{00668\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00669\ \ \ \textcolor{keywordtype}{void}\ pickColorFromArea(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00670\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ pt(x\ +\ (rand()\ \%\ 3)-\/1\ -\/\ m\_speed.x,}
+\DoxyCodeLine{00671\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ y\ +\ (rand()\ \%\ 3)-\/1\ -\/\ m\_speed.y);}
+\DoxyCodeLine{00672\ }
+\DoxyCodeLine{00673\ \ \ \ \ pt\ =\ wrap\_point(m\_tiledMode,}
+\DoxyCodeLine{00674\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_size_t}{gfx::Size}}(m\_srcImageWidth,}
+\DoxyCodeLine{00675\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_srcImageHeight),}
+\DoxyCodeLine{00676\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pt,\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00677\ }
+\DoxyCodeLine{00678\ \ \ \ \ pt.x\ =\ std::clamp(pt.x,\ 0,\ m\_srcImageWidth-\/1);}
+\DoxyCodeLine{00679\ \ \ \ \ pt.y\ =\ std::clamp(pt.y,\ 0,\ m\_srcImageHeight-\/1);}
+\DoxyCodeLine{00680\ }
+\DoxyCodeLine{00681\ \ \ \ \ m\_color\ =\ get\_pixel(m\_srcImage,\ pt.x,\ pt.y);}
+\DoxyCodeLine{00682\ \ \ \}}
+\DoxyCodeLine{00683\ }
+\DoxyCodeLine{00684\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00685\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{00686\ \ \ \mbox{\hyperlink{structvec2}{Point}}\ m\_speed;}
+\DoxyCodeLine{00687\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00688\ \ \ TiledMode\ m\_tiledMode;}
+\DoxyCodeLine{00689\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_srcImage;}
+\DoxyCodeLine{00690\ \ \ \textcolor{keywordtype}{int}\ m\_srcImageWidth;}
+\DoxyCodeLine{00691\ \ \ \textcolor{keywordtype}{int}\ m\_srcImageHeight;}
+\DoxyCodeLine{00692\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_color;}
+\DoxyCodeLine{00693\ \};}
+\DoxyCodeLine{00694\ }
+\DoxyCodeLine{00695\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00696\ \textcolor{keywordtype}{void}\ JumbleInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{00697\ \{}
+\DoxyCodeLine{00698\ \ \ pickColorFromArea(x,\ y);}
+\DoxyCodeLine{00699\ \ \ *m\_dstAddress\ =\ rgba\_blender\_merge(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00700\ \}}
+\DoxyCodeLine{00701\ }
+\DoxyCodeLine{00702\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00703\ \textcolor{keywordtype}{void}\ JumbleInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{00704\ \{}
+\DoxyCodeLine{00705\ \ \ pickColorFromArea(x,\ y);}
+\DoxyCodeLine{00706\ \ \ *m\_dstAddress\ =\ graya\_blender\_merge(*m\_srcAddress,\ m\_color,\ m\_opacity);}
+\DoxyCodeLine{00707\ \}}
+\DoxyCodeLine{00708\ }
+\DoxyCodeLine{00709\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00710\ \textcolor{keywordtype}{void}\ JumbleInkProcessing<IndexedTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{00711\ \{}
+\DoxyCodeLine{00712\ \ \ pickColorFromArea(x,\ y);}
+\DoxyCodeLine{00713\ }
+\DoxyCodeLine{00714\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ tc\ =\ (m\_color\ !=\ 0\ ?\ m\_palette-\/>getEntry(m\_color):\ 0);}
+\DoxyCodeLine{00715\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ rgba\_blender\_merge(*m\_srcAddress\ !=\ 0\ ?}
+\DoxyCodeLine{00716\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_palette-\/>getEntry(*m\_srcAddress):\ 0,}
+\DoxyCodeLine{00717\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tc,\ m\_opacity);}
+\DoxyCodeLine{00718\ }
+\DoxyCodeLine{00719\ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(c)\ >=\ 128)}
+\DoxyCodeLine{00720\ \ \ \ \ *m\_dstAddress\ =\ m\_rgbmap-\/>mapColor(c);}
+\DoxyCodeLine{00721\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00722\ \ \ \ \ *m\_dstAddress\ =\ 0;}
+\DoxyCodeLine{00723\ \}}
+\DoxyCodeLine{00724\ }
+\DoxyCodeLine{00726\ \textcolor{comment}{//\ Shading\ Ink\ Helper\ used\ by\ ShadingInkProcessing\ and}}
+\DoxyCodeLine{00727\ \textcolor{comment}{//\ BrushShadingInkProcessing\ (it\ does\ only\ the\ shading\ of\ one\ pixel}}
+\DoxyCodeLine{00728\ \textcolor{comment}{//\ using\ some\ auxiliary\ structures)}}
+\DoxyCodeLine{00730\ \textcolor{comment}{}}
+\DoxyCodeLine{00731\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00732\ \textcolor{keyword}{class\ }PixelShadingInkHelper\ \{}
+\DoxyCodeLine{00733\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00734\ \ \ PixelShadingInkHelper(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{00735\ \ \ \ \ \textcolor{keyword}{static\_assert}(\textcolor{keyword}{false}\ \&\&\ \textcolor{keyword}{sizeof}(ImageTraits),\ \textcolor{stringliteral}{"{}Use\ specialized\ cases"{}});}
+\DoxyCodeLine{00736\ \ \ \}}
+\DoxyCodeLine{00737\ \};}
+\DoxyCodeLine{00738\ }
+\DoxyCodeLine{00739\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00740\ \textcolor{keyword}{class\ }PixelShadingInkHelper<\mbox{\hyperlink{structdoc_1_1_rgb_traits}{RgbTraits}}>\ \{}
+\DoxyCodeLine{00741\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00742\ \ \ \textcolor{keyword}{using\ }pixel\_t\ =\ RgbTraits::pixel\_t;}
+\DoxyCodeLine{00743\ }
+\DoxyCodeLine{00744\ \ \ PixelShadingInkHelper(ToolLoop*\ loop)}
+\DoxyCodeLine{00745\ \ \ \ \ :\ m\_shadePalette(0,\ 1)}
+\DoxyCodeLine{00746\ \ \ \ \ ,\ m\_left(loop-\/>getMouseButton()\ ==\ ToolLoop::Left)}
+\DoxyCodeLine{00747\ \ \ \{}
+\DoxyCodeLine{00748\ \ \ \ \ \textcolor{keyword}{const}\ Shade\ shade\ =\ loop-\/>getShade();}
+\DoxyCodeLine{00749\ \ \ \ \ m\_shadePalette.resize(shade.size());}
+\DoxyCodeLine{00750\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0;}
+\DoxyCodeLine{00751\ \ \ \ \ \textcolor{keywordflow}{for}\ (\mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ color\ :\ shade)\ \{}
+\DoxyCodeLine{00752\ \ \ \ \ \ \ m\_shadePalette.setEntry(}
+\DoxyCodeLine{00753\ \ \ \ \ \ \ \ \ i++,\ color\_utils::color\_for\_layer(color,\ loop-\/>getLayer()));}
+\DoxyCodeLine{00754\ \ \ \ \ \}}
+\DoxyCodeLine{00755\ \ \ \}}
+\DoxyCodeLine{00756\ }
+\DoxyCodeLine{00757\ \ \ \textcolor{keywordtype}{int}\ findIndex(uint8\_t\ r,\ uint8\_t\ g,\ uint8\_t\ b,\ uint8\_t\ \mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00758\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_shadePalette.findExactMatch(r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}},\ -\/1);}
+\DoxyCodeLine{00759\ \ \ \}}
+\DoxyCodeLine{00760\ }
+\DoxyCodeLine{00761\ \ \ pixel\_t\ operator()(\textcolor{keyword}{const}\ pixel\_t\ src)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00762\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ findIndex(rgba\_getr(src),}
+\DoxyCodeLine{00763\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(src),}
+\DoxyCodeLine{00764\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(src),}
+\DoxyCodeLine{00765\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(src));}
+\DoxyCodeLine{00766\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ 0)}
+\DoxyCodeLine{00767\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ src;}
+\DoxyCodeLine{00768\ }
+\DoxyCodeLine{00769\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_left)\ \{}
+\DoxyCodeLine{00770\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ >\ 0)}
+\DoxyCodeLine{00771\ \ \ \ \ \ \ \ \ -\/-\/i;}
+\DoxyCodeLine{00772\ \ \ \ \ \}}
+\DoxyCodeLine{00773\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00774\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ m\_shadePalette.size()-\/1)}
+\DoxyCodeLine{00775\ \ \ \ \ \ \ \ \ ++i;}
+\DoxyCodeLine{00776\ \ \ \ \ \}}
+\DoxyCodeLine{00777\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_shadePalette.getEntry(i);}
+\DoxyCodeLine{00778\ \ \ \}}
+\DoxyCodeLine{00779\ }
+\DoxyCodeLine{00780\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00781\ \ \ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}\ m\_shadePalette;}
+\DoxyCodeLine{00782\ \ \ \textcolor{keywordtype}{bool}\ m\_left;}
+\DoxyCodeLine{00783\ \};}
+\DoxyCodeLine{00784\ }
+\DoxyCodeLine{00785\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00786\ \textcolor{keyword}{class\ }PixelShadingInkHelper<\mbox{\hyperlink{structdoc_1_1_grayscale_traits}{GrayscaleTraits}}>\ \{}
+\DoxyCodeLine{00787\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00788\ \ \ \textcolor{keyword}{using\ }pixel\_t\ =\ GrayscaleTraits::pixel\_t;}
+\DoxyCodeLine{00789\ }
+\DoxyCodeLine{00790\ \ \ PixelShadingInkHelper(ToolLoop*\ loop)}
+\DoxyCodeLine{00791\ \ \ \ \ :\ m\_shadePalette(0,\ 1)}
+\DoxyCodeLine{00792\ \ \ \ \ ,\ m\_left(loop-\/>getMouseButton()\ ==\ ToolLoop::Left)}
+\DoxyCodeLine{00793\ \ \ \{}
+\DoxyCodeLine{00794\ \ \ \ \ Shade\ shade\ =\ loop-\/>getShade();}
+\DoxyCodeLine{00795\ \ \ \ \ m\_shadePalette.resize(shade.size());}
+\DoxyCodeLine{00796\ }
+\DoxyCodeLine{00797\ \ \ \ \ \textcolor{comment}{//\ As\ the\ colors\ are\ going\ to\ a\ palette,\ we\ need\ RGB\ colors}}
+\DoxyCodeLine{00798\ \ \ \ \ \textcolor{comment}{//\ (instead\ of\ Grayscale)}}
+\DoxyCodeLine{00799\ \ \ \ \ \textcolor{keyword}{const}\ ColorTarget\ target(}
+\DoxyCodeLine{00800\ \ \ \ \ \ \ (loop-\/>getLayer()-\/>isBackground()\ ?\ ColorTarget::BackgroundLayer:}
+\DoxyCodeLine{00801\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ColorTarget::TransparentLayer),}
+\DoxyCodeLine{00802\ \ \ \ \ \ \ IMAGE\_RGB,\ 0);}
+\DoxyCodeLine{00803\ }
+\DoxyCodeLine{00804\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ 0;}
+\DoxyCodeLine{00805\ \ \ \ \ \textcolor{keywordflow}{for}\ (\mbox{\hyperlink{classapp_1_1_color}{app::Color}}\ color\ :\ shade)\ \{}
+\DoxyCodeLine{00806\ \ \ \ \ \ \ m\_shadePalette.setEntry(}
+\DoxyCodeLine{00807\ \ \ \ \ \ \ \ \ i++,\ color\_utils::color\_for\_target(color,\ target));}
+\DoxyCodeLine{00808\ \ \ \ \ \}}
+\DoxyCodeLine{00809\ \ \ \}}
+\DoxyCodeLine{00810\ }
+\DoxyCodeLine{00811\ \ \ \textcolor{keywordtype}{int}\ findIndex(uint8\_t\ r,\ uint8\_t\ g,\ uint8\_t\ b,\ uint8\_t\ \mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00812\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_shadePalette.findExactMatch(r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}},\ -\/1);}
+\DoxyCodeLine{00813\ \ \ \}}
+\DoxyCodeLine{00814\ }
+\DoxyCodeLine{00815\ \ \ pixel\_t\ operator()(\textcolor{keyword}{const}\ pixel\_t\ src)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00816\ \ \ \ \ \textcolor{keywordtype}{int}\ i\ =\ findIndex(graya\_getv(src),}
+\DoxyCodeLine{00817\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(src),}
+\DoxyCodeLine{00818\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(src),}
+\DoxyCodeLine{00819\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_geta(src));}
+\DoxyCodeLine{00820\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ 0)}
+\DoxyCodeLine{00821\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ src;}
+\DoxyCodeLine{00822\ }
+\DoxyCodeLine{00823\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_left)\ \{}
+\DoxyCodeLine{00824\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ >\ 0)}
+\DoxyCodeLine{00825\ \ \ \ \ \ \ \ \ -\/-\/i;}
+\DoxyCodeLine{00826\ \ \ \ \ \}}
+\DoxyCodeLine{00827\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00828\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ m\_shadePalette.size()-\/1)}
+\DoxyCodeLine{00829\ \ \ \ \ \ \ \ \ ++i;}
+\DoxyCodeLine{00830\ \ \ \ \ \}}
+\DoxyCodeLine{00831\ }
+\DoxyCodeLine{00832\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ rgba\ =\ m\_shadePalette.getEntry(i);}
+\DoxyCodeLine{00833\ \ \ \ \ \textcolor{keywordflow}{return}\ graya(rgba\_getr(rgba),\ rgba\_geta(rgba));}
+\DoxyCodeLine{00834\ \ \ \}}
+\DoxyCodeLine{00835\ }
+\DoxyCodeLine{00836\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00837\ \ \ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}\ m\_shadePalette;}
+\DoxyCodeLine{00838\ \ \ \textcolor{keywordtype}{bool}\ m\_left;}
+\DoxyCodeLine{00839\ \};}
+\DoxyCodeLine{00840\ }
+\DoxyCodeLine{00841\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00842\ \textcolor{keyword}{class\ }PixelShadingInkHelper<\mbox{\hyperlink{structdoc_1_1_indexed_traits}{IndexedTraits}}>\ \{}
+\DoxyCodeLine{00843\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00844\ \ \ \textcolor{keyword}{using\ }pixel\_t\ =\ IndexedTraits::pixel\_t;}
+\DoxyCodeLine{00845\ }
+\DoxyCodeLine{00846\ \ \ PixelShadingInkHelper(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{00847\ \ \ \ \ m\_palette(loop-\/>getPalette()),}
+\DoxyCodeLine{00848\ \ \ \ \ m\_remap(loop-\/>getShadingRemap()),}
+\DoxyCodeLine{00849\ \ \ \ \ m\_left(loop-\/>getMouseButton()\ ==\ ToolLoop::Left)\ \{}
+\DoxyCodeLine{00850\ \ \ \}}
+\DoxyCodeLine{00851\ }
+\DoxyCodeLine{00852\ \ \ \textcolor{keywordtype}{int}\ findIndex(uint8\_t\ r,\ uint8\_t\ g,\ uint8\_t\ b,\ uint8\_t\ \mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00853\ \ \ \ \ \textcolor{keywordflow}{return}\ m\_palette-\/>findExactMatch(r,\ g,\ b,\ \mbox{\hyperlink{structa}{a}},\ -\/1);}
+\DoxyCodeLine{00854\ \ \ \}}
+\DoxyCodeLine{00855\ }
+\DoxyCodeLine{00856\ \ \ pixel\_t\ operator()(pixel\_t\ i)\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00857\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_remap)\ \{}
+\DoxyCodeLine{00858\ \ \ \ \ \ \ i\ =\ (*m\_remap)[i];}
+\DoxyCodeLine{00859\ \ \ \ \ \}}
+\DoxyCodeLine{00860\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00861\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_left)\ \{}
+\DoxyCodeLine{00862\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ >\ 0)}
+\DoxyCodeLine{00863\ \ \ \ \ \ \ \ \ \ \ -\/-\/i;}
+\DoxyCodeLine{00864\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00865\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00866\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ m\_palette-\/>size()-\/1)}
+\DoxyCodeLine{00867\ \ \ \ \ \ \ \ \ \ \ ++i;}
+\DoxyCodeLine{00868\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00869\ \ \ \ \ \}}
+\DoxyCodeLine{00870\ \ \ \ \ \textcolor{keywordflow}{return}\ i;}
+\DoxyCodeLine{00871\ \ \ \}}
+\DoxyCodeLine{00872\ }
+\DoxyCodeLine{00873\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00874\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00875\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_remap}{Remap}}*\ m\_remap;}
+\DoxyCodeLine{00876\ \ \ \textcolor{keywordtype}{bool}\ m\_left;}
+\DoxyCodeLine{00877\ \};}
+\DoxyCodeLine{00878\ }
+\DoxyCodeLine{00880\ \textcolor{comment}{//\ Shading\ Ink}}
+\DoxyCodeLine{00882\ \textcolor{comment}{}}
+\DoxyCodeLine{00883\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00884\ \textcolor{keyword}{class\ }ShadingInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<ShadingInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00885\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00886\ \ \ \textcolor{keyword}{using\ }\mbox{\hyperlink{class_base}{Base}}\ =\ DoubleInkProcessing<ShadingInkProcessing<ImageTraits>,\ ImageTraits>;}
+\DoxyCodeLine{00887\ }
+\DoxyCodeLine{00888\ \ \ ShadingInkProcessing(ToolLoop*\ loop)\ :\ m\_shading(loop)\ \{\ \}}
+\DoxyCodeLine{00889\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00890\ \ \ \ \ *Base::m\_dstAddress\ =\ m\_shading(*Base::m\_srcAddress);}
+\DoxyCodeLine{00891\ \ \ \}}
+\DoxyCodeLine{00892\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00893\ \ \ PixelShadingInkHelper<ImageTraits>\ m\_shading;}
+\DoxyCodeLine{00894\ \};}
+\DoxyCodeLine{00895\ }
+\DoxyCodeLine{00897\ \textcolor{comment}{//\ Gradient\ Ink}}
+\DoxyCodeLine{00899\ \textcolor{comment}{}}
+\DoxyCodeLine{00900\ \textcolor{keyword}{static}\ ImageBufferPtr\ tmpGradientBuffer;\ \textcolor{comment}{//\ TODO\ non-\/thread\ safe}}
+\DoxyCodeLine{00901\ }
+\DoxyCodeLine{00902\ \textcolor{keyword}{class\ }GradientRenderer\ \{}
+\DoxyCodeLine{00903\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00904\ \ \ GradientRenderer(ToolLoop*\ loop)}
+\DoxyCodeLine{00905\ \ \ \ \ :\ m\_tiledMode(loop-\/>getTiledMode())}
+\DoxyCodeLine{00906\ \ \ \{}
+\DoxyCodeLine{00907\ \ \ \ \ \textcolor{keywordflow}{if}\ (!tmpGradientBuffer)}
+\DoxyCodeLine{00908\ \ \ \ \ \ \ tmpGradientBuffer.reset(\textcolor{keyword}{new}\ \mbox{\hyperlink{classdoc_1_1_image_buffer}{ImageBuffer}}(1));}
+\DoxyCodeLine{00909\ }
+\DoxyCodeLine{00910\ \ \ \ \ m\_tmpImage.reset(}
+\DoxyCodeLine{00911\ \ \ \ \ \ \ Image::create(IMAGE\_RGB,}
+\DoxyCodeLine{00912\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loop-\/>getDstImage()-\/>width(),}
+\DoxyCodeLine{00913\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ loop-\/>getDstImage()-\/>height(),}
+\DoxyCodeLine{00914\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ tmpGradientBuffer));}
+\DoxyCodeLine{00915\ \ \ \ \ m\_tmpImage-\/>clear(0);}
+\DoxyCodeLine{00916\ \ \ \}}
+\DoxyCodeLine{00917\ }
+\DoxyCodeLine{00918\ \ \ \textcolor{keywordtype}{void}\ renderRgbaGradient(ToolLoop*\ loop,\ Strokes\&\ strokes,}
+\DoxyCodeLine{00919\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ RGBA\ colors}}
+\DoxyCodeLine{00920\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c0,\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c1)\ \{}
+\DoxyCodeLine{00921\ \ \ \ \ \textcolor{keywordflow}{if}\ (strokes.empty()\ ||\ strokes[0].size()\ <\ 2)\ \{}
+\DoxyCodeLine{00922\ \ \ \ \ \ \ m\_tmpImage-\/>clear(0);}
+\DoxyCodeLine{00923\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00924\ \ \ \ \ \}}
+\DoxyCodeLine{00925\ }
+\DoxyCodeLine{00926\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ u\ =\ strokes[0].firstPoint().toPoint();}
+\DoxyCodeLine{00927\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ v\ =\ strokes[0].lastPoint().toPoint();}
+\DoxyCodeLine{00928\ }
+\DoxyCodeLine{00929\ \ \ \ \ \textcolor{comment}{//\ The\ image\ position\ for\ the\ gradient\ depends\ on\ the\ first\ user}}
+\DoxyCodeLine{00930\ \ \ \ \ \textcolor{comment}{//\ click.\ The\ gradient\ depends\ on\ the\ first\ clicked\ tile.}}
+\DoxyCodeLine{00931\ \ \ \ \ \mbox{\hyperlink{classgfx_1_1_point_t}{gfx::Point}}\ imgPos(0,\ 0);}
+\DoxyCodeLine{00932\ \ \ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keywordtype}{int}(m\_tiledMode)\ \&\ \textcolor{keywordtype}{int}(TiledMode::X\_AXIS))\ \{}
+\DoxyCodeLine{00933\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ w\ =\ loop-\/>sprite()-\/>width();}
+\DoxyCodeLine{00934\ \ \ \ \ \ \ imgPos.x\ =\ u.x\ /\ w;}
+\DoxyCodeLine{00935\ \ \ \ \ \ \ imgPos.x\ *=\ w;}
+\DoxyCodeLine{00936\ \ \ \ \ \}}
+\DoxyCodeLine{00937\ \ \ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keywordtype}{int}(m\_tiledMode)\ \&\ \textcolor{keywordtype}{int}(TiledMode::Y\_AXIS))\ \{}
+\DoxyCodeLine{00938\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ h\ =\ loop-\/>sprite()-\/>height();}
+\DoxyCodeLine{00939\ \ \ \ \ \ \ imgPos.y\ =\ u.y\ /\ h;}
+\DoxyCodeLine{00940\ \ \ \ \ \ \ imgPos.y\ *=\ h;}
+\DoxyCodeLine{00941\ \ \ \ \ \}}
+\DoxyCodeLine{00942\ }
+\DoxyCodeLine{00943\ \ \ \ \ render::render\_rgba\_gradient(}
+\DoxyCodeLine{00944\ \ \ \ \ \ \ m\_tmpImage.get(),\ imgPos,\ u,\ v,\ c0,\ c1,}
+\DoxyCodeLine{00945\ \ \ \ \ \ \ loop-\/>getDitheringMatrix(),}
+\DoxyCodeLine{00946\ \ \ \ \ \ \ loop-\/>getGradientType());}
+\DoxyCodeLine{00947\ \ \ \}}
+\DoxyCodeLine{00948\ }
+\DoxyCodeLine{00949\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00950\ \ \ ImageRef\ m\_tmpImage;}
+\DoxyCodeLine{00951\ \ \ RgbTraits::address\_t\ m\_tmpAddress;}
+\DoxyCodeLine{00952\ \ \ TiledMode\ m\_tiledMode;}
+\DoxyCodeLine{00953\ \};}
+\DoxyCodeLine{00954\ }
+\DoxyCodeLine{00955\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{00956\ \textcolor{keyword}{class\ }GradientInkProcessing\ :\ \textcolor{keyword}{public}\ GradientRenderer,}
+\DoxyCodeLine{00957\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ DoubleInkProcessing<GradientInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{00958\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00959\ \ \ \textcolor{keyword}{typedef}\ DoubleInkProcessing<GradientInkProcessing<ImageTraits>,\ ImageTraits>\ base;}
+\DoxyCodeLine{00960\ }
+\DoxyCodeLine{00961\ \ \ GradientInkProcessing(ToolLoop*\ loop)}
+\DoxyCodeLine{00962\ \ \ \ \ :\ GradientRenderer(loop)}
+\DoxyCodeLine{00963\ \ \ \ \ ,\ m\_opacity(loop-\/>getOpacity())}
+\DoxyCodeLine{00964\ \ \ \ \ ,\ m\_palette(loop-\/>getPalette())}
+\DoxyCodeLine{00965\ \ \ \ \ ,\ m\_rgbmap(loop-\/>getRgbMap())}
+\DoxyCodeLine{00966\ \ \ \ \ ,\ m\_maskIndex(loop-\/>getLayer()-\/>isBackground()\ ?\ -\/1:\ loop-\/>sprite()-\/>transparentColor())}
+\DoxyCodeLine{00967\ \ \ \{}
+\DoxyCodeLine{00968\ \ \ \}}
+\DoxyCodeLine{00969\ }
+\DoxyCodeLine{00970\ \ \ \textcolor{keywordtype}{void}\ processScanline(\textcolor{keywordtype}{int}\ x1,\ \textcolor{keywordtype}{int}\ y,\ \textcolor{keywordtype}{int}\ x2,\ ToolLoop*\ loop)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00971\ \ \ \ \ m\_tmpAddress\ =\ (RgbTraits::address\_t)m\_tmpImage-\/>getPixelAddress(x1,\ y);}
+\DoxyCodeLine{00972\ \ \ \ \ base::processScanline(x1,\ y,\ x2,\ loop);}
+\DoxyCodeLine{00973\ \ \ \}}
+\DoxyCodeLine{00974\ }
+\DoxyCodeLine{00975\ \ \ \textcolor{keywordtype}{void}\ prepareForStrokes(ToolLoop*\ loop,\ Strokes\&\ strokes)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{00976\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{00977\ \ \ \}}
+\DoxyCodeLine{00978\ }
+\DoxyCodeLine{00979\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00980\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing\ (it's\ specialized\ for\ each\ case)}}
+\DoxyCodeLine{00981\ \ \ \}}
+\DoxyCodeLine{00982\ }
+\DoxyCodeLine{00983\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00984\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{00985\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{00986\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{00987\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ m\_maskIndex;}
+\DoxyCodeLine{00988\ \};}
+\DoxyCodeLine{00989\ }
+\DoxyCodeLine{00990\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00991\ \textcolor{keywordtype}{void}\ GradientInkProcessing<RgbTraits>::prepareForStrokes(ToolLoop*\ loop,\ Strokes\&\ strokes)}
+\DoxyCodeLine{00992\ \{}
+\DoxyCodeLine{00993\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c0\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{00994\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c1\ =\ loop-\/>getSecondaryColor();}
+\DoxyCodeLine{00995\ }
+\DoxyCodeLine{00996\ \ \ renderRgbaGradient(loop,\ strokes,\ c0,\ c1);}
+\DoxyCodeLine{00997\ \}}
+\DoxyCodeLine{00998\ }
+\DoxyCodeLine{00999\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01000\ \textcolor{keywordtype}{void}\ GradientInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{01001\ \{}
+\DoxyCodeLine{01002\ \ \ *m\_dstAddress\ =\ rgba\_blender\_normal(*m\_srcAddress,}
+\DoxyCodeLine{01003\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *m\_tmpAddress,}
+\DoxyCodeLine{01004\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_opacity);}
+\DoxyCodeLine{01005\ \ \ ++m\_tmpAddress;}
+\DoxyCodeLine{01006\ \}}
+\DoxyCodeLine{01007\ }
+\DoxyCodeLine{01008\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01009\ \textcolor{keywordtype}{void}\ GradientInkProcessing<GrayscaleTraits>::prepareForStrokes(ToolLoop*\ loop,\ Strokes\&\ strokes)}
+\DoxyCodeLine{01010\ \{}
+\DoxyCodeLine{01011\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c0\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{01012\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c1\ =\ loop-\/>getSecondaryColor();}
+\DoxyCodeLine{01013\ \ \ \textcolor{keywordtype}{int}\ v0\ =\ int(doc::graya\_getv(c0));}
+\DoxyCodeLine{01014\ \ \ \textcolor{keywordtype}{int}\ a0\ =\ int(doc::graya\_geta(c0));}
+\DoxyCodeLine{01015\ \ \ \textcolor{keywordtype}{int}\ v1\ =\ int(doc::graya\_getv(c1));}
+\DoxyCodeLine{01016\ \ \ \textcolor{keywordtype}{int}\ a1\ =\ int(doc::graya\_geta(c1));}
+\DoxyCodeLine{01017\ \ \ c0\ =\ doc::rgba(v0,\ v0,\ v0,\ a0);}
+\DoxyCodeLine{01018\ \ \ c1\ =\ doc::rgba(v1,\ v1,\ v1,\ a1);}
+\DoxyCodeLine{01019\ }
+\DoxyCodeLine{01020\ \ \ renderRgbaGradient(loop,\ strokes,\ c0,\ c1);}
+\DoxyCodeLine{01021\ \}}
+\DoxyCodeLine{01022\ }
+\DoxyCodeLine{01023\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01024\ \textcolor{keywordtype}{void}\ GradientInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{01025\ \{}
+\DoxyCodeLine{01026\ \ \ doc::color\_t\ c\ =\ *m\_tmpAddress;}
+\DoxyCodeLine{01027\ \ \ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}}\ =\ doc::rgba\_geta(c);}
+\DoxyCodeLine{01028\ \ \ \textcolor{keywordtype}{int}\ v\ =\ doc::rgba\_getr(c);}
+\DoxyCodeLine{01029\ }
+\DoxyCodeLine{01030\ \ \ *m\_dstAddress\ =\ graya\_blender\_normal(*m\_srcAddress,}
+\DoxyCodeLine{01031\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ doc::graya(v,\ \mbox{\hyperlink{structa}{a}}),}
+\DoxyCodeLine{01032\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_opacity);}
+\DoxyCodeLine{01033\ \ \ ++m\_tmpAddress;}
+\DoxyCodeLine{01034\ \}}
+\DoxyCodeLine{01035\ }
+\DoxyCodeLine{01036\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01037\ \textcolor{keywordtype}{void}\ GradientInkProcessing<IndexedTraits>::prepareForStrokes(ToolLoop*\ loop,\ Strokes\&\ strokes)}
+\DoxyCodeLine{01038\ \{}
+\DoxyCodeLine{01039\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c0\ =\ m\_palette-\/>getEntry(loop-\/>getPrimaryColor());}
+\DoxyCodeLine{01040\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c1\ =\ m\_palette-\/>getEntry(loop-\/>getSecondaryColor());}
+\DoxyCodeLine{01041\ }
+\DoxyCodeLine{01042\ \ \ renderRgbaGradient(loop,\ strokes,\ c0,\ c1);}
+\DoxyCodeLine{01043\ \}}
+\DoxyCodeLine{01044\ }
+\DoxyCodeLine{01045\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01046\ \textcolor{keywordtype}{void}\ GradientInkProcessing<IndexedTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{01047\ \{}
+\DoxyCodeLine{01048\ \ \ doc::color\_t\ c\ =\ *m\_tmpAddress;}
+\DoxyCodeLine{01049\ \ \ doc::color\_t\ c0\ =\ *m\_srcAddress;}
+\DoxyCodeLine{01050\ \ \ \textcolor{keywordflow}{if}\ (\textcolor{keywordtype}{int}(c0)\ ==\ m\_maskIndex)}
+\DoxyCodeLine{01051\ \ \ \ \ c0\ =\ m\_palette-\/>getEntry(c0)\ \&\ rgba\_rgb\_mask;\ \ \textcolor{comment}{//\ Alpha\ =\ 0}}
+\DoxyCodeLine{01052\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01053\ \ \ \ \ c0\ =\ m\_palette-\/>getEntry(c0);}
+\DoxyCodeLine{01054\ \ \ c\ =\ rgba\_blender\_normal(c0,\ c,\ m\_opacity);}
+\DoxyCodeLine{01055\ }
+\DoxyCodeLine{01056\ \ \ *m\_dstAddress\ =\ m\_rgbmap-\/>mapColor(c);}
+\DoxyCodeLine{01057\ }
+\DoxyCodeLine{01058\ \ \ ++m\_tmpAddress;}
+\DoxyCodeLine{01059\ \}}
+\DoxyCodeLine{01060\ }
+\DoxyCodeLine{01061\ }
+\DoxyCodeLine{01063\ \textcolor{comment}{//\ Xor\ Ink}}
+\DoxyCodeLine{01065\ \textcolor{comment}{}}
+\DoxyCodeLine{01066\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{01067\ \textcolor{keyword}{class\ }XorInkProcessing\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<XorInkProcessing<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{01068\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01069\ \ \ XorInkProcessing(ToolLoop*\ loop)\ \{\ \}}
+\DoxyCodeLine{01070\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{\ \}}
+\DoxyCodeLine{01071\ \};}
+\DoxyCodeLine{01072\ }
+\DoxyCodeLine{01073\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01074\ \textcolor{keywordtype}{void}\ XorInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01075\ \ \ *m\_dstAddress\ =\ rgba\_blender\_neg\_bw(*m\_srcAddress,\ 0,\ 255);}
+\DoxyCodeLine{01076\ \}}
+\DoxyCodeLine{01077\ }
+\DoxyCodeLine{01078\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01079\ \textcolor{keywordtype}{void}\ XorInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01080\ \ \ *m\_dstAddress\ =\ graya\_blender\_neg\_bw(*m\_srcAddress,\ 0,\ 255);}
+\DoxyCodeLine{01081\ \}}
+\DoxyCodeLine{01082\ }
+\DoxyCodeLine{01083\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01084\ \textcolor{keyword}{class\ }XorInkProcessing<\mbox{\hyperlink{structdoc_1_1_indexed_traits}{IndexedTraits}}>\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<XorInkProcessing<IndexedTraits>,\ IndexedTraits>\ \{}
+\DoxyCodeLine{01085\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01086\ \ \ XorInkProcessing(ToolLoop*\ loop)\ :}
+\DoxyCodeLine{01087\ \ \ \ \ m\_palette(loop-\/>getPalette()),}
+\DoxyCodeLine{01088\ \ \ \ \ m\_rgbmap(loop-\/>getRgbMap())\ \{}
+\DoxyCodeLine{01089\ \ \ \}}
+\DoxyCodeLine{01090\ }
+\DoxyCodeLine{01091\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01092\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ rgba\_blender\_neg\_bw(m\_palette-\/>getEntry(*m\_srcAddress),\ 0,\ 255);}
+\DoxyCodeLine{01093\ \ \ \ \ *m\_dstAddress\ =\ m\_rgbmap-\/>mapColor(c);}
+\DoxyCodeLine{01094\ \ \ \}}
+\DoxyCodeLine{01095\ }
+\DoxyCodeLine{01096\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{01097\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{01098\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_rgb_map}{RgbMap}}*\ m\_rgbmap;}
+\DoxyCodeLine{01099\ \};}
+\DoxyCodeLine{01100\ }
+\DoxyCodeLine{01102\ \textcolor{comment}{//\ Brush\ Ink\ -\/\ Base}}
+\DoxyCodeLine{01104\ \textcolor{comment}{}}
+\DoxyCodeLine{01105\ \textcolor{comment}{//\ TODO\ In\ all\ cases\ where\ we\ get\ the\ brush\ index\ and\ use\ that\ index}}
+\DoxyCodeLine{01106\ \textcolor{comment}{//\ \ \ \ \ \ in\ m\_palette-\/>getEntry(index),\ the\ color\ is\ converted\ to\ the}}
+\DoxyCodeLine{01107\ \textcolor{comment}{//\ \ \ \ \ \ sprite\ palette\ or\ to\ the\ grayscale\ palette\ (for\ grayscale}}
+\DoxyCodeLine{01108\ \textcolor{comment}{//\ \ \ \ \ \ sprites),\ we\ might\ want\ to\ save\ the\ original\ palette\ in\ the}}
+\DoxyCodeLine{01109\ \textcolor{comment}{//\ \ \ \ \ \ brush\ to\ use\ that\ one\ in\ these\ cases\ (not\ sure\ if\ this\ does}}
+\DoxyCodeLine{01110\ \textcolor{comment}{//\ \ \ \ \ \ applies\ when\ we\ select\ a\ new\ foreground/background\ color\ in}}
+\DoxyCodeLine{01111\ \textcolor{comment}{//\ \ \ \ \ \ the\ color\ bar\ and\ the\ brush\ color\ changes,\ or\ if\ this\ should}}
+\DoxyCodeLine{01112\ \textcolor{comment}{//\ \ \ \ \ \ be\ a\ new\ optional\ flag/parameter\ to\ save\ on\ each\ brush)}}
+\DoxyCodeLine{01113\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{01114\ \textcolor{keyword}{class\ }BrushInkProcessingBase\ :\ \textcolor{keyword}{public}\ DoubleInkProcessing<BrushInkProcessingBase<ImageTraits>,\ ImageTraits>\ \{}
+\DoxyCodeLine{01115\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01116\ \ \ BrushInkProcessingBase(ToolLoop*\ loop)\ \{}
+\DoxyCodeLine{01117\ \ \ \ \ m\_fgColor\ =\ loop-\/>getPrimaryColor();}
+\DoxyCodeLine{01118\ \ \ \ \ m\_bgColor\ =\ loop-\/>getSecondaryColor();}
+\DoxyCodeLine{01119\ \ \ \ \ m\_palette\ =\ loop-\/>getPalette();}
+\DoxyCodeLine{01120\ \ \ \ \ m\_brush\ =\ loop-\/>getBrush();}
+\DoxyCodeLine{01121\ \ \ \ \ m\_brushImage\ =\ (m\_brush-\/>patternImage()\ ?\ m\_brush-\/>patternImage():}
+\DoxyCodeLine{01122\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ m\_brush-\/>image());}
+\DoxyCodeLine{01123\ \ \ \ \ m\_brushMask\ =\ m\_brush-\/>maskBitmap();}
+\DoxyCodeLine{01124\ \ \ \ \ m\_patternAlign\ =\ m\_brush-\/>pattern();}
+\DoxyCodeLine{01125\ \ \ \ \ m\_opacity\ =\ loop-\/>getOpacity();}
+\DoxyCodeLine{01126\ \ \ \ \ m\_width\ =\ m\_brush-\/>bounds().w;}
+\DoxyCodeLine{01127\ \ \ \ \ m\_height\ =\ m\_brush-\/>bounds().h;}
+\DoxyCodeLine{01128\ \ \ \ \ m\_u\ =\ (m\_brush-\/>patternOrigin().x\ -\/\ loop-\/>getCelOrigin().x)\ \%\ m\_width;}
+\DoxyCodeLine{01129\ \ \ \ \ m\_v\ =\ (m\_brush-\/>patternOrigin().y\ -\/\ loop-\/>getCelOrigin().y)\ \%\ m\_height;}
+\DoxyCodeLine{01130\ }
+\DoxyCodeLine{01131\ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>sprite()-\/>colorMode()\ ==\ ColorMode::INDEXED)\ \{}
+\DoxyCodeLine{01132\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (loop-\/>getLayer()-\/>isTransparent())}
+\DoxyCodeLine{01133\ \ \ \ \ \ \ \ \ m\_transparentColor\ =\ loop-\/>sprite()-\/>transparentColor();}
+\DoxyCodeLine{01134\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01135\ \ \ \ \ \ \ \ \ m\_transparentColor\ =\ -\/1;}
+\DoxyCodeLine{01136\ \ \ \ \ \}}
+\DoxyCodeLine{01137\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01138\ \ \ \ \ \ \ m\_transparentColor\ =\ 0;}
+\DoxyCodeLine{01139\ \ \ \}}
+\DoxyCodeLine{01140\ }
+\DoxyCodeLine{01141\ \ \ \textcolor{keywordtype}{void}\ prepareForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ firstPoint,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01142\ \ \ \ \ \textcolor{keywordflow}{if}\ ((m\_patternAlign\ ==\ BrushPattern::ALIGNED\_TO\_DST\ \&\&\ firstPoint)\ ||}
+\DoxyCodeLine{01143\ \ \ \ \ \ \ \ \ (m\_patternAlign\ ==\ BrushPattern::PAINT\_BRUSH))\ \{}
+\DoxyCodeLine{01144\ \ \ \ \ \ \ m\_u\ =\ ((m\_brush-\/>patternOrigin().x\ \%\ loop-\/>sprite()-\/>width())\ -\/\ loop-\/>getCelOrigin().x)\ \%\ m\_width;}
+\DoxyCodeLine{01145\ \ \ \ \ \ \ m\_v\ =\ ((m\_brush-\/>patternOrigin().y\ \%\ loop-\/>sprite()-\/>height())\ -\/\ loop-\/>getCelOrigin().y)\ \%\ m\_height;}
+\DoxyCodeLine{01146\ \ \ \ \ \}}
+\DoxyCodeLine{01147\ \ \ \}}
+\DoxyCodeLine{01148\ }
+\DoxyCodeLine{01149\ \ \ \textcolor{keywordtype}{void}\ prepareVForPointShape(ToolLoop*\ loop,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01150\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_patternAlign\ ==\ doc::BrushPattern::ALIGNED\_TO\_SRC)\ \{}
+\DoxyCodeLine{01151\ \ \ \ \ \ \ m\_v\ =\ (m\_brush-\/>patternOrigin().y\ -\/\ loop-\/>getCelOrigin().y)\ \%\ m\_height;}
+\DoxyCodeLine{01152\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_v\ <\ 0)\ m\_v\ +=\ m\_height;}
+\DoxyCodeLine{01153\ \ \ \ \ \}}
+\DoxyCodeLine{01154\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{01155\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ spriteH\ =\ loop-\/>sprite()-\/>height();}
+\DoxyCodeLine{01156\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y/spriteH\ >\ 0)}
+\DoxyCodeLine{01157\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 'y'\ is\ outside\ of\ the\ center\ tile.}}
+\DoxyCodeLine{01158\ \ \ \ \ \ \ \ \ m\_v\ =\ (m\_brush-\/>patternOrigin().y\ +\ m\_height\ -\/\ (y/spriteH)\ *\ spriteH)\ \%\ m\_height;}
+\DoxyCodeLine{01159\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01160\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 'y'\ is\ inside\ of\ the\ center\ tile.}}
+\DoxyCodeLine{01161\ \ \ \ \ \ \ \ \ m\_v\ =\ ((m\_brush-\/>patternOrigin().y\ \%\ spriteH)\ -\/\ loop-\/>getCelOrigin().y)\ \%\ m\_height;}
+\DoxyCodeLine{01162\ \ \ \ \ \}}
+\DoxyCodeLine{01163\ \ \ \}}
+\DoxyCodeLine{01164\ }
+\DoxyCodeLine{01165\ \ \ \textcolor{keywordtype}{void}\ prepareUForPointShapeWholeScanline(ToolLoop*\ loop,\ \textcolor{keywordtype}{int}\ x1)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01166\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_patternAlign\ ==\ doc::BrushPattern::ALIGNED\_TO\_SRC)\ \{}
+\DoxyCodeLine{01167\ \ \ \ \ \ \ m\_u\ =\ (m\_brush-\/>patternOrigin().x\ -\/\ loop-\/>getCelOrigin().x)\ \%\ m\_width;}
+\DoxyCodeLine{01168\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_u\ <\ 0)\ m\_u\ +=\ m\_height;}
+\DoxyCodeLine{01169\ \ \ \ \ \}}
+\DoxyCodeLine{01170\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{01171\ \ \ \ \ \ \ m\_u\ =\ ((m\_brush-\/>patternOrigin().x\ \%\ loop-\/>sprite()-\/>width())\ -\/\ loop-\/>getCelOrigin().x\ )\ \%\ m\_width;}
+\DoxyCodeLine{01172\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x1/loop-\/>sprite()-\/>width()\ >\ 0)}
+\DoxyCodeLine{01173\ \ \ \ \ \ \ \ \ m\_u\ =\ (m\_brush-\/>patternOrigin().x\ +\ m\_width\ -\/\ (x1/loop-\/>sprite()-\/>width())\ *\ loop-\/>sprite()-\/>width())\ \%\ m\_width;}
+\DoxyCodeLine{01174\ \ \ \ \ \}}
+\DoxyCodeLine{01175\ \ \ \}}
+\DoxyCodeLine{01176\ }
+\DoxyCodeLine{01177\ \ \ \textcolor{keywordtype}{void}\ prepareUForPointShapeSlicedScanline(ToolLoop*\ loop,\ \textcolor{keywordtype}{bool}\ leftSlice,\ \textcolor{keywordtype}{int}\ x1)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01178\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_patternAlign\ ==\ doc::BrushPattern::ALIGNED\_TO\_SRC)\ \{}
+\DoxyCodeLine{01179\ \ \ \ \ \ \ m\_u\ =\ (m\_brush-\/>patternOrigin().x\ -\/\ loop-\/>getCelOrigin().x)\ \%\ m\_width;}
+\DoxyCodeLine{01180\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_u\ <\ 0)\ m\_u\ +=\ m\_height;}
+\DoxyCodeLine{01181\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01182\ \ \ \ \ \}}
+\DoxyCodeLine{01183\ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{01184\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (leftSlice)}
+\DoxyCodeLine{01185\ \ \ \ \ \ \ \ \ m\_u\ =\ ((m\_brush-\/>patternOrigin().x\ \%\ loop-\/>sprite()-\/>width())\ -\/\ loop-\/>getCelOrigin().x\ )\ \%\ m\_width;}
+\DoxyCodeLine{01186\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01187\ \ \ \ \ \ \ \ \ m\_u\ =\ (m\_brush-\/>patternOrigin().x\ +\ m\_width\ -\/\ (x1/loop-\/>sprite()-\/>width()\ +\ 1)\ *\ loop-\/>sprite()-\/>width())\ \%\ m\_width;}
+\DoxyCodeLine{01188\ \ \ \ \ \}}
+\DoxyCodeLine{01189\ \ \ \}}
+\DoxyCodeLine{01190\ }
+\DoxyCodeLine{01191\ \ \ \textcolor{keywordtype}{bool}\ preProcessPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \mbox{\hyperlink{structcolor__t}{color\_t}}*\ result)\ \{}
+\DoxyCodeLine{01192\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{01193\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01194\ \ \ \}}
+\DoxyCodeLine{01195\ }
+\DoxyCodeLine{01196\ \ \ \textcolor{comment}{//\ TODO\ Remove\ this\ virtual\ function\ in\ some\ way.\ At\ the\ moment\ we}}
+\DoxyCodeLine{01197\ \ \ \textcolor{comment}{//\ \ \ \ \ \ need\ it\ because\ InkProcessing\ expects\ that\ its\ Derived}}
+\DoxyCodeLine{01198\ \ \ \textcolor{comment}{//\ \ \ \ \ \ template\ parameter\ has\ a\ processPixel()\ member\ function.}}
+\DoxyCodeLine{01199\ \ \ \textcolor{keyword}{virtual}\ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01200\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{01201\ \ \ \}}
+\DoxyCodeLine{01202\ }
+\DoxyCodeLine{01203\ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{01204\ \ \ \textcolor{keywordtype}{bool}\ alignPixelPoint(\textcolor{keywordtype}{int}\&\ x0,\ \textcolor{keywordtype}{int}\&\ y0)\ \{}
+\DoxyCodeLine{01205\ \ \ \ \ \textcolor{keywordtype}{int}\ x\ =\ (x0\ -\/\ m\_u)\ \%\ m\_width;}
+\DoxyCodeLine{01206\ \ \ \ \ \textcolor{keywordtype}{int}\ y\ =\ (y0\ -\/\ m\_v)\ \%\ m\_height;}
+\DoxyCodeLine{01207\ \ \ \ \ \textcolor{keywordflow}{if}\ (x\ <\ 0)\ x\ =\ m\_width\ -\/\ ((-\/x)\ \%\ m\_width);}
+\DoxyCodeLine{01208\ \ \ \ \ \textcolor{keywordflow}{if}\ (y\ <\ 0)\ y\ =\ m\_height\ -\/\ ((-\/y)\ \%\ m\_height);}
+\DoxyCodeLine{01209\ }
+\DoxyCodeLine{01210\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_brushMask\ \&\&\ !get\_pixel\_fast<BitmapTraits>(m\_brushMask,\ x,\ y))}
+\DoxyCodeLine{01211\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01212\ }
+\DoxyCodeLine{01213\ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_brush-\/>patternImage())\ \{}
+\DoxyCodeLine{01214\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ w\ =\ m\_brush-\/>patternImage()-\/>width();}
+\DoxyCodeLine{01215\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{int}\ h\ =\ m\_brush-\/>patternImage()-\/>height();}
+\DoxyCodeLine{01216\ \ \ \ \ \ \ x\ =\ x0\ \%\ w;}
+\DoxyCodeLine{01217\ \ \ \ \ \ \ y\ =\ y0\ \%\ h;}
+\DoxyCodeLine{01218\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x\ <\ 0)\ x\ =\ w\ -\/\ ((-\/x)\ \%\ w);}
+\DoxyCodeLine{01219\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (y\ <\ 0)\ y\ =\ h\ -\/\ ((-\/y)\ \%\ h);}
+\DoxyCodeLine{01220\ \ \ \ \ \}}
+\DoxyCodeLine{01221\ }
+\DoxyCodeLine{01222\ \ \ \ \ x0\ =\ x;}
+\DoxyCodeLine{01223\ \ \ \ \ y0\ =\ y;}
+\DoxyCodeLine{01224\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01225\ \ \ \}}
+\DoxyCodeLine{01226\ }
+\DoxyCodeLine{01227\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_fgColor;}
+\DoxyCodeLine{01228\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_bgColor;}
+\DoxyCodeLine{01229\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_palette}{Palette}}*\ m\_palette;}
+\DoxyCodeLine{01230\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_brush}{Brush}}*\ m\_brush;}
+\DoxyCodeLine{01231\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_brushImage;}
+\DoxyCodeLine{01232\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classdoc_1_1_image}{Image}}*\ m\_brushMask;}
+\DoxyCodeLine{01233\ \ \ BrushPattern\ m\_patternAlign;}
+\DoxyCodeLine{01234\ \ \ \textcolor{keywordtype}{int}\ m\_opacity;}
+\DoxyCodeLine{01235\ \ \ \textcolor{keywordtype}{int}\ m\_u,\ m\_v,\ m\_width,\ m\_height;}
+\DoxyCodeLine{01236\ \ \ \textcolor{comment}{//\ When\ we\ have\ a\ image\ brush\ from\ an\ INDEXED\ sprite,\ we\ need\ to\ know}}
+\DoxyCodeLine{01237\ \ \ \textcolor{comment}{//\ which\ is\ the\ background\ color\ in\ order\ to\ translate\ to\ transparent\ color}}
+\DoxyCodeLine{01238\ \ \ \textcolor{comment}{//\ in\ a\ RGBA\ sprite.}}
+\DoxyCodeLine{01239\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ m\_transparentColor;}
+\DoxyCodeLine{01240\ \};}
+\DoxyCodeLine{01241\ }
+\DoxyCodeLine{01242\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01243\ \textcolor{keywordtype}{bool}\ BrushInkProcessingBase<RgbTraits>::preProcessPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \mbox{\hyperlink{structcolor__t}{color\_t}}*\ result)\ \{}
+\DoxyCodeLine{01244\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01245\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01246\ }
+\DoxyCodeLine{01247\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01248\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01249\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01250\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01251\ }
+\DoxyCodeLine{01252\ \ \ \ \ \ \ \textcolor{comment}{//\ We\ blend\ the\ previous\ image\ brush\ pixel\ with\ a\ pixel\ from\ the}}
+\DoxyCodeLine{01253\ \ \ \ \ \ \ \textcolor{comment}{//\ image\ preview\ (*m\_dstAddress).\ Yes,\ dstImage,\ in\ that\ way\ we}}
+\DoxyCodeLine{01254\ \ \ \ \ \ \ \textcolor{comment}{//\ can\ overlap\ image\ brush\ self\ printed\ areas\ (auto\ compose}}
+\DoxyCodeLine{01255\ \ \ \ \ \ \ \textcolor{comment}{//\ colors).\ Doing\ this,\ we\ avoid\ eraser\ action\ of\ the\ pixels}}
+\DoxyCodeLine{01256\ \ \ \ \ \ \ \textcolor{comment}{//\ with\ alpha\ <255\ in\ the\ image\ brush.}}
+\DoxyCodeLine{01257\ \ \ \ \ \ \ c\ =\ rgba\_blender\_normal(*m\_dstAddress,\ c,\ m\_opacity);}
+\DoxyCodeLine{01258\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01259\ \ \ \ \ \}}
+\DoxyCodeLine{01260\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01261\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01262\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transparentColor\ ==\ c)}
+\DoxyCodeLine{01263\ \ \ \ \ \ \ \ \ c\ =\ 0;}
+\DoxyCodeLine{01264\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01265\ \ \ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{01266\ \ \ \ \ \ \ c\ =\ rgba\_blender\_normal(*m\_dstAddress,\ c,\ m\_opacity);}
+\DoxyCodeLine{01267\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01268\ \ \ \ \ \}}
+\DoxyCodeLine{01269\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01270\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01271\ \ \ \ \ \ \ c\ =\ doc::rgba(graya\_getv(c),\ graya\_getv(c),\ graya\_getv(c),\ graya\_geta(c));}
+\DoxyCodeLine{01272\ \ \ \ \ \ \ c\ =\ rgba\_blender\_normal(*m\_dstAddress,\ c,\ m\_opacity);}
+\DoxyCodeLine{01273\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01274\ \ \ \ \ \}}
+\DoxyCodeLine{01275\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01276\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01277\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01278\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_fgColor:\ m\_bgColor;}
+\DoxyCodeLine{01279\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01280\ \ \ \ \ \}}
+\DoxyCodeLine{01281\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01282\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01283\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01284\ \ \ \}}
+\DoxyCodeLine{01285\ \ \ *result\ =\ c;}
+\DoxyCodeLine{01286\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01287\ \}}
+\DoxyCodeLine{01288\ }
+\DoxyCodeLine{01289\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01290\ \textcolor{keywordtype}{bool}\ BrushInkProcessingBase<GrayscaleTraits>::preProcessPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \mbox{\hyperlink{structcolor__t}{color\_t}}*\ result)\ \{}
+\DoxyCodeLine{01291\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01292\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01293\ }
+\DoxyCodeLine{01294\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01295\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01296\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01297\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01298\ \ \ \ \ \ \ c\ =\ graya(rgba\_luma(c),\ rgba\_geta(c));}
+\DoxyCodeLine{01299\ \ \ \ \ \ \ c\ =\ graya\_blender\_normal(*m\_dstAddress,\ c,\ m\_opacity);}
+\DoxyCodeLine{01300\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01301\ \ \ \ \ \}}
+\DoxyCodeLine{01302\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01303\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01304\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transparentColor\ ==\ c)}
+\DoxyCodeLine{01305\ \ \ \ \ \ \ \ \ c\ =\ 0;}
+\DoxyCodeLine{01306\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01307\ \ \ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{01308\ \ \ \ \ \ \ c\ =\ graya(rgba\_luma(c),\ rgba\_geta(c));}
+\DoxyCodeLine{01309\ \ \ \ \ \ \ c\ =\ graya\_blender\_normal(*m\_dstAddress,\ c,\ m\_opacity);}
+\DoxyCodeLine{01310\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01311\ \ \ \ \ \}}
+\DoxyCodeLine{01312\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01313\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01314\ \ \ \ \ \ \ c\ =\ graya\_blender\_normal(*m\_dstAddress,\ c,\ m\_opacity);}
+\DoxyCodeLine{01315\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01316\ \ \ \ \ \}}
+\DoxyCodeLine{01317\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01318\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01319\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01320\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_fgColor:\ m\_bgColor;}
+\DoxyCodeLine{01321\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01322\ \ \ \ \ \}}
+\DoxyCodeLine{01323\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01324\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01325\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01326\ \ \ \}}
+\DoxyCodeLine{01327\ \ \ *result\ =\ c;}
+\DoxyCodeLine{01328\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01329\ \}}
+\DoxyCodeLine{01330\ }
+\DoxyCodeLine{01331\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01332\ \textcolor{keywordtype}{bool}\ BrushInkProcessingBase<IndexedTraits>::preProcessPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \mbox{\hyperlink{structcolor__t}{color\_t}}*\ result)\ \{}
+\DoxyCodeLine{01333\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01334\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01335\ }
+\DoxyCodeLine{01336\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01337\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01338\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01339\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01340\ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ d\ =\ m\_palette-\/>getEntry(*m\_dstAddress);}
+\DoxyCodeLine{01341\ \ \ \ \ \ \ c\ =\ rgba\_blender\_normal(d,\ c,\ m\_opacity);}
+\DoxyCodeLine{01342\ \ \ \ \ \ \ c\ =\ m\_palette-\/>findBestfit(rgba\_getr(c),}
+\DoxyCodeLine{01343\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(c),}
+\DoxyCodeLine{01344\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(c),}
+\DoxyCodeLine{01345\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(c),\ m\_transparentColor);}
+\DoxyCodeLine{01346\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01347\ \ \ \ \ \}}
+\DoxyCodeLine{01348\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01349\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01350\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ m\_transparentColor)}
+\DoxyCodeLine{01351\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01352\ }
+\DoxyCodeLine{01353\ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ f\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{01354\ }
+\DoxyCodeLine{01355\ \ \ \ \ \ \ \textcolor{comment}{//\ Keep\ original\ index\ in\ special\ opaque\ case}}
+\DoxyCodeLine{01356\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(f)\ ==\ 255\ \&\&\ m\_opacity\ ==\ 255)}
+\DoxyCodeLine{01357\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01358\ }
+\DoxyCodeLine{01359\ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ b\ =\ m\_palette-\/>getEntry(*m\_dstAddress);}
+\DoxyCodeLine{01360\ \ \ \ \ \ \ c\ =\ rgba\_blender\_normal(b,\ f,\ m\_opacity);}
+\DoxyCodeLine{01361\ \ \ \ \ \ \ c\ =\ m\_palette-\/>findBestfit(rgba\_getr(c),}
+\DoxyCodeLine{01362\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(c),}
+\DoxyCodeLine{01363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(c),}
+\DoxyCodeLine{01364\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(c),\ m\_transparentColor);}
+\DoxyCodeLine{01365\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01366\ \ \ \ \ \}}
+\DoxyCodeLine{01367\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01368\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01369\ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ b\ =\ m\_palette-\/>getEntry(*m\_dstAddress);}
+\DoxyCodeLine{01370\ \ \ \ \ \ \ b\ =\ graya(rgba\_luma(b),}
+\DoxyCodeLine{01371\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(b));}
+\DoxyCodeLine{01372\ \ \ \ \ \ \ c\ =\ graya\_blender\_normal(b,\ c,\ m\_opacity);}
+\DoxyCodeLine{01373\ \ \ \ \ \ \ c\ =\ m\_palette-\/>findBestfit(graya\_getv(c),}
+\DoxyCodeLine{01374\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(c),}
+\DoxyCodeLine{01375\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(c),}
+\DoxyCodeLine{01376\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_geta(c),\ m\_transparentColor);}
+\DoxyCodeLine{01377\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01378\ \ \ \ \ \}}
+\DoxyCodeLine{01379\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01380\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01381\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01382\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_fgColor:\ m\_bgColor;}
+\DoxyCodeLine{01383\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01384\ \ \ \ \ \}}
+\DoxyCodeLine{01385\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01386\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01387\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01388\ \ \ \}}
+\DoxyCodeLine{01389\ \ \ \textcolor{keywordflow}{if}\ (c\ !=\ m\_transparentColor)\ \{}
+\DoxyCodeLine{01390\ \ \ \ \ *result\ =\ c;}
+\DoxyCodeLine{01391\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{01392\ \ \ \}}
+\DoxyCodeLine{01393\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{01394\ \}}
+\DoxyCodeLine{01395\ }
+\DoxyCodeLine{01397\ \textcolor{comment}{//\ Brush\ Ink\ -\/\ Simple\ ink\ type}}
+\DoxyCodeLine{01399\ \textcolor{comment}{}}
+\DoxyCodeLine{01400\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{01401\ \textcolor{keyword}{class\ }BrushSimpleInkProcessing\ :\ \textcolor{keyword}{public}\ BrushInkProcessingBase<ImageTraits>\ \{}
+\DoxyCodeLine{01402\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01403\ \ \ BrushSimpleInkProcessing(ToolLoop*\ loop)\ :\ BrushInkProcessingBase<ImageTraits>(loop)\ \{}
+\DoxyCodeLine{01404\ \ \ \}}
+\DoxyCodeLine{01405\ }
+\DoxyCodeLine{01406\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01407\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{01408\ \ \ \}}
+\DoxyCodeLine{01409\ \};}
+\DoxyCodeLine{01410\ }
+\DoxyCodeLine{01411\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01412\ \textcolor{keywordtype}{void}\ BrushSimpleInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01413\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01414\ \ \ \textcolor{keywordflow}{if}\ (preProcessPixel(x,\ y,\ \&c))}
+\DoxyCodeLine{01415\ \ \ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01416\ \}}
+\DoxyCodeLine{01417\ }
+\DoxyCodeLine{01418\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01419\ \textcolor{keywordtype}{void}\ BrushSimpleInkProcessing<IndexedTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01420\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01421\ \ \ \textcolor{keywordflow}{if}\ (preProcessPixel(x,\ y,\ \&c))}
+\DoxyCodeLine{01422\ \ \ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01423\ \}}
+\DoxyCodeLine{01424\ }
+\DoxyCodeLine{01425\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01426\ \textcolor{keywordtype}{void}\ BrushSimpleInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01427\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01428\ \ \ \textcolor{keywordflow}{if}\ (preProcessPixel(x,\ y,\ \&c))}
+\DoxyCodeLine{01429\ \ \ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01430\ \}}
+\DoxyCodeLine{01431\ }
+\DoxyCodeLine{01433\ \textcolor{comment}{//\ Brush\ Ink\ -\/\ Lock\ Alpha\ ink\ type}}
+\DoxyCodeLine{01435\ \textcolor{comment}{}}
+\DoxyCodeLine{01436\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{01437\ \textcolor{keyword}{class\ }BrushLockAlphaInkProcessing\ :\ \textcolor{keyword}{public}\ BrushInkProcessingBase<ImageTraits>\ \{}
+\DoxyCodeLine{01438\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01439\ \ \ BrushLockAlphaInkProcessing(ToolLoop*\ loop)\ :\ BrushInkProcessingBase<ImageTraits>(loop)\ \{}
+\DoxyCodeLine{01440\ \ \ \}}
+\DoxyCodeLine{01441\ }
+\DoxyCodeLine{01442\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01443\ \ \ \ \ \textcolor{comment}{//Do\ nothing}}
+\DoxyCodeLine{01444\ \ \ \}}
+\DoxyCodeLine{01445\ \};}
+\DoxyCodeLine{01446\ }
+\DoxyCodeLine{01447\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01448\ \textcolor{keywordtype}{void}\ BrushLockAlphaInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01449\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01450\ \ \ \textcolor{keywordflow}{if}\ (preProcessPixel(x,\ y,\ \&c))}
+\DoxyCodeLine{01451\ \ \ \ \ *m\_dstAddress\ =\ doc::rgba(rgba\_getr(c),\ rgba\_getg(c),\ rgba\_getb(c),\ rgba\_geta(*m\_srcAddress));}
+\DoxyCodeLine{01452\ \}}
+\DoxyCodeLine{01453\ }
+\DoxyCodeLine{01454\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01455\ \textcolor{keywordtype}{void}\ BrushLockAlphaInkProcessing<IndexedTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01456\ \ \ \textcolor{keywordflow}{if}\ (*m\_srcAddress\ !=\ m\_transparentColor)\ \{}
+\DoxyCodeLine{01457\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01458\ \ \ \ \ \textcolor{keywordflow}{if}\ (preProcessPixel(x,\ y,\ \&c))}
+\DoxyCodeLine{01459\ \ \ \ \ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01460\ \ \ \}}
+\DoxyCodeLine{01461\ \}}
+\DoxyCodeLine{01462\ }
+\DoxyCodeLine{01463\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01464\ \textcolor{keywordtype}{void}\ BrushLockAlphaInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01465\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01466\ \ \ \textcolor{keywordflow}{if}\ (preProcessPixel(x,\ y,\ \&c))}
+\DoxyCodeLine{01467\ \ \ \ \ *m\_dstAddress\ =\ graya(graya\_getv(c),\ graya\_geta(*m\_srcAddress));}
+\DoxyCodeLine{01468\ \}}
+\DoxyCodeLine{01469\ }
+\DoxyCodeLine{01471\ \textcolor{comment}{//\ Brush\ Ink\ -\/\ Eraser\ Tool}}
+\DoxyCodeLine{01473\ \textcolor{comment}{}}
+\DoxyCodeLine{01474\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{01475\ \textcolor{keyword}{class\ }BrushEraserInkProcessing\ :\ \textcolor{keyword}{public}\ BrushInkProcessingBase<ImageTraits>\ \{}
+\DoxyCodeLine{01476\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01477\ \ \ BrushEraserInkProcessing(ToolLoop*\ loop)\ :\ BrushInkProcessingBase<ImageTraits>(loop)\ \{}
+\DoxyCodeLine{01478\ \ \ \}}
+\DoxyCodeLine{01479\ }
+\DoxyCodeLine{01480\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01481\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{01482\ \ \ \}}
+\DoxyCodeLine{01483\ \};}
+\DoxyCodeLine{01484\ }
+\DoxyCodeLine{01485\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01486\ \textcolor{keywordtype}{void}\ BrushEraserInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01487\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01488\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01489\ }
+\DoxyCodeLine{01490\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01491\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01492\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01493\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01494\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ t;}
+\DoxyCodeLine{01495\ \ \ \ \ \ \ c\ =\ doc::rgba(rgba\_getr(*m\_srcAddress),}
+\DoxyCodeLine{01496\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(*m\_srcAddress),}
+\DoxyCodeLine{01497\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(*m\_srcAddress),}
+\DoxyCodeLine{01498\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MUL\_UN8(rgba\_geta(*m\_dstAddress),\ 255\ -\/\ rgba\_geta(c),\ t));}
+\DoxyCodeLine{01499\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01500\ \ \ \ \ \}}
+\DoxyCodeLine{01501\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01502\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01503\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transparentColor\ ==\ c)}
+\DoxyCodeLine{01504\ \ \ \ \ \ \ \ \ c\ =\ 0;}
+\DoxyCodeLine{01505\ \ \ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{01506\ \ \ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{01507\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ t;}
+\DoxyCodeLine{01508\ \ \ \ \ \ \ c\ =\ doc::rgba(rgba\_getr(*m\_srcAddress),}
+\DoxyCodeLine{01509\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(*m\_srcAddress),}
+\DoxyCodeLine{01510\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(*m\_srcAddress),}
+\DoxyCodeLine{01511\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MUL\_UN8(rgba\_geta(*m\_dstAddress),\ 255\ -\/\ rgba\_geta(c),\ t));}
+\DoxyCodeLine{01512\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01513\ \ \ \ \ \}}
+\DoxyCodeLine{01514\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01515\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01516\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ t;}
+\DoxyCodeLine{01517\ \ \ \ \ \ \ c\ =\ doc::rgba(rgba\_getr(*m\_srcAddress),}
+\DoxyCodeLine{01518\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(*m\_srcAddress),}
+\DoxyCodeLine{01519\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(*m\_srcAddress),}
+\DoxyCodeLine{01520\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MUL\_UN8(rgba\_geta(*m\_dstAddress),\ 255\ -\/\ graya\_geta(c),\ t));}
+\DoxyCodeLine{01521\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01522\ \ \ \ \ \}}
+\DoxyCodeLine{01523\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01524\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01525\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01526\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_bgColor\ :\ *m\_srcAddress;}
+\DoxyCodeLine{01527\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01528\ \ \ \ \ \}}
+\DoxyCodeLine{01529\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01530\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01531\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01532\ \ \ \}}
+\DoxyCodeLine{01533\ \ \ *m\_dstAddress\ =\ c;;}
+\DoxyCodeLine{01534\ \}}
+\DoxyCodeLine{01535\ }
+\DoxyCodeLine{01536\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01537\ \textcolor{keywordtype}{void}\ BrushEraserInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01538\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01539\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01540\ }
+\DoxyCodeLine{01541\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01542\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01543\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01544\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01545\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ t;}
+\DoxyCodeLine{01546\ \ \ \ \ \ \ c\ =\ graya(graya\_getv(*m\_srcAddress),}
+\DoxyCodeLine{01547\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MUL\_UN8(graya\_geta(*m\_dstAddress),\ 255\ -\/\ rgba\_geta(c),\ t));}
+\DoxyCodeLine{01548\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01549\ \ \ \ \ \}}
+\DoxyCodeLine{01550\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01551\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01552\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transparentColor\ ==\ c)}
+\DoxyCodeLine{01553\ \ \ \ \ \ \ \ \ c\ =\ 0;}
+\DoxyCodeLine{01554\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{01555\ \ \ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{01556\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01557\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ t;}
+\DoxyCodeLine{01558\ \ \ \ \ \ \ c\ =\ graya(graya\_getv(*m\_srcAddress),}
+\DoxyCodeLine{01559\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MUL\_UN8(graya\_geta(*m\_dstAddress),\ 255\ -\/\ rgba\_geta(c),\ t));}
+\DoxyCodeLine{01560\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01561\ \ \ \ \ \}}
+\DoxyCodeLine{01562\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01563\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01564\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ t;}
+\DoxyCodeLine{01565\ \ \ \ \ \ \ c\ =\ graya(graya\_getv(*m\_srcAddress),}
+\DoxyCodeLine{01566\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ MUL\_UN8(graya\_geta(*m\_dstAddress),\ 255\ -\/\ graya\_geta(c),\ t));}
+\DoxyCodeLine{01567\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01568\ \ \ \ \ \}}
+\DoxyCodeLine{01569\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01570\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01571\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01572\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_bgColor\ :\ *m\_srcAddress;}
+\DoxyCodeLine{01573\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01574\ \ \ \ \ \}}
+\DoxyCodeLine{01575\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01576\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01577\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01578\ \ \ \}}
+\DoxyCodeLine{01579\ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01580\ \}}
+\DoxyCodeLine{01581\ }
+\DoxyCodeLine{01582\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01583\ \textcolor{keywordtype}{void}\ BrushEraserInkProcessing<IndexedTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01584\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01585\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01586\ }
+\DoxyCodeLine{01587\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01588\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01589\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01590\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01591\ \ \ \ \ \ \ c\ =\ m\_palette-\/>findBestfit(rgba\_getr(c),}
+\DoxyCodeLine{01592\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(c),}
+\DoxyCodeLine{01593\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(c),}
+\DoxyCodeLine{01594\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(c),\ m\_transparentColor);}
+\DoxyCodeLine{01595\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01596\ \ \ \ \ \}}
+\DoxyCodeLine{01597\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01598\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01599\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01600\ \ \ \ \ \}}
+\DoxyCodeLine{01601\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01602\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01603\ \ \ \ \ \ \ c\ =\ m\_palette-\/>findBestfit(graya\_getv(c),}
+\DoxyCodeLine{01604\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(c),}
+\DoxyCodeLine{01605\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(c),}
+\DoxyCodeLine{01606\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_geta(c),\ m\_transparentColor);}
+\DoxyCodeLine{01607\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01608\ \ \ \ \ \}}
+\DoxyCodeLine{01609\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01610\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01611\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01612\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_fgColor:\ m\_bgColor;}
+\DoxyCodeLine{01613\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01614\ \ \ \ \ \}}
+\DoxyCodeLine{01615\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01616\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01617\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01618\ \ \ \}}
+\DoxyCodeLine{01619\ \ \ \textcolor{keywordflow}{if}\ (c\ !=\ m\_transparentColor)\ \{}
+\DoxyCodeLine{01620\ \ \ \ \ *m\_dstAddress\ =\ m\_transparentColor;}
+\DoxyCodeLine{01621\ \ \ \}}
+\DoxyCodeLine{01622\ \}}
+\DoxyCodeLine{01623\ }
+\DoxyCodeLine{01625\ \textcolor{comment}{//\ Brush\ Ink\ -\/\ Shading\ ink\ type}}
+\DoxyCodeLine{01627\ \textcolor{comment}{}}
+\DoxyCodeLine{01628\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{01629\ \textcolor{keyword}{class\ }BrushShadingInkProcessing\ :\ \textcolor{keyword}{public}\ BrushInkProcessingBase<ImageTraits>\ \{}
+\DoxyCodeLine{01630\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01631\ \ \ \textcolor{keyword}{using\ }pixel\_t\ =\ \textcolor{keyword}{typename}\ ImageTraits::pixel\_t;}
+\DoxyCodeLine{01632\ }
+\DoxyCodeLine{01633\ \ \ BrushShadingInkProcessing(ToolLoop*\ loop)}
+\DoxyCodeLine{01634\ \ \ \ \ :\ BrushInkProcessingBase<ImageTraits>(loop)}
+\DoxyCodeLine{01635\ \ \ \ \ ,\ m\_shading(loop)\ \{}
+\DoxyCodeLine{01636\ \ \ \}}
+\DoxyCodeLine{01637\ }
+\DoxyCodeLine{01638\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01639\ \ \ \ \ \textcolor{comment}{//\ Do\ nothing}}
+\DoxyCodeLine{01640\ \ \ \}}
+\DoxyCodeLine{01641\ }
+\DoxyCodeLine{01642\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{01643\ \ \ PixelShadingInkHelper<ImageTraits>\ m\_shading;}
+\DoxyCodeLine{01644\ \};}
+\DoxyCodeLine{01645\ }
+\DoxyCodeLine{01646\ \textcolor{keyword}{template}\ <>}
+\DoxyCodeLine{01647\ \textcolor{keywordtype}{void}\ BrushShadingInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01648\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01649\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01650\ }
+\DoxyCodeLine{01651\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01652\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01653\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01654\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ iBrush\ =\ m\_shading.findIndex(rgba\_getr(c),}
+\DoxyCodeLine{01655\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(c),}
+\DoxyCodeLine{01656\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(c),}
+\DoxyCodeLine{01657\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(c));}
+\DoxyCodeLine{01658\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(c)\ !=\ 0\ \&\&\ iBrush\ >=\ 0)}
+\DoxyCodeLine{01659\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01660\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01661\ \ \ \ \ \}}
+\DoxyCodeLine{01662\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01663\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01664\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transparentColor\ !=\ c)}
+\DoxyCodeLine{01665\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01666\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01667\ \ \ \ \ \}}
+\DoxyCodeLine{01668\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01669\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01670\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (graya\_geta(c)\ !=\ 0)}
+\DoxyCodeLine{01671\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01672\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01673\ \ \ \ \ \}}
+\DoxyCodeLine{01674\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01675\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01676\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01677\ \ \ \}}
+\DoxyCodeLine{01678\ \};}
+\DoxyCodeLine{01679\ }
+\DoxyCodeLine{01680\ \textcolor{keyword}{template}\ <>}
+\DoxyCodeLine{01681\ \textcolor{keywordtype}{void}\ BrushShadingInkProcessing<IndexedTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01682\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01683\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01684\ }
+\DoxyCodeLine{01685\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01686\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01687\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01688\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ iBrush\ =\ m\_shading.findIndex(rgba\_getr(c),}
+\DoxyCodeLine{01689\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(c),}
+\DoxyCodeLine{01690\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(c),}
+\DoxyCodeLine{01691\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(c));}
+\DoxyCodeLine{01692\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(c)\ !=\ 0\ \&\&\ iBrush\ >=\ 0)}
+\DoxyCodeLine{01693\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01694\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01695\ \ \ \ \ \}}
+\DoxyCodeLine{01696\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01697\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01698\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transparentColor\ !=\ c)}
+\DoxyCodeLine{01699\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01700\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01701\ \ \ \ \ \}}
+\DoxyCodeLine{01702\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01703\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01704\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (graya\_geta(c)\ !=\ 0)}
+\DoxyCodeLine{01705\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01706\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01707\ \ \ \ \ \}}
+\DoxyCodeLine{01708\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01709\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01710\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01711\ \ \ \}}
+\DoxyCodeLine{01712\ \};}
+\DoxyCodeLine{01713\ }
+\DoxyCodeLine{01714\ \textcolor{keyword}{template}\ <>}
+\DoxyCodeLine{01715\ \textcolor{keywordtype}{void}\ BrushShadingInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01716\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01717\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01718\ }
+\DoxyCodeLine{01719\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01720\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01721\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01722\ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ iBrush\ =\ m\_shading.findIndex(rgba\_getr(c),}
+\DoxyCodeLine{01723\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(c),}
+\DoxyCodeLine{01724\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(c),}
+\DoxyCodeLine{01725\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(c));}
+\DoxyCodeLine{01726\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(c)\ !=\ 0\ \&\&\ iBrush\ >=\ 0)}
+\DoxyCodeLine{01727\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01728\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01729\ \ \ \ \ \}}
+\DoxyCodeLine{01730\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01731\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01732\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (m\_transparentColor\ !=\ c)}
+\DoxyCodeLine{01733\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01734\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01735\ \ \ \ \ \}}
+\DoxyCodeLine{01736\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01737\ \ \ \ \ \ \ \textcolor{keyword}{auto}\ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01738\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (graya\_geta(c)\ !=\ 0)}
+\DoxyCodeLine{01739\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ m\_shading(*m\_srcAddress);}
+\DoxyCodeLine{01740\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01741\ \ \ \ \ \}}
+\DoxyCodeLine{01742\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01743\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01744\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01745\ \ \ \}}
+\DoxyCodeLine{01746\ \};}
+\DoxyCodeLine{01747\ }
+\DoxyCodeLine{01749\ \textcolor{comment}{//\ Brush\ Ink\ -\/\ Copy\ Alpha+Color\ ink\ type}}
+\DoxyCodeLine{01751\ \textcolor{comment}{}}
+\DoxyCodeLine{01752\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>}
+\DoxyCodeLine{01753\ \textcolor{keyword}{class\ }BrushCopyInkProcessing\ :\ \textcolor{keyword}{public}\ BrushInkProcessingBase<ImageTraits>\ \{}
+\DoxyCodeLine{01754\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{01755\ \ \ BrushCopyInkProcessing(ToolLoop*\ loop)\ :\ BrushInkProcessingBase<ImageTraits>(loop)\ \{}
+\DoxyCodeLine{01756\ \ \ \}}
+\DoxyCodeLine{01757\ }
+\DoxyCodeLine{01758\ \ \ \textcolor{keywordtype}{void}\ processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ override\ }\{}
+\DoxyCodeLine{01759\ \ \ \ \ \textcolor{comment}{//Do\ nothing}}
+\DoxyCodeLine{01760\ \ \ \}}
+\DoxyCodeLine{01761\ \};}
+\DoxyCodeLine{01762\ }
+\DoxyCodeLine{01763\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01764\ \textcolor{keywordtype}{void}\ BrushCopyInkProcessing<RgbTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01765\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01766\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01767\ }
+\DoxyCodeLine{01768\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01769\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01770\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01771\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01772\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(c)\ ==\ 0)}
+\DoxyCodeLine{01773\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01774\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01775\ \ \ \ \ \}}
+\DoxyCodeLine{01776\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01777\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01778\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ m\_transparentColor)\ \{}
+\DoxyCodeLine{01779\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ *m\_srcAddress;}
+\DoxyCodeLine{01780\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01781\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01782\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{01783\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01784\ \ \ \ \ \}}
+\DoxyCodeLine{01785\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01786\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01787\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (graya\_geta(c)\ ==\ 0)}
+\DoxyCodeLine{01788\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01789\ \ \ \ \ \ \ c\ =\ doc::rgba(graya\_getv(c),\ graya\_getv(c),\ graya\_getv(c),\ graya\_geta(c));}
+\DoxyCodeLine{01790\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01791\ \ \ \ \ \}}
+\DoxyCodeLine{01792\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01793\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01794\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01795\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_fgColor:\ m\_bgColor;}
+\DoxyCodeLine{01796\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01797\ \ \ \ \ \}}
+\DoxyCodeLine{01798\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01799\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01800\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01801\ \ \ \}}
+\DoxyCodeLine{01802\ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01803\ \}}
+\DoxyCodeLine{01804\ }
+\DoxyCodeLine{01805\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01806\ \textcolor{keywordtype}{void}\ BrushCopyInkProcessing<IndexedTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01807\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01808\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01809\ }
+\DoxyCodeLine{01810\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01811\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01812\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01813\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01814\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(c)\ ==\ 0)}
+\DoxyCodeLine{01815\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01816\ \ \ \ \ \ \ c\ =\ m\_palette-\/>findBestfit(rgba\_getr(c),}
+\DoxyCodeLine{01817\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getg(c),}
+\DoxyCodeLine{01818\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_getb(c),}
+\DoxyCodeLine{01819\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rgba\_geta(c),\ m\_transparentColor);}
+\DoxyCodeLine{01820\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ 0)}
+\DoxyCodeLine{01821\ \ \ \ \ \ \ \ \ c\ =\ *m\_srcAddress;}
+\DoxyCodeLine{01822\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01823\ \ \ \ \ \}}
+\DoxyCodeLine{01824\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01825\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01826\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ m\_transparentColor)}
+\DoxyCodeLine{01827\ \ \ \ \ \ \ \ \ c\ =\ *m\_srcAddress;}
+\DoxyCodeLine{01828\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01829\ \ \ \ \ \}}
+\DoxyCodeLine{01830\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01831\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01832\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (graya\_geta(c)\ ==\ 0)}
+\DoxyCodeLine{01833\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01834\ \ \ \ \ \ \ c\ =\ m\_palette-\/>findBestfit(graya\_getv(c),}
+\DoxyCodeLine{01835\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(c),}
+\DoxyCodeLine{01836\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_getv(c),}
+\DoxyCodeLine{01837\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ graya\_geta(c),\ m\_transparentColor);}
+\DoxyCodeLine{01838\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01839\ \ \ \ \ \}}
+\DoxyCodeLine{01840\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01841\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01842\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01843\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_fgColor:\ m\_bgColor;}
+\DoxyCodeLine{01844\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01845\ \ \ \ \ \}}
+\DoxyCodeLine{01846\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01847\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01848\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01849\ \ \ \}}
+\DoxyCodeLine{01850\ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01851\ \}}
+\DoxyCodeLine{01852\ }
+\DoxyCodeLine{01853\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{01854\ \textcolor{keywordtype}{void}\ BrushCopyInkProcessing<GrayscaleTraits>::processPixel(\textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{01855\ \ \ \textcolor{keywordflow}{if}\ (!alignPixelPoint(x,\ y))}
+\DoxyCodeLine{01856\ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01857\ }
+\DoxyCodeLine{01858\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c;}
+\DoxyCodeLine{01859\ \ \ \textcolor{keywordflow}{switch}\ (m\_brushImage-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01860\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \{}
+\DoxyCodeLine{01861\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<RgbTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01862\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (rgba\_geta(c)\ ==\ 0)}
+\DoxyCodeLine{01863\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01864\ \ \ \ \ \ \ c\ =\ graya(rgba\_luma(c),\ rgba\_geta(c));}
+\DoxyCodeLine{01865\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01866\ \ \ \ \ \}}
+\DoxyCodeLine{01867\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \{}
+\DoxyCodeLine{01868\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<IndexedTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01869\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c\ ==\ m\_transparentColor)\ \{}
+\DoxyCodeLine{01870\ \ \ \ \ \ \ \ \ *m\_dstAddress\ =\ *m\_srcAddress;}
+\DoxyCodeLine{01871\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01872\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{01873\ \ \ \ \ \ \ c\ =\ m\_palette-\/>getEntry(c);}
+\DoxyCodeLine{01874\ \ \ \ \ \ \ c\ =\ graya(rgba\_luma(c),\ rgba\_geta(c));}
+\DoxyCodeLine{01875\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01876\ \ \ \ \ \}}
+\DoxyCodeLine{01877\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \{}
+\DoxyCodeLine{01878\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<GrayscaleTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01879\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (graya\_geta(c)\ ==\ 0)}
+\DoxyCodeLine{01880\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01881\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01882\ \ \ \ \ \}}
+\DoxyCodeLine{01883\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_BITMAP:\ \{}
+\DoxyCodeLine{01884\ \ \ \ \ \ \ \textcolor{comment}{//\ TODO\ In\ which\ circuntance\ is\ possible\ this\ case?}}
+\DoxyCodeLine{01885\ \ \ \ \ \ \ c\ =\ get\_pixel\_fast<BitmapTraits>(m\_brushImage,\ x,\ y);}
+\DoxyCodeLine{01886\ \ \ \ \ \ \ c\ =\ c\ ?\ m\_fgColor:\ m\_bgColor;}
+\DoxyCodeLine{01887\ \ \ \ \ \ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{01888\ \ \ \ \ \}}
+\DoxyCodeLine{01889\ \ \ \ \ \textcolor{keywordflow}{default}:}
+\DoxyCodeLine{01890\ \ \ \ \ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01891\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{01892\ \ \ \}}
+\DoxyCodeLine{01893\ \ \ *m\_dstAddress\ =\ c;}
+\DoxyCodeLine{01894\ \}}
+\DoxyCodeLine{01895\ }
+\DoxyCodeLine{01897\ }
+\DoxyCodeLine{01898\ \textcolor{keyword}{template}<\textcolor{keyword}{template}<\textcolor{keyword}{typename}>\ \textcolor{keyword}{class\ }T>}
+\DoxyCodeLine{01899\ BaseInkProcessing*\ get\_ink\_proc(ToolLoop*\ loop)}
+\DoxyCodeLine{01900\ \{}
+\DoxyCodeLine{01901\ \ \ \textcolor{keywordflow}{switch}\ (loop-\/>sprite()-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01902\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new}\ T<RgbTraits>(loop);}
+\DoxyCodeLine{01903\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new}\ T<GrayscaleTraits>(loop);}
+\DoxyCodeLine{01904\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new}\ T<IndexedTraits>(loop);}
+\DoxyCodeLine{01905\ \ \ \}}
+\DoxyCodeLine{01906\ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01907\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{01908\ \}}
+\DoxyCodeLine{01909\ }
+\DoxyCodeLine{01910\ \textcolor{keyword}{template}<\textcolor{keyword}{template}<\textcolor{keyword}{typename}>\ \textcolor{keyword}{class\ }T>}
+\DoxyCodeLine{01911\ BaseInkProcessing*\ get\_ink\_proc2(ToolLoop*\ loop)}
+\DoxyCodeLine{01912\ \{}
+\DoxyCodeLine{01913\ \ \ \textcolor{keywordflow}{switch}\ (loop-\/>getDstImage()-\/>pixelFormat())\ \{}
+\DoxyCodeLine{01914\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_RGB:\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new}\ T<RgbTraits>(loop);}
+\DoxyCodeLine{01915\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_GRAYSCALE:\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new}\ T<GrayscaleTraits>(loop);}
+\DoxyCodeLine{01916\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_INDEXED:\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new}\ T<IndexedTraits>(loop);}
+\DoxyCodeLine{01917\ \ \ \ \ \textcolor{keywordflow}{case}\ IMAGE\_TILEMAP:\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{new}\ T<TilemapTraits>(loop);}
+\DoxyCodeLine{01918\ \ \ \}}
+\DoxyCodeLine{01919\ \ \ ASSERT(\textcolor{keyword}{false});}
+\DoxyCodeLine{01920\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{01921\ \}}
+\DoxyCodeLine{01922\ }
+\DoxyCodeLine{01923\ \}\ \textcolor{comment}{//\ anonymous\ namespace}}
+\DoxyCodeLine{01924\ \}\ \textcolor{comment}{//\ namespace\ tools}}
+\DoxyCodeLine{01925\ \}\ \textcolor{comment}{//\ namespace\ app}}
+
+\end{DoxyCode}

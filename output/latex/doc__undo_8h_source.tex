@@ -1,0 +1,118 @@
+\hypertarget{doc__undo_8h_source}{}\doxysection{doc\+\_\+undo.\+h}
+\label{doc__undo_8h_source}\index{AseSprite/aseprite/src/app/doc\_undo.h@{AseSprite/aseprite/src/app/doc\_undo.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (C)\ 2022\ \ Igara\ Studio\ S.A.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Copyright\ (C)\ 2001-\/2018\ \ David\ Capello}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ This\ program\ is\ distributed\ under\ the\ terms\ of}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ the\ End-\/User\ License\ Agreement\ for\ Aseprite.}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#ifndef\ APP\_DOCUMENT\_UNDO\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ APP\_DOCUMENT\_UNDO\_H\_INCLUDED}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}app/doc\_range.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}app/sprite\_position.h"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}base/disable\_copying.h"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}obs/observable.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}undo/undo\_history.h"{}}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <iosfwd>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{namespace\ }app\ \{}
+\DoxyCodeLine{00022\ \ \ \textcolor{keyword}{using\ namespace\ }doc;}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{class_cmd}{Cmd}};}
+\DoxyCodeLine{00025\ \ \ \textcolor{keyword}{class\ }CmdTransaction;}
+\DoxyCodeLine{00026\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{struct_context}{Context}};}
+\DoxyCodeLine{00027\ \ \ \textcolor{keyword}{class\ }DocUndoObserver;}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \ \ \textcolor{keyword}{class\ }\mbox{\hyperlink{classapp_1_1_doc_undo}{DocUndo}}\ :\ \textcolor{keyword}{public}\ \mbox{\hyperlink{classobs_1_1observable}{obs::observable}}<DocUndoObserver>,}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{public}\ \mbox{\hyperlink{classundo_1_1_undo_history_delegate}{undo::UndoHistoryDelegate}}\ \{}
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00032\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_doc_undo}{DocUndo}}();}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ totalUndoSize()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_totalUndoSize;\ \}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{void}\ setContext(\mbox{\hyperlink{classapp_1_1_context}{Context}}*\ ctx);}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{void}\ add(\mbox{\hyperlink{classapp_1_1_cmd_transaction}{CmdTransaction}}*\ cmd);}
+\DoxyCodeLine{00039\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordtype}{bool}\ canUndo()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keywordtype}{bool}\ canRedo()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{void}\ undo();}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keywordtype}{void}\ redo();}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{void}\ clearRedo();}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ we\ are\ in\ the\ UndoState\ that\ matches\ the\ sprite}}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{comment}{//\ version\ on\ the\ disk\ (or\ we\ are\ in\ a\ similar\ state\ that\ doesn't}}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{comment}{//\ modify\ that\ same\ state,\ e.g.\ if\ the\ current\ state\ modifies\ the}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{comment}{//\ selection\ but\ not\ the\ pixels,\ we\ are\ in\ a\ similar\ state)}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{bool}\ isInSavedStateOrSimilar()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{comment}{//\ Returns\ true\ if\ the\ saved\ state\ was\ lost,\ e.g.\ because\ we}}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{comment}{//\ deleted\ the\ redo\ history\ and\ the\ saved\ state\ was\ there.}}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{bool}\ isSavedStateIsLost()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_savedStateIsLost;\ \}}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{comment}{//\ Marks\ current\ UndoState\ as\ the\ one\ that\ matches\ the\ sprite\ on}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{comment}{//\ the\ disk\ (this\ is\ used\ after\ saving\ the\ file).}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{void}\ markSavedState();}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{comment}{//\ Indicates\ that\ now\ it's\ impossible\ to\ back\ to\ the\ version\ of}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{comment}{//\ the\ sprite\ that\ matches\ the\ saved\ version.\ This\ can\ be\ because}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ the\ save\ process\ fails\ or\ because\ we\ deleted\ the\ redo\ history}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{comment}{//\ where\ the\ saved\ state\ was\ available.}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{void}\ impossibleToBackToSavedState();}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{comment}{//\ Returns\ the\ position\ in\ the\ undo\ history\ where\ this\ sprite\ was}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{comment}{//\ saved,\ if\ this\ is\ nullptr,\ it\ means\ that\ the\ initial\ state\ is}}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{comment}{//\ the\ saved\ state\ (if\ m\_savedStateIsLost\ is\ false)\ or\ it\ means}}
+\DoxyCodeLine{00070\ \ \ \ \ \textcolor{comment}{//\ that\ there\ is\ no\ saved\ state\ (ifm\_savedStateIsLost\ is\ true)}}
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ savedState()\textcolor{keyword}{\ const\ }\{}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ m\_savedState;}
+\DoxyCodeLine{00073\ \ \ \ \ \}}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ std::string\ nextUndoLabel()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00076\ \ \ \ \ std::string\ nextRedoLabel()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_sprite_position}{SpritePosition}}\ nextUndoSpritePosition()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00079\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_sprite_position}{SpritePosition}}\ nextRedoSpritePosition()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00080\ \ \ \ \ std::istream*\ nextUndoDocRange()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00081\ \ \ \ \ std::istream*\ nextRedoDocRange()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_cmd}{Cmd}}*\ lastExecutedCmd()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00084\ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ firstState()\textcolor{keyword}{\ const\ \ \ }\{\ \textcolor{keywordflow}{return}\ m\_undoHistory.firstState();\ \}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ lastState()\textcolor{keyword}{\ const\ \ \ \ }\{\ \textcolor{keywordflow}{return}\ m\_undoHistory.lastState();\ \}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ currentState()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_undoHistory.currentState();\ \}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{keywordtype}{void}\ moveToState(\textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ \mbox{\hyperlink{structstate}{state}});}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ nextUndo()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ nextRedo()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{comment}{//\ undo::UndoHistoryDelegate\ impl}}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keywordtype}{void}\ onDeleteUndoState(\mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ \mbox{\hyperlink{structstate}{state}})\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \ \ \mbox{\hyperlink{classundo_1_1_undo_history}{undo::UndoHistory}}\ m\_undoHistory;}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{classundo_1_1_undo_state}{undo::UndoState}}*\ m\_savedState\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00100\ \ \ \ \ \mbox{\hyperlink{classapp_1_1_context}{Context}}*\ m\_ctx\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ m\_totalUndoSize\ =\ 0;}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{comment}{//\ True\ if\ the\ saved\ state\ was\ invalidated/corrupted/lost\ in\ some}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ way.\ E.g.\ If\ the\ save\ process\ fails.}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_savedStateIsLost\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ \ \ \ \ DISABLE\_COPYING(\mbox{\hyperlink{classapp_1_1_doc_undo}{DocUndo}});}
+\DoxyCodeLine{00108\ \ \ \};}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \}\ \textcolor{comment}{//\ namespace\ app}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

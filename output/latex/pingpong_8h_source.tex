@@ -1,0 +1,168 @@
+\hypertarget{pingpong_8h_source}{}\doxysection{pingpong.\+h}
+\label{pingpong_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/pingpong.h@{AseSprite/aseprite/third\_party/curl/lib/pingpong.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_PINGPONG\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_PINGPONG\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 1998\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}curl\_setup.h"{}}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#if\ !defined(CURL\_DISABLE\_IMAP)\ ||\ !defined(CURL\_DISABLE\_FTP)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\ \ !defined(CURL\_DISABLE\_POP3)\ ||\ !defined(CURL\_DISABLE\_SMTP)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ USE\_PINGPONG}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{comment}{/*\ forward-\/declaration,\ this\ is\ defined\ in\ urldata.h\ */}}
+\DoxyCodeLine{00033\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconnectdata}{connectdata}};}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00036\ \ \ PPTRANSFER\_BODY,\ \textcolor{comment}{/*\ yes\ do\ transfer\ a\ body\ */}}
+\DoxyCodeLine{00037\ \ \ PPTRANSFER\_INFO,\ \textcolor{comment}{/*\ do\ still\ go\ through\ to\ get\ info/headers\ */}}
+\DoxyCodeLine{00038\ \ \ PPTRANSFER\_NONE\ \ \textcolor{comment}{/*\ don't\ get\ anything\ and\ don't\ get\ info\ */}}
+\DoxyCodeLine{00039\ \}\ curl\_pp\_transfer;}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ 'pingpong'\ is\ the\ generic\ struct\ used\ for\ protocols\ doing\ server<-\/>client}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ conversations\ in\ a\ back-\/and-\/forth\ style\ such\ as\ FTP,\ IMAP,\ POP3,\ SMTP\ etc.}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ It\ holds\ response\ cache\ and\ non-\/blocking\ sending\ data.}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00047\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpingpong}{pingpong}}\ \{}
+\DoxyCodeLine{00048\ \ \ \textcolor{keywordtype}{char}\ *cache;\ \ \ \ \ \textcolor{comment}{/*\ data\ cache\ between\ getresponse()-\/calls\ */}}
+\DoxyCodeLine{00049\ \ \ \textcolor{keywordtype}{size\_t}\ cache\_size;\ \ \textcolor{comment}{/*\ size\ of\ cache\ in\ bytes\ */}}
+\DoxyCodeLine{00050\ \ \ \textcolor{keywordtype}{size\_t}\ nread\_resp;\ \ \textcolor{comment}{/*\ number\ of\ bytes\ currently\ read\ of\ a\ server\ response\ */}}
+\DoxyCodeLine{00051\ \ \ \textcolor{keywordtype}{char}\ *linestart\_resp;\ \textcolor{comment}{/*\ line\ start\ pointer\ for\ the\ server\ response}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ reader\ function\ */}}
+\DoxyCodeLine{00053\ \ \ \textcolor{keywordtype}{bool}\ pending\_resp;\ \ \textcolor{comment}{/*\ set\ TRUE\ when\ a\ server\ response\ is\ pending\ or\ in}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ progress,\ and\ is\ cleared\ once\ the\ last\ response\ is}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ read\ */}}
+\DoxyCodeLine{00056\ \ \ \textcolor{keywordtype}{char}\ *sendthis;\ \textcolor{comment}{/*\ allocated\ pointer\ to\ a\ buffer\ that\ is\ to\ be\ sent\ to\ the}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ server\ */}}
+\DoxyCodeLine{00058\ \ \ \textcolor{keywordtype}{size\_t}\ sendleft;\ \textcolor{comment}{/*\ number\ of\ bytes\ left\ to\ send\ from\ the\ sendthis\ buffer\ */}}
+\DoxyCodeLine{00059\ \ \ \textcolor{keywordtype}{size\_t}\ sendsize;\ \textcolor{comment}{/*\ total\ size\ of\ the\ sendthis\ buffer\ */}}
+\DoxyCodeLine{00060\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcurltime}{curltime}}\ response;\ \textcolor{comment}{/*\ set\ to\ Curl\_now()\ when\ a\ command\ has\ been\ sent}}
+\DoxyCodeLine{00061\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ off,\ used\ to\ time-\/out\ response\ reading\ */}}
+\DoxyCodeLine{00062\ \ \ timediff\_t\ response\_time;\ \textcolor{comment}{/*\ When\ no\ timeout\ is\ given,\ this\ is\ the\ amount\ of}}
+\DoxyCodeLine{00063\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ milliseconds\ we\ await\ for\ a\ server\ response.\ */}}
+\DoxyCodeLine{00064\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structdynbuf}{dynbuf}}\ sendbuf;}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \ \ \textcolor{comment}{/*\ Function\ pointers\ the\ protocols\ MUST\ implement\ and\ provide\ for\ the}}
+\DoxyCodeLine{00067\ \textcolor{comment}{\ \ \ \ \ pingpong\ layer\ to\ function\ */}}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ CURLcode\ (*statemachine)(\textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconnectdata}{connectdata}}\ *conn);}
+\DoxyCodeLine{00070\ \ \ bool\ (*endofresp)(\textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconnectdata}{connectdata}}\ *conn,}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{char}\ *ptr,\ \textcolor{keywordtype}{size\_t}\ len,\ \textcolor{keywordtype}{int}\ *\mbox{\hyperlink{structcode}{code}});}
+\DoxyCodeLine{00072\ \};}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ PINGPONG\_SETUP(pp,s,e)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\ \ do\ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\ \ \ \ pp-\/>response\_time\ =\ RESP\_TIMEOUT;\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\ \ \ \ pp-\/>statemachine\ =\ s;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\ \ \ \ pp-\/>endofresp\ =\ e;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\ \ \}\ while(0)}}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00082\ \textcolor{comment}{\ *\ Curl\_pp\_statemach()}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ *\ called\ repeatedly\ until\ done.\ Set\ 'wait'\ to\ make\ it\ wait\ a\ while\ on\ the}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ *\ socket\ if\ there's\ no\ traffic.}}
+\DoxyCodeLine{00086\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00087\ CURLcode\ Curl\_pp\_statemach(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp,}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ block,\ \textcolor{keywordtype}{bool}\ disconnecting);}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{/*\ initialize\ stuff\ to\ prepare\ for\ reading\ a\ fresh\ new\ response\ */}}
+\DoxyCodeLine{00091\ \textcolor{keywordtype}{void}\ Curl\_pp\_init(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp);}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{comment}{/*\ setup\ for\ the\ transfer\ */}}
+\DoxyCodeLine{00094\ \textcolor{keywordtype}{void}\ Curl\_pp\_setup(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp);}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{comment}{/*\ Returns\ timeout\ in\ ms.\ 0\ or\ negative\ number\ means\ the\ timeout\ has\ already}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ triggered\ */}}
+\DoxyCodeLine{00098\ timediff\_t\ Curl\_pp\_state\_timeout(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp,\ \textcolor{keywordtype}{bool}\ disconnecting);}
+\DoxyCodeLine{00100\ }
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{comment}{/***********************************************************************}}
+\DoxyCodeLine{00103\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00104\ \textcolor{comment}{\ *\ Curl\_pp\_sendf()}}
+\DoxyCodeLine{00105\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00106\ \textcolor{comment}{\ *\ Send\ the\ formatted\ string\ as\ a\ command\ to\ a\ pingpong\ server.\ Note\ that}}
+\DoxyCodeLine{00107\ \textcolor{comment}{\ *\ the\ string\ should\ not\ have\ any\ CRLF\ appended,\ as\ this\ function\ will}}
+\DoxyCodeLine{00108\ \textcolor{comment}{\ *\ append\ the\ necessary\ things\ itself.}}
+\DoxyCodeLine{00109\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00110\ \textcolor{comment}{\ *\ made\ to\ never\ block}}
+\DoxyCodeLine{00111\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00112\ CURLcode\ Curl\_pp\_sendf(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00113\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp,}
+\DoxyCodeLine{00114\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,\ ...);}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{comment}{/***********************************************************************}}
+\DoxyCodeLine{00117\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00118\ \textcolor{comment}{\ *\ Curl\_pp\_vsendf()}}
+\DoxyCodeLine{00119\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00120\ \textcolor{comment}{\ *\ Send\ the\ formatted\ string\ as\ a\ command\ to\ a\ pingpong\ server.\ Note\ that}}
+\DoxyCodeLine{00121\ \textcolor{comment}{\ *\ the\ string\ should\ not\ have\ any\ CRLF\ appended,\ as\ this\ function\ will}}
+\DoxyCodeLine{00122\ \textcolor{comment}{\ *\ append\ the\ necessary\ things\ itself.}}
+\DoxyCodeLine{00123\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00124\ \textcolor{comment}{\ *\ made\ to\ never\ block}}
+\DoxyCodeLine{00125\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00126\ CURLcode\ Curl\_pp\_vsendf(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp,}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ va\_list\ args);}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00132\ \textcolor{comment}{\ *\ Curl\_pp\_readresp()}}
+\DoxyCodeLine{00133\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00134\ \textcolor{comment}{\ *\ Reads\ a\ piece\ of\ a\ server\ response.}}
+\DoxyCodeLine{00135\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00136\ CURLcode\ Curl\_pp\_readresp(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ curl\_socket\_t\ sockfd,}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp,}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ *\mbox{\hyperlink{structcode}{code}},\ \textcolor{comment}{/*\ return\ the\ server\ code\ if\ done\ */}}
+\DoxyCodeLine{00140\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{size\_t}\ *size);\ \textcolor{comment}{/*\ size\ of\ the\ response\ */}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ CURLcode\ Curl\_pp\_flushsend(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00144\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp);}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \textcolor{comment}{/*\ call\ this\ when\ a\ pingpong\ connection\ is\ disconnected\ */}}
+\DoxyCodeLine{00147\ CURLcode\ Curl\_pp\_disconnect(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp);}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00149\ \textcolor{keywordtype}{int}\ Curl\_pp\_getsock(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp,}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ curl\_socket\_t\ *socks);}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ }
+\DoxyCodeLine{00153\ \textcolor{comment}{/***********************************************************************}}
+\DoxyCodeLine{00154\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00155\ \textcolor{comment}{\ *\ Curl\_pp\_moredata()}}
+\DoxyCodeLine{00156\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00157\ \textcolor{comment}{\ *\ Returns\ whether\ there\ are\ still\ more\ data\ in\ the\ cache\ and\ so\ a\ call}}
+\DoxyCodeLine{00158\ \textcolor{comment}{\ *\ to\ Curl\_pp\_readresp()\ will\ not\ block.}}
+\DoxyCodeLine{00159\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00160\ \textcolor{keywordtype}{bool}\ Curl\_pp\_moredata(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structpingpong}{pingpong}}\ *pp);}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_PINGPONG\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

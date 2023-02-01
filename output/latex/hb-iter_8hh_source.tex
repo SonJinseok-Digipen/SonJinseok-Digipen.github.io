@@ -1,0 +1,1030 @@
+\hypertarget{hb-iter_8hh_source}{}\doxysection{hb-\/iter.hh}
+\label{hb-iter_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/iter.hh@{AseSprite/aseprite/third\_party/harfbuzz/src/hb-\/iter.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2018\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ Copyright\ ©\ 2019\ \ Facebook,\ Inc.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ Facebook\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#ifndef\ HB\_ITER\_HH}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ HB\_ITER\_HH}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}hb-\/algs.hh"{}}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ "{}hb-\/meta.hh"{}}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{/*\ Unified\ iterator\ object.}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *\ The\ goal\ of\ this\ template\ is\ to\ make\ the\ same\ iterator\ interface}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ available\ to\ all\ types,\ and\ make\ it\ very\ easy\ and\ compact\ to\ use.}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ hb\_iter\_tator\ objects\ are\ small,\ light-\/weight,\ objects\ that\ can\ be}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ copied\ by\ value.\ \ If\ the\ collection\ /\ object\ being\ iterated\ on}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ is\ writable,\ then\ the\ iterator\ returns\ lvalues,\ otherwise\ it}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ returns\ rvalues.}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ TODO\ Document\ more.}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ If\ iterator\ implementation\ implements\ operator!=,\ then\ can\ be}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ used\ in\ range-\/based\ for\ loop.\ \ That\ already\ happens\ if\ the\ iterator}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ is\ random-\/access.\ \ Otherwise,\ the\ range-\/based\ for\ loop\ incurs}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *\ one\ traversal\ to\ find\ end(),\ which\ can\ be\ avoided\ if\ written}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ as\ a\ while-\/style\ for\ loop,\ or\ if\ iterator\ implements\ a\ faster}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ \_\_end\_\_()\ method.}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *\ TODO\ When\ opting\ in\ for\ C++17,\ address\ this\ by\ changing\ return}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *\ type\ of\ .end()?}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ Base\ classes\ for\ iterators.}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{comment}{/*\ Base\ class\ for\ all\ iterators.\ */}}
+\DoxyCodeLine{00063\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ iter\_t,\ \textcolor{keyword}{typename}\ Item\ =\ \textcolor{keyword}{typename}\ iter\_t::\_\_item\_t\_\_>}
+\DoxyCodeLine{00064\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}}
+\DoxyCodeLine{00065\ \{}
+\DoxyCodeLine{00066\ \ \ \textcolor{keyword}{typedef}\ Item\ item\_t;}
+\DoxyCodeLine{00067\ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{unsigned}\ get\_item\_size\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{struct__hb__static__size}{hb\_static\_size}}\ (Item);\ \}}
+\DoxyCodeLine{00068\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_iterator\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00069\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_random\_access\_iterator\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00070\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00073\ \ \ \textcolor{comment}{/*\ https://en.wikipedia.org/wiki/Curiously\_recurring\_template\_pattern\ */}}
+\DoxyCodeLine{00074\ \ \ \textcolor{keyword}{const}\ iter\_t*\ thiz\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }iter\_t\ *\textcolor{keyword}{>}\ (\textcolor{keyword}{this});\ \}}
+\DoxyCodeLine{00075\ \ \ \ \ iter\_t*\ thiz\ ()\ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\ \ \ \ \ \ iter\_t\ *\textcolor{keyword}{>}\ (\textcolor{keyword}{this});\ \}}
+\DoxyCodeLine{00076\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \textcolor{comment}{/*\ TODO:}}
+\DoxyCodeLine{00079\ \textcolor{comment}{\ \ \ *\ Port\ operators\ below\ to\ use\ hb\_enable\_if\ to\ sniff\ which\ method\ implements}}
+\DoxyCodeLine{00080\ \textcolor{comment}{\ \ \ *\ an\ operator\ and\ use\ it,\ and\ remove\ hb\_iter\_fallback\_mixin\_t\ completely.\ */}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \ \ \textcolor{comment}{/*\ Operators.\ */}}
+\DoxyCodeLine{00083\ \ \ iter\_t\ iter\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00084\ \ \ iter\_t\ operator\ +\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00085\ \ \ iter\_t\ begin\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00086\ \ \ iter\_t\ end\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ thiz()-\/>\_\_end\_\_\ ();\ \}}
+\DoxyCodeLine{00087\ \ \ \textcolor{keyword}{explicit}\ \textcolor{keyword}{operator}\ bool\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ thiz()-\/>\_\_more\_\_\ ();\ \}}
+\DoxyCodeLine{00088\ \ \ \textcolor{keywordtype}{unsigned}\ len\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ thiz()-\/>\_\_len\_\_\ ();\ \}}
+\DoxyCodeLine{00089\ \ \ \textcolor{comment}{/*\ The\ following\ can\ only\ be\ enabled\ if\ item\_t\ is\ reference\ type.\ \ Otherwise}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ *\ it\ will\ be\ returning\ pointer\ to\ temporary\ rvalue.}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ *\ TODO\ Use\ a\ wrapper\ return\ type\ to\ fix\ for\ non-\/reference\ type.\ */}}
+\DoxyCodeLine{00092\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ item\_t,}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (std::is\_reference<T>::value)>}
+\DoxyCodeLine{00094\ \ \ hb\_remove\_reference<item\_t>*\ operator\ -\/>\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ std::addressof\ (**thiz());\ \}}
+\DoxyCodeLine{00095\ \ \ item\_t\ operator\ *\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ thiz()-\/>\_\_item\_\_\ ();\ \}}
+\DoxyCodeLine{00096\ \ \ item\_t\ operator\ *\ ()\ \{\ \textcolor{keywordflow}{return}\ thiz()-\/>\_\_item\_\_\ ();\ \}}
+\DoxyCodeLine{00097\ \ \ item\_t\ operator\ []\ (\textcolor{keywordtype}{unsigned}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ thiz()-\/>\_\_item\_at\_\_\ (i);\ \}}
+\DoxyCodeLine{00098\ \ \ item\_t\ operator\ []\ (\textcolor{keywordtype}{unsigned}\ i)\ \{\ \textcolor{keywordflow}{return}\ thiz()-\/>\_\_item\_at\_\_\ (i);\ \}}
+\DoxyCodeLine{00099\ \ \ iter\_t\&\ operator\ +=\ (\textcolor{keywordtype}{unsigned}\ count)\ \&\ \ \{\ thiz()-\/>\_\_forward\_\_\ (count);\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00100\ \ \ iter\_t\ \ operator\ +=\ (\textcolor{keywordtype}{unsigned}\ count)\ \&\&\ \{\ thiz()-\/>\_\_forward\_\_\ (count);\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00101\ \ \ iter\_t\&\ operator\ ++\ ()\ \&\ \ \{\ thiz()-\/>\_\_next\_\_\ ();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00102\ \ \ iter\_t\ \ operator\ ++\ ()\ \&\&\ \{\ thiz()-\/>\_\_next\_\_\ ();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00103\ \ \ iter\_t\&\ operator\ -\/=\ (\textcolor{keywordtype}{unsigned}\ count)\ \&\ \ \{\ thiz()-\/>\_\_rewind\_\_\ (count);\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00104\ \ \ iter\_t\ \ operator\ -\/=\ (\textcolor{keywordtype}{unsigned}\ count)\ \&\&\ \{\ thiz()-\/>\_\_rewind\_\_\ (count);\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00105\ \ \ iter\_t\&\ operator\ -\/-\/\ ()\ \&\ \ \{\ thiz()-\/>\_\_prev\_\_\ ();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00106\ \ \ iter\_t\ \ operator\ -\/-\/\ ()\ \&\&\ \{\ thiz()-\/>\_\_prev\_\_\ ();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00107\ \ \ iter\_t\ operator\ +\ (\textcolor{keywordtype}{unsigned}\ count)\textcolor{keyword}{\ const\ }\{\ \textcolor{keyword}{auto}\ c\ =\ thiz()-\/>iter\ ();\ c\ +=\ count;\ \textcolor{keywordflow}{return}\ c;\ \}}
+\DoxyCodeLine{00108\ \ \ \textcolor{keyword}{friend}\ iter\_t\ operator\ +\ (\textcolor{keywordtype}{unsigned}\ count,\ \textcolor{keyword}{const}\ iter\_t\ \&it)\ \{\ \textcolor{keywordflow}{return}\ it\ +\ count;\ \}}
+\DoxyCodeLine{00109\ \ \ iter\_t\ operator\ ++\ (\textcolor{keywordtype}{int})\ \{\ iter\_t\ c\ (*thiz());\ ++*thiz();\ \textcolor{keywordflow}{return}\ c;\ \}}
+\DoxyCodeLine{00110\ \ \ iter\_t\ operator\ -\/\ (\textcolor{keywordtype}{unsigned}\ count)\textcolor{keyword}{\ const\ }\{\ \textcolor{keyword}{auto}\ c\ =\ thiz()-\/>iter\ ();\ c\ -\/=\ count;\ \textcolor{keywordflow}{return}\ c;\ \}}
+\DoxyCodeLine{00111\ \ \ iter\_t\ operator\ -\/-\/\ (\textcolor{keywordtype}{int})\ \{\ iter\_t\ c\ (*thiz());\ -\/-\/*thiz();\ \textcolor{keywordflow}{return}\ c;\ \}}
+\DoxyCodeLine{00112\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00113\ \ \ iter\_t\&\ operator\ >>\ (T\ \&v)\ \&\ \ \{\ v\ =\ **thiz();\ ++*thiz();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00114\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00115\ \ \ iter\_t\ \ operator\ >>\ (T\ \&v)\ \&\&\ \{\ v\ =\ **thiz();\ ++*thiz();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00116\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00117\ \ \ iter\_t\&\ operator\ <<\ (\textcolor{keyword}{const}\ T\ v)\ \&\ \ \{\ **thiz()\ =\ v;\ ++*thiz();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00118\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00119\ \ \ iter\_t\ \ operator\ <<\ (\textcolor{keyword}{const}\ T\ v)\ \&\&\ \{\ **thiz()\ =\ v;\ ++*thiz();\ \textcolor{keywordflow}{return}\ *thiz();\ \}}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00122\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00123\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\ \&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00124\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\ (\mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\ \&\&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00125\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\&\ operator\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\ \&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00126\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\&\ operator\ =\ (\mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}\ \&\&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00127\ \};}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ HB\_ITER\_USING(Name)\ \(\backslash\)}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\ \ using\ item\_t\ =\ typename\ Name::item\_t;\ \(\backslash\)}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\ \ using\ Name::begin;\ \(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ using\ Name::end;\ \(\backslash\)}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\ \ using\ Name::get\_item\_size;\ \(\backslash\)}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\ \ using\ Name::is\_iterator;\ \(\backslash\)}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\ \ using\ Name::iter;\ \(\backslash\)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\ \ using\ Name::operator\ bool;\ \(\backslash\)}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\ \ using\ Name::len;\ \(\backslash\)}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\ \ using\ Name::operator\ -\/>;\ \(\backslash\)}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\ \ using\ Name::operator\ *;\ \(\backslash\)}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ using\ Name::operator\ [];\ \(\backslash\)}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\ \ using\ Name::operator\ +=;\ \(\backslash\)}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\ \ using\ Name::operator\ ++;\ \(\backslash\)}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\ \ using\ Name::operator\ -\/=;\ \(\backslash\)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ using\ Name::operator\ -\/-\/;\ \(\backslash\)}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\ \ using\ Name::operator\ +;\ \(\backslash\)}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\ \ using\ Name::operator\ -\/;\ \(\backslash\)}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\ \ using\ Name::operator\ >>;\ \(\backslash\)}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\ \ using\ Name::operator\ <<;\ \(\backslash\)}}
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\ \ static\_assert\ (true,\ "{}"{}})}
+\DoxyCodeLine{00150\ }
+\DoxyCodeLine{00151\ \textcolor{comment}{/*\ Returns\ iterator\ /\ item\ type\ of\ a\ type.\ */}}
+\DoxyCodeLine{00152\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable>}
+\DoxyCodeLine{00153\ \textcolor{keyword}{using\ }hb\_iter\_type\ =\ \textcolor{keyword}{decltype}\ (hb\_deref\ (hb\_declval\ (Iterable)).iter\ ());}
+\DoxyCodeLine{00154\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable>}
+\DoxyCodeLine{00155\ \textcolor{keyword}{using\ }hb\_item\_type\ =\ \textcolor{keyword}{decltype}\ (*hb\_deref\ (hb\_declval\ (Iterable)).iter\ ());}
+\DoxyCodeLine{00156\ }
+\DoxyCodeLine{00157\ }
+\DoxyCodeLine{00158\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}>\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__array__t}{hb\_array\_t}};}
+\DoxyCodeLine{00159\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}>\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__sorted__array__t}{hb\_sorted\_array\_t}};}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00162\ \{}
+\DoxyCodeLine{00163\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ hb\_iter\_type<T>}
+\DoxyCodeLine{00164\ \ \ operator\ ()\ (T\&\&\ c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00165\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ hb\_deref\ (std::forward<T>\ (c)).iter\ ();\ \}}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00167\ \ \ \textcolor{comment}{/*\ Specialization\ for\ C\ arrays.\ */}}
+\DoxyCodeLine{00168\ }
+\DoxyCodeLine{00169\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<Type>}}}
+\DoxyCodeLine{00170\ \ \ operator\ ()\ (Type\ *array,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ length)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00171\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<Type>}}\ (array,\ length);\ \}}
+\DoxyCodeLine{00172\ }
+\DoxyCodeLine{00173\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ length>\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<Type>}}}
+\DoxyCodeLine{00174\ \ \ operator\ ()\ (Type\ (\&array)[length])\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00175\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<Type>}}\ (array,\ length);\ \}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \}}
+\DoxyCodeLine{00178\ HB\_FUNCOBJ\ (hb\_iter);}
+\DoxyCodeLine{00179\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00180\ \{}
+\DoxyCodeLine{00181\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \textcolor{keywordtype}{unsigned}}
+\DoxyCodeLine{00182\ \ \ operator\ ()\ (T\&\&\ c)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00183\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ c.len\ ();\ \}}
+\DoxyCodeLine{00184\ }
+\DoxyCodeLine{00185\ \}}
+\DoxyCodeLine{00186\ HB\_FUNCOBJ\ (hb\_len);}
+\DoxyCodeLine{00187\ }
+\DoxyCodeLine{00188\ \textcolor{comment}{/*\ Mixin\ to\ fill\ in\ what\ the\ subclass\ doesn't\ provide.\ */}}
+\DoxyCodeLine{00189\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ iter\_t,\ \textcolor{keyword}{typename}\ item\_t\ =\ \textcolor{keyword}{typename}\ iter\_t::\_\_item\_t\_\_>}
+\DoxyCodeLine{00190\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}}
+\DoxyCodeLine{00191\ \{}
+\DoxyCodeLine{00192\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00193\ \ \ \textcolor{comment}{/*\ https://en.wikipedia.org/wiki/Curiously\_recurring\_template\_pattern\ */}}
+\DoxyCodeLine{00194\ \ \ \textcolor{keyword}{const}\ iter\_t*\ thiz\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\textcolor{keyword}{const\ }iter\_t\ *\textcolor{keyword}{>}\ (\textcolor{keyword}{this});\ \}}
+\DoxyCodeLine{00195\ \ \ \ \ iter\_t*\ thiz\ ()\ \ \ \ \ \ \ \{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}\ \ \ \ \ \ iter\_t\ *\textcolor{keyword}{>}\ (\textcolor{keyword}{this});\ \}}
+\DoxyCodeLine{00196\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \ \ \textcolor{comment}{/*\ Access:\ Implement\ \_\_item\_\_(),\ or\ \_\_item\_at\_\_()\ if\ random-\/access.\ */}}
+\DoxyCodeLine{00199\ \ \ item\_t\ \_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ (*thiz())[0];\ \}}
+\DoxyCodeLine{00200\ \ \ item\_t\ \_\_item\_at\_\_\ (\textcolor{keywordtype}{unsigned}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *(*thiz()\ +\ i);\ \}}
+\DoxyCodeLine{00201\ }
+\DoxyCodeLine{00202\ \ \ \textcolor{comment}{/*\ Termination:\ Implement\ \_\_more\_\_(),\ or\ \_\_len\_\_()\ if\ random-\/access.\ */}}
+\DoxyCodeLine{00203\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bool\ (thiz()-\/>len\ ());\ \}}
+\DoxyCodeLine{00204\ \ \ \textcolor{keywordtype}{unsigned}\ \_\_len\_\_\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00205\ \textcolor{keyword}{\ \ }\{\ iter\_t\ c\ (*thiz());\ \textcolor{keywordtype}{unsigned}\ l\ =\ 0;\ \textcolor{keywordflow}{while}\ (c)\ \{\ c++;\ l++;\ \}\ \textcolor{keywordflow}{return}\ l;\ \}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \textcolor{comment}{/*\ Advancing:\ Implement\ \_\_next\_\_(),\ or\ \_\_forward\_\_()\ if\ random-\/access.\ */}}
+\DoxyCodeLine{00208\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()\ \{\ *thiz()\ +=\ 1;\ \}}
+\DoxyCodeLine{00209\ \ \ \textcolor{keywordtype}{void}\ \_\_forward\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ \textcolor{keywordflow}{while}\ (*thiz()\ \&\&\ n-\/-\/)\ ++*thiz();\ \}}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \textcolor{comment}{/*\ Rewinding:\ Implement\ \_\_prev\_\_()\ or\ \_\_rewind\_\_()\ if\ bidirectional.\ */}}
+\DoxyCodeLine{00212\ \ \ \textcolor{keywordtype}{void}\ \_\_prev\_\_\ ()\ \{\ *thiz()\ -\/=\ 1;\ \}}
+\DoxyCodeLine{00213\ \ \ \textcolor{keywordtype}{void}\ \_\_rewind\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ \textcolor{keywordflow}{while}\ (*thiz()\ \&\&\ n-\/-\/)\ -\/-\/*thiz();\ \}}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \ \ \textcolor{comment}{/*\ Range-\/based\ for:\ Implement\ \_\_end\_\_()\ if\ can\ be\ done\ faster,}}
+\DoxyCodeLine{00216\ \textcolor{comment}{\ \ \ *\ and\ operator!=.\ */}}
+\DoxyCodeLine{00217\ \ \ iter\_t\ \_\_end\_\_\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00218\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00219\ \ \ \ \ \textcolor{keywordflow}{if}\ (thiz()-\/>is\_random\_access\_iterator)}
+\DoxyCodeLine{00220\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *thiz()\ +\ thiz()-\/>len\ ();}
+\DoxyCodeLine{00221\ \ \ \ \ \textcolor{comment}{/*\ Above\ expression\ loops\ twice.\ Following\ loops\ once.\ */}}
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{keyword}{auto}\ it\ =\ *thiz();}
+\DoxyCodeLine{00223\ \ \ \ \ \textcolor{keywordflow}{while}\ (it)\ ++it;}
+\DoxyCodeLine{00224\ \ \ \ \ \textcolor{keywordflow}{return}\ it;}
+\DoxyCodeLine{00225\ \ \ \}}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00228\ \ \ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00229\ \ \ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\ \&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00230\ \ \ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\ (\mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\ \&\&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00231\ \ \ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\&\ operator\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\ \&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00232\ \ \ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\&\ operator\ =\ (\mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}\ \&\&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00233\ \};}
+\DoxyCodeLine{00234\ }
+\DoxyCodeLine{00235\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ iter\_t,\ \textcolor{keyword}{typename}\ item\_t\ =\ \textcolor{keyword}{typename}\ iter\_t::\_\_item\_t\_\_>}
+\DoxyCodeLine{00236\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ :}
+\DoxyCodeLine{00237\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}<iter\_t,\ item\_t>,}
+\DoxyCodeLine{00238\ \ \ \mbox{\hyperlink{structhb__iter__fallback__mixin__t}{hb\_iter\_fallback\_mixin\_t}}<iter\_t,\ item\_t>}
+\DoxyCodeLine{00239\ \{}
+\DoxyCodeLine{00240\ \ \ \textcolor{keyword}{protected}:}
+\DoxyCodeLine{00241\ \ \ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ ()\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00242\ \ \ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ \&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00243\ \ \ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ (\mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ \&\&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00244\ \ \ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\&\ operator\ =\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ \&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00245\ \ \ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\&\ operator\ =\ (\mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}\ \&\&o\ HB\_UNUSED)\ =\ \textcolor{keywordflow}{default};}
+\DoxyCodeLine{00246\ \};}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00249\ \textcolor{comment}{\ *\ Meta-\/programming\ predicates.}}
+\DoxyCodeLine{00250\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \textcolor{comment}{/*\ hb\_is\_iterator()\ /\ hb\_is\_iterator\_of()\ */}}
+\DoxyCodeLine{00253\ }
+\DoxyCodeLine{00254\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Iter,\ \textcolor{keyword}{typename}\ Item>}
+\DoxyCodeLine{00255\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__is__iterator__of}{hb\_is\_iterator\_of}}}
+\DoxyCodeLine{00256\ \{}
+\DoxyCodeLine{00257\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Item2\ =\ Item>}
+\DoxyCodeLine{00258\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__integral__constant}{hb\_true\_type}}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<2>}},\ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}<Iter,\ hb\_type\_identity<Item2>>\ *);}
+\DoxyCodeLine{00259\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__integral__constant}{hb\_false\_type}}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<0>}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00260\ }
+\DoxyCodeLine{00261\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00262\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classvalue}{value}}\ =\ \textcolor{keyword}{decltype}\ (impl\ (hb\_prioritize,\ hb\_declval\ (Iter*)))\mbox{\hyperlink{classvalue}{::value}};}
+\DoxyCodeLine{00263\ \};}
+\DoxyCodeLine{00264\ \textcolor{preprocessor}{\#define\ hb\_is\_iterator\_of(Iter,\ Item)\ hb\_is\_iterator\_of<Iter,\ Item>::value}}
+\DoxyCodeLine{00265\ \textcolor{preprocessor}{\#define\ hb\_is\_iterator(Iter)\ hb\_is\_iterator\_of\ (Iter,\ typename\ Iter::item\_t)}}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \textcolor{comment}{/*\ hb\_is\_iterable()\ */}}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00270\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}}
+\DoxyCodeLine{00271\ \{}
+\DoxyCodeLine{00272\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ U>}
+\DoxyCodeLine{00275\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{auto}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<1>}})\ -\/>\ \textcolor{keyword}{decltype}\ (hb\_declval\ (U).iter\ (),\ \mbox{\hyperlink{structhb__integral__constant}{hb\_true\_type}}\ ());}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}>}
+\DoxyCodeLine{00278\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__integral__constant}{hb\_false\_type}}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<0>}});}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00281\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classvalue}{value}}\ =\ \textcolor{keyword}{decltype}\ (impl<T>\ (hb\_prioritize))\mbox{\hyperlink{classvalue}{::value}};}
+\DoxyCodeLine{00282\ \};}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\#define\ hb\_is\_iterable(Iterable)\ hb\_is\_iterable<Iterable>::value}}
+\DoxyCodeLine{00284\ }
+\DoxyCodeLine{00285\ \textcolor{comment}{/*\ hb\_is\_source\_of()\ /\ hb\_is\_sink\_of()\ */}}
+\DoxyCodeLine{00286\ }
+\DoxyCodeLine{00287\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Iter,\ \textcolor{keyword}{typename}\ Item>}
+\DoxyCodeLine{00288\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__is__source__of}{hb\_is\_source\_of}}}
+\DoxyCodeLine{00289\ \{}
+\DoxyCodeLine{00290\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00291\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter2\ =\ Iter,}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (hb\_is\_convertible\ (\textcolor{keyword}{typename}\ Iter2::item\_t,\ hb\_add\_lvalue\_reference<const\ Item>))>}
+\DoxyCodeLine{00293\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__integral__constant}{hb\_true\_type}}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<2>}});}
+\DoxyCodeLine{00294\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter2\ =\ Iter>}
+\DoxyCodeLine{00295\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{auto}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<1>}})\ -\/>\ \textcolor{keyword}{decltype}\ (hb\_declval\ (Iter2)\ >>\ hb\_declval\ (Item\ \&),\ \mbox{\hyperlink{structhb__integral__constant}{hb\_true\_type}}\ ());}
+\DoxyCodeLine{00296\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__integral__constant}{hb\_false\_type}}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<0>}});}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00299\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classvalue}{value}}\ =\ \textcolor{keyword}{decltype}\ (impl\ (hb\_prioritize))\mbox{\hyperlink{classvalue}{::value}};}
+\DoxyCodeLine{00300\ \};}
+\DoxyCodeLine{00301\ \textcolor{preprocessor}{\#define\ hb\_is\_source\_of(Iter,\ Item)\ hb\_is\_source\_of<Iter,\ Item>::value}}
+\DoxyCodeLine{00302\ }
+\DoxyCodeLine{00303\ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Iter,\ \textcolor{keyword}{typename}\ Item>}
+\DoxyCodeLine{00304\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__is__sink__of}{hb\_is\_sink\_of}}}
+\DoxyCodeLine{00305\ \{}
+\DoxyCodeLine{00306\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00307\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter2\ =\ Iter,}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structhb__enable__if}{hb\_enable\_if}}\ (hb\_is\_convertible\ (\textcolor{keyword}{typename}\ Iter2::item\_t,\ hb\_add\_lvalue\_reference<Item>))>}
+\DoxyCodeLine{00309\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__integral__constant}{hb\_true\_type}}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<2>}});}
+\DoxyCodeLine{00310\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter2\ =\ Iter>}
+\DoxyCodeLine{00311\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{auto}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<1>}})\ -\/>\ \textcolor{keyword}{decltype}\ (hb\_declval\ (Iter2)\ <<\ hb\_declval\ (Item),\ \mbox{\hyperlink{structhb__integral__constant}{hb\_true\_type}}\ ());}
+\DoxyCodeLine{00312\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structhb__integral__constant}{hb\_false\_type}}\ impl\ (\mbox{\hyperlink{structhb__priority}{hb\_priority<0>}});}
+\DoxyCodeLine{00313\ }
+\DoxyCodeLine{00314\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00315\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ \mbox{\hyperlink{classvalue}{value}}\ =\ \textcolor{keyword}{decltype}\ (impl\ (hb\_prioritize))\mbox{\hyperlink{classvalue}{::value}};}
+\DoxyCodeLine{00316\ \};}
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\#define\ hb\_is\_sink\_of(Iter,\ Item)\ hb\_is\_sink\_of<Iter,\ Item>::value}}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \textcolor{comment}{/*\ This\ is\ commonly\ used,\ so\ define:\ */}}
+\DoxyCodeLine{00320\ \textcolor{preprocessor}{\#define\ hb\_is\_sorted\_source\_of(Iter,\ Item)\ \(\backslash\)}}
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\ \ \ \ (hb\_is\_source\_of(Iter,\ Item)\ \&\&\ Iter::is\_sorted\_iterator)}}
+\DoxyCodeLine{00322\ }
+\DoxyCodeLine{00323\ }
+\DoxyCodeLine{00324\ \textcolor{comment}{/*\ Range-\/based\ 'for'\ for\ iterables.\ */}}
+\DoxyCodeLine{00325\ }
+\DoxyCodeLine{00326\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00327\ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00328\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{auto}\ begin\ (Iterable\&\&\ iterable)\ HB\_AUTO\_RETURN\ (hb\_iter\ (iterable).begin\ ())}
+\DoxyCodeLine{00329\ }
+\DoxyCodeLine{00330\ template\ <typename\ Iterable,}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00332\ static\ inline\ auto\ end\ (Iterable\&\&\ iterable)\ HB\_AUTO\_RETURN\ (hb\_iter\ (iterable).end\ ())}
+\DoxyCodeLine{00333\ }
+\DoxyCodeLine{00334\ \textcolor{comment}{/*\ begin()/end()\ are\ NOT\ looked\ up\ non-\/ADL.\ \ So\ each\ namespace\ must\ declare\ them.}}
+\DoxyCodeLine{00335\ \textcolor{comment}{\ *\ Do\ it\ for\ namespace\ OT.\ */}}
+\DoxyCodeLine{00336\ namespace\ OT\ \{}
+\DoxyCodeLine{00337\ }
+\DoxyCodeLine{00338\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00339\ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00340\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keyword}{auto}\ begin\ (Iterable\&\&\ iterable)\ HB\_AUTO\_RETURN\ (hb\_iter\ (iterable).begin\ ())}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ template\ <typename\ Iterable,}
+\DoxyCodeLine{00343\ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00344\ static\ inline\ auto\ end\ (Iterable\&\&\ iterable)\ HB\_AUTO\_RETURN\ (hb\_iter\ (iterable).end\ ())}
+\DoxyCodeLine{00345\ }
+\DoxyCodeLine{00346\ \}}
+\DoxyCodeLine{00347\ }
+\DoxyCodeLine{00348\ }
+\DoxyCodeLine{00349\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00350\ \textcolor{comment}{\ *\ Adaptors,\ combiners,\ etc.}}
+\DoxyCodeLine{00351\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00352\ }
+\DoxyCodeLine{00353\ template\ <typename\ Lhs,\ typename\ Rhs,}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Lhs))>}
+\DoxyCodeLine{00355\ static\ inline\ auto}
+\DoxyCodeLine{00356\ operator\ |\ (Lhs\&\&\ lhs,\ Rhs\&\&\ rhs)\ HB\_AUTO\_RETURN\ (std::forward<Rhs>\ (rhs)\ (std::forward<Lhs>\ (lhs)))}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \textcolor{comment}{/*\ hb\_map(),\ hb\_filter(),\ hb\_reduce()\ */}}
+\DoxyCodeLine{00359\ }
+\DoxyCodeLine{00360\ enum\ \ class\ hb\_function\_sortedness\_t\ \{}
+\DoxyCodeLine{00361\ \ \ NOT\_SORTED,}
+\DoxyCodeLine{00362\ \ \ RETAINS\_SORTING,}
+\DoxyCodeLine{00363\ \ \ SORTED,}
+\DoxyCodeLine{00364\ \};}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,\ \textcolor{keyword}{typename}\ Proj,\ hb\_function\_sortedness\_t\ Sorted,}
+\DoxyCodeLine{00367\ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00368\ \textcolor{keyword}{struct\ }hb\_map\_iter\_t\ :}
+\DoxyCodeLine{00369\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}<hb\_map\_iter\_t<Iter,\ Proj,\ Sorted>,}
+\DoxyCodeLine{00370\ \ \ \ \ \ \ \ \ decltype\ (hb\_get\ (hb\_declval\ (Proj),\ *hb\_declval\ (Iter)))>}
+\DoxyCodeLine{00371\ \{}
+\DoxyCodeLine{00372\ \ \ hb\_map\_iter\_t\ (\textcolor{keyword}{const}\ Iter\&\ it,\ Proj\ f\_)\ :\ it\ (it),\ f\ (f\_)\ \{\}}
+\DoxyCodeLine{00373\ }
+\DoxyCodeLine{00374\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{decltype}\ (hb\_get\ (hb\_declval\ (Proj),\ *hb\_declval\ (Iter)))\ \_\_item\_t\_\_;}
+\DoxyCodeLine{00375\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_random\_access\_iterator\ =\ Iter::is\_random\_access\_iterator;}
+\DoxyCodeLine{00376\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =}
+\DoxyCodeLine{00377\ \ \ \ \ Sorted\ ==\ hb\_function\_sortedness\_t::SORTED\ ?\ true\ :}
+\DoxyCodeLine{00378\ \ \ \ \ Sorted\ ==\ hb\_function\_sortedness\_t::RETAINS\_SORTING\ ?\ Iter::is\_sorted\_iterator\ :}
+\DoxyCodeLine{00379\ \ \ \ \ \textcolor{keyword}{false};}
+\DoxyCodeLine{00380\ \ \ \_\_item\_t\_\_\ \_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hb\_get\ (f.get\ (),\ *it);\ \}}
+\DoxyCodeLine{00381\ \ \ \_\_item\_t\_\_\ \_\_item\_at\_\_\ (\textcolor{keywordtype}{unsigned}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hb\_get\ (f.get\ (),\ it[i]);\ \}}
+\DoxyCodeLine{00382\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bool\ (it);\ \}}
+\DoxyCodeLine{00383\ \ \ \textcolor{keywordtype}{unsigned}\ \_\_len\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ it.len\ ();\ \}}
+\DoxyCodeLine{00384\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()\ \{\ ++it;\ \}}
+\DoxyCodeLine{00385\ \ \ \textcolor{keywordtype}{void}\ \_\_forward\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ it\ +=\ n;\ \}}
+\DoxyCodeLine{00386\ \ \ \textcolor{keywordtype}{void}\ \_\_prev\_\_\ ()\ \{\ -\/-\/it;\ \}}
+\DoxyCodeLine{00387\ \ \ \textcolor{keywordtype}{void}\ \_\_rewind\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ it\ -\/=\ n;\ \}}
+\DoxyCodeLine{00388\ \ \ hb\_map\_iter\_t\ \_\_end\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hb\_map\_iter\_t\ (it.end\ (),\ f);\ \}}
+\DoxyCodeLine{00389\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ hb\_map\_iter\_t\&\ o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00390\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ it\ !=\ o.it;\ \}}
+\DoxyCodeLine{00391\ }
+\DoxyCodeLine{00392\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00393\ \ \ Iter\ it;}
+\DoxyCodeLine{00394\ \ \ \mbox{\hyperlink{structhb__reference__wrapper}{hb\_reference\_wrapper<Proj>}}\ f;}
+\DoxyCodeLine{00395\ \};}
+\DoxyCodeLine{00396\ }
+\DoxyCodeLine{00397\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj,\ hb\_function\_sortedness\_t\ Sorted>}
+\DoxyCodeLine{00398\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t}}}
+\DoxyCodeLine{00399\ \{}
+\DoxyCodeLine{00400\ \ \ \mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t}}\ (Proj\ f)\ :\ f\ (f)\ \{\}}
+\DoxyCodeLine{00401\ }
+\DoxyCodeLine{00402\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00403\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00404\ \ \ hb\_map\_iter\_t<Iter,\ Proj,\ Sorted>}
+\DoxyCodeLine{00405\ \ \ operator\ ()\ (Iter\ it)}
+\DoxyCodeLine{00406\ \ \ \{\ \textcolor{keywordflow}{return}\ hb\_map\_iter\_t<Iter,\ Proj,\ Sorted>\ (it,\ f);\ \}}
+\DoxyCodeLine{00407\ }
+\DoxyCodeLine{00408\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00409\ \ \ Proj\ f;}
+\DoxyCodeLine{00410\ \};}
+\DoxyCodeLine{00411\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00412\ \{}
+\DoxyCodeLine{00413\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj>}
+\DoxyCodeLine{00414\ \ \ \mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t<Proj,\ hb\_function\_sortedness\_t::NOT\_SORTED>}}}
+\DoxyCodeLine{00415\ \ \ operator\ ()\ (Proj\&\&\ f)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00416\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t<Proj,\ hb\_function\_sortedness\_t::NOT\_SORTED>}}\ (f);\ \}}
+\DoxyCodeLine{00417\ \}}
+\DoxyCodeLine{00418\ HB\_FUNCOBJ\ (hb\_map);}
+\DoxyCodeLine{00419\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00420\ \{}
+\DoxyCodeLine{00421\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj>}
+\DoxyCodeLine{00422\ \ \ \mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t<Proj,\ hb\_function\_sortedness\_t::RETAINS\_SORTING>}}}
+\DoxyCodeLine{00423\ \ \ operator\ ()\ (Proj\&\&\ f)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00424\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t<Proj,\ hb\_function\_sortedness\_t::RETAINS\_SORTING>}}\ (f);\ \}}
+\DoxyCodeLine{00425\ \}}
+\DoxyCodeLine{00426\ HB\_FUNCOBJ\ (hb\_map\_retains\_sorting);}
+\DoxyCodeLine{00427\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00428\ \{}
+\DoxyCodeLine{00429\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Proj>}
+\DoxyCodeLine{00430\ \ \ \mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t<Proj,\ hb\_function\_sortedness\_t::SORTED>}}}
+\DoxyCodeLine{00431\ \ \ operator\ ()\ (Proj\&\&\ f)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00432\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__map__iter__factory__t}{hb\_map\_iter\_factory\_t<Proj,\ hb\_function\_sortedness\_t::SORTED>}}\ (f);\ \}}
+\DoxyCodeLine{00433\ \}}
+\DoxyCodeLine{00434\ HB\_FUNCOBJ\ (hb\_map\_sorted);}
+\DoxyCodeLine{00435\ }
+\DoxyCodeLine{00436\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,\ \textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Proj,}
+\DoxyCodeLine{00437\ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00438\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__filter__iter__t}{hb\_filter\_iter\_t}}\ :}
+\DoxyCodeLine{00439\ \ \ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}<hb\_filter\_iter\_t<Iter,\ Pred,\ Proj>,}
+\DoxyCodeLine{00440\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ typename\ Iter::item\_t>}
+\DoxyCodeLine{00441\ \{}
+\DoxyCodeLine{00442\ \ \ \mbox{\hyperlink{structhb__filter__iter__t}{hb\_filter\_iter\_t}}\ (\textcolor{keyword}{const}\ Iter\&\ it\_,\ Pred\ p\_,\ Proj\ f\_)\ :\ it\ (it\_),\ p\ (p\_),\ f\ (f\_)}
+\DoxyCodeLine{00443\ \ \ \{\ \textcolor{keywordflow}{while}\ (it\ \&\&\ !hb\_has\ (p.get\ (),\ hb\_get\ (f.get\ (),\ *it)))\ ++it;\ \}}
+\DoxyCodeLine{00444\ }
+\DoxyCodeLine{00445\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{typename}\ Iter::item\_t\ \_\_item\_t\_\_;}
+\DoxyCodeLine{00446\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =\ Iter::is\_sorted\_iterator;}
+\DoxyCodeLine{00447\ \ \ \_\_item\_t\_\_\ \_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *it;\ \}}
+\DoxyCodeLine{00448\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bool\ (it);\ \}}
+\DoxyCodeLine{00449\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()\ \{\ \textcolor{keywordflow}{do}\ ++it;\ \textcolor{keywordflow}{while}\ (it\ \&\&\ !hb\_has\ (p.get\ (),\ hb\_get\ (f.get\ (),\ *it)));\ \}}
+\DoxyCodeLine{00450\ \ \ \textcolor{keywordtype}{void}\ \_\_prev\_\_\ ()\ \{\ \textcolor{keywordflow}{do}\ -\/-\/it;\ \textcolor{keywordflow}{while}\ (it\ \&\&\ !hb\_has\ (p.get\ (),\ hb\_get\ (f.get\ (),\ *it)));\ \}}
+\DoxyCodeLine{00451\ \ \ \mbox{\hyperlink{structhb__filter__iter__t}{hb\_filter\_iter\_t}}\ \_\_end\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__filter__iter__t}{hb\_filter\_iter\_t}}\ (it.end\ (),\ p,\ f);\ \}}
+\DoxyCodeLine{00452\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__filter__iter__t}{hb\_filter\_iter\_t}}\&\ o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00453\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ it\ !=\ o.it;\ \}}
+\DoxyCodeLine{00454\ }
+\DoxyCodeLine{00455\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00456\ \ \ Iter\ it;}
+\DoxyCodeLine{00457\ \ \ \mbox{\hyperlink{structhb__reference__wrapper}{hb\_reference\_wrapper<Pred>}}\ p;}
+\DoxyCodeLine{00458\ \ \ \mbox{\hyperlink{structhb__reference__wrapper}{hb\_reference\_wrapper<Proj>}}\ f;}
+\DoxyCodeLine{00459\ \};}
+\DoxyCodeLine{00460\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred,\ \textcolor{keyword}{typename}\ Proj>}
+\DoxyCodeLine{00461\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__filter__iter__factory__t}{hb\_filter\_iter\_factory\_t}}}
+\DoxyCodeLine{00462\ \{}
+\DoxyCodeLine{00463\ \ \ \mbox{\hyperlink{structhb__filter__iter__factory__t}{hb\_filter\_iter\_factory\_t}}\ (Pred\ p,\ Proj\ f)\ :\ p\ (p),\ f\ (f)\ \{\}}
+\DoxyCodeLine{00464\ }
+\DoxyCodeLine{00465\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00466\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00467\ \ \ \mbox{\hyperlink{structhb__filter__iter__t}{hb\_filter\_iter\_t<Iter,\ Pred,\ Proj>}}}
+\DoxyCodeLine{00468\ \ \ operator\ ()\ (Iter\ it)}
+\DoxyCodeLine{00469\ \ \ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__filter__iter__t}{hb\_filter\_iter\_t<Iter,\ Pred,\ Proj>}}\ (it,\ p,\ f);\ \}}
+\DoxyCodeLine{00470\ }
+\DoxyCodeLine{00471\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00472\ \ \ Pred\ p;}
+\DoxyCodeLine{00473\ \ \ Proj\ f;}
+\DoxyCodeLine{00474\ \};}
+\DoxyCodeLine{00475\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00476\ \{}
+\DoxyCodeLine{00477\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Pred\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity)),}
+\DoxyCodeLine{00478\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Proj\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity))>}
+\DoxyCodeLine{00479\ \ \ \mbox{\hyperlink{structhb__filter__iter__factory__t}{hb\_filter\_iter\_factory\_t<Pred,\ Proj>}}}
+\DoxyCodeLine{00480\ \ \ operator\ ()\ (Pred\&\&\ p\ =\ hb\_identity,\ Proj\&\&\ f\ =\ hb\_identity)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00481\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__filter__iter__factory__t}{hb\_filter\_iter\_factory\_t<Pred,\ Proj>}}\ (p,\ f);\ \}}
+\DoxyCodeLine{00482\ \}}
+\DoxyCodeLine{00483\ HB\_FUNCOBJ\ (hb\_filter);}
+\DoxyCodeLine{00484\ }
+\DoxyCodeLine{00485\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Redu,\ \textcolor{keyword}{typename}\ InitT>}
+\DoxyCodeLine{00486\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__reduce__t}{hb\_reduce\_t}}}
+\DoxyCodeLine{00487\ \{}
+\DoxyCodeLine{00488\ \ \ \mbox{\hyperlink{structhb__reduce__t}{hb\_reduce\_t}}\ (Redu\ r,\ InitT\ init\_value)\ :\ r\ (r),\ init\_value\ (init\_value)\ \{\}}
+\DoxyCodeLine{00489\ }
+\DoxyCodeLine{00490\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00491\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter)),}
+\DoxyCodeLine{00492\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ AccuT\ =\ hb\_decay<\textcolor{keyword}{decltype}\ (hb\_declval\ (Redu)\ (hb\_declval\ (InitT),\ hb\_declval\ (\textcolor{keyword}{typename}\ Iter::item\_t)))>>}
+\DoxyCodeLine{00493\ \ \ AccuT}
+\DoxyCodeLine{00494\ \ \ operator\ ()\ (Iter\ it)}
+\DoxyCodeLine{00495\ \ \ \{}
+\DoxyCodeLine{00496\ \ \ \ \ AccuT\ \mbox{\hyperlink{classvalue}{value}}\ =\ init\_value;}
+\DoxyCodeLine{00497\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ it;\ ++it)}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \mbox{\hyperlink{classvalue}{value}}\ =\ r\ (\mbox{\hyperlink{classvalue}{value}},\ *it);}
+\DoxyCodeLine{00499\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{classvalue}{value}};}
+\DoxyCodeLine{00500\ \ \ \}}
+\DoxyCodeLine{00501\ }
+\DoxyCodeLine{00502\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00503\ \ \ Redu\ r;}
+\DoxyCodeLine{00504\ \ \ InitT\ init\_value;}
+\DoxyCodeLine{00505\ \};}
+\DoxyCodeLine{00506\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00507\ \{}
+\DoxyCodeLine{00508\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Redu,\ \textcolor{keyword}{typename}\ InitT>}
+\DoxyCodeLine{00509\ \ \ \mbox{\hyperlink{structhb__reduce__t}{hb\_reduce\_t<Redu,\ InitT>}}}
+\DoxyCodeLine{00510\ \ \ operator\ ()\ (Redu\&\&\ r,\ InitT\ init\_value)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00511\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__reduce__t}{hb\_reduce\_t<Redu,\ InitT>}}\ (r,\ init\_value);\ \}}
+\DoxyCodeLine{00512\ \}}
+\DoxyCodeLine{00513\ HB\_FUNCOBJ\ (hb\_reduce);}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ }
+\DoxyCodeLine{00516\ \textcolor{comment}{/*\ hb\_zip()\ */}}
+\DoxyCodeLine{00517\ }
+\DoxyCodeLine{00518\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ A,\ \textcolor{keyword}{typename}\ B>}
+\DoxyCodeLine{00519\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t}}\ :}
+\DoxyCodeLine{00520\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}<hb\_zip\_iter\_t<A,\ B>,}
+\DoxyCodeLine{00521\ \ \ \ \ \ \ \ \ hb\_pair\_t<typename\ A::item\_t,\ typename\ B::item\_t>>}
+\DoxyCodeLine{00522\ \{}
+\DoxyCodeLine{00523\ \ \ \mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t}}\ ()\ \{\}}
+\DoxyCodeLine{00524\ \ \ \mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{class_a}{A}}\&\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ B\&\ b)\ :\ \mbox{\hyperlink{structa}{a}}\ (\mbox{\hyperlink{structa}{a}}),\ b\ (b)\ \{\}}
+\DoxyCodeLine{00525\ }
+\DoxyCodeLine{00526\ \ \ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structhb__pair__t}{hb\_pair\_t<typename\ A::item\_t,\ typename\ B::item\_t>}}\ \mbox{\hyperlink{structhb__pair__t}{\_\_item\_t\_\_}};}
+\DoxyCodeLine{00527\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_random\_access\_iterator\ =}
+\DoxyCodeLine{00528\ \ \ \ \ A::is\_random\_access\_iterator\ \&\&}
+\DoxyCodeLine{00529\ \ \ \ \ B::is\_random\_access\_iterator;}
+\DoxyCodeLine{00530\ \ \ \textcolor{comment}{/*\ Note.\ \ The\ following\ categorization\ is\ only\ valid\ if\ A\ is\ strictly\ sorted,}}
+\DoxyCodeLine{00531\ \textcolor{comment}{\ \ \ *\ ie.\ does\ NOT\ have\ duplicates.\ \ Previously\ I\ tried\ to\ categorize\ sortedness}}
+\DoxyCodeLine{00532\ \textcolor{comment}{\ \ \ *\ more\ granularly,\ see\ commits:}}
+\DoxyCodeLine{00533\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00534\ \textcolor{comment}{\ \ \ *\ \ \ 513762849a683914fc266a17ddf38f133cccf072}}
+\DoxyCodeLine{00535\ \textcolor{comment}{\ \ \ *\ \ \ 4d3cf2adb669c345cc43832d11689271995e160a}}
+\DoxyCodeLine{00536\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00537\ \textcolor{comment}{\ \ \ *\ However,\ that\ was\ not\ enough,\ since\ hb\_sorted\_array\_t,\ hb\_sorted\_vector\_t,}}
+\DoxyCodeLine{00538\ \textcolor{comment}{\ \ \ *\ SortedArrayOf,\ etc\ all\ needed\ to\ be\ updated\ to\ add\ more\ variants.\ \ At\ that}}
+\DoxyCodeLine{00539\ \textcolor{comment}{\ \ \ *\ point\ I\ saw\ it\ not\ worth\ the\ effort,\ and\ instead\ we\ now\ deem\ all\ sorted}}
+\DoxyCodeLine{00540\ \textcolor{comment}{\ \ \ *\ collections\ as\ essentially\ strictly-\/sorted\ for\ the\ purposes\ of\ zip.}}
+\DoxyCodeLine{00541\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00542\ \textcolor{comment}{\ \ \ *\ The\ above\ assumption\ is\ not\ as\ bad\ as\ it\ sounds.\ \ Our\ "{}sorted"{}\ comes\ with}}
+\DoxyCodeLine{00543\ \textcolor{comment}{\ \ \ *\ no\ guarantees.\ \ It's\ just\ a\ contract,\ put\ in\ place\ to\ help\ you\ remember,}}
+\DoxyCodeLine{00544\ \textcolor{comment}{\ \ \ *\ and\ think\ about,\ whether\ an\ iterator\ you\ receive\ is\ expected\ to\ be}}
+\DoxyCodeLine{00545\ \textcolor{comment}{\ \ \ *\ sorted\ or\ not.\ \ As\ such,\ it's\ not\ perfect\ by\ definition,\ and\ should\ not}}
+\DoxyCodeLine{00546\ \textcolor{comment}{\ \ \ *\ be\ treated\ so.\ \ The\ inaccuracy\ here\ just\ errs\ in\ the\ direction\ of\ being}}
+\DoxyCodeLine{00547\ \textcolor{comment}{\ \ \ *\ more\ permissive,\ so\ your\ code\ compiles\ instead\ of\ erring\ on\ the\ side\ of}}
+\DoxyCodeLine{00548\ \textcolor{comment}{\ \ \ *\ marking\ your\ zipped\ iterator\ unsorted\ in\ which\ case\ your\ code\ won't}}
+\DoxyCodeLine{00549\ \textcolor{comment}{\ \ \ *\ compile.}}
+\DoxyCodeLine{00550\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00551\ \textcolor{comment}{\ \ \ *\ This\ semantical\ limitation\ does\ NOT\ affect\ logic\ in\ any\ other\ place\ I}}
+\DoxyCodeLine{00552\ \textcolor{comment}{\ \ \ *\ know\ of\ as\ of\ this\ writing.}}
+\DoxyCodeLine{00553\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00554\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =\ A::is\_sorted\_iterator;}
+\DoxyCodeLine{00555\ }
+\DoxyCodeLine{00556\ \ \ \mbox{\hyperlink{structhb__pair__t}{\_\_item\_t\_\_}}\ \_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__pair__t}{\_\_item\_t\_\_}}\ (*\mbox{\hyperlink{structa}{a}},\ *b);\ \}}
+\DoxyCodeLine{00557\ \ \ \mbox{\hyperlink{structhb__pair__t}{\_\_item\_t\_\_}}\ \_\_item\_at\_\_\ (\textcolor{keywordtype}{unsigned}\ i)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__pair__t}{\_\_item\_t\_\_}}\ (\mbox{\hyperlink{structa}{a}}[i],\ b[i]);\ \}}
+\DoxyCodeLine{00558\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bool\ (\mbox{\hyperlink{structa}{a}})\ \&\&\ bool\ (b);\ \}}
+\DoxyCodeLine{00559\ \ \ \textcolor{keywordtype}{unsigned}\ \_\_len\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hb\_min\ (\mbox{\hyperlink{structa}{a}}.len\ (),\ b.len\ ());\ \}}
+\DoxyCodeLine{00560\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()\ \{\ ++\mbox{\hyperlink{structa}{a}};\ ++b;\ \}}
+\DoxyCodeLine{00561\ \ \ \textcolor{keywordtype}{void}\ \_\_forward\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ \mbox{\hyperlink{structa}{a}}\ +=\ n;\ b\ +=\ n;\ \}}
+\DoxyCodeLine{00562\ \ \ \textcolor{keywordtype}{void}\ \_\_prev\_\_\ ()\ \{\ -\/-\/\mbox{\hyperlink{structa}{a}};\ -\/-\/b;\ \}}
+\DoxyCodeLine{00563\ \ \ \textcolor{keywordtype}{void}\ \_\_rewind\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ \mbox{\hyperlink{structa}{a}}\ -\/=\ n;\ b\ -\/=\ n;\ \}}
+\DoxyCodeLine{00564\ \ \ \mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t}}\ \_\_end\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t}}\ (\mbox{\hyperlink{structa}{a}}.end\ (),\ b.end\ ());\ \}}
+\DoxyCodeLine{00565\ \ \ \textcolor{comment}{/*\ Note,\ we\ should\ stop\ if\ ANY\ of\ the\ iters\ reaches\ end.\ \ As\ such\ two\ compare}}
+\DoxyCodeLine{00566\ \textcolor{comment}{\ \ \ *\ unequal\ if\ both\ items\ are\ unequal,\ NOT\ if\ either\ is\ unequal.\ */}}
+\DoxyCodeLine{00567\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t}}\&\ o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00568\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}}\ !=\ o.a\ \&\&\ b\ !=\ o.b;\ \}}
+\DoxyCodeLine{00569\ }
+\DoxyCodeLine{00570\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00571\ \ \ \mbox{\hyperlink{class_a}{A}}\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00572\ \ \ B\ b;}
+\DoxyCodeLine{00573\ \};}
+\DoxyCodeLine{00574\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00575\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{00576\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{class_a}{A}},\ \textcolor{keyword}{typename}\ B,}
+\DoxyCodeLine{00577\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (\mbox{\hyperlink{class_a}{A}})\ \&\&\ \mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (B))>}
+\DoxyCodeLine{00578\ \ \ \mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t<hb\_iter\_type<A>}},\ hb\_iter\_type<B>>}
+\DoxyCodeLine{00579\ \ \ operator\ ()\ (\mbox{\hyperlink{class_a}{A}}\&\&\ \mbox{\hyperlink{structa}{a}},\ B\&\&\ b)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00580\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__zip__iter__t}{hb\_zip\_iter\_t<hb\_iter\_type<A>}},\ hb\_iter\_type<B>>\ (hb\_iter\ (\mbox{\hyperlink{structa}{a}}),\ hb\_iter\ (b));\ \}}
+\DoxyCodeLine{00581\ \}}
+\DoxyCodeLine{00582\ HB\_FUNCOBJ\ (hb\_zip);}
+\DoxyCodeLine{00583\ }
+\DoxyCodeLine{00584\ \textcolor{comment}{/*\ hb\_concat()\ */}}
+\DoxyCodeLine{00585\ }
+\DoxyCodeLine{00586\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ A,\ \textcolor{keyword}{typename}\ B>}
+\DoxyCodeLine{00587\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t}}\ :}
+\DoxyCodeLine{00588\ \ \ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}<hb\_concat\_iter\_t<A,\ B>,\ typename\ A::item\_t>}
+\DoxyCodeLine{00589\ \{}
+\DoxyCodeLine{00590\ \ \ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t}}\ ()\ \{\}}
+\DoxyCodeLine{00591\ \ \ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t}}\ (\mbox{\hyperlink{class_a}{A}}\&\ \mbox{\hyperlink{structa}{a}},\ B\&\ b)\ :\ \mbox{\hyperlink{structa}{a}}\ (\mbox{\hyperlink{structa}{a}}),\ b\ (b)\ \{\}}
+\DoxyCodeLine{00592\ \ \ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t}}\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{class_a}{A}}\&\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ B\&\ b)\ :\ \mbox{\hyperlink{structa}{a}}\ (\mbox{\hyperlink{structa}{a}}),\ b\ (b)\ \{\}}
+\DoxyCodeLine{00593\ }
+\DoxyCodeLine{00594\ }
+\DoxyCodeLine{00595\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{typename}\ A::item\_t\ \_\_item\_t\_\_;}
+\DoxyCodeLine{00596\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_random\_access\_iterator\ =}
+\DoxyCodeLine{00597\ \ \ \ \ A::is\_random\_access\_iterator\ \&\&}
+\DoxyCodeLine{00598\ \ \ \ \ B::is\_random\_access\_iterator;}
+\DoxyCodeLine{00599\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00600\ }
+\DoxyCodeLine{00601\ \ \ \_\_item\_t\_\_\ \_\_item\_\_\ ()\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00602\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00603\ \ \ \ \ \textcolor{keywordflow}{if}\ (!\mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{00604\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *b;}
+\DoxyCodeLine{00605\ \ \ \ \ \textcolor{keywordflow}{return}\ *\mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00606\ \ \ \}}
+\DoxyCodeLine{00607\ }
+\DoxyCodeLine{00608\ \ \ \_\_item\_t\_\_\ \_\_item\_at\_\_\ (\textcolor{keywordtype}{unsigned}\ i)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00609\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00610\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ a\_len\ =\ \mbox{\hyperlink{structa}{a}}.len\ ();}
+\DoxyCodeLine{00611\ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ a\_len)}
+\DoxyCodeLine{00612\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}}[i];}
+\DoxyCodeLine{00613\ \ \ \ \ \textcolor{keywordflow}{return}\ b[i\ -\/\ a\_len];}
+\DoxyCodeLine{00614\ \ \ \}}
+\DoxyCodeLine{00615\ }
+\DoxyCodeLine{00616\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ bool\ (\mbox{\hyperlink{structa}{a}})\ ||\ bool\ (b);\ \}}
+\DoxyCodeLine{00617\ }
+\DoxyCodeLine{00618\ \ \ \textcolor{keywordtype}{unsigned}\ \_\_len\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}}.len\ ()\ +\ b.len\ ();\ \}}
+\DoxyCodeLine{00619\ }
+\DoxyCodeLine{00620\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()}
+\DoxyCodeLine{00621\ \ \ \{}
+\DoxyCodeLine{00622\ \ \ \ \ \textcolor{keywordflow}{if}\ (\mbox{\hyperlink{structa}{a}})}
+\DoxyCodeLine{00623\ \ \ \ \ \ \ ++\mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00624\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00625\ \ \ \ \ \ \ ++b;}
+\DoxyCodeLine{00626\ \ \ \}}
+\DoxyCodeLine{00627\ }
+\DoxyCodeLine{00628\ \ \ \textcolor{keywordtype}{void}\ \_\_forward\_\_\ (\textcolor{keywordtype}{unsigned}\ n)}
+\DoxyCodeLine{00629\ \ \ \{}
+\DoxyCodeLine{00630\ \ \ \ \ \textcolor{keywordflow}{if}\ (!n)\ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00631\ \ \ \ \ \textcolor{keywordflow}{if}\ (!is\_random\_access\_iterator)\ \{}
+\DoxyCodeLine{00632\ \ \ \ \ \ \ \textcolor{keywordflow}{while}\ (n-\/-\/\ \&\&\ *\textcolor{keyword}{this})\ \{}
+\DoxyCodeLine{00633\ \ \ \ \ \ \ \ \ (*this)++;}
+\DoxyCodeLine{00634\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00635\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00636\ \ \ \ \ \}}
+\DoxyCodeLine{00637\ }
+\DoxyCodeLine{00638\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ a\_len\ =\ \mbox{\hyperlink{structa}{a}}.len\ ();}
+\DoxyCodeLine{00639\ \ \ \ \ \textcolor{keywordflow}{if}\ (n\ >\ a\_len)\ \{}
+\DoxyCodeLine{00640\ \ \ \ \ \ \ n\ -\/=\ a\_len;}
+\DoxyCodeLine{00641\ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}.\_\_forward\_\_\ (a\_len);}
+\DoxyCodeLine{00642\ \ \ \ \ \ \ b.\_\_forward\_\_\ (n);}
+\DoxyCodeLine{00643\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00644\ \ \ \ \ \ \ \mbox{\hyperlink{structa}{a}}.\_\_forward\_\_\ (n);}
+\DoxyCodeLine{00645\ \ \ \ \ \}}
+\DoxyCodeLine{00646\ \ \ \}}
+\DoxyCodeLine{00647\ }
+\DoxyCodeLine{00648\ \ \ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t}}\ \_\_end\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t}}\ (\mbox{\hyperlink{structa}{a}}.end\ (),\ b.end\ ());\ \}}
+\DoxyCodeLine{00649\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t}}\&\ o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00650\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00651\ \ \ \ \ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structa}{a}}\ !=\ o.a}
+\DoxyCodeLine{00652\ \ \ \ \ \ \ \ \ ||\ b\ !=\ o.b;}
+\DoxyCodeLine{00653\ \ \ \}}
+\DoxyCodeLine{00654\ }
+\DoxyCodeLine{00655\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00656\ \ \ \mbox{\hyperlink{class_a}{A}}\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00657\ \ \ B\ b;}
+\DoxyCodeLine{00658\ \};}
+\DoxyCodeLine{00659\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00660\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{00661\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ \mbox{\hyperlink{class_a}{A}},\ \textcolor{keyword}{typename}\ B,}
+\DoxyCodeLine{00662\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (\mbox{\hyperlink{class_a}{A}})\ \&\&\ \mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (B))>}
+\DoxyCodeLine{00663\ \ \ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t<hb\_iter\_type<A>}},\ hb\_iter\_type<B>>}
+\DoxyCodeLine{00664\ \ \ operator\ ()\ (\mbox{\hyperlink{class_a}{A}}\&\&\ \mbox{\hyperlink{structa}{a}},\ B\&\&\ b)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00665\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__concat__iter__t}{hb\_concat\_iter\_t<hb\_iter\_type<A>}},\ hb\_iter\_type<B>>\ (hb\_iter\ (\mbox{\hyperlink{structa}{a}}),\ hb\_iter\ (b));\ \}}
+\DoxyCodeLine{00666\ \}}
+\DoxyCodeLine{00667\ HB\_FUNCOBJ\ (hb\_concat);}
+\DoxyCodeLine{00668\ }
+\DoxyCodeLine{00669\ \textcolor{comment}{/*\ hb\_apply()\ */}}
+\DoxyCodeLine{00670\ }
+\DoxyCodeLine{00671\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Appl>}
+\DoxyCodeLine{00672\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__apply__t}{hb\_apply\_t}}}
+\DoxyCodeLine{00673\ \{}
+\DoxyCodeLine{00674\ \ \ \mbox{\hyperlink{structhb__apply__t}{hb\_apply\_t}}\ (Appl\ \mbox{\hyperlink{structa}{a}})\ :\ \mbox{\hyperlink{structa}{a}}\ (\mbox{\hyperlink{structa}{a}})\ \{\}}
+\DoxyCodeLine{00675\ }
+\DoxyCodeLine{00676\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00677\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00678\ \ \ \textcolor{keywordtype}{void}\ operator\ ()\ (Iter\ it)}
+\DoxyCodeLine{00679\ \ \ \{}
+\DoxyCodeLine{00680\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ it;\ ++it)}
+\DoxyCodeLine{00681\ \ \ \ \ \ \ (\textcolor{keywordtype}{void})\ hb\_invoke\ (\mbox{\hyperlink{structa}{a}},\ *it);}
+\DoxyCodeLine{00682\ \ \ \}}
+\DoxyCodeLine{00683\ }
+\DoxyCodeLine{00684\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00685\ \ \ Appl\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00686\ \};}
+\DoxyCodeLine{00687\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00688\ \{}
+\DoxyCodeLine{00689\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Appl>\ \mbox{\hyperlink{structhb__apply__t}{hb\_apply\_t<Appl>}}}
+\DoxyCodeLine{00690\ \ \ operator\ ()\ (Appl\&\&\ \mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00691\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__apply__t}{hb\_apply\_t<Appl>}}\ (\mbox{\hyperlink{structa}{a}});\ \}}
+\DoxyCodeLine{00692\ }
+\DoxyCodeLine{00693\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Appl>\ \mbox{\hyperlink{structhb__apply__t}{hb\_apply\_t<Appl\&>}}}
+\DoxyCodeLine{00694\ \ \ operator\ ()\ (Appl\ *\mbox{\hyperlink{structa}{a}})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00695\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__apply__t}{hb\_apply\_t<Appl\&>}}\ (*\mbox{\hyperlink{structa}{a}});\ \}}
+\DoxyCodeLine{00696\ \}}
+\DoxyCodeLine{00697\ HB\_FUNCOBJ\ (hb\_apply);}
+\DoxyCodeLine{00698\ }
+\DoxyCodeLine{00699\ \textcolor{comment}{/*\ hb\_range()/hb\_iota()/hb\_repeat()\ */}}
+\DoxyCodeLine{00700\ }
+\DoxyCodeLine{00701\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ S>}
+\DoxyCodeLine{00702\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t}}\ :}
+\DoxyCodeLine{00703\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}<hb\_range\_iter\_t<T,\ S>,\ T>}
+\DoxyCodeLine{00704\ \{}
+\DoxyCodeLine{00705\ \ \ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t}}\ (T\ start,\ T\ end\_,\ S\ step)\ :\ v\ (start),\ end\_\ (end\_for\ (start,\ end\_,\ step)),\ step\ (step)\ \{\}}
+\DoxyCodeLine{00706\ }
+\DoxyCodeLine{00707\ \ \ \textcolor{keyword}{typedef}\ T\ \_\_item\_t\_\_;}
+\DoxyCodeLine{00708\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_random\_access\_iterator\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00709\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00710\ \ \ \_\_item\_t\_\_\ \_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hb\_ridentity\ (v);\ \}}
+\DoxyCodeLine{00711\ \ \ \_\_item\_t\_\_\ \_\_item\_at\_\_\ (\textcolor{keywordtype}{unsigned}\ j)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v\ +\ j\ *\ step;\ \}}
+\DoxyCodeLine{00712\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v\ !=\ end\_;\ \}}
+\DoxyCodeLine{00713\ \ \ \textcolor{keywordtype}{unsigned}\ \_\_len\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ !step\ ?\ UINT\_MAX\ :\ (end\_\ -\/\ v)\ /\ step;\ \}}
+\DoxyCodeLine{00714\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()\ \{\ v\ +=\ step;\ \}}
+\DoxyCodeLine{00715\ \ \ \textcolor{keywordtype}{void}\ \_\_forward\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ v\ +=\ n\ *\ step;\ \}}
+\DoxyCodeLine{00716\ \ \ \textcolor{keywordtype}{void}\ \_\_prev\_\_\ ()\ \{\ v\ -\/=\ step;\ \}}
+\DoxyCodeLine{00717\ \ \ \textcolor{keywordtype}{void}\ \_\_rewind\_\_\ (\textcolor{keywordtype}{unsigned}\ n)\ \{\ v\ -\/=\ n\ *\ step;\ \}}
+\DoxyCodeLine{00718\ \ \ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t}}\ \_\_end\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t}}\ (end\_,\ end\_,\ step);\ \}}
+\DoxyCodeLine{00719\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t}}\&\ o)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00720\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ v\ !=\ o.v;\ \}}
+\DoxyCodeLine{00721\ }
+\DoxyCodeLine{00722\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00723\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ T\ end\_for\ (T\ start,\ T\ end\_,\ S\ step)}
+\DoxyCodeLine{00724\ \ \ \{}
+\DoxyCodeLine{00725\ \ \ \ \ \textcolor{keywordflow}{if}\ (!step)}
+\DoxyCodeLine{00726\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ end\_;}
+\DoxyCodeLine{00727\ \ \ \ \ \textcolor{keyword}{auto}\ res\ =\ (end\_\ -\/\ start)\ \%\ step;}
+\DoxyCodeLine{00728\ \ \ \ \ \textcolor{keywordflow}{if}\ (!res)}
+\DoxyCodeLine{00729\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ end\_;}
+\DoxyCodeLine{00730\ \ \ \ \ end\_\ +=\ step\ -\/\ res;}
+\DoxyCodeLine{00731\ \ \ \ \ \textcolor{keywordflow}{return}\ end\_;}
+\DoxyCodeLine{00732\ \ \ \}}
+\DoxyCodeLine{00733\ }
+\DoxyCodeLine{00734\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00735\ \ \ T\ v;}
+\DoxyCodeLine{00736\ \ \ T\ end\_;}
+\DoxyCodeLine{00737\ \ \ S\ step;}
+\DoxyCodeLine{00738\ \};}
+\DoxyCodeLine{00739\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00740\ \{}
+\DoxyCodeLine{00741\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ \textcolor{keywordtype}{unsigned}>\ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t<T,\ unsigned>}}}
+\DoxyCodeLine{00742\ \ \ operator\ ()\ (T\ end\ =\ (\textcolor{keywordtype}{unsigned})\ -\/1)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00743\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t<T,\ unsigned>}}\ (0,\ end,\ 1u);\ \}}
+\DoxyCodeLine{00744\ }
+\DoxyCodeLine{00745\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ S\ =\ \textcolor{keywordtype}{unsigned}>\ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t<T,\ S>}}}
+\DoxyCodeLine{00746\ \ \ operator\ ()\ (T\ start,\ T\ end,\ S\ step\ =\ 1u)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00747\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__range__iter__t}{hb\_range\_iter\_t<T,\ S>}}\ (start,\ end,\ step);\ \}}
+\DoxyCodeLine{00748\ \}}
+\DoxyCodeLine{00749\ HB\_FUNCOBJ\ (hb\_range);}
+\DoxyCodeLine{00750\ }
+\DoxyCodeLine{00751\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T,\ \textcolor{keyword}{typename}\ S>}
+\DoxyCodeLine{00752\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__iota__iter__t}{hb\_iota\_iter\_t}}\ :}
+\DoxyCodeLine{00753\ \ \ \mbox{\hyperlink{structhb__iter__with__fallback__t}{hb\_iter\_with\_fallback\_t}}<hb\_iota\_iter\_t<T,\ S>,\ T>}
+\DoxyCodeLine{00754\ \{}
+\DoxyCodeLine{00755\ \ \ \mbox{\hyperlink{structhb__iota__iter__t}{hb\_iota\_iter\_t}}\ (T\ start,\ S\ step)\ :\ v\ (start),\ step\ (step)\ \{\}}
+\DoxyCodeLine{00756\ }
+\DoxyCodeLine{00757\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00758\ }
+\DoxyCodeLine{00759\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ S2\ =\ S>}
+\DoxyCodeLine{00760\ \ \ \textcolor{keyword}{auto}}
+\DoxyCodeLine{00761\ \ \ inc\ (hb\_type\_identity<S2>\ s,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<1>}})}
+\DoxyCodeLine{00762\ \ \ \ \ -\/>\ hb\_void\_t<decltype\ (hb\_invoke\ (std::forward<S2>\ (s),\ hb\_declval<T\&>\ ()))>}
+\DoxyCodeLine{00763\ \ \ \{\ v\ =\ hb\_invoke\ (std::forward<S2>\ (s),\ v);\ \}}
+\DoxyCodeLine{00764\ }
+\DoxyCodeLine{00765\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00766\ \ \ inc\ (S\ s,\ \mbox{\hyperlink{structhb__priority}{hb\_priority<0>}})}
+\DoxyCodeLine{00767\ \ \ \{\ v\ +=\ s;\ \}}
+\DoxyCodeLine{00768\ }
+\DoxyCodeLine{00769\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00770\ }
+\DoxyCodeLine{00771\ \ \ \textcolor{keyword}{typedef}\ T\ \_\_item\_t\_\_;}
+\DoxyCodeLine{00772\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_random\_access\_iterator\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00773\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00774\ \ \ \_\_item\_t\_\_\ \_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ hb\_ridentity\ (v);\ \}}
+\DoxyCodeLine{00775\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00776\ \ \ \textcolor{keywordtype}{unsigned}\ \_\_len\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ UINT\_MAX;\ \}}
+\DoxyCodeLine{00777\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()\ \{\ inc\ (step,\ hb\_prioritize);\ \}}
+\DoxyCodeLine{00778\ \ \ \textcolor{keywordtype}{void}\ \_\_prev\_\_\ ()\ \{\ v\ -\/=\ step;\ \}}
+\DoxyCodeLine{00779\ \ \ \mbox{\hyperlink{structhb__iota__iter__t}{hb\_iota\_iter\_t}}\ \_\_end\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00780\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__iota__iter__t}{hb\_iota\_iter\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00781\ }
+\DoxyCodeLine{00782\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00783\ \ \ T\ v;}
+\DoxyCodeLine{00784\ \ \ S\ step;}
+\DoxyCodeLine{00785\ \};}
+\DoxyCodeLine{00786\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00787\ \{}
+\DoxyCodeLine{00788\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T\ =\ \textcolor{keywordtype}{unsigned},\ \textcolor{keyword}{typename}\ S\ =\ \textcolor{keywordtype}{unsigned}>\ \mbox{\hyperlink{structhb__iota__iter__t}{hb\_iota\_iter\_t<T,\ S>}}}
+\DoxyCodeLine{00789\ \ \ operator\ ()\ (T\ start\ =\ 0u,\ S\ step\ =\ 1u)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00790\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__iota__iter__t}{hb\_iota\_iter\_t<T,\ S>}}\ (start,\ step);\ \}}
+\DoxyCodeLine{00791\ \}}
+\DoxyCodeLine{00792\ HB\_FUNCOBJ\ (hb\_iota);}
+\DoxyCodeLine{00793\ }
+\DoxyCodeLine{00794\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>}
+\DoxyCodeLine{00795\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__repeat__iter__t}{hb\_repeat\_iter\_t}}\ :}
+\DoxyCodeLine{00796\ \ \ \mbox{\hyperlink{structhb__iter__t}{hb\_iter\_t}}<hb\_repeat\_iter\_t<T>,\ T>}
+\DoxyCodeLine{00797\ \{}
+\DoxyCodeLine{00798\ \ \ \mbox{\hyperlink{structhb__repeat__iter__t}{hb\_repeat\_iter\_t}}\ (T\ \mbox{\hyperlink{classvalue}{value}})\ :\ v\ (\mbox{\hyperlink{classvalue}{value}})\ \{\}}
+\DoxyCodeLine{00799\ }
+\DoxyCodeLine{00800\ \ \ \textcolor{keyword}{typedef}\ T\ \_\_item\_t\_\_;}
+\DoxyCodeLine{00801\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_random\_access\_iterator\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00802\ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{bool}\ is\_sorted\_iterator\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00803\ \ \ \_\_item\_t\_\_\ \_\_item\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v;\ \}}
+\DoxyCodeLine{00804\ \ \ \_\_item\_t\_\_\ \_\_item\_at\_\_\ (\textcolor{keywordtype}{unsigned}\ j)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ v;\ \}}
+\DoxyCodeLine{00805\ \ \ \textcolor{keywordtype}{bool}\ \_\_more\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00806\ \ \ \textcolor{keywordtype}{unsigned}\ \_\_len\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ UINT\_MAX;\ \}}
+\DoxyCodeLine{00807\ \ \ \textcolor{keywordtype}{void}\ \_\_next\_\_\ ()\ \{\}}
+\DoxyCodeLine{00808\ \ \ \textcolor{keywordtype}{void}\ \_\_forward\_\_\ (\textcolor{keywordtype}{unsigned})\ \{\}}
+\DoxyCodeLine{00809\ \ \ \textcolor{keywordtype}{void}\ \_\_prev\_\_\ ()\ \{\}}
+\DoxyCodeLine{00810\ \ \ \textcolor{keywordtype}{void}\ \_\_rewind\_\_\ (\textcolor{keywordtype}{unsigned})\ \{\}}
+\DoxyCodeLine{00811\ \ \ \mbox{\hyperlink{structhb__repeat__iter__t}{hb\_repeat\_iter\_t}}\ \_\_end\_\_\ ()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ *\textcolor{keyword}{this};\ \}}
+\DoxyCodeLine{00812\ \ \ \textcolor{keywordtype}{bool}\ operator\ !=\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structhb__repeat__iter__t}{hb\_repeat\_iter\_t}}\&\ o)\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00813\ }
+\DoxyCodeLine{00814\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00815\ \ \ T\ v;}
+\DoxyCodeLine{00816\ \};}
+\DoxyCodeLine{00817\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00818\ \{}
+\DoxyCodeLine{00819\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ T>\ \mbox{\hyperlink{structhb__repeat__iter__t}{hb\_repeat\_iter\_t<T>}}}
+\DoxyCodeLine{00820\ \ \ operator\ ()\ (T\ \mbox{\hyperlink{classvalue}{value}})\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00821\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__repeat__iter__t}{hb\_repeat\_iter\_t<T>}}\ (\mbox{\hyperlink{classvalue}{value}});\ \}}
+\DoxyCodeLine{00822\ \}}
+\DoxyCodeLine{00823\ HB\_FUNCOBJ\ (hb\_repeat);}
+\DoxyCodeLine{00824\ }
+\DoxyCodeLine{00825\ \textcolor{comment}{/*\ hb\_enumerate()/hb\_take()\ */}}
+\DoxyCodeLine{00826\ }
+\DoxyCodeLine{00827\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00828\ \{}
+\DoxyCodeLine{00829\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00830\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Index\ =\ unsigned,}
+\DoxyCodeLine{00831\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00832\ \ \ \textcolor{keyword}{auto}\ operator\ ()\ (Iterable\&\&\ it,\ Index\ start\ =\ 0u)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00833\ \ \ (\ hb\_zip\ (hb\_iota\ (start),\ it)\ )}
+\DoxyCodeLine{00834\ \}}
+\DoxyCodeLine{00835\ HB\_FUNCOBJ\ (hb\_enumerate);}
+\DoxyCodeLine{00836\ }
+\DoxyCodeLine{00837\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00838\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{00839\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00840\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00841\ \ \ \textcolor{keyword}{auto}\ operator\ ()\ (Iterable\&\&\ it,\ \textcolor{keywordtype}{unsigned}\ count)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00842\ \ \ (\ hb\_zip\ (hb\_range\ (count),\ it)\ |\ hb\_map\ (hb\_second)\ )}
+\DoxyCodeLine{00843\ }
+\DoxyCodeLine{00844\ \ \ \textcolor{comment}{/*\ Specialization\ arrays.\ */}}
+\DoxyCodeLine{00845\ }
+\DoxyCodeLine{00846\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{structhb__array__t}{hb\_array\_t<Type>}}}
+\DoxyCodeLine{00847\ \ \ operator\ ()\ (\mbox{\hyperlink{structhb__array__t}{hb\_array\_t<Type>}}\ array,\ \textcolor{keywordtype}{unsigned}\ count)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00848\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ array.sub\_array\ (0,\ count);\ \}}
+\DoxyCodeLine{00849\ }
+\DoxyCodeLine{00850\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Type>\ \textcolor{keyword}{inline}\ \mbox{\hyperlink{structhb__sorted__array__t}{hb\_sorted\_array\_t<Type>}}}
+\DoxyCodeLine{00851\ \ \ operator\ ()\ (\mbox{\hyperlink{structhb__sorted__array__t}{hb\_sorted\_array\_t<Type>}}\ array,\ \textcolor{keywordtype}{unsigned}\ count)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00852\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ array.sub\_array\ (0,\ count);\ \}}
+\DoxyCodeLine{00853\ \}}
+\DoxyCodeLine{00854\ HB\_FUNCOBJ\ (hb\_take);}
+\DoxyCodeLine{00855\ }
+\DoxyCodeLine{00856\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00857\ \{\ HB\_PARTIALIZE(2);}
+\DoxyCodeLine{00858\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00859\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00860\ \ \ \textcolor{keyword}{auto}\ operator\ ()\ (Iter\ it,\ \textcolor{keywordtype}{unsigned}\ count)\ \textcolor{keyword}{const}\ HB\_AUTO\_RETURN}
+\DoxyCodeLine{00861\ \ \ (}
+\DoxyCodeLine{00862\ \ \ \ \ +\ hb\_iota\ (it,\ hb\_add\ (count))}
+\DoxyCodeLine{00863\ \ \ \ \ |\ hb\_map\ (hb\_take\ (count))}
+\DoxyCodeLine{00864\ \ \ \ \ |\ hb\_take\ ((hb\_len\ (it)\ +\ count\ -\/\ 1)\ /\ count)}
+\DoxyCodeLine{00865\ \ \ )}
+\DoxyCodeLine{00866\ \}}
+\DoxyCodeLine{00867\ HB\_FUNCOBJ\ (hb\_chop);}
+\DoxyCodeLine{00868\ }
+\DoxyCodeLine{00869\ \textcolor{comment}{/*\ hb\_sink()\ */}}
+\DoxyCodeLine{00870\ }
+\DoxyCodeLine{00871\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sink>}
+\DoxyCodeLine{00872\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__sink__t}{hb\_sink\_t}}}
+\DoxyCodeLine{00873\ \{}
+\DoxyCodeLine{00874\ \ \ \mbox{\hyperlink{structhb__sink__t}{hb\_sink\_t}}\ (Sink\ s)\ :\ s\ (s)\ \{\}}
+\DoxyCodeLine{00875\ }
+\DoxyCodeLine{00876\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00877\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00878\ \ \ \textcolor{keywordtype}{void}\ operator\ ()\ (Iter\ it)}
+\DoxyCodeLine{00879\ \ \ \{}
+\DoxyCodeLine{00880\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ it;\ ++it)}
+\DoxyCodeLine{00881\ \ \ \ \ \ \ s\ <<\ *it;}
+\DoxyCodeLine{00882\ \ \ \}}
+\DoxyCodeLine{00883\ }
+\DoxyCodeLine{00884\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00885\ \ \ Sink\ s;}
+\DoxyCodeLine{00886\ \};}
+\DoxyCodeLine{00887\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00888\ \{}
+\DoxyCodeLine{00889\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sink>\ \mbox{\hyperlink{structhb__sink__t}{hb\_sink\_t<Sink>}}}
+\DoxyCodeLine{00890\ \ \ operator\ ()\ (Sink\&\&\ s)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00891\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__sink__t}{hb\_sink\_t<Sink>}}\ (s);\ \}}
+\DoxyCodeLine{00892\ }
+\DoxyCodeLine{00893\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sink>\ \mbox{\hyperlink{structhb__sink__t}{hb\_sink\_t<Sink\&>}}}
+\DoxyCodeLine{00894\ \ \ operator\ ()\ (Sink\ *s)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00895\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__sink__t}{hb\_sink\_t<Sink\&>}}\ (*s);\ \}}
+\DoxyCodeLine{00896\ \}}
+\DoxyCodeLine{00897\ HB\_FUNCOBJ\ (hb\_sink);}
+\DoxyCodeLine{00898\ }
+\DoxyCodeLine{00899\ \textcolor{comment}{/*\ hb-\/drain:\ hb\_sink\ to\ void\ /\ blackhole\ /\ /dev/null.\ */}}
+\DoxyCodeLine{00900\ }
+\DoxyCodeLine{00901\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00902\ \{}
+\DoxyCodeLine{00903\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00904\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00905\ \ \ \textcolor{keywordtype}{void}\ operator\ ()\ (Iter\ it)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00906\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00907\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ it;\ ++it)}
+\DoxyCodeLine{00908\ \ \ \ \ \ \ (\textcolor{keywordtype}{void})\ *it;}
+\DoxyCodeLine{00909\ \ \ \}}
+\DoxyCodeLine{00910\ \}}
+\DoxyCodeLine{00911\ HB\_FUNCOBJ\ (hb\_drain);}
+\DoxyCodeLine{00912\ }
+\DoxyCodeLine{00913\ \textcolor{comment}{/*\ hb\_unzip():\ unzip\ and\ sink\ to\ two\ sinks.\ */}}
+\DoxyCodeLine{00914\ }
+\DoxyCodeLine{00915\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sink1,\ \textcolor{keyword}{typename}\ Sink2>}
+\DoxyCodeLine{00916\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structhb__unzip__t}{hb\_unzip\_t}}}
+\DoxyCodeLine{00917\ \{}
+\DoxyCodeLine{00918\ \ \ \mbox{\hyperlink{structhb__unzip__t}{hb\_unzip\_t}}\ (Sink1\ s1,\ Sink2\ s2)\ :\ s1\ (s1),\ s2\ (s2)\ \{\}}
+\DoxyCodeLine{00919\ }
+\DoxyCodeLine{00920\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iter,}
+\DoxyCodeLine{00921\ \ \ \ \ \ \ \ \ hb\_requires\ (hb\_is\_iterator\ (Iter))>}
+\DoxyCodeLine{00922\ \ \ \textcolor{keywordtype}{void}\ operator\ ()\ (Iter\ it)}
+\DoxyCodeLine{00923\ \ \ \{}
+\DoxyCodeLine{00924\ \ \ \ \ \textcolor{keywordflow}{for}\ (;\ it;\ ++it)}
+\DoxyCodeLine{00925\ \ \ \ \ \{}
+\DoxyCodeLine{00926\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keyword}{auto}\ \&v\ =\ *it;}
+\DoxyCodeLine{00927\ \ \ \ \ \ \ s1\ <<\ v.first;}
+\DoxyCodeLine{00928\ \ \ \ \ \ \ s2\ <<\ v.second;}
+\DoxyCodeLine{00929\ \ \ \ \ \}}
+\DoxyCodeLine{00930\ \ \ \}}
+\DoxyCodeLine{00931\ }
+\DoxyCodeLine{00932\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00933\ \ \ Sink1\ s1;}
+\DoxyCodeLine{00934\ \ \ Sink2\ s2;}
+\DoxyCodeLine{00935\ \};}
+\DoxyCodeLine{00936\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00937\ \{}
+\DoxyCodeLine{00938\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sink1,\ \textcolor{keyword}{typename}\ Sink2>\ \mbox{\hyperlink{structhb__unzip__t}{hb\_unzip\_t<Sink1,\ Sink2>}}}
+\DoxyCodeLine{00939\ \ \ operator\ ()\ (Sink1\&\&\ s1,\ Sink2\&\&\ s2)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00940\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__unzip__t}{hb\_unzip\_t<Sink1,\ Sink2>}}\ (s1,\ s2);\ \}}
+\DoxyCodeLine{00941\ }
+\DoxyCodeLine{00942\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Sink1,\ \textcolor{keyword}{typename}\ Sink2>\ \mbox{\hyperlink{structhb__unzip__t}{hb\_unzip\_t<Sink1\&,\ Sink2\&>}}}
+\DoxyCodeLine{00943\ \ \ operator\ ()\ (Sink1\ *s1,\ Sink2\ *s2)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00944\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structhb__unzip__t}{hb\_unzip\_t<Sink1\&,\ Sink2\&>}}\ (*s1,\ *s2);\ \}}
+\DoxyCodeLine{00945\ \}}
+\DoxyCodeLine{00946\ HB\_FUNCOBJ\ (hb\_unzip);}
+\DoxyCodeLine{00947\ }
+\DoxyCodeLine{00948\ }
+\DoxyCodeLine{00949\ \textcolor{comment}{/*\ hb-\/all,\ hb-\/any,\ hb-\/none.\ */}}
+\DoxyCodeLine{00950\ }
+\DoxyCodeLine{00951\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00952\ \{}
+\DoxyCodeLine{00953\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00954\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Pred\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity)),}
+\DoxyCodeLine{00955\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Proj\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity)),}
+\DoxyCodeLine{00956\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00957\ \ \ \textcolor{keywordtype}{bool}\ operator\ ()\ (Iterable\&\&\ c,}
+\DoxyCodeLine{00958\ \ \ \ \ \ \ \ \ \ \ \ \ Pred\&\&\ p\ =\ hb\_identity,}
+\DoxyCodeLine{00959\ \ \ \ \ \ \ \ \ \ \ \ \ Proj\&\&\ f\ =\ hb\_identity)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00960\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00961\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ it\ =\ hb\_iter\ (c);\ it;\ ++it)}
+\DoxyCodeLine{00962\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (!hb\_match\ (std::forward<Pred>\ (p),\ hb\_get\ (std::forward<Proj>\ (f),\ *it)))}
+\DoxyCodeLine{00963\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00964\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00965\ \ \ \}}
+\DoxyCodeLine{00966\ \}}
+\DoxyCodeLine{00967\ HB\_FUNCOBJ\ (hb\_all);}
+\DoxyCodeLine{00968\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00969\ \{}
+\DoxyCodeLine{00970\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00971\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Pred\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity)),}
+\DoxyCodeLine{00972\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Proj\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity)),}
+\DoxyCodeLine{00973\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00974\ \ \ \textcolor{keywordtype}{bool}\ operator\ ()\ (Iterable\&\&\ c,}
+\DoxyCodeLine{00975\ \ \ \ \ \ \ \ \ \ \ \ \ Pred\&\&\ p\ =\ hb\_identity,}
+\DoxyCodeLine{00976\ \ \ \ \ \ \ \ \ \ \ \ \ Proj\&\&\ f\ =\ hb\_identity)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00977\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00978\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ it\ =\ hb\_iter\ (c);\ it;\ ++it)}
+\DoxyCodeLine{00979\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_match\ (std::forward<Pred>\ (p),\ hb\_get\ (std::forward<Proj>\ (f),\ *it)))}
+\DoxyCodeLine{00980\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00981\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00982\ \ \ \}}
+\DoxyCodeLine{00983\ \}}
+\DoxyCodeLine{00984\ HB\_FUNCOBJ\ (hb\_any);}
+\DoxyCodeLine{00985\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00986\ \{}
+\DoxyCodeLine{00987\ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ Iterable,}
+\DoxyCodeLine{00988\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Pred\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity)),}
+\DoxyCodeLine{00989\ \ \ \ \ \ \ \ \ \textcolor{keyword}{typename}\ Proj\ =\ \textcolor{keyword}{decltype}\ ((hb\_identity)),}
+\DoxyCodeLine{00990\ \ \ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (Iterable))>}
+\DoxyCodeLine{00991\ \ \ \textcolor{keywordtype}{bool}\ operator\ ()\ (Iterable\&\&\ c,}
+\DoxyCodeLine{00992\ \ \ \ \ \ \ \ \ \ \ \ \ Pred\&\&\ p\ =\ hb\_identity,}
+\DoxyCodeLine{00993\ \ \ \ \ \ \ \ \ \ \ \ \ Proj\&\&\ f\ =\ hb\_identity)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00994\ \textcolor{keyword}{\ \ }\{}
+\DoxyCodeLine{00995\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ it\ =\ hb\_iter\ (c);\ it;\ ++it)}
+\DoxyCodeLine{00996\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (hb\_match\ (std::forward<Pred>\ (p),\ hb\_get\ (std::forward<Proj>\ (f),\ *it)))}
+\DoxyCodeLine{00997\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00998\ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00999\ \ \ \}}
+\DoxyCodeLine{01000\ \}}
+\DoxyCodeLine{01001\ HB\_FUNCOBJ\ (hb\_none);}
+\DoxyCodeLine{01002\ }
+\DoxyCodeLine{01003\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01004\ \textcolor{comment}{\ *\ Algorithms\ operating\ on\ iterators.}}
+\DoxyCodeLine{01005\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01006\ }
+\DoxyCodeLine{01007\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ C,\ \textcolor{keyword}{typename}\ V,}
+\DoxyCodeLine{01008\ \ \ \ \ \ \ hb\_requires\ (\mbox{\hyperlink{structhb__is__iterable}{hb\_is\_iterable}}\ (C))>}
+\DoxyCodeLine{01009\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01010\ hb\_fill\ (C\&\&\ c,\ \textcolor{keyword}{const}\ V\ \&v)}
+\DoxyCodeLine{01011\ \{}
+\DoxyCodeLine{01012\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}\ i\ =\ hb\_iter\ (c);\ i;\ i++)}
+\DoxyCodeLine{01013\ \ \ \ \ *i\ =\ v;}
+\DoxyCodeLine{01014\ \}}
+\DoxyCodeLine{01015\ }
+\DoxyCodeLine{01016\ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ S,\ \textcolor{keyword}{typename}\ D>}
+\DoxyCodeLine{01017\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01018\ hb\_copy\ (S\&\&\ is,\ D\&\&\ \textcolor{keywordtype}{id})}
+\DoxyCodeLine{01019\ \{}
+\DoxyCodeLine{01020\ \ \ hb\_iter\ (is)\ |\ hb\_sink\ (\textcolor{keywordtype}{id});}
+\DoxyCodeLine{01021\ \}}
+\DoxyCodeLine{01022\ }
+\DoxyCodeLine{01023\ }
+\DoxyCodeLine{01024\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HB\_ITER\_HH\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

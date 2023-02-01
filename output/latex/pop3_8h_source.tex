@@ -1,0 +1,101 @@
+\hypertarget{pop3_8h_source}{}\doxysection{pop3.\+h}
+\label{pop3_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/pop3.h@{AseSprite/aseprite/third\_party/curl/lib/pop3.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_POP3\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_POP3\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2009\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}pingpong.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}curl\_sasl.h"{}}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ POP3\ unique\ setup}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00031\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00032\ \ \ POP3\_STOP,\ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ do\ nothing\ state,\ stops\ the\ state\ machine\ */}}
+\DoxyCodeLine{00033\ \ \ POP3\_SERVERGREET,\ \ \textcolor{comment}{/*\ waiting\ for\ the\ initial\ greeting\ immediately\ after}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ a\ connect\ */}}
+\DoxyCodeLine{00035\ \ \ POP3\_CAPA,}
+\DoxyCodeLine{00036\ \ \ POP3\_STARTTLS,}
+\DoxyCodeLine{00037\ \ \ POP3\_UPGRADETLS,\ \ \ \textcolor{comment}{/*\ asynchronously\ upgrade\ the\ connection\ to\ SSL/TLS}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (multi\ mode\ only)\ */}}
+\DoxyCodeLine{00039\ \ \ POP3\_AUTH,}
+\DoxyCodeLine{00040\ \ \ POP3\_APOP,}
+\DoxyCodeLine{00041\ \ \ POP3\_USER,}
+\DoxyCodeLine{00042\ \ \ POP3\_PASS,}
+\DoxyCodeLine{00043\ \ \ POP3\_COMMAND,}
+\DoxyCodeLine{00044\ \ \ POP3\_QUIT,}
+\DoxyCodeLine{00045\ \ \ POP3\_LAST\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ never\ used\ */}}
+\DoxyCodeLine{00046\ \}\ pop3state;}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \textcolor{comment}{/*\ This\ POP3\ struct\ is\ used\ in\ the\ Curl\_easy.\ All\ POP3\ data\ that\ is}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ \ \ connection-\/oriented\ must\ be\ in\ pop3\_conn\ to\ properly\ deal\ with\ the\ fact\ that}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ \ \ perhaps\ the\ Curl\_easy\ is\ changed\ between\ the\ times\ the\ connection\ is}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ \ \ used.\ */}}
+\DoxyCodeLine{00052\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_p_o_p3}{POP3}}\ \{}
+\DoxyCodeLine{00053\ \ \ curl\_pp\_transfer\ \mbox{\hyperlink{structtransfer}{transfer}};}
+\DoxyCodeLine{00054\ \ \ \textcolor{keywordtype}{char}\ *id;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Message\ ID\ */}}
+\DoxyCodeLine{00055\ \ \ \textcolor{keywordtype}{char}\ *custom;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Custom\ Request\ */}}
+\DoxyCodeLine{00056\ \};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{comment}{/*\ pop3\_conn\ is\ used\ for\ struct\ connection-\/oriented\ data\ in\ the\ connectdata}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ \ \ struct\ */}}
+\DoxyCodeLine{00060\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpop3__conn}{pop3\_conn}}\ \{}
+\DoxyCodeLine{00061\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpingpong}{pingpong}}\ pp;}
+\DoxyCodeLine{00062\ \ \ pop3state\ \mbox{\hyperlink{structstate}{state}};\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Always\ use\ pop3.c:state()\ to\ change\ state!\ */}}
+\DoxyCodeLine{00063\ \ \ \textcolor{keywordtype}{bool}\ ssldone;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Is\ connect()\ over\ SSL\ done?\ */}}
+\DoxyCodeLine{00064\ \ \ \textcolor{keywordtype}{bool}\ tls\_supported;\ \ \ \ \ \textcolor{comment}{/*\ StartTLS\ capability\ supported\ by\ server\ */}}
+\DoxyCodeLine{00065\ \ \ \textcolor{keywordtype}{size\_t}\ eob;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ bytes\ of\ the\ EOB\ (End\ Of\ Body)\ that}}
+\DoxyCodeLine{00066\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ have\ been\ received\ so\ far\ */}}
+\DoxyCodeLine{00067\ \ \ \textcolor{keywordtype}{size\_t}\ strip;\ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Number\ of\ bytes\ from\ the\ start\ to\ ignore\ as}}
+\DoxyCodeLine{00068\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ non-\/body\ */}}
+\DoxyCodeLine{00069\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_s_a_s_l}{SASL}}\ sasl;\ \ \ \ \ \ \ \textcolor{comment}{/*\ SASL-\/related\ storage\ */}}
+\DoxyCodeLine{00070\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ authtypes;\ \textcolor{comment}{/*\ Accepted\ authentication\ types\ */}}
+\DoxyCodeLine{00071\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ preftype;\ \ \textcolor{comment}{/*\ Preferred\ authentication\ type\ */}}
+\DoxyCodeLine{00072\ \ \ \textcolor{keywordtype}{char}\ *apoptimestamp;\ \ \ \ \textcolor{comment}{/*\ APOP\ timestamp\ from\ the\ server\ greeting\ */}}
+\DoxyCodeLine{00073\ \};}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__handler}{Curl\_handler}}\ Curl\_handler\_pop3;}
+\DoxyCodeLine{00076\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__handler}{Curl\_handler}}\ Curl\_handler\_pop3s;}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{comment}{/*\ Authentication\ type\ flags\ */}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ POP3\_TYPE\_CLEARTEXT\ (1\ <<\ 0)}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#define\ POP3\_TYPE\_APOP\ \ \ \ \ \ (1\ <<\ 1)}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#define\ POP3\_TYPE\_SASL\ \ \ \ \ \ (1\ <<\ 2)}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{comment}{/*\ Authentication\ type\ values\ */}}
+\DoxyCodeLine{00084\ \textcolor{preprocessor}{\#define\ POP3\_TYPE\_NONE\ \ \ \ \ \ 0}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#define\ POP3\_TYPE\_ANY\ \ \ \ \ \ \ \string~0U}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{comment}{/*\ This\ is\ the\ 5-\/bytes\ End-\/Of-\/Body\ marker\ for\ POP3\ */}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#define\ POP3\_EOB\ "{}\(\backslash\)x0d\(\backslash\)x0a\(\backslash\)x2e\(\backslash\)x0d\(\backslash\)x0a"{}}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\#define\ POP3\_EOB\_LEN\ 5}}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{comment}{/*\ This\ function\ scans\ the\ body\ after\ the\ end-\/of-\/body\ and\ writes\ everything}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ *\ until\ the\ end\ is\ found\ */}}
+\DoxyCodeLine{00093\ CURLcode\ Curl\_pop3\_write(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},\ \textcolor{keywordtype}{char}\ *str,\ \textcolor{keywordtype}{size\_t}\ nread);}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_POP3\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

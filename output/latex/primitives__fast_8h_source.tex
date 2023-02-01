@@ -1,0 +1,70 @@
+\hypertarget{primitives__fast_8h_source}{}\doxysection{primitives\+\_\+fast.\+h}
+\label{primitives__fast_8h_source}\index{AseSprite/aseprite/src/doc/primitives\_fast.h@{AseSprite/aseprite/src/doc/primitives\_fast.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Aseprite\ Document\ Library}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ Copyright\ (c)\ 2001-\/2015\ David\ Capello}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ This\ file\ is\ released\ under\ the\ terms\ of\ the\ MIT\ license.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ Read\ LICENSE.txt\ for\ more\ information.}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#ifndef\ DOC\_PRIMITIVES\_FAST\_H\_INCLUDED}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ DOC\_PRIMITIVES\_FAST\_H\_INCLUDED}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}doc/color.h"{}}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{keyword}{namespace\ }doc\ \{}
+\DoxyCodeLine{00014\ \ \ \textcolor{keyword}{class\ }Image;}
+\DoxyCodeLine{00015\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ ImageTraits>\ \textcolor{keyword}{class\ }ImageImpl;}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Traits>}
+\DoxyCodeLine{00018\ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{typename}\ Traits::address\_t\ get\_pixel\_address\_fast(\textcolor{keyword}{const}\ Image*\ image,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00019\ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ image-\/>width());}
+\DoxyCodeLine{00020\ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ image-\/>height());}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordflow}{return}\ (((ImageImpl<Traits>*)image)-\/>address(x,\ y));}
+\DoxyCodeLine{00023\ \ \ \}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Traits>}
+\DoxyCodeLine{00026\ \ \ \textcolor{keyword}{inline}\ \textcolor{keyword}{typename}\ Traits::pixel\_t\ get\_pixel\_fast(\textcolor{keyword}{const}\ Image*\ image,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00027\ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ image-\/>width());}
+\DoxyCodeLine{00028\ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ image-\/>height());}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordflow}{return}\ *(((ImageImpl<Traits>*)image)-\/>address(x,\ y));}
+\DoxyCodeLine{00031\ \ \ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{class}\ Traits>}
+\DoxyCodeLine{00034\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ put\_pixel\_fast(Image*\ image,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ \textcolor{keyword}{typename}\ Traits::pixel\_t\ color)\ \{}
+\DoxyCodeLine{00035\ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ image-\/>width());}
+\DoxyCodeLine{00036\ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ image-\/>height());}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ *(((ImageImpl<Traits>*)image)-\/>address(x,\ y))\ =\ color;}
+\DoxyCodeLine{00039\ \ \ \}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00042\ \ \ \textcolor{comment}{//\ Bitmap\ specialization}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00045\ \ \ \textcolor{keyword}{inline}\ BitmapTraits::pixel\_t\ get\_pixel\_fast<BitmapTraits>(\textcolor{keyword}{const}\ Image*\ image,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y)\ \{}
+\DoxyCodeLine{00046\ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ image-\/>width());}
+\DoxyCodeLine{00047\ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ image-\/>height());}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keywordflow}{return}\ (*image-\/>getPixelAddress(x,\ y))\ \&\ (1\ <<\ (x\ \%\ 8))\ ?\ 1:\ 0;}
+\DoxyCodeLine{00050\ \ \ \}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \ \ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00053\ \ \ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}\ put\_pixel\_fast<BitmapTraits>(Image*\ image,\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{int}\ y,\ BitmapTraits::pixel\_t\ color)\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ ASSERT(x\ >=\ 0\ \&\&\ x\ <\ image-\/>width());}
+\DoxyCodeLine{00055\ \ \ \ \ ASSERT(y\ >=\ 0\ \&\&\ y\ <\ image-\/>height());}
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordflow}{if}\ (color)}
+\DoxyCodeLine{00058\ \ \ \ \ \ \ *image-\/>getPixelAddress(x,\ y)\ |=\ (1\ <<\ (x\ \%\ 8));}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ *image-\/>getPixelAddress(x,\ y)\ \&=\ \string~(1\ <<\ (x\ \%\ 8));}
+\DoxyCodeLine{00061\ \ \ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \}\ \textcolor{comment}{//\ namespace\ doc}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

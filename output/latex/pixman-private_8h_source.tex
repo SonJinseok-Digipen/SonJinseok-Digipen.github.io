@@ -1,0 +1,1199 @@
+\hypertarget{pixman-private_8h_source}{}\doxysection{pixman-\/private.h}
+\label{pixman-private_8h_source}\index{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/private.h@{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/private.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ PIXMAN\_PRIVATE\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ PIXMAN\_PRIVATE\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ The\ defines\ which\ are\ shared\ between\ C\ and\ assembly\ code}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{comment}{/*\ bilinear\ interpolation\ precision\ (must\ be\ <\ 8)\ */}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ BILINEAR\_INTERPOLATION\_BITS\ 7}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ BILINEAR\_INTERPOLATION\_RANGE\ (1\ <<\ BILINEAR\_INTERPOLATION\_BITS)}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ C\ specific\ part}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#ifndef\ \_\_ASSEMBLER\_\_}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#ifndef\ PACKAGE}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#\ \ error\ config.h\ must\ be\ included\ before\ pixman-\/private.h}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ PIXMAN\_DISABLE\_DEPRECATED}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ PIXMAN\_USE\_INTERNAL\_API}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}pixman.h"{}}}
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <time.h>}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ <stddef.h>}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ <float.h>}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}pixman-\/compiler.h"{}}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ Images}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00038\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structimage__common}{image\_common}}\ \mbox{\hyperlink{structimage__common}{image\_common\_t}};}
+\DoxyCodeLine{00039\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsolid__fill}{solid\_fill}}\ \mbox{\hyperlink{structsolid__fill}{solid\_fill\_t}};}
+\DoxyCodeLine{00040\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgradient}{gradient}}\ \mbox{\hyperlink{structgradient}{gradient\_t}};}
+\DoxyCodeLine{00041\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlinear__gradient}{linear\_gradient}}\ \mbox{\hyperlink{structlinear__gradient}{linear\_gradient\_t}};}
+\DoxyCodeLine{00042\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }horizontal\_gradient\ horizontal\_gradient\_t;}
+\DoxyCodeLine{00043\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }vertical\_gradient\ vertical\_gradient\_t;}
+\DoxyCodeLine{00044\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconical__gradient}{conical\_gradient}}\ \mbox{\hyperlink{structconical__gradient}{conical\_gradient\_t}};}
+\DoxyCodeLine{00045\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structradial__gradient}{radial\_gradient}}\ \mbox{\hyperlink{structradial__gradient}{radial\_gradient\_t}};}
+\DoxyCodeLine{00046\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structbits__image}{bits\_image}}\ \mbox{\hyperlink{structbits__image}{bits\_image\_t}};}
+\DoxyCodeLine{00047\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcircle}{circle}}\ \mbox{\hyperlink{structcircle}{circle\_t}};}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structargb__t}{argb\_t}}\ \mbox{\hyperlink{structargb__t}{argb\_t}};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structargb__t}{argb\_t}}}
+\DoxyCodeLine{00052\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{float}\ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{float}\ r;}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{float}\ g;}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{float}\ b;}
+\DoxyCodeLine{00057\ \};}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{keyword}{typedef}\ void\ (*fetch\_scanline\_t)\ (\mbox{\hyperlink{structbits__image}{bits\_image\_t}}\ \ \ *image,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ y,}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ *mask);}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{typedef}\ uint32\_t\ (*fetch\_pixel\_32\_t)\ (\mbox{\hyperlink{structbits__image}{bits\_image\_t}}\ *image,}
+\DoxyCodeLine{00067\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ y);}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structargb__t}{argb\_t}}\ (*fetch\_pixel\_float\_t)\ (\mbox{\hyperlink{structbits__image}{bits\_image\_t}}\ *image,}
+\DoxyCodeLine{00071\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{00072\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ y);}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{keyword}{typedef}\ void\ (*store\_scanline\_t)\ (\mbox{\hyperlink{structbits__image}{bits\_image\_t}}\ *\ \ image,}
+\DoxyCodeLine{00075\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ y,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ *values);}
+\DoxyCodeLine{00079\ }
+\DoxyCodeLine{00080\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00081\ \{}
+\DoxyCodeLine{00082\ \ \ \ \ BITS,}
+\DoxyCodeLine{00083\ \ \ \ \ LINEAR,}
+\DoxyCodeLine{00084\ \ \ \ \ CONICAL,}
+\DoxyCodeLine{00085\ \ \ \ \ RADIAL,}
+\DoxyCodeLine{00086\ \ \ \ \ SOLID}
+\DoxyCodeLine{00087\ \}\ image\_type\_t;}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \textcolor{keyword}{typedef}\ void\ (*property\_changed\_func\_t)\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image);}
+\DoxyCodeLine{00090\ }
+\DoxyCodeLine{00091\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structimage__common}{image\_common}}}
+\DoxyCodeLine{00092\ \{}
+\DoxyCodeLine{00093\ \ \ \ \ image\_type\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ type;}
+\DoxyCodeLine{00094\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ref\_count;}
+\DoxyCodeLine{00095\ \ \ \ \ \mbox{\hyperlink{structpixman__region32}{pixman\_region32\_t}}\ \ \ \ \ \ \ \ \ \ \ clip\_region;}
+\DoxyCodeLine{00096\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ alpha\_count;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ How\ many\ times\ this\ image\ is\ being\ used\ as\ an\ alpha\ map\ */}}
+\DoxyCodeLine{00097\ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ have\_clip\_region;\ \ \ \textcolor{comment}{/*\ FALSE\ if\ there\ is\ no\ clip\ */}}
+\DoxyCodeLine{00098\ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ client\_clip;\ \ \ \ \ \ \ \ \textcolor{comment}{/*\ Whether\ the\ source\ clip\ was}}
+\DoxyCodeLine{00099\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ set\ by\ a\ client\ */}}
+\DoxyCodeLine{00100\ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ clip\_sources;\ \ \ \ \ \ \ \textcolor{comment}{/*\ Whether\ the\ clip\ applies\ when}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\ the\ image\ is\ used\ as\ a\ source}}
+\DoxyCodeLine{00102\ \textcolor{comment}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ */}}
+\DoxyCodeLine{00103\ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ dirty;}
+\DoxyCodeLine{00104\ \ \ \ \ \mbox{\hyperlink{structpixman__transform}{pixman\_transform\_t}}\ *\ \ \ \ \ \ \ \ transform;}
+\DoxyCodeLine{00105\ \ \ \ \ pixman\_repeat\_t\ \ \ \ \ \ \ \ \ \ \ \ \ repeat;}
+\DoxyCodeLine{00106\ \ \ \ \ pixman\_filter\_t\ \ \ \ \ \ \ \ \ \ \ \ \ filter;}
+\DoxyCodeLine{00107\ \ \ \ \ pixman\_fixed\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ filter\_params;}
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ n\_filter\_params;}
+\DoxyCodeLine{00109\ \ \ \ \ \mbox{\hyperlink{structbits__image}{bits\_image\_t}}\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ alpha\_map;}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alpha\_origin\_x;}
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ alpha\_origin\_y;}
+\DoxyCodeLine{00112\ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ component\_alpha;}
+\DoxyCodeLine{00113\ \ \ \ \ property\_changed\_func\_t\ \ \ \ \ property\_changed;}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00115\ \ \ \ \ pixman\_image\_destroy\_func\_t\ destroy\_func;}
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keywordtype}{void}\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ destroy\_data;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ flags;}
+\DoxyCodeLine{00119\ \ \ \ \ pixman\_format\_code\_t\ \ \ \ extended\_format\_code;}
+\DoxyCodeLine{00120\ \};}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00122\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structsolid__fill}{solid\_fill}}}
+\DoxyCodeLine{00123\ \{}
+\DoxyCodeLine{00124\ \ \ \ \ \mbox{\hyperlink{structimage__common}{image\_common\_t}}\ common;}
+\DoxyCodeLine{00125\ \ \ \ \ \mbox{\hyperlink{structpixman__color}{pixman\_color\_t}}\ color;}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ color\_32;}
+\DoxyCodeLine{00128\ \ \ \ \ \mbox{\hyperlink{structargb__t}{argb\_t}}\ \ \ \ \ \ \ color\_float;}
+\DoxyCodeLine{00129\ \};}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structgradient}{gradient}}}
+\DoxyCodeLine{00132\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \mbox{\hyperlink{structimage__common}{image\_common\_t}}\ \ \ \ \ \ \ \ common;}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ n\_stops;}
+\DoxyCodeLine{00135\ \ \ \ \ \mbox{\hyperlink{structpixman__gradient__stop}{pixman\_gradient\_stop\_t}}\ *stops;}
+\DoxyCodeLine{00136\ \};}
+\DoxyCodeLine{00137\ }
+\DoxyCodeLine{00138\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structlinear__gradient}{linear\_gradient}}}
+\DoxyCodeLine{00139\ \{}
+\DoxyCodeLine{00140\ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient\_t}}\ \ \ \ \ \ \ \ \ \ \ common;}
+\DoxyCodeLine{00141\ \ \ \ \ \mbox{\hyperlink{structpixman__point__fixed}{pixman\_point\_fixed\_t}}\ p1;}
+\DoxyCodeLine{00142\ \ \ \ \ \mbox{\hyperlink{structpixman__point__fixed}{pixman\_point\_fixed\_t}}\ p2;}
+\DoxyCodeLine{00143\ \};}
+\DoxyCodeLine{00144\ }
+\DoxyCodeLine{00145\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcircle}{circle}}}
+\DoxyCodeLine{00146\ \{}
+\DoxyCodeLine{00147\ \ \ \ \ pixman\_fixed\_t\ x;}
+\DoxyCodeLine{00148\ \ \ \ \ pixman\_fixed\_t\ y;}
+\DoxyCodeLine{00149\ \ \ \ \ pixman\_fixed\_t\ radius;}
+\DoxyCodeLine{00150\ \};}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structradial__gradient}{radial\_gradient}}}
+\DoxyCodeLine{00153\ \{}
+\DoxyCodeLine{00154\ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient\_t}}\ common;}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \ \ \mbox{\hyperlink{structcircle}{circle\_t}}\ \ \ c1;}
+\DoxyCodeLine{00157\ \ \ \ \ \mbox{\hyperlink{structcircle}{circle\_t}}\ \ \ c2;}
+\DoxyCodeLine{00158\ }
+\DoxyCodeLine{00159\ \ \ \ \ \mbox{\hyperlink{structcircle}{circle\_t}}\ \ \ delta;}
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keywordtype}{double}\ \ \ \ \ \mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00161\ \ \ \ \ \textcolor{keywordtype}{double}\ \ \ \ \ inva;}
+\DoxyCodeLine{00162\ \ \ \ \ \textcolor{keywordtype}{double}\ \ \ \ \ mindr;}
+\DoxyCodeLine{00163\ \};}
+\DoxyCodeLine{00164\ }
+\DoxyCodeLine{00165\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structconical__gradient}{conical\_gradient}}}
+\DoxyCodeLine{00166\ \{}
+\DoxyCodeLine{00167\ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient\_t}}\ \ \ \ \ \ \ \ \ \ \ common;}
+\DoxyCodeLine{00168\ \ \ \ \ \mbox{\hyperlink{structpixman__point__fixed}{pixman\_point\_fixed\_t}}\ center;}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordtype}{double}\ \ \ \ \ \ \ angle;}
+\DoxyCodeLine{00170\ \};}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structbits__image}{bits\_image}}}
+\DoxyCodeLine{00173\ \{}
+\DoxyCodeLine{00174\ \ \ \ \ \mbox{\hyperlink{structimage__common}{image\_common\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ common;}
+\DoxyCodeLine{00175\ \ \ \ \ pixman\_format\_code\_t\ \ \ \ \ \ \ format;}
+\DoxyCodeLine{00176\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__indexed}{pixman\_indexed\_t}}\ *\ \ \ indexed;}
+\DoxyCodeLine{00177\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width;}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height;}
+\DoxyCodeLine{00179\ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bits;}
+\DoxyCodeLine{00180\ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ free\_me;}
+\DoxyCodeLine{00181\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rowstride;\ \ \textcolor{comment}{/*\ in\ number\ of\ uint32\_t's\ */}}
+\DoxyCodeLine{00182\ }
+\DoxyCodeLine{00183\ \ \ \ \ pixman\_dither\_t\ \ \ \ \ \ \ \ \ \ \ \ dither;}
+\DoxyCodeLine{00184\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dither\_offset\_y;}
+\DoxyCodeLine{00185\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dither\_offset\_x;}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \ \ \ \ fetch\_scanline\_t\ \ \ \ \ \ \ \ \ \ \ fetch\_scanline\_32;}
+\DoxyCodeLine{00188\ \ \ \ \ fetch\_pixel\_32\_t\ \ \ \ \ \ \ \ \ \ \ fetch\_pixel\_32;}
+\DoxyCodeLine{00189\ \ \ \ \ store\_scanline\_t\ \ \ \ \ \ \ \ \ \ \ store\_scanline\_32;}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ fetch\_scanline\_t\ \ \ \ \ \ \ \ \ \ \ fetch\_scanline\_float;}
+\DoxyCodeLine{00192\ \ \ \ \ fetch\_pixel\_float\_t\ \ \ \ \ \ \ \ fetch\_pixel\_float;}
+\DoxyCodeLine{00193\ \ \ \ \ store\_scanline\_t\ \ \ \ \ \ \ \ \ \ \ store\_scanline\_float;}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \ \ \ \ \textcolor{comment}{/*\ Used\ for\ indirect\ access\ to\ the\ bits\ */}}
+\DoxyCodeLine{00196\ \ \ \ \ pixman\_read\_memory\_func\_t\ \ read\_func;}
+\DoxyCodeLine{00197\ \ \ \ \ pixman\_write\_memory\_func\_t\ write\_func;}
+\DoxyCodeLine{00198\ \};}
+\DoxyCodeLine{00199\ }
+\DoxyCodeLine{00200\ \textcolor{keyword}{union\ }\mbox{\hyperlink{unionpixman__image}{pixman\_image}}}
+\DoxyCodeLine{00201\ \{}
+\DoxyCodeLine{00202\ \ \ \ \ image\_type\_t\ \ \ \ \ \ \ type;}
+\DoxyCodeLine{00203\ \ \ \ \ \mbox{\hyperlink{structimage__common}{image\_common\_t}}\ \ \ \ \ common;}
+\DoxyCodeLine{00204\ \ \ \ \ \mbox{\hyperlink{structbits__image}{bits\_image\_t}}\ \ \ \ \ \ \ bits;}
+\DoxyCodeLine{00205\ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient\_t}}\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient}};}
+\DoxyCodeLine{00206\ \ \ \ \ \mbox{\hyperlink{structlinear__gradient}{linear\_gradient\_t}}\ \ linear;}
+\DoxyCodeLine{00207\ \ \ \ \ \mbox{\hyperlink{structconical__gradient}{conical\_gradient\_t}}\ conical;}
+\DoxyCodeLine{00208\ \ \ \ \ \mbox{\hyperlink{structradial__gradient}{radial\_gradient\_t}}\ \ radial;}
+\DoxyCodeLine{00209\ \ \ \ \ \mbox{\hyperlink{structsolid__fill}{solid\_fill\_t}}\ \ \ \ \ \ \ solid;}
+\DoxyCodeLine{00210\ \};}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ \mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}};}
+\DoxyCodeLine{00213\ \textcolor{keyword}{typedef}\ uint32\_t\ *(*\ pixman\_iter\_get\_scanline\_t)\ (\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter,\ \textcolor{keyword}{const}\ uint32\_t\ *mask);}
+\DoxyCodeLine{00214\ \textcolor{keyword}{typedef}\ void\ \ \ \ \ \ (*\ pixman\_iter\_write\_back\_t)\ \ \ (\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter);}
+\DoxyCodeLine{00215\ \textcolor{keyword}{typedef}\ void\ \ \ \ \ \ (*\ pixman\_iter\_fini\_t)\ \ \ \ \ (\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter);}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}}
+\DoxyCodeLine{00218\ \{}
+\DoxyCodeLine{00219\ \ \ \ \ ITER\_NARROW\ =\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (1\ <<\ 0),}
+\DoxyCodeLine{00220\ \ \ \ \ ITER\_WIDE\ =\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (1\ <<\ 1),}
+\DoxyCodeLine{00221\ }
+\DoxyCodeLine{00222\ \ \ \ \ \textcolor{comment}{/*\ "{}Localized\ alpha"{}\ is\ when\ the\ alpha\ channel\ is\ used\ only\ to\ compute}}
+\DoxyCodeLine{00223\ \textcolor{comment}{\ \ \ \ \ *\ the\ alpha\ value\ of\ the\ destination.\ This\ means\ that\ the\ computation}}
+\DoxyCodeLine{00224\ \textcolor{comment}{\ \ \ \ \ *\ of\ the\ RGB\ values\ of\ the\ result\ is\ independent\ of\ the\ alpha\ value.}}
+\DoxyCodeLine{00225\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00226\ \textcolor{comment}{\ \ \ \ \ *\ For\ example,\ the\ OVER\ operator\ has\ localized\ alpha\ for\ the}}
+\DoxyCodeLine{00227\ \textcolor{comment}{\ \ \ \ \ *\ destination,\ because\ the\ RGB\ values\ of\ the\ result\ can\ be\ computed}}
+\DoxyCodeLine{00228\ \textcolor{comment}{\ \ \ \ \ *\ without\ knowing\ the\ destination\ alpha.\ Similarly,\ ADD\ has\ localized}}
+\DoxyCodeLine{00229\ \textcolor{comment}{\ \ \ \ \ *\ alpha\ for\ both\ source\ and\ destination\ because\ the\ RGB\ values\ of\ the}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ \ \ \ \ *\ result\ can\ be\ computed\ without\ knowing\ the\ alpha\ value\ of\ source\ or}}
+\DoxyCodeLine{00231\ \textcolor{comment}{\ \ \ \ \ *\ destination.}}
+\DoxyCodeLine{00232\ \textcolor{comment}{\ \ \ \ \ *}}
+\DoxyCodeLine{00233\ \textcolor{comment}{\ \ \ \ \ *\ When\ he\ destination\ is\ xRGB,\ this\ is\ useful\ knowledge,\ because\ then}}
+\DoxyCodeLine{00234\ \textcolor{comment}{\ \ \ \ \ *\ we\ can\ treat\ it\ as\ if\ it\ were\ ARGB,\ which\ means\ in\ some\ cases\ we\ can}}
+\DoxyCodeLine{00235\ \textcolor{comment}{\ \ \ \ \ *\ avoid\ copying\ it\ to\ a\ temporary\ buffer.}}
+\DoxyCodeLine{00236\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00237\ \ \ \ \ ITER\_LOCALIZED\_ALPHA\ =\ \ (1\ <<\ 2),}
+\DoxyCodeLine{00238\ \ \ \ \ ITER\_IGNORE\_ALPHA\ =\ \ \ \ \ (1\ <<\ 3),}
+\DoxyCodeLine{00239\ \ \ \ \ ITER\_IGNORE\_RGB\ =\ \ \ \ \ \ \ (1\ <<\ 4),}
+\DoxyCodeLine{00240\ }
+\DoxyCodeLine{00241\ \ \ \ \ \textcolor{comment}{/*\ These\ indicate\ whether\ the\ iterator\ is\ for\ a\ source}}
+\DoxyCodeLine{00242\ \textcolor{comment}{\ \ \ \ \ *\ or\ a\ destination\ image}}
+\DoxyCodeLine{00243\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00244\ \ \ \ \ ITER\_SRC\ =\ \ \ \ \ \ \ \ \ \ (1\ <<\ 5),}
+\DoxyCodeLine{00245\ \ \ \ \ ITER\_DEST\ =\ \ \ \ \ \ \ \ \ (1\ <<\ 6)}
+\DoxyCodeLine{00246\ \}\ iter\_flags\_t;}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}}
+\DoxyCodeLine{00249\ \{}
+\DoxyCodeLine{00250\ \ \ \ \ \textcolor{comment}{/*\ These\ are\ initialized\ by\ \_pixman\_implementation\_\{src,dest\}\_init\ */}}
+\DoxyCodeLine{00251\ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ \ \ image;}
+\DoxyCodeLine{00252\ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classbuffer}{buffer}};}
+\DoxyCodeLine{00253\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ x,\ y;}
+\DoxyCodeLine{00254\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ width;}
+\DoxyCodeLine{00255\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ height;}
+\DoxyCodeLine{00256\ \ \ \ \ iter\_flags\_t\ \ \ \ \ \ \ \ iter\_flags;}
+\DoxyCodeLine{00257\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ image\_flags;}
+\DoxyCodeLine{00258\ }
+\DoxyCodeLine{00259\ \ \ \ \ \textcolor{comment}{/*\ These\ function\ pointers\ are\ initialized\ by\ the\ implementation\ */}}
+\DoxyCodeLine{00260\ \ \ \ \ pixman\_iter\_get\_scanline\_t\ \ get\_scanline;}
+\DoxyCodeLine{00261\ \ \ \ \ pixman\_iter\_write\_back\_t\ \ \ \ write\_back;}
+\DoxyCodeLine{00262\ \ \ \ \ pixman\_iter\_fini\_t\ \ \ \ \ \ \ \ \ \ fini;}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \ \ \textcolor{comment}{/*\ These\ fields\ are\ scratch\ data\ that\ implementations\ can\ use\ */}}
+\DoxyCodeLine{00265\ \ \ \ \ \textcolor{keywordtype}{void}\ *\ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00266\ \ \ \ \ uint8\_t\ *\ \ \ \ \ \ \ \ \ \ \ bits;}
+\DoxyCodeLine{00267\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ stride;}
+\DoxyCodeLine{00268\ \};}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__iter__info__t}{pixman\_iter\_info\_t}}\ \mbox{\hyperlink{structpixman__iter__info__t}{pixman\_iter\_info\_t}};}
+\DoxyCodeLine{00271\ \textcolor{keyword}{typedef}\ void\ (*\ pixman\_iter\_initializer\_t)\ (\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter,}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__iter__info__t}{pixman\_iter\_info\_t}}\ *info);}
+\DoxyCodeLine{00273\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__iter__info__t}{pixman\_iter\_info\_t}}}
+\DoxyCodeLine{00274\ \{}
+\DoxyCodeLine{00275\ \ \ \ \ pixman\_format\_code\_t\ \ \ \ format;}
+\DoxyCodeLine{00276\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ image\_flags;}
+\DoxyCodeLine{00277\ \ \ \ \ iter\_flags\_t\ \ \ \ \ \ \ \ iter\_flags;}
+\DoxyCodeLine{00278\ \ \ \ \ pixman\_iter\_initializer\_t\ \ \ initializer;}
+\DoxyCodeLine{00279\ \ \ \ \ pixman\_iter\_get\_scanline\_t\ \ get\_scanline;}
+\DoxyCodeLine{00280\ \ \ \ \ pixman\_iter\_write\_back\_t\ \ \ \ write\_back;}
+\DoxyCodeLine{00281\ \};}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00284\ \_pixman\_bits\_image\_setup\_accessors\ (\mbox{\hyperlink{structbits__image}{bits\_image\_t}}\ *image);}
+\DoxyCodeLine{00285\ }
+\DoxyCodeLine{00286\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00287\ \_pixman\_bits\_image\_src\_iter\_init\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,\ \mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter);}
+\DoxyCodeLine{00288\ }
+\DoxyCodeLine{00289\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00290\ \_pixman\_bits\_image\_dest\_iter\_init\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,\ \mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter);}
+\DoxyCodeLine{00291\ }
+\DoxyCodeLine{00292\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00293\ \_pixman\_linear\_gradient\_iter\_init\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,\ \mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ \ *iter);}
+\DoxyCodeLine{00294\ }
+\DoxyCodeLine{00295\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00296\ \_pixman\_radial\_gradient\_iter\_init\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,\ \mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter);}
+\DoxyCodeLine{00297\ }
+\DoxyCodeLine{00298\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00299\ \_pixman\_conical\_gradient\_iter\_init\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,\ \mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter);}
+\DoxyCodeLine{00300\ }
+\DoxyCodeLine{00301\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00302\ \_pixman\_image\_init\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image);}
+\DoxyCodeLine{00303\ }
+\DoxyCodeLine{00304\ pixman\_bool\_t}
+\DoxyCodeLine{00305\ \_pixman\_bits\_image\_init\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ \ image,}
+\DoxyCodeLine{00306\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_format\_code\_t\ format,}
+\DoxyCodeLine{00307\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00308\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height,}
+\DoxyCodeLine{00309\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ bits,}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ rowstride,}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ clear);}
+\DoxyCodeLine{00312\ pixman\_bool\_t}
+\DoxyCodeLine{00313\ \_pixman\_image\_fini\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image);}
+\DoxyCodeLine{00314\ }
+\DoxyCodeLine{00315\ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *}
+\DoxyCodeLine{00316\ \_pixman\_image\_allocate\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00317\ }
+\DoxyCodeLine{00318\ pixman\_bool\_t}
+\DoxyCodeLine{00319\ \_pixman\_init\_gradient\ (\mbox{\hyperlink{structgradient}{gradient\_t}}\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient}},}
+\DoxyCodeLine{00320\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__gradient__stop}{pixman\_gradient\_stop\_t}}\ *stops,}
+\DoxyCodeLine{00321\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ n\_stops);}
+\DoxyCodeLine{00322\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00323\ \_pixman\_image\_reset\_clip\_region\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image);}
+\DoxyCodeLine{00324\ }
+\DoxyCodeLine{00325\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00326\ \_pixman\_image\_validate\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image);}
+\DoxyCodeLine{00327\ }
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#define\ PIXMAN\_IMAGE\_GET\_LINE(image,\ x,\ y,\ type,\ out\_stride,\ line,\ mul)\ \(\backslash\)}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00331\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ *\_\_bits\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\ \ \ \ int\ \ \ \ \ \ \ \_\_stride\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\ \ \ \ \_\_bits\_\_\ =\ image-\/>bits.bits;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\ \ \ \ \_\_stride\_\_\ =\ image-\/>bits.rowstride;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00336\ \textcolor{preprocessor}{\ \ \ \ (out\_stride)\ =\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_\_stride\_\_\ *\ (int)\ sizeof\ (uint32\_t)\ /\ (int)\ sizeof\ (type);\ \(\backslash\)}}
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\ \ \ \ (line)\ =\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ ((type\ *)\ \_\_bits\_\_)\ +\ (out\_stride)\ *\ (y)\ +\ (mul)\ *\ (x);\ \(\backslash\)}}
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00341\ }
+\DoxyCodeLine{00342\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00343\ \textcolor{comment}{\ *\ Gradient\ walker}}
+\DoxyCodeLine{00344\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00345\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00346\ \{}
+\DoxyCodeLine{00347\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ \ \ \ \ \ \ a\_s,\ a\_b;}
+\DoxyCodeLine{00348\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ \ \ \ \ \ \ r\_s,\ r\_b;}
+\DoxyCodeLine{00349\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ \ \ \ \ \ \ g\_s,\ g\_b;}
+\DoxyCodeLine{00350\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ \ \ \ \ \ \ b\_s,\ b\_b;}
+\DoxyCodeLine{00351\ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ left\_x;}
+\DoxyCodeLine{00352\ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ right\_x;}
+\DoxyCodeLine{00353\ }
+\DoxyCodeLine{00354\ \ \ \ \ \mbox{\hyperlink{structpixman__gradient__stop}{pixman\_gradient\_stop\_t}}\ *stops;}
+\DoxyCodeLine{00355\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_stops;}
+\DoxyCodeLine{00356\ \ \ \ \ pixman\_repeat\_t\ \ \ \ \ repeat;}
+\DoxyCodeLine{00357\ }
+\DoxyCodeLine{00358\ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ \ \ \ need\_reset;}
+\DoxyCodeLine{00359\ \}\ \mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}};}
+\DoxyCodeLine{00360\ }
+\DoxyCodeLine{00361\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00362\ \_pixman\_gradient\_walker\_init\ (\mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00363\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient\_t}}\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structgradient}{gradient}},}
+\DoxyCodeLine{00364\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_repeat\_t\ \ \ \ \ \ \ \ \ \ \ repeat);}
+\DoxyCodeLine{00365\ }
+\DoxyCodeLine{00366\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00367\ \_pixman\_gradient\_walker\_reset\ (\mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00368\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ \ \ pos);}
+\DoxyCodeLine{00369\ }
+\DoxyCodeLine{00370\ \textcolor{keyword}{typedef}\ void\ (*pixman\_gradient\_walker\_write\_t)\ (}
+\DoxyCodeLine{00371\ \ \ \ \ \mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00372\ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ \ \ x,}
+\DoxyCodeLine{00373\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00376\ \_pixman\_gradient\_walker\_write\_narrow(\mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00377\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ \ \ x,}
+\DoxyCodeLine{00378\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00379\ }
+\DoxyCodeLine{00380\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00381\ \_pixman\_gradient\_walker\_write\_wide(\mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ \ \ x,}
+\DoxyCodeLine{00383\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}});}
+\DoxyCodeLine{00384\ }
+\DoxyCodeLine{00385\ \textcolor{keyword}{typedef}\ void\ (*pixman\_gradient\_walker\_fill\_t)\ (}
+\DoxyCodeLine{00386\ \ \ \ \ \mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00387\ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ \ \ x,}
+\DoxyCodeLine{00388\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00389\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *end);}
+\DoxyCodeLine{00390\ }
+\DoxyCodeLine{00391\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00392\ \_pixman\_gradient\_walker\_fill\_narrow(\mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ \ \ x,}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *end);}
+\DoxyCodeLine{00396\ }
+\DoxyCodeLine{00397\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00398\ \_pixman\_gradient\_walker\_fill\_wide(\mbox{\hyperlink{structpixman__gradient__walker__t}{pixman\_gradient\_walker\_t}}\ *walker,}
+\DoxyCodeLine{00399\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_48\_16\_t\ \ \ \ \ \ x,}
+\DoxyCodeLine{00400\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *end);}
+\DoxyCodeLine{00402\ }
+\DoxyCodeLine{00403\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00404\ \textcolor{comment}{\ *\ Edges}}
+\DoxyCodeLine{00405\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00406\ }
+\DoxyCodeLine{00407\ \textcolor{preprocessor}{\#define\ MAX\_ALPHA(n)\ \ \ \ ((1\ <<\ (n))\ -\/\ 1)}}
+\DoxyCodeLine{00408\ \textcolor{preprocessor}{\#define\ N\_Y\_FRAC(n)\ \ \ \ \ ((n)\ ==\ 1\ ?\ 1\ :\ (1\ <<\ ((n)\ /\ 2))\ -\/\ 1)}}
+\DoxyCodeLine{00409\ \textcolor{preprocessor}{\#define\ N\_X\_FRAC(n)\ \ \ \ \ ((n)\ ==\ 1\ ?\ 1\ :\ (1\ <<\ ((n)\ /\ 2))\ +\ 1)}}
+\DoxyCodeLine{00410\ }
+\DoxyCodeLine{00411\ \textcolor{preprocessor}{\#define\ STEP\_Y\_SMALL(n)\ (pixman\_fixed\_1\ /\ N\_Y\_FRAC\ (n))}}
+\DoxyCodeLine{00412\ \textcolor{preprocessor}{\#define\ STEP\_Y\_BIG(n)\ \ \ (pixman\_fixed\_1\ -\/\ (N\_Y\_FRAC\ (n)\ -\/\ 1)\ *\ STEP\_Y\_SMALL\ (n))}}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \textcolor{preprocessor}{\#define\ Y\_FRAC\_FIRST(n)\ (STEP\_Y\_BIG\ (n)\ /\ 2)}}
+\DoxyCodeLine{00415\ \textcolor{preprocessor}{\#define\ Y\_FRAC\_LAST(n)\ \ (Y\_FRAC\_FIRST\ (n)\ +\ (N\_Y\_FRAC\ (n)\ -\/\ 1)\ *\ STEP\_Y\_SMALL\ (n))}}
+\DoxyCodeLine{00416\ }
+\DoxyCodeLine{00417\ \textcolor{preprocessor}{\#define\ STEP\_X\_SMALL(n)\ (pixman\_fixed\_1\ /\ N\_X\_FRAC\ (n))}}
+\DoxyCodeLine{00418\ \textcolor{preprocessor}{\#define\ STEP\_X\_BIG(n)\ \ \ (pixman\_fixed\_1\ -\/\ (N\_X\_FRAC\ (n)\ -\/\ 1)\ *\ STEP\_X\_SMALL\ (n))}}
+\DoxyCodeLine{00419\ }
+\DoxyCodeLine{00420\ \textcolor{preprocessor}{\#define\ X\_FRAC\_FIRST(n)\ (STEP\_X\_BIG\ (n)\ /\ 2)}}
+\DoxyCodeLine{00421\ \textcolor{preprocessor}{\#define\ X\_FRAC\_LAST(n)\ \ (X\_FRAC\_FIRST\ (n)\ +\ (N\_X\_FRAC\ (n)\ -\/\ 1)\ *\ STEP\_X\_SMALL\ (n))}}
+\DoxyCodeLine{00422\ }
+\DoxyCodeLine{00423\ \textcolor{preprocessor}{\#define\ RENDER\_SAMPLES\_X(x,\ n)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00424\ \textcolor{preprocessor}{\ \ \ \ ((n)\ ==\ 1?\ 0\ :\ (pixman\_fixed\_frac\ (x)\ +\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00425\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ X\_FRAC\_FIRST\ (n))\ /\ STEP\_X\_SMALL\ (n))}}
+\DoxyCodeLine{00426\ }
+\DoxyCodeLine{00427\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00428\ pixman\_rasterize\_edges\_accessors\ (\mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *image,}
+\DoxyCodeLine{00429\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__edge}{pixman\_edge\_t}}\ *\ l,}
+\DoxyCodeLine{00430\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__edge}{pixman\_edge\_t}}\ *\ r,}
+\DoxyCodeLine{00431\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ t,}
+\DoxyCodeLine{00432\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_fixed\_t\ \ b);}
+\DoxyCodeLine{00433\ }
+\DoxyCodeLine{00434\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00435\ \textcolor{comment}{\ *\ Implementations}}
+\DoxyCodeLine{00436\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00437\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}};}
+\DoxyCodeLine{00438\ }
+\DoxyCodeLine{00439\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00440\ \{}
+\DoxyCodeLine{00441\ \ \ \ \ pixman\_op\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ op;}
+\DoxyCodeLine{00442\ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ \ \ \ \ \ src\_image;}
+\DoxyCodeLine{00443\ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ \ \ \ \ \ mask\_image;}
+\DoxyCodeLine{00444\ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ \ \ \ \ \ dest\_image;}
+\DoxyCodeLine{00445\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_x;}
+\DoxyCodeLine{00446\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_y;}
+\DoxyCodeLine{00447\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\_x;}
+\DoxyCodeLine{00448\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\_y;}
+\DoxyCodeLine{00449\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_x;}
+\DoxyCodeLine{00450\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_y;}
+\DoxyCodeLine{00451\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width;}
+\DoxyCodeLine{00452\ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height;}
+\DoxyCodeLine{00453\ }
+\DoxyCodeLine{00454\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_flags;}
+\DoxyCodeLine{00455\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\_flags;}
+\DoxyCodeLine{00456\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_flags;}
+\DoxyCodeLine{00457\ \}\ \mbox{\hyperlink{structpixman__composite__info__t}{pixman\_composite\_info\_t}};}
+\DoxyCodeLine{00458\ }
+\DoxyCodeLine{00459\ \textcolor{preprocessor}{\#define\ PIXMAN\_COMPOSITE\_ARGS(info)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00460\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ pixman\_op\_t\ \ \ \ \ \ \ \ op\ =\ info-\/>op;\ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00461\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ pixman\_image\_t\ *\ \ \ src\_image\ =\ info-\/>src\_image;\ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00462\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ pixman\_image\_t\ *\ \ \ mask\_image\ =\ info-\/>mask\_image;\ \ \(\backslash\)}}
+\DoxyCodeLine{00463\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ pixman\_image\_t\ *\ \ \ dest\_image\ =\ info-\/>dest\_image;\ \ \(\backslash\)}}
+\DoxyCodeLine{00464\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ src\_x\ =\ info-\/>src\_x;\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00465\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ src\_y\ =\ info-\/>src\_y;\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00466\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ mask\_x\ =\ info-\/>mask\_x;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00467\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ mask\_y\ =\ info-\/>mask\_y;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00468\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ dest\_x\ =\ info-\/>dest\_x;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00469\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ dest\_y\ =\ info-\/>dest\_y;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00470\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ width\ =\ info-\/>width;\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00471\ \textcolor{preprocessor}{\ \ \ \ MAYBE\_UNUSED\ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ height\ =\ info-\/>height}}
+\DoxyCodeLine{00472\ }
+\DoxyCodeLine{00473\ \textcolor{keyword}{typedef}\ void\ (*pixman\_combine\_32\_func\_t)\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00474\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_op\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ op,}
+\DoxyCodeLine{00475\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest,}
+\DoxyCodeLine{00476\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ *\ \ \ \ \ \ \ \ \ src,}
+\DoxyCodeLine{00477\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ *\ \ \ \ \ \ \ \ \ mask,}
+\DoxyCodeLine{00478\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width);}
+\DoxyCodeLine{00479\ }
+\DoxyCodeLine{00480\ \textcolor{keyword}{typedef}\ void\ (*pixman\_combine\_float\_func\_t)\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00481\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_op\_t\ \ \ \ \ \ \ \ \ \ op,}
+\DoxyCodeLine{00482\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ dest,}
+\DoxyCodeLine{00483\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ *\ \ \ \ \ \ \ \ src,}
+\DoxyCodeLine{00484\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ *\ \ \ \ \ \ \ \ mask,}
+\DoxyCodeLine{00485\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ n\_pixels);}
+\DoxyCodeLine{00486\ }
+\DoxyCodeLine{00487\ \textcolor{keyword}{typedef}\ void\ (*pixman\_composite\_func\_t)\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00488\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__composite__info__t}{pixman\_composite\_info\_t}}\ *info);}
+\DoxyCodeLine{00489\ \textcolor{keyword}{typedef}\ pixman\_bool\_t\ (*pixman\_blt\_func\_t)\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00490\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_bits,}
+\DoxyCodeLine{00491\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_bits,}
+\DoxyCodeLine{00492\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_stride,}
+\DoxyCodeLine{00493\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_stride,}
+\DoxyCodeLine{00494\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_bpp,}
+\DoxyCodeLine{00495\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_bpp,}
+\DoxyCodeLine{00496\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_x,}
+\DoxyCodeLine{00497\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_y,}
+\DoxyCodeLine{00498\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_x,}
+\DoxyCodeLine{00499\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_y,}
+\DoxyCodeLine{00500\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00501\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height);}
+\DoxyCodeLine{00502\ \textcolor{keyword}{typedef}\ pixman\_bool\_t\ (*pixman\_fill\_func\_t)\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00503\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bits,}
+\DoxyCodeLine{00504\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stride,}
+\DoxyCodeLine{00505\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bpp,}
+\DoxyCodeLine{00506\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{00507\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ y,}
+\DoxyCodeLine{00508\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00509\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height,}
+\DoxyCodeLine{00510\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filler);}
+\DoxyCodeLine{00511\ }
+\DoxyCodeLine{00512\ \textcolor{keywordtype}{void}\ \_pixman\_setup\_combiner\_functions\_32\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp);}
+\DoxyCodeLine{00513\ \textcolor{keywordtype}{void}\ \_pixman\_setup\_combiner\_functions\_float\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp);}
+\DoxyCodeLine{00514\ }
+\DoxyCodeLine{00515\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct}}
+\DoxyCodeLine{00516\ \{}
+\DoxyCodeLine{00517\ \ \ \ \ pixman\_op\_t\ \ \ \ \ \ \ \ \ \ \ \ \ op;}
+\DoxyCodeLine{00518\ \ \ \ \ pixman\_format\_code\_t\ \ \ \ src\_format;}
+\DoxyCodeLine{00519\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ src\_flags;}
+\DoxyCodeLine{00520\ \ \ \ \ pixman\_format\_code\_t\ \ \ \ mask\_format;}
+\DoxyCodeLine{00521\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ mask\_flags;}
+\DoxyCodeLine{00522\ \ \ \ \ pixman\_format\_code\_t\ \ \ \ dest\_format;}
+\DoxyCodeLine{00523\ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ dest\_flags;}
+\DoxyCodeLine{00524\ \ \ \ \ pixman\_composite\_func\_t\ func;}
+\DoxyCodeLine{00525\ \}\ \mbox{\hyperlink{structpixman__fast__path__t}{pixman\_fast\_path\_t}};}
+\DoxyCodeLine{00526\ }
+\DoxyCodeLine{00527\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}}
+\DoxyCodeLine{00528\ \{}
+\DoxyCodeLine{00529\ \ \ \ \ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *\ \ \ \ toplevel;}
+\DoxyCodeLine{00530\ \ \ \ \ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *\ \ \ \ fallback;}
+\DoxyCodeLine{00531\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__fast__path__t}{pixman\_fast\_path\_t}}\ *\ \ \ \ fast\_paths;}
+\DoxyCodeLine{00532\ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__iter__info__t}{pixman\_iter\_info\_t}}\ *\ \ iter\_info;}
+\DoxyCodeLine{00533\ }
+\DoxyCodeLine{00534\ \ \ \ \ pixman\_blt\_func\_t\ \ \ \ \ \ \ blt;}
+\DoxyCodeLine{00535\ \ \ \ \ pixman\_fill\_func\_t\ \ \ \ \ \ fill;}
+\DoxyCodeLine{00536\ }
+\DoxyCodeLine{00537\ \ \ \ \ pixman\_combine\_32\_func\_t\ \ \ \ combine\_32[PIXMAN\_N\_OPERATORS];}
+\DoxyCodeLine{00538\ \ \ \ \ pixman\_combine\_32\_func\_t\ \ \ \ combine\_32\_ca[PIXMAN\_N\_OPERATORS];}
+\DoxyCodeLine{00539\ \ \ \ \ pixman\_combine\_float\_func\_t\ combine\_float[PIXMAN\_N\_OPERATORS];}
+\DoxyCodeLine{00540\ \ \ \ \ pixman\_combine\_float\_func\_t\ combine\_float\_ca[PIXMAN\_N\_OPERATORS];}
+\DoxyCodeLine{00541\ \};}
+\DoxyCodeLine{00542\ }
+\DoxyCodeLine{00543\ uint32\_t}
+\DoxyCodeLine{00544\ \_pixman\_image\_get\_solid\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00545\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ \ \ \ \ \ image,}
+\DoxyCodeLine{00546\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_format\_code\_t\ \ \ \ \ format);}
+\DoxyCodeLine{00547\ }
+\DoxyCodeLine{00548\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00549\ \_pixman\_implementation\_create\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback,}
+\DoxyCodeLine{00550\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__fast__path__t}{pixman\_fast\_path\_t}}\ *fast\_paths);}
+\DoxyCodeLine{00551\ }
+\DoxyCodeLine{00552\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00553\ \_pixman\_implementation\_lookup\_composite\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ \ *toplevel,}
+\DoxyCodeLine{00554\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_op\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ op,}
+\DoxyCodeLine{00555\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_format\_code\_t\ \ \ \ \ \ src\_format,}
+\DoxyCodeLine{00556\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_flags,}
+\DoxyCodeLine{00557\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_format\_code\_t\ \ \ \ \ \ mask\_format,}
+\DoxyCodeLine{00558\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ mask\_flags,}
+\DoxyCodeLine{00559\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_format\_code\_t\ \ \ \ \ \ dest\_format,}
+\DoxyCodeLine{00560\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_flags,}
+\DoxyCodeLine{00561\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ **out\_imp,}
+\DoxyCodeLine{00562\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_composite\_func\_t\ \ *out\_func);}
+\DoxyCodeLine{00563\ }
+\DoxyCodeLine{00564\ pixman\_combine\_32\_func\_t}
+\DoxyCodeLine{00565\ \_pixman\_implementation\_lookup\_combiner\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00566\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_op\_t\ \ \ \ \ \ op,}
+\DoxyCodeLine{00567\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ component\_alpha,}
+\DoxyCodeLine{00568\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_bool\_t\ \ \ \ \ \ \ \ wide);}
+\DoxyCodeLine{00569\ }
+\DoxyCodeLine{00570\ pixman\_bool\_t}
+\DoxyCodeLine{00571\ \_pixman\_implementation\_blt\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00572\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_bits,}
+\DoxyCodeLine{00573\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_bits,}
+\DoxyCodeLine{00574\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_stride,}
+\DoxyCodeLine{00575\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_stride,}
+\DoxyCodeLine{00576\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_bpp,}
+\DoxyCodeLine{00577\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dst\_bpp,}
+\DoxyCodeLine{00578\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_x,}
+\DoxyCodeLine{00579\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ src\_y,}
+\DoxyCodeLine{00580\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_x,}
+\DoxyCodeLine{00581\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ dest\_y,}
+\DoxyCodeLine{00582\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00583\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height);}
+\DoxyCodeLine{00584\ }
+\DoxyCodeLine{00585\ pixman\_bool\_t}
+\DoxyCodeLine{00586\ \_pixman\_implementation\_fill\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp,}
+\DoxyCodeLine{00587\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bits,}
+\DoxyCodeLine{00588\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ stride,}
+\DoxyCodeLine{00589\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ bpp,}
+\DoxyCodeLine{00590\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{00591\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ y,}
+\DoxyCodeLine{00592\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00593\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height,}
+\DoxyCodeLine{00594\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ filler);}
+\DoxyCodeLine{00595\ }
+\DoxyCodeLine{00596\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00597\ \_pixman\_implementation\_iter\_init\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ \ \ \ \ \ \ *imp,}
+\DoxyCodeLine{00598\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *iter,}
+\DoxyCodeLine{00599\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *image,}
+\DoxyCodeLine{00600\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ x,}
+\DoxyCodeLine{00601\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ y,}
+\DoxyCodeLine{00602\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00603\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ height,}
+\DoxyCodeLine{00604\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *\mbox{\hyperlink{classbuffer}{buffer}},}
+\DoxyCodeLine{00605\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ iter\_flags\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ flags,}
+\DoxyCodeLine{00606\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ image\_flags);}
+\DoxyCodeLine{00607\ }
+\DoxyCodeLine{00608\ \textcolor{comment}{/*\ Specific\ implementations\ */}}
+\DoxyCodeLine{00609\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00610\ \_pixman\_implementation\_create\_general\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00611\ }
+\DoxyCodeLine{00612\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00613\ \_pixman\_implementation\_create\_fast\_path\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00614\ }
+\DoxyCodeLine{00615\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00616\ \_pixman\_implementation\_create\_noop\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00617\ }
+\DoxyCodeLine{00618\ \textcolor{preprocessor}{\#if\ defined\ USE\_X86\_MMX\ ||\ defined\ USE\_ARM\_IWMMXT\ ||\ defined\ USE\_LOONGSON\_MMI}}
+\DoxyCodeLine{00619\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00620\ \_pixman\_implementation\_create\_mmx\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00621\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00622\ }
+\DoxyCodeLine{00623\ \textcolor{preprocessor}{\#ifdef\ USE\_SSE2}}
+\DoxyCodeLine{00624\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00625\ \_pixman\_implementation\_create\_sse2\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00626\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00627\ }
+\DoxyCodeLine{00628\ \textcolor{preprocessor}{\#ifdef\ USE\_SSSE3}}
+\DoxyCodeLine{00629\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00630\ \_pixman\_implementation\_create\_ssse3\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00631\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00632\ }
+\DoxyCodeLine{00633\ \textcolor{preprocessor}{\#ifdef\ USE\_ARM\_SIMD}}
+\DoxyCodeLine{00634\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00635\ \_pixman\_implementation\_create\_arm\_simd\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00636\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00637\ }
+\DoxyCodeLine{00638\ \textcolor{preprocessor}{\#ifdef\ USE\_ARM\_NEON}}
+\DoxyCodeLine{00639\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00640\ \_pixman\_implementation\_create\_arm\_neon\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00641\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00642\ }
+\DoxyCodeLine{00643\ \textcolor{preprocessor}{\#ifdef\ USE\_ARM\_A64\_NEON}}
+\DoxyCodeLine{00644\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00645\ \_pixman\_implementation\_create\_arm\_neon\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00646\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00647\ }
+\DoxyCodeLine{00648\ \textcolor{preprocessor}{\#ifdef\ USE\_MIPS\_DSPR2}}
+\DoxyCodeLine{00649\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00650\ \_pixman\_implementation\_create\_mips\_dspr2\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00651\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00652\ }
+\DoxyCodeLine{00653\ \textcolor{preprocessor}{\#ifdef\ USE\_VMX}}
+\DoxyCodeLine{00654\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00655\ \_pixman\_implementation\_create\_vmx\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *fallback);}
+\DoxyCodeLine{00656\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00657\ }
+\DoxyCodeLine{00658\ pixman\_bool\_t}
+\DoxyCodeLine{00659\ \_pixman\_implementation\_disabled\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *name);}
+\DoxyCodeLine{00660\ }
+\DoxyCodeLine{00661\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00662\ \_pixman\_x86\_get\_implementations\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp);}
+\DoxyCodeLine{00663\ }
+\DoxyCodeLine{00664\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00665\ \_pixman\_arm\_get\_implementations\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp);}
+\DoxyCodeLine{00666\ }
+\DoxyCodeLine{00667\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00668\ \_pixman\_ppc\_get\_implementations\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp);}
+\DoxyCodeLine{00669\ }
+\DoxyCodeLine{00670\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00671\ \_pixman\_mips\_get\_implementations\ (\mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *imp);}
+\DoxyCodeLine{00672\ }
+\DoxyCodeLine{00673\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00674\ \_pixman\_choose\_implementation\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00675\ }
+\DoxyCodeLine{00676\ pixman\_bool\_t}
+\DoxyCodeLine{00677\ \_pixman\_disabled\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *name);}
+\DoxyCodeLine{00678\ }
+\DoxyCodeLine{00679\ }
+\DoxyCodeLine{00680\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00681\ \textcolor{comment}{\ *\ Utilities}}
+\DoxyCodeLine{00682\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00683\ pixman\_bool\_t}
+\DoxyCodeLine{00684\ \_pixman\_compute\_composite\_region32\ (\mbox{\hyperlink{structpixman__region32}{pixman\_region32\_t}}\ *\ region,}
+\DoxyCodeLine{00685\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ src\_image,}
+\DoxyCodeLine{00686\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ mask\_image,}
+\DoxyCodeLine{00687\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{unionpixman__image}{pixman\_image\_t}}\ *\ \ \ \ dest\_image,}
+\DoxyCodeLine{00688\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ src\_x,}
+\DoxyCodeLine{00689\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ src\_y,}
+\DoxyCodeLine{00690\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ mask\_x,}
+\DoxyCodeLine{00691\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ mask\_y,}
+\DoxyCodeLine{00692\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ dest\_x,}
+\DoxyCodeLine{00693\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ dest\_y,}
+\DoxyCodeLine{00694\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ width,}
+\DoxyCodeLine{00695\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ int32\_t\ \ \ \ \ \ \ \ \ \ \ \ \ height);}
+\DoxyCodeLine{00696\ uint32\_t\ *}
+\DoxyCodeLine{00697\ \_pixman\_iter\_get\_scanline\_noop\ (\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter,\ \textcolor{keyword}{const}\ uint32\_t\ *mask);}
+\DoxyCodeLine{00698\ }
+\DoxyCodeLine{00699\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00700\ \_pixman\_iter\_init\_bits\_stride\ (\mbox{\hyperlink{structpixman__iter__t}{pixman\_iter\_t}}\ *iter,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__iter__info__t}{pixman\_iter\_info\_t}}\ *info);}
+\DoxyCodeLine{00701\ }
+\DoxyCodeLine{00702\ \textcolor{comment}{/*\ These\ "{}formats"{}\ all\ have\ depth\ 0,\ so\ they}}
+\DoxyCodeLine{00703\ \textcolor{comment}{\ *\ will\ never\ clash\ with\ any\ real\ ones}}
+\DoxyCodeLine{00704\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00705\ \textcolor{preprocessor}{\#define\ PIXMAN\_null\ \ \ \ \ \ \ \ \ \ \ \ \ PIXMAN\_FORMAT\ (0,\ 0,\ 0,\ 0,\ 0,\ 0)}}
+\DoxyCodeLine{00706\ \textcolor{preprocessor}{\#define\ PIXMAN\_solid\ \ \ \ \ \ \ \ \ \ \ \ PIXMAN\_FORMAT\ (0,\ 1,\ 0,\ 0,\ 0,\ 0)}}
+\DoxyCodeLine{00707\ \textcolor{preprocessor}{\#define\ PIXMAN\_pixbuf\ \ \ \ \ \ \ PIXMAN\_FORMAT\ (0,\ 2,\ 0,\ 0,\ 0,\ 0)}}
+\DoxyCodeLine{00708\ \textcolor{preprocessor}{\#define\ PIXMAN\_rpixbuf\ \ \ \ \ \ PIXMAN\_FORMAT\ (0,\ 3,\ 0,\ 0,\ 0,\ 0)}}
+\DoxyCodeLine{00709\ \textcolor{preprocessor}{\#define\ PIXMAN\_unknown\ \ \ \ \ \ PIXMAN\_FORMAT\ (0,\ 4,\ 0,\ 0,\ 0,\ 0)}}
+\DoxyCodeLine{00710\ \textcolor{preprocessor}{\#define\ PIXMAN\_any\ \ \ \ \ \ PIXMAN\_FORMAT\ (0,\ 5,\ 0,\ 0,\ 0,\ 0)}}
+\DoxyCodeLine{00711\ }
+\DoxyCodeLine{00712\ \textcolor{preprocessor}{\#define\ PIXMAN\_OP\_any\ \ \ \ \ \ \ (PIXMAN\_N\_OPERATORS\ +\ 1)}}
+\DoxyCodeLine{00713\ }
+\DoxyCodeLine{00714\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_ID\_TRANSFORM\ \ \ \ \ \ \ \ \ \ (1\ <<\ \ 0)}}
+\DoxyCodeLine{00715\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NO\_ALPHA\_MAP\ \ \ \ \ \ \ \ \ \ (1\ <<\ \ 1)}}
+\DoxyCodeLine{00716\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NO\_CONVOLUTION\_FILTER\ \ \ \ \ (1\ <<\ \ 2)}}
+\DoxyCodeLine{00717\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NO\_PAD\_REPEAT\ \ \ \ \ \ \ \ \ (1\ <<\ \ 3)}}
+\DoxyCodeLine{00718\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NO\_REFLECT\_REPEAT\ \ \ \ \ (1\ <<\ \ 4)}}
+\DoxyCodeLine{00719\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NO\_ACCESSORS\ \ \ \ \ \ \ \ \ \ (1\ <<\ \ 5)}}
+\DoxyCodeLine{00720\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NARROW\_FORMAT\ \ \ \ \ \ \ \ \ (1\ <<\ \ 6)}}
+\DoxyCodeLine{00721\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_COMPONENT\_ALPHA\ \ \ \ \ \ \ (1\ <<\ \ 8)}}
+\DoxyCodeLine{00722\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_SAMPLES\_OPAQUE\ \ \ \ \ \ \ \ (1\ <<\ \ 7)}}
+\DoxyCodeLine{00723\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_UNIFIED\_ALPHA\ \ \ \ \ \ \ \ \ (1\ <<\ \ 9)}}
+\DoxyCodeLine{00724\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_SCALE\_TRANSFORM\ \ \ \ \ \ \ (1\ <<\ 10)}}
+\DoxyCodeLine{00725\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NEAREST\_FILTER\ \ \ \ \ \ \ \ (1\ <<\ 11)}}
+\DoxyCodeLine{00726\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_HAS\_TRANSFORM\ \ \ \ \ \ \ \ \ (1\ <<\ 12)}}
+\DoxyCodeLine{00727\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_IS\_OPAQUE\ \ \ \ \ \ \ \ \ (1\ <<\ 13)}}
+\DoxyCodeLine{00728\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NO\_NORMAL\_REPEAT\ \ \ \ \ \ (1\ <<\ 14)}}
+\DoxyCodeLine{00729\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NO\_NONE\_REPEAT\ \ \ \ \ \ \ \ (1\ <<\ 15)}}
+\DoxyCodeLine{00730\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_X\_UNIT\_POSITIVE\ \ \ \ \ \ \ (1\ <<\ 16)}}
+\DoxyCodeLine{00731\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_AFFINE\_TRANSFORM\ \ \ \ \ \ (1\ <<\ 17)}}
+\DoxyCodeLine{00732\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_Y\_UNIT\_ZERO\ \ \ \ \ \ \ \ \ \ \ (1\ <<\ 18)}}
+\DoxyCodeLine{00733\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_BILINEAR\_FILTER\ \ \ \ \ \ \ (1\ <<\ 19)}}
+\DoxyCodeLine{00734\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_ROTATE\_90\_TRANSFORM\ \ \ \ \ \ \ (1\ <<\ 20)}}
+\DoxyCodeLine{00735\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_ROTATE\_180\_TRANSFORM\ \ \ \ \ \ (1\ <<\ 21)}}
+\DoxyCodeLine{00736\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_ROTATE\_270\_TRANSFORM\ \ \ \ \ \ (1\ <<\ 22)}}
+\DoxyCodeLine{00737\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_NEAREST\ \ \ \ (1\ <<\ 23)}}
+\DoxyCodeLine{00738\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_SAMPLES\_COVER\_CLIP\_BILINEAR\ \ \ (1\ <<\ 24)}}
+\DoxyCodeLine{00739\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_BITS\_IMAGE\ \ \ \ \ \ \ \ \ \ \ \ (1\ <<\ 25)}}
+\DoxyCodeLine{00740\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_SEPARABLE\_CONVOLUTION\_FILTER\ \ (1\ <<\ 26)}}
+\DoxyCodeLine{00741\ }
+\DoxyCodeLine{00742\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_PAD\_REPEAT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00743\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_NO\_NONE\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00744\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_NORMAL\_REPEAT\ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00745\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_REFLECT\_REPEAT)}}
+\DoxyCodeLine{00746\ }
+\DoxyCodeLine{00747\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NORMAL\_REPEAT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00748\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_NO\_NONE\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00749\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_PAD\_REPEAT\ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00750\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_REFLECT\_REPEAT)}}
+\DoxyCodeLine{00751\ }
+\DoxyCodeLine{00752\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_NONE\_REPEAT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00753\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_NO\_NORMAL\_REPEAT\ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00754\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_PAD\_REPEAT\ \ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00755\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_REFLECT\_REPEAT)}}
+\DoxyCodeLine{00756\ }
+\DoxyCodeLine{00757\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_REFLECT\_REPEAT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00758\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_NO\_NONE\_REPEAT\ \ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00759\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_NORMAL\_REPEAT\ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00760\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_PAD\_REPEAT)}}
+\DoxyCodeLine{00761\ }
+\DoxyCodeLine{00762\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_STANDARD\_FLAGS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00763\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_NO\_CONVOLUTION\_FILTER\ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00764\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_ACCESSORS\ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00765\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_ALPHA\_MAP\ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00766\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NARROW\_FORMAT)}}
+\DoxyCodeLine{00767\ }
+\DoxyCodeLine{00768\ \textcolor{preprocessor}{\#define\ FAST\_PATH\_STD\_DEST\_FLAGS\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00769\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_NO\_ACCESSORS\ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00770\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NO\_ALPHA\_MAP\ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00771\ \textcolor{preprocessor}{\ \ \ \ \ FAST\_PATH\_NARROW\_FORMAT)}}
+\DoxyCodeLine{00772\ }
+\DoxyCodeLine{00773\ \textcolor{preprocessor}{\#define\ SOURCE\_FLAGS(format)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00774\ \textcolor{preprocessor}{\ \ \ \ (FAST\_PATH\_STANDARD\_FLAGS\ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00775\ \textcolor{preprocessor}{\ \ \ \ \ ((PIXMAN\_\ \#\#\ format\ ==\ PIXMAN\_solid)\ ?\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00776\ \textcolor{preprocessor}{\ \ \ \ \ \ 0\ :\ (FAST\_PATH\_SAMPLES\_COVER\_CLIP\_NEAREST\ |\ FAST\_PATH\_NEAREST\_FILTER\ |\ FAST\_PATH\_ID\_TRANSFORM)))}}
+\DoxyCodeLine{00777\ }
+\DoxyCodeLine{00778\ \textcolor{preprocessor}{\#define\ MASK\_FLAGS(format,\ extra)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00779\ \textcolor{preprocessor}{\ \ \ \ ((PIXMAN\_\ \#\#\ format\ ==\ PIXMAN\_null)\ ?\ 0\ :\ (SOURCE\_FLAGS\ (format)\ |\ extra))}}
+\DoxyCodeLine{00780\ }
+\DoxyCodeLine{00781\ \textcolor{preprocessor}{\#define\ FAST\_PATH(op,\ src,\ src\_flags,\ mask,\ mask\_flags,\ dest,\ dest\_flags,\ func)\ \(\backslash\)}}
+\DoxyCodeLine{00782\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_OP\_\ \#\#\ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00783\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ src,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00784\ \textcolor{preprocessor}{\ \ \ \ src\_flags,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00785\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ mask,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00786\ \textcolor{preprocessor}{\ \ \ \ mask\_flags,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00787\ \textcolor{preprocessor}{\ \ \ \ PIXMAN\_\ \#\#\ dest,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00788\ \textcolor{preprocessor}{\ \ \ \ dest\_flags,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00789\ \textcolor{preprocessor}{\ \ \ \ func}}
+\DoxyCodeLine{00790\ }
+\DoxyCodeLine{00791\ \textcolor{preprocessor}{\#define\ PIXMAN\_STD\_FAST\_PATH(op,\ src,\ mask,\ dest,\ func)\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00792\ \textcolor{preprocessor}{\ \ \ \ \{\ FAST\_PATH\ (\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00793\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00794\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src,\ \ SOURCE\_FLAGS\ (src),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00795\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ mask,\ MASK\_FLAGS\ (mask,\ FAST\_PATH\_UNIFIED\_ALPHA),\ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00796\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dest,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00797\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ func)\ \}}}
+\DoxyCodeLine{00798\ }
+\DoxyCodeLine{00799\ \textcolor{preprocessor}{\#define\ PIXMAN\_STD\_FAST\_PATH\_CA(op,\ src,\ mask,\ dest,\ func)\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00800\ \textcolor{preprocessor}{\ \ \ \ \{\ FAST\_PATH\ (\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00801\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ op,\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00802\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ src,\ \ SOURCE\_FLAGS\ (src),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00803\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ mask,\ MASK\_FLAGS\ (mask,\ FAST\_PATH\_COMPONENT\_ALPHA),\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00804\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ dest,\ FAST\_PATH\_STD\_DEST\_FLAGS,\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00805\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ func)\ \}}}
+\DoxyCodeLine{00806\ }
+\DoxyCodeLine{00807\ \textcolor{keyword}{extern}\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *global\_implementation;}
+\DoxyCodeLine{00808\ }
+\DoxyCodeLine{00809\ \textcolor{keyword}{static}\ force\_inline\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00810\ get\_implementation\ (\textcolor{keywordtype}{void})}
+\DoxyCodeLine{00811\ \{}
+\DoxyCodeLine{00812\ \textcolor{preprocessor}{\#ifndef\ TOOLCHAIN\_SUPPORTS\_ATTRIBUTE\_CONSTRUCTOR}}
+\DoxyCodeLine{00813\ \ \ \ \ \textcolor{keywordflow}{if}\ (!global\_implementation)}
+\DoxyCodeLine{00814\ \ \ \ \ global\_implementation\ =\ \_pixman\_choose\_implementation\ ();}
+\DoxyCodeLine{00815\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00816\ \ \ \ \ \textcolor{keywordflow}{return}\ global\_implementation;}
+\DoxyCodeLine{00817\ \}}
+\DoxyCodeLine{00818\ }
+\DoxyCodeLine{00819\ \textcolor{comment}{/*\ This\ function\ is\ exported\ for\ the\ sake\ of\ the\ test\ suite\ and\ not\ part}}
+\DoxyCodeLine{00820\ \textcolor{comment}{\ *\ of\ the\ ABI.}}
+\DoxyCodeLine{00821\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00822\ PIXMAN\_EXPORT\ \mbox{\hyperlink{structpixman__implementation__t}{pixman\_implementation\_t}}\ *}
+\DoxyCodeLine{00823\ \_pixman\_internal\_only\_get\_implementation\ (\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00824\ }
+\DoxyCodeLine{00825\ \textcolor{comment}{/*\ Memory\ allocation\ helpers\ */}}
+\DoxyCodeLine{00826\ \textcolor{keywordtype}{void}\ *}
+\DoxyCodeLine{00827\ pixman\_malloc\_ab\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ n,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b);}
+\DoxyCodeLine{00828\ }
+\DoxyCodeLine{00829\ \textcolor{keywordtype}{void}\ *}
+\DoxyCodeLine{00830\ pixman\_malloc\_abc\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ c);}
+\DoxyCodeLine{00831\ }
+\DoxyCodeLine{00832\ \textcolor{keywordtype}{void}\ *}
+\DoxyCodeLine{00833\ pixman\_malloc\_ab\_plus\_c\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ c);}
+\DoxyCodeLine{00834\ }
+\DoxyCodeLine{00835\ pixman\_bool\_t}
+\DoxyCodeLine{00836\ \_pixman\_multiply\_overflows\_size\ (\textcolor{keywordtype}{size\_t}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{size\_t}\ b);}
+\DoxyCodeLine{00837\ }
+\DoxyCodeLine{00838\ pixman\_bool\_t}
+\DoxyCodeLine{00839\ \_pixman\_multiply\_overflows\_int\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b);}
+\DoxyCodeLine{00840\ }
+\DoxyCodeLine{00841\ pixman\_bool\_t}
+\DoxyCodeLine{00842\ \_pixman\_addition\_overflows\_int\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \mbox{\hyperlink{structa}{a}},\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ b);}
+\DoxyCodeLine{00843\ }
+\DoxyCodeLine{00844\ \textcolor{comment}{/*\ Compositing\ utilities\ */}}
+\DoxyCodeLine{00845\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00846\ pixman\_expand\_to\_float\ (\mbox{\hyperlink{structargb__t}{argb\_t}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ *dst,}
+\DoxyCodeLine{00847\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ \ \ \ \ \ \ *src,}
+\DoxyCodeLine{00848\ \ \ \ \ \ \ \ \ \ \ \ \ pixman\_format\_code\_t\ \ format,}
+\DoxyCodeLine{00849\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ width);}
+\DoxyCodeLine{00850\ }
+\DoxyCodeLine{00851\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00852\ pixman\_contract\_from\_float\ (uint32\_t\ \ \ \ \ *dst,}
+\DoxyCodeLine{00853\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structargb__t}{argb\_t}}\ *src,}
+\DoxyCodeLine{00854\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ width);}
+\DoxyCodeLine{00855\ }
+\DoxyCodeLine{00856\ \textcolor{comment}{/*\ Region\ Helpers\ */}}
+\DoxyCodeLine{00857\ pixman\_bool\_t}
+\DoxyCodeLine{00858\ pixman\_region32\_copy\_from\_region16\ (\mbox{\hyperlink{structpixman__region32}{pixman\_region32\_t}}\ *dst,}
+\DoxyCodeLine{00859\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__region16}{pixman\_region16\_t}}\ *src);}
+\DoxyCodeLine{00860\ }
+\DoxyCodeLine{00861\ pixman\_bool\_t}
+\DoxyCodeLine{00862\ pixman\_region16\_copy\_from\_region32\ (\mbox{\hyperlink{structpixman__region16}{pixman\_region16\_t}}\ *dst,}
+\DoxyCodeLine{00863\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__region32}{pixman\_region32\_t}}\ *src);}
+\DoxyCodeLine{00864\ }
+\DoxyCodeLine{00865\ \textcolor{comment}{/*\ Doubly\ linked\ lists\ */}}
+\DoxyCodeLine{00866\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ \mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}};}
+\DoxyCodeLine{00867\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}}
+\DoxyCodeLine{00868\ \{}
+\DoxyCodeLine{00869\ \ \ \ \ \mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *next;}
+\DoxyCodeLine{00870\ \ \ \ \ \mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *prev;}
+\DoxyCodeLine{00871\ \};}
+\DoxyCodeLine{00872\ }
+\DoxyCodeLine{00873\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__list__t}{pixman\_list\_t}}\ \mbox{\hyperlink{structpixman__list__t}{pixman\_list\_t}};}
+\DoxyCodeLine{00874\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structpixman__list__t}{pixman\_list\_t}}}
+\DoxyCodeLine{00875\ \{}
+\DoxyCodeLine{00876\ \ \ \ \ \mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *head;}
+\DoxyCodeLine{00877\ \ \ \ \ \mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *tail;}
+\DoxyCodeLine{00878\ \};}
+\DoxyCodeLine{00879\ }
+\DoxyCodeLine{00880\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00881\ pixman\_list\_init\ (\mbox{\hyperlink{structpixman__list__t}{pixman\_list\_t}}\ *list)}
+\DoxyCodeLine{00882\ \{}
+\DoxyCodeLine{00883\ \ \ \ \ list-\/>head\ =\ (\mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *)list;}
+\DoxyCodeLine{00884\ \ \ \ \ list-\/>tail\ =\ (\mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *)list;}
+\DoxyCodeLine{00885\ \}}
+\DoxyCodeLine{00886\ }
+\DoxyCodeLine{00887\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00888\ pixman\_list\_prepend\ (\mbox{\hyperlink{structpixman__list__t}{pixman\_list\_t}}\ *list,\ \mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *link)}
+\DoxyCodeLine{00889\ \{}
+\DoxyCodeLine{00890\ \ \ \ \ link-\/>next\ =\ list-\/>head;}
+\DoxyCodeLine{00891\ \ \ \ \ link-\/>prev\ =\ (\mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *)list;}
+\DoxyCodeLine{00892\ \ \ \ \ list-\/>head-\/>prev\ =\ link;}
+\DoxyCodeLine{00893\ \ \ \ \ list-\/>head\ =\ link;}
+\DoxyCodeLine{00894\ \}}
+\DoxyCodeLine{00895\ }
+\DoxyCodeLine{00896\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00897\ pixman\_list\_unlink\ (\mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *link)}
+\DoxyCodeLine{00898\ \{}
+\DoxyCodeLine{00899\ \ \ \ \ link-\/>prev-\/>next\ =\ link-\/>next;}
+\DoxyCodeLine{00900\ \ \ \ \ link-\/>next-\/>prev\ =\ link-\/>prev;}
+\DoxyCodeLine{00901\ \}}
+\DoxyCodeLine{00902\ }
+\DoxyCodeLine{00903\ \textcolor{keyword}{static}\ force\_inline\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00904\ pixman\_list\_move\_to\_front\ (\mbox{\hyperlink{structpixman__list__t}{pixman\_list\_t}}\ *list,\ \mbox{\hyperlink{structpixman__link__t}{pixman\_link\_t}}\ *link)}
+\DoxyCodeLine{00905\ \{}
+\DoxyCodeLine{00906\ \ \ \ \ pixman\_list\_unlink\ (link);}
+\DoxyCodeLine{00907\ \ \ \ \ pixman\_list\_prepend\ (list,\ link);}
+\DoxyCodeLine{00908\ \}}
+\DoxyCodeLine{00909\ }
+\DoxyCodeLine{00910\ \textcolor{comment}{/*\ Misc\ macros\ */}}
+\DoxyCodeLine{00911\ }
+\DoxyCodeLine{00912\ \textcolor{preprocessor}{\#ifndef\ FALSE}}
+\DoxyCodeLine{00913\ \textcolor{preprocessor}{\#\ \ \ define\ FALSE\ 0}}
+\DoxyCodeLine{00914\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00915\ }
+\DoxyCodeLine{00916\ \textcolor{preprocessor}{\#ifndef\ TRUE}}
+\DoxyCodeLine{00917\ \textcolor{preprocessor}{\#\ \ \ define\ TRUE\ 1}}
+\DoxyCodeLine{00918\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00919\ }
+\DoxyCodeLine{00920\ \textcolor{preprocessor}{\#ifndef\ MIN}}
+\DoxyCodeLine{00921\ \textcolor{preprocessor}{\#\ \ define\ MIN(a,\ b)\ ((a\ <\ b)\ ?\ a\ :\ b)}}
+\DoxyCodeLine{00922\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00923\ }
+\DoxyCodeLine{00924\ \textcolor{preprocessor}{\#ifndef\ MAX}}
+\DoxyCodeLine{00925\ \textcolor{preprocessor}{\#\ \ define\ MAX(a,\ b)\ ((a\ >\ b)\ ?\ a\ :\ b)}}
+\DoxyCodeLine{00926\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00927\ }
+\DoxyCodeLine{00928\ \textcolor{comment}{/*\ Integer\ division\ that\ rounds\ towards\ -\/infinity\ */}}
+\DoxyCodeLine{00929\ \textcolor{preprocessor}{\#define\ DIV(a,\ b)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00930\ \textcolor{preprocessor}{\ \ \ \ ((((a)\ <\ 0)\ ==\ ((b)\ <\ 0))\ ?\ (a)\ /\ (b)\ :\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00931\ \textcolor{preprocessor}{\ \ \ \ \ ((a)\ -\/\ (b)\ +\ 1\ -\/\ (((b)\ <\ 0)\ <<\ 1))\ /\ (b))}}
+\DoxyCodeLine{00932\ }
+\DoxyCodeLine{00933\ \textcolor{comment}{/*\ Modulus\ that\ produces\ the\ remainder\ wrt.\ DIV\ */}}
+\DoxyCodeLine{00934\ \textcolor{preprocessor}{\#define\ MOD(a,\ b)\ ((a)\ <\ 0\ ?\ ((b)\ -\/\ ((-\/(a)\ -\/\ 1)\ \%\ (b)))\ -\/\ 1\ :\ (a)\ \%\ (b))}}
+\DoxyCodeLine{00935\ }
+\DoxyCodeLine{00936\ \textcolor{preprocessor}{\#define\ CLIP(v,\ low,\ high)\ ((v)\ <\ (low)\ ?\ (low)\ :\ ((v)\ >\ (high)\ ?\ (high)\ :\ (v)))}}
+\DoxyCodeLine{00937\ }
+\DoxyCodeLine{00938\ \textcolor{preprocessor}{\#define\ FLOAT\_IS\_ZERO(f)\ \ \ \ \ (-\/FLT\_MIN\ <\ (f)\ \&\&\ (f)\ <\ FLT\_MIN)}}
+\DoxyCodeLine{00939\ }
+\DoxyCodeLine{00940\ \textcolor{comment}{/*\ Conversion\ between\ 8888\ and\ 0565\ */}}
+\DoxyCodeLine{00941\ }
+\DoxyCodeLine{00942\ \textcolor{keyword}{static}\ force\_inline\ uint16\_t}
+\DoxyCodeLine{00943\ convert\_8888\_to\_0565\ (uint32\_t\ s)}
+\DoxyCodeLine{00944\ \{}
+\DoxyCodeLine{00945\ \ \ \ \ \textcolor{comment}{/*\ The\ following\ code\ can\ be\ compiled\ into\ just\ 4\ instructions\ on\ ARM\ */}}
+\DoxyCodeLine{00946\ \ \ \ \ uint32\_t\ \mbox{\hyperlink{structa}{a}},\ b;}
+\DoxyCodeLine{00947\ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ =\ (s\ >>\ 3)\ \&\ 0x1F001F;}
+\DoxyCodeLine{00948\ \ \ \ \ b\ =\ s\ \&\ 0xFC00;}
+\DoxyCodeLine{00949\ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ |=\ \mbox{\hyperlink{structa}{a}}\ >>\ 5;}
+\DoxyCodeLine{00950\ \ \ \ \ \mbox{\hyperlink{structa}{a}}\ |=\ b\ >>\ 5;}
+\DoxyCodeLine{00951\ \ \ \ \ \textcolor{keywordflow}{return}\ (uint16\_t)\mbox{\hyperlink{structa}{a}};}
+\DoxyCodeLine{00952\ \}}
+\DoxyCodeLine{00953\ }
+\DoxyCodeLine{00954\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00955\ convert\_0565\_to\_0888\ (uint16\_t\ s)}
+\DoxyCodeLine{00956\ \{}
+\DoxyCodeLine{00957\ \ \ \ \ \textcolor{keywordflow}{return}\ (((((s)\ <<\ 3)\ \&\ 0xf8)\ |\ (((s)\ >>\ 2)\ \&\ 0x7))\ |}
+\DoxyCodeLine{00958\ \ \ \ \ \ \ \ \ \ \ \ \ ((((s)\ <<\ 5)\ \&\ 0xfc00)\ |\ (((s)\ >>\ 1)\ \&\ 0x300))\ |}
+\DoxyCodeLine{00959\ \ \ \ \ \ \ \ \ \ \ \ \ ((((s)\ <<\ 8)\ \&\ 0xf80000)\ |\ (((s)\ <<\ 3)\ \&\ 0x70000)));}
+\DoxyCodeLine{00960\ \}}
+\DoxyCodeLine{00961\ }
+\DoxyCodeLine{00962\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00963\ convert\_0565\_to\_8888\ (uint16\_t\ s)}
+\DoxyCodeLine{00964\ \{}
+\DoxyCodeLine{00965\ \ \ \ \ \textcolor{keywordflow}{return}\ convert\_0565\_to\_0888\ (s)\ |\ 0xff000000;}
+\DoxyCodeLine{00966\ \}}
+\DoxyCodeLine{00967\ }
+\DoxyCodeLine{00968\ \textcolor{comment}{/*\ Trivial\ versions\ that\ are\ useful\ in\ macros\ */}}
+\DoxyCodeLine{00969\ }
+\DoxyCodeLine{00970\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00971\ convert\_8888\_to\_8888\ (uint32\_t\ s)}
+\DoxyCodeLine{00972\ \{}
+\DoxyCodeLine{00973\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{00974\ \}}
+\DoxyCodeLine{00975\ }
+\DoxyCodeLine{00976\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00977\ convert\_x888\_to\_8888\ (uint32\_t\ s)}
+\DoxyCodeLine{00978\ \{}
+\DoxyCodeLine{00979\ \ \ \ \ \textcolor{keywordflow}{return}\ s\ |\ 0xff000000;}
+\DoxyCodeLine{00980\ \}}
+\DoxyCodeLine{00981\ }
+\DoxyCodeLine{00982\ \textcolor{keyword}{static}\ force\_inline\ uint16\_t}
+\DoxyCodeLine{00983\ convert\_0565\_to\_0565\ (uint16\_t\ s)}
+\DoxyCodeLine{00984\ \{}
+\DoxyCodeLine{00985\ \ \ \ \ \textcolor{keywordflow}{return}\ s;}
+\DoxyCodeLine{00986\ \}}
+\DoxyCodeLine{00987\ }
+\DoxyCodeLine{00988\ \textcolor{preprocessor}{\#define\ PIXMAN\_FORMAT\_IS\_WIDE(f)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00989\ \textcolor{preprocessor}{\ \ \ \ (PIXMAN\_FORMAT\_A\ (f)\ >\ 8\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00990\ \textcolor{preprocessor}{\ \ \ \ \ PIXMAN\_FORMAT\_R\ (f)\ >\ 8\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00991\ \textcolor{preprocessor}{\ \ \ \ \ PIXMAN\_FORMAT\_G\ (f)\ >\ 8\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00992\ \textcolor{preprocessor}{\ \ \ \ \ PIXMAN\_FORMAT\_B\ (f)\ >\ 8\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00993\ \textcolor{preprocessor}{\ \ \ \ \ PIXMAN\_FORMAT\_TYPE\ (f)\ ==\ PIXMAN\_TYPE\_ARGB\_SRGB)}}
+\DoxyCodeLine{00994\ }
+\DoxyCodeLine{00995\ \textcolor{preprocessor}{\#ifdef\ WORDS\_BIGENDIAN}}
+\DoxyCodeLine{00996\ \textcolor{preprocessor}{\#\ \ \ define\ SCREEN\_SHIFT\_LEFT(x,n)\ \ \ ((x)\ <<\ (n))}}
+\DoxyCodeLine{00997\ \textcolor{preprocessor}{\#\ \ \ define\ SCREEN\_SHIFT\_RIGHT(x,n)\ \ ((x)\ >>\ (n))}}
+\DoxyCodeLine{00998\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00999\ \textcolor{preprocessor}{\#\ \ \ define\ SCREEN\_SHIFT\_LEFT(x,n)\ \ \ ((x)\ >>\ (n))}}
+\DoxyCodeLine{01000\ \textcolor{preprocessor}{\#\ \ \ define\ SCREEN\_SHIFT\_RIGHT(x,n)\ \ ((x)\ <<\ (n))}}
+\DoxyCodeLine{01001\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01002\ }
+\DoxyCodeLine{01003\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{01004\ unorm\_to\_unorm\ (uint32\_t\ val,\ \textcolor{keywordtype}{int}\ from\_bits,\ \textcolor{keywordtype}{int}\ to\_bits)}
+\DoxyCodeLine{01005\ \{}
+\DoxyCodeLine{01006\ \ \ \ \ uint32\_t\ result;}
+\DoxyCodeLine{01007\ }
+\DoxyCodeLine{01008\ \ \ \ \ \textcolor{keywordflow}{if}\ (from\_bits\ ==\ 0)}
+\DoxyCodeLine{01009\ \ \ \ \ \textcolor{keywordflow}{return}\ 0;}
+\DoxyCodeLine{01010\ }
+\DoxyCodeLine{01011\ \ \ \ \ \textcolor{comment}{/*\ Delete\ any\ extra\ bits\ */}}
+\DoxyCodeLine{01012\ \ \ \ \ val\ \&=\ ((1\ <<\ from\_bits)\ -\/\ 1);}
+\DoxyCodeLine{01013\ }
+\DoxyCodeLine{01014\ \ \ \ \ \textcolor{keywordflow}{if}\ (from\_bits\ >=\ to\_bits)}
+\DoxyCodeLine{01015\ \ \ \ \ \textcolor{keywordflow}{return}\ val\ >>\ (from\_bits\ -\/\ to\_bits);}
+\DoxyCodeLine{01016\ }
+\DoxyCodeLine{01017\ \ \ \ \ \textcolor{comment}{/*\ Start\ out\ with\ the\ high\ bit\ of\ val\ in\ the\ high\ bit\ of\ result.\ */}}
+\DoxyCodeLine{01018\ \ \ \ \ result\ =\ val\ <<\ (to\_bits\ -\/\ from\_bits);}
+\DoxyCodeLine{01019\ }
+\DoxyCodeLine{01020\ \ \ \ \ \textcolor{comment}{/*\ Copy\ the\ bits\ in\ result,\ doubling\ the\ number\ of\ bits\ each\ time,\ until}}
+\DoxyCodeLine{01021\ \textcolor{comment}{\ \ \ \ \ *\ we\ fill\ all\ to\_bits.\ Unrolled\ manually\ because\ from\_bits\ and\ to\_bits}}
+\DoxyCodeLine{01022\ \textcolor{comment}{\ \ \ \ \ *\ are\ usually\ known\ statically,\ so\ the\ compiler\ can\ turn\ all\ of\ this}}
+\DoxyCodeLine{01023\ \textcolor{comment}{\ \ \ \ \ *\ into\ a\ few\ shifts.}}
+\DoxyCodeLine{01024\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{01025\ \textcolor{preprocessor}{\#define\ REPLICATE()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01026\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01027\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01028\ \textcolor{preprocessor}{\ \ \ \ if\ (from\_bits\ <\ to\_bits)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01029\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01030\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ result\ |=\ result\ >>\ from\_bits;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01031\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01032\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ from\_bits\ *=\ 2;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01033\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01034\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01035\ \textcolor{preprocessor}{\ \ \ \ while\ (0)}}
+\DoxyCodeLine{01036\ }
+\DoxyCodeLine{01037\ \ \ \ \ REPLICATE();}
+\DoxyCodeLine{01038\ \ \ \ \ REPLICATE();}
+\DoxyCodeLine{01039\ \ \ \ \ REPLICATE();}
+\DoxyCodeLine{01040\ \ \ \ \ REPLICATE();}
+\DoxyCodeLine{01041\ \ \ \ \ REPLICATE();}
+\DoxyCodeLine{01042\ }
+\DoxyCodeLine{01043\ \ \ \ \ \textcolor{keywordflow}{return}\ result;}
+\DoxyCodeLine{01044\ \}}
+\DoxyCodeLine{01045\ }
+\DoxyCodeLine{01046\ uint16\_t\ pixman\_float\_to\_unorm\ (\textcolor{keywordtype}{float}\ f,\ \textcolor{keywordtype}{int}\ n\_bits);}
+\DoxyCodeLine{01047\ \textcolor{keywordtype}{float}\ pixman\_unorm\_to\_float\ (uint16\_t\ u,\ \textcolor{keywordtype}{int}\ n\_bits);}
+\DoxyCodeLine{01048\ }
+\DoxyCodeLine{01049\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01050\ \textcolor{comment}{\ *\ Various\ debugging\ code}}
+\DoxyCodeLine{01051\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01052\ }
+\DoxyCodeLine{01053\ \textcolor{preprocessor}{\#undef\ DEBUG}}
+\DoxyCodeLine{01054\ }
+\DoxyCodeLine{01055\ \textcolor{preprocessor}{\#define\ COMPILE\_TIME\_ASSERT(x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01056\ \textcolor{preprocessor}{\ \ \ \ do\ \{\ typedef\ int\ compile\_time\_assertion\ [(x)?1:-\/1];\ \}\ while\ (0)}}
+\DoxyCodeLine{01057\ }
+\DoxyCodeLine{01058\ \textcolor{comment}{/*\ Turn\ on\ debugging\ depending\ on\ what\ type\ of\ release\ this\ is}}
+\DoxyCodeLine{01059\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01060\ \textcolor{preprocessor}{\#if\ (((PIXMAN\_VERSION\_MICRO\ \%\ 2)\ ==\ 0)\ \&\&\ ((PIXMAN\_VERSION\_MINOR\ \%\ 2)\ ==\ 1))}}
+\DoxyCodeLine{01061\ }
+\DoxyCodeLine{01062\ \textcolor{comment}{/*\ Debugging\ gets\ turned\ on\ for\ development\ releases\ because\ these}}
+\DoxyCodeLine{01063\ \textcolor{comment}{\ *\ are\ the\ things\ that\ end\ up\ in\ bleeding\ edge\ distributions\ such}}
+\DoxyCodeLine{01064\ \textcolor{comment}{\ *\ as\ Rawhide\ etc.}}
+\DoxyCodeLine{01065\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{01066\ \textcolor{comment}{\ *\ For\ performance\ reasons\ we\ don't\ turn\ it\ on\ for\ stable\ releases\ or}}
+\DoxyCodeLine{01067\ \textcolor{comment}{\ *\ random\ git\ checkouts.\ (Random\ git\ checkouts\ are\ often\ used\ for}}
+\DoxyCodeLine{01068\ \textcolor{comment}{\ *\ performance\ work).}}
+\DoxyCodeLine{01069\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01070\ }
+\DoxyCodeLine{01071\ \textcolor{preprocessor}{\#\ \ \ \ define\ DEBUG}}
+\DoxyCodeLine{01072\ }
+\DoxyCodeLine{01073\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{01074\ }
+\DoxyCodeLine{01075\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01076\ \_pixman\_log\_error\ (\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *function,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *message);}
+\DoxyCodeLine{01077\ }
+\DoxyCodeLine{01078\ \textcolor{preprocessor}{\#define\ return\_if\_fail(expr)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01079\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01080\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01081\ \textcolor{preprocessor}{\ \ \ \ if\ (unlikely\ (!(expr)))\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01082\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01083\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_pixman\_log\_error\ (FUNC,\ "{}The\ expression\ "{}}\ \#\ expr\ "{}\ was\ false"{});\ \(\backslash\)}
+\DoxyCodeLine{01084\ \ \ \ \ \ \ \ \ return;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{01085\ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{01086\ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{01087\ \ \ \ \ while\ (0)}
+\DoxyCodeLine{01088\ }
+\DoxyCodeLine{01089\ \textcolor{preprocessor}{\#define\ return\_val\_if\_fail(expr,\ retval)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01090\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01091\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01092\ \textcolor{preprocessor}{\ \ \ \ if\ (unlikely\ (!(expr)))\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01093\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01094\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_pixman\_log\_error\ (FUNC,\ "{}The\ expression\ "{}}\ \#\ expr\ "{}\ was\ false"{});\ \(\backslash\)}
+\DoxyCodeLine{01095\ \ \ \ \ \ \ \ \ return\ (retval);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{01096\ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{01097\ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{01098\ \ \ \ \ while\ (0)}
+\DoxyCodeLine{01099\ }
+\DoxyCodeLine{01100\ \textcolor{preprocessor}{\#define\ critical\_if\_fail(expr)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01101\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01102\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01103\ \textcolor{preprocessor}{\ \ \ \ if\ (unlikely\ (!(expr)))\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01104\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_pixman\_log\_error\ (FUNC,\ "{}The\ expression\ "{}}\ \#\ expr\ "{}\ was\ false"{});\ \(\backslash\)}
+\DoxyCodeLine{01105\ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}
+\DoxyCodeLine{01106\ \ \ \ \ while\ (0)}
+\DoxyCodeLine{01107\ }
+\DoxyCodeLine{01108\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01109\ \textcolor{comment}{\ *\ Matrix}}
+\DoxyCodeLine{01110\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01111\ }
+\DoxyCodeLine{01112\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{\ pixman\_fixed\_48\_16\_t\ v[3];\ \}\ \mbox{\hyperlink{structpixman__vector__48__16__t}{pixman\_vector\_48\_16\_t}};}
+\DoxyCodeLine{01113\ }
+\DoxyCodeLine{01114\ PIXMAN\_EXPORT}
+\DoxyCodeLine{01115\ pixman\_bool\_t}
+\DoxyCodeLine{01116\ pixman\_transform\_point\_31\_16\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__transform}{pixman\_transform\_t}}\ \ \ \ *t,}
+\DoxyCodeLine{01117\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__vector__48__16__t}{pixman\_vector\_48\_16\_t}}\ *v,}
+\DoxyCodeLine{01118\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__vector__48__16__t}{pixman\_vector\_48\_16\_t}}\ \ \ \ \ \ \ *result);}
+\DoxyCodeLine{01119\ }
+\DoxyCodeLine{01120\ PIXMAN\_EXPORT}
+\DoxyCodeLine{01121\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01122\ pixman\_transform\_point\_31\_16\_3d\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__transform}{pixman\_transform\_t}}\ \ \ \ *t,}
+\DoxyCodeLine{01123\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__vector__48__16__t}{pixman\_vector\_48\_16\_t}}\ *v,}
+\DoxyCodeLine{01124\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__vector__48__16__t}{pixman\_vector\_48\_16\_t}}\ \ \ \ \ \ \ *result);}
+\DoxyCodeLine{01125\ }
+\DoxyCodeLine{01126\ PIXMAN\_EXPORT}
+\DoxyCodeLine{01127\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{01128\ pixman\_transform\_point\_31\_16\_affine\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__transform}{pixman\_transform\_t}}\ \ \ \ *t,}
+\DoxyCodeLine{01129\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{structpixman__vector__48__16__t}{pixman\_vector\_48\_16\_t}}\ *v,}
+\DoxyCodeLine{01130\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structpixman__vector__48__16__t}{pixman\_vector\_48\_16\_t}}\ \ \ \ \ \ \ *result);}
+\DoxyCodeLine{01131\ }
+\DoxyCodeLine{01132\ \textcolor{comment}{/*}}
+\DoxyCodeLine{01133\ \textcolor{comment}{\ *\ Timers}}
+\DoxyCodeLine{01134\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{01135\ }
+\DoxyCodeLine{01136\ \textcolor{preprocessor}{\#ifdef\ PIXMAN\_TIMERS}}
+\DoxyCodeLine{01137\ }
+\DoxyCodeLine{01138\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ uint64\_t}
+\DoxyCodeLine{01139\ oil\_profile\_stamp\_rdtsc\ (\textcolor{keywordtype}{void})}
+\DoxyCodeLine{01140\ \{}
+\DoxyCodeLine{01141\ \ \ \ \ uint32\_t\ hi,\ lo;}
+\DoxyCodeLine{01142\ }
+\DoxyCodeLine{01143\ \ \ \ \ \_\_asm\_\_\ \_\_volatile\_\_\ (\textcolor{stringliteral}{"{}rdtsc\(\backslash\)n"{}}\ :\ \textcolor{stringliteral}{"{}=a"{}}\ (lo),\ \textcolor{stringliteral}{"{}=d"{}}\ (hi));}
+\DoxyCodeLine{01144\ }
+\DoxyCodeLine{01145\ \ \ \ \ \textcolor{keywordflow}{return}\ lo\ |\ (((uint64\_t)hi)\ <<\ 32);}
+\DoxyCodeLine{01146\ \}}
+\DoxyCodeLine{01147\ }
+\DoxyCodeLine{01148\ \textcolor{preprocessor}{\#define\ OIL\_STAMP\ oil\_profile\_stamp\_rdtsc}}
+\DoxyCodeLine{01149\ }
+\DoxyCodeLine{01150\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }pixman\_timer\_t\ pixman\_timer\_t;}
+\DoxyCodeLine{01151\ }
+\DoxyCodeLine{01152\ \textcolor{keyword}{struct\ }pixman\_timer\_t}
+\DoxyCodeLine{01153\ \{}
+\DoxyCodeLine{01154\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ initialized;}
+\DoxyCodeLine{01155\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ \ \ name;}
+\DoxyCodeLine{01156\ \ \ \ \ uint64\_t\ \ \ \ \ \ \ \ n\_times;}
+\DoxyCodeLine{01157\ \ \ \ \ uint64\_t\ \ \ \ \ \ \ \ total;}
+\DoxyCodeLine{01158\ \ \ \ \ pixman\_timer\_t\ *next;}
+\DoxyCodeLine{01159\ \};}
+\DoxyCodeLine{01160\ }
+\DoxyCodeLine{01161\ \textcolor{keyword}{extern}\ \textcolor{keywordtype}{int}\ timer\_defined;}
+\DoxyCodeLine{01162\ }
+\DoxyCodeLine{01163\ \textcolor{keywordtype}{void}\ pixman\_timer\_register\ (pixman\_timer\_t\ *timer);}
+\DoxyCodeLine{01164\ }
+\DoxyCodeLine{01165\ \textcolor{preprocessor}{\#define\ TIMER\_BEGIN(tname)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01166\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01167\ \textcolor{preprocessor}{\ \ \ \ static\ pixman\_timer\_t\ timer\ \#\#\ tname;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01168\ \textcolor{preprocessor}{\ \ \ \ uint64\_t\ \ \ \ \ \ \ \ \ \ \ \ \ \ begin\ \#\#\ tname;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01169\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01170\ \textcolor{preprocessor}{\ \ \ \ if\ (!timer\ \#\#\ tname.initialized)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01171\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01172\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ timer\ \#\#\ tname.initialized\ =\ 1;\ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01173\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ timer\ \#\#\ tname.name\ =\ \#\ tname;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01174\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ pixman\_timer\_register\ (\&timer\ \#\#\ tname);\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01175\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01176\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01177\ \textcolor{preprocessor}{\ \ \ \ timer\ \#\#\ tname.n\_times++;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01178\ \textcolor{preprocessor}{\ \ \ \ begin\ \#\#\ tname\ =\ OIL\_STAMP\ ();}}
+\DoxyCodeLine{01179\ }
+\DoxyCodeLine{01180\ \textcolor{preprocessor}{\#define\ TIMER\_END(tname)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01181\ \textcolor{preprocessor}{\ \ \ \ timer\ \#\#\ tname.total\ +=\ OIL\_STAMP\ ()\ -\/\ begin\ \#\#\ tname;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{01182\ \textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{01183\ }
+\DoxyCodeLine{01184\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{01185\ }
+\DoxyCodeLine{01186\ \textcolor{preprocessor}{\#define\ TIMER\_BEGIN(tname)}}
+\DoxyCodeLine{01187\ \textcolor{preprocessor}{\#define\ TIMER\_END(tname)}}
+\DoxyCodeLine{01188\ }
+\DoxyCodeLine{01189\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PIXMAN\_TIMERS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01190\ }
+\DoxyCodeLine{01191\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ \_\_ASSEMBLER\_\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{01192\ }
+\DoxyCodeLine{01193\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ PIXMAN\_PRIVATE\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

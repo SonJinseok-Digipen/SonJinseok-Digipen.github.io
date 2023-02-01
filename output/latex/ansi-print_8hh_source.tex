@@ -1,0 +1,432 @@
+\hypertarget{ansi-print_8hh_source}{}\doxysection{ansi-\/print.hh}
+\label{ansi-print_8hh_source}\index{AseSprite/aseprite/third\_party/harfbuzz/util/ansi-\/print.hh@{AseSprite/aseprite/third\_party/harfbuzz/util/ansi-\/print.hh}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ ©\ 2012\ \ Google,\ Inc.}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ This\ is\ part\ of\ HarfBuzz,\ a\ text\ shaping\ library.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ Permission\ is\ hereby\ granted,\ without\ written\ agreement\ and\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ license\ or\ royalty\ fees,\ to\ use,\ copy,\ modify,\ and\ distribute\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ software\ and\ its\ documentation\ for\ any\ purpose,\ provided\ that\ the}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ above\ copyright\ notice\ and\ the\ following\ two\ paragraphs\ appear\ in}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ all\ copies\ of\ this\ software.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ COPYRIGHT\ HOLDER\ BE\ LIABLE\ TO\ ANY\ PARTY\ FOR}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ DIRECT,\ INDIRECT,\ SPECIAL,\ INCIDENTAL,\ OR\ CONSEQUENTIAL\ DAMAGES}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ ARISING\ OUT\ OF\ THE\ USE\ OF\ THIS\ SOFTWARE\ AND\ ITS\ DOCUMENTATION,\ EVEN}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IF\ THE\ COPYRIGHT\ HOLDER\ HAS\ BEEN\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ DAMAGE.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ THE\ COPYRIGHT\ HOLDER\ SPECIFICALLY\ DISCLAIMS\ ANY\ WARRANTIES,\ INCLUDING,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES\ OF\ MERCHANTABILITY\ AND}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE.\ \ THE\ SOFTWARE\ PROVIDED\ HEREUNDER\ IS}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ ON\ AN\ "{}AS\ IS"{}\ BASIS,\ AND\ THE\ COPYRIGHT\ HOLDER\ HAS\ NO\ OBLIGATION\ TO}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ PROVIDE\ MAINTENANCE,\ SUPPORT,\ UPDATES,\ ENHANCEMENTS,\ OR\ MODIFICATIONS.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ Google\ Author(s):\ Behdad\ Esfahbod}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ ANSI\_PRINT\_HH}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ ANSI\_PRINT\_HH}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}hb.hh"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#include\ <stddef.h>}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#include\ <string.h>}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#include\ <math.h>}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\#include\ <fcntl.h>}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#ifdef\ HAVE\_UNISTD\_H}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#include\ <unistd.h>}\ \textcolor{comment}{/*\ for\ isatty()\ */}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#if\ defined\ (\_MSC\_VER)\ \&\&\ (\_MSC\_VER\ <\ 1800)}}
+\DoxyCodeLine{00044\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{long}\ \textcolor{keywordtype}{int}}
+\DoxyCodeLine{00045\ lround\ (\textcolor{keywordtype}{double}\ x)}
+\DoxyCodeLine{00046\ \{}
+\DoxyCodeLine{00047\ \ \ \textcolor{keywordflow}{if}\ (x\ >=\ 0)}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordflow}{return}\ floor\ (x\ +\ 0.5);}
+\DoxyCodeLine{00049\ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordflow}{return}\ ceil\ (x\ -\/\ 0.5);}
+\DoxyCodeLine{00051\ \}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#define\ ESC\_E\ (char)27}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ CELL\_W\ 8}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ CELL\_H\ (2\ *\ CELL\_W)}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcolor__diff__t}{color\_diff\_t}}}
+\DoxyCodeLine{00060\ \{}
+\DoxyCodeLine{00061\ \ \ \textcolor{keywordtype}{int}\ dot\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__diff__t}{color\_diff\_t}}\ \&o)}
+\DoxyCodeLine{00062\ \ \ \{\ \textcolor{keywordflow}{return}\ v[0]*o.v[0]\ +\ v[1]*o.v[1]\ +\ v[2]*o.v[2]\ +\ v[3]*o.v[3];\ \}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \ \ \textcolor{keywordtype}{int}\ v[4];}
+\DoxyCodeLine{00065\ \};}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcolor__t}{color\_t}}}
+\DoxyCodeLine{00068\ \{}
+\DoxyCodeLine{00069\ \ \ \textcolor{keyword}{static}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ from\_ansi\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x)}
+\DoxyCodeLine{00070\ \ \ \{}
+\DoxyCodeLine{00071\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ \{(0xFFu<<24)\ |\ ((0xFFu*(x\&1))<<16)\ |\ ((0xFFu*((x\ >>\ 1)\&1))<<8)\ |\ (0xFFu*((x\ >>\ 2)\&1))\};}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordflow}{return}\ c;}
+\DoxyCodeLine{00073\ \ \ \}}
+\DoxyCodeLine{00074\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ to\_ansi\ ()}
+\DoxyCodeLine{00075\ \ \ \{}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordflow}{return}\ ((v\ >>\ 23)\ \&\ 1)\ |\ ((v\ >>\ 14)\&2)\ |\ ((v\ >>\ 5)\&4);}
+\DoxyCodeLine{00077\ \ \ \}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ \mbox{\hyperlink{structcolor__diff__t}{color\_diff\_t}}\ diff\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structcolor__t}{color\_t}}\ \&o)}
+\DoxyCodeLine{00080\ \ \ \{}
+\DoxyCodeLine{00081\ \ \ \ \ \mbox{\hyperlink{structcolor__diff__t}{color\_diff\_t}}\ d;}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 4;\ i++)}
+\DoxyCodeLine{00083\ \ \ \ \ \ \ d.v[i]\ =\ (\textcolor{keywordtype}{int})\ ((v\ >>\ (i*8))\&0xFF)\ -\/\ (\textcolor{keywordtype}{int})\ ((o.v\ >>\ (i*8))\&0xFF);}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordflow}{return}\ d;}
+\DoxyCodeLine{00085\ \ \ \}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \ \ uint32\_t\ v;}
+\DoxyCodeLine{00088\ \};}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structimage__t}{image\_t}}}
+\DoxyCodeLine{00091\ \{}
+\DoxyCodeLine{00092\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00093\ }
+\DoxyCodeLine{00094\ \ \ \mbox{\hyperlink{structimage__t}{image\_t}}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ width\_,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ height\_,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ uint32\_t\ *data\_,}
+\DoxyCodeLine{00097\ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stride\_)\ :}
+\DoxyCodeLine{00098\ \ \ \ \ \ \ \ \ width\ (width\_),}
+\DoxyCodeLine{00099\ \ \ \ \ \ \ \ \ height\ (height\_),}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ own\_data\ (\textcolor{keyword}{false}),}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdata}{data}}\ ((\mbox{\hyperlink{structcolor__t}{color\_t}}\ *)\ data\_),}
+\DoxyCodeLine{00102\ \ \ \ \ \ \ \ \ stride\ (stride\_)\ \{\}}
+\DoxyCodeLine{00103\ \ \ \mbox{\hyperlink{structimage__t}{image\_t}}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ width\_,}
+\DoxyCodeLine{00104\ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ height\_)\ :}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ width\ (width\_),}
+\DoxyCodeLine{00106\ \ \ \ \ \ \ \ \ height\ (height\_),}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ own\_data\ (\textcolor{keyword}{true}),}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdata}{data}}\ ((\mbox{\hyperlink{structcolor__t}{color\_t}}\ *)\ malloc\ (\textcolor{keyword}{sizeof}\ (\mbox{\hyperlink{structdata}{data}}[0])\ *\ width\ *\ height)),}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ stride\ (width)\ \{\}}
+\DoxyCodeLine{00110\ \ \ \mbox{\hyperlink{structimage__t}{\string~image\_t}}\ ()}
+\DoxyCodeLine{00111\ \ \ \{\ \textcolor{keywordflow}{if}\ (own\_data)\ free\ (\mbox{\hyperlink{structdata}{data}});\ \}}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00113\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ \&operator\ ()\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{00114\ \ \ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structdata}{data}}[x\ +\ y\ *\ stride];\ \}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ operator\ ()\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00117\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structdata}{data}}[x\ +\ y\ *\ stride];\ \}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00120\ \ \ copy\_sub\_image\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structimage__t}{image\_t}}\ \&s,}
+\DoxyCodeLine{00121\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y,}
+\DoxyCodeLine{00122\ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ w,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ h)}
+\DoxyCodeLine{00123\ \ \ \{}
+\DoxyCodeLine{00124\ \ \ \ \ assert\ (x\ <\ width);}
+\DoxyCodeLine{00125\ \ \ \ \ assert\ (y\ <\ height);}
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ row\ =\ 0;\ row\ <\ h;\ row++)\ \{}
+\DoxyCodeLine{00127\ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *p\ =\ \mbox{\hyperlink{structdata}{data}}\ +\ x\ +\ hb\_min\ (y\ +\ row,\ height\ -\/\ 1)\ *\ stride;}
+\DoxyCodeLine{00128\ \ \ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *q\ =\ s.data\ +\ row\ *\ s.stride;}
+\DoxyCodeLine{00129\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (x\ +\ w\ <=\ width)}
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ col\ =\ 0;\ col\ <\ w;\ col++)}
+\DoxyCodeLine{00131\ \ \ \ \ \ \ *q++\ =\ *p++;}
+\DoxyCodeLine{00132\ \ \ \ \ \ \ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ limit\ =\ width\ -\/\ x;}
+\DoxyCodeLine{00134\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ col\ =\ 0;\ col\ <\ limit;\ col++)}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ *q++\ =\ *p++;}
+\DoxyCodeLine{00136\ \ \ \ \ p-\/-\/;}
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ col\ =\ limit;\ col\ <\ w;\ col++)}
+\DoxyCodeLine{00138\ \ \ \ \ \ \ *q++\ =\ *p;}
+\DoxyCodeLine{00139\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00140\ \ \ \ \ \}}
+\DoxyCodeLine{00141\ \ \ \}}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ width;}
+\DoxyCodeLine{00144\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ height;}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00147\ \ \ \textcolor{keywordtype}{bool}\ own\_data;}
+\DoxyCodeLine{00148\ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ *\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00149\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stride;}
+\DoxyCodeLine{00150\ \};}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structbiimage__t}{biimage\_t}}}
+\DoxyCodeLine{00153\ \{}
+\DoxyCodeLine{00154\ \ \ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ \mbox{\hyperlink{structbiimage__t}{biimage\_t}}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ height)\ :}
+\DoxyCodeLine{00157\ \ \ \ \ \ \ \ \ width\ (width),}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ height\ (height),}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ bg\ (0),\ fg\ (0),\ unicolor\ (\textcolor{keyword}{true}),}
+\DoxyCodeLine{00160\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdata}{data}}\ ((uint8\_t\ *)\ malloc\ (\textcolor{keyword}{sizeof}\ (\mbox{\hyperlink{structdata}{data}}[0])\ *\ width\ *\ height))\ \{\}}
+\DoxyCodeLine{00161\ \ \ \mbox{\hyperlink{structbiimage__t}{\string~biimage\_t}}\ ()}
+\DoxyCodeLine{00162\ \ \ \{\ free\ (\mbox{\hyperlink{structdata}{data}});\ \}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \ \ \textcolor{keywordtype}{void}\ set\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structimage__t}{image\_t}}\ \&image)}
+\DoxyCodeLine{00165\ \ \ \{}
+\DoxyCodeLine{00166\ \ \ \ \ assert\ (image.width\ ==\ width);}
+\DoxyCodeLine{00167\ \ \ \ \ assert\ (image.height\ ==\ height);}
+\DoxyCodeLine{00168\ \ \ \ \ \textcolor{keywordtype}{int}\ freq[8]\ =\ \{0\};}
+\DoxyCodeLine{00169\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y\ =\ 0;\ y\ <\ height;\ y++)}
+\DoxyCodeLine{00170\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x\ =\ 0;\ x\ <\ width;\ x++)\ \{}
+\DoxyCodeLine{00171\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ c\ =\ image\ (x,\ y);}
+\DoxyCodeLine{00172\ \ \ \ \ freq[c.to\_ansi\ ()]++;}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00174\ \ \ \ \ bg\ =\ 0;}
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ 8;\ i++)}
+\DoxyCodeLine{00176\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (freq[bg]\ <\ freq[i])}
+\DoxyCodeLine{00177\ \ \ \ \ bg\ =\ i;}
+\DoxyCodeLine{00178\ \ \ \ \ fg\ =\ 0;}
+\DoxyCodeLine{00179\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ 8;\ i++)}
+\DoxyCodeLine{00180\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ !=\ bg\ \&\&\ freq[fg]\ <\ freq[i])}
+\DoxyCodeLine{00181\ \ \ \ \ fg\ =\ i;}
+\DoxyCodeLine{00182\ \ \ \ \ \textcolor{keywordflow}{if}\ (fg\ ==\ bg\ ||\ freq[fg]\ ==\ 0)\ \{}
+\DoxyCodeLine{00183\ \ \ \ \ \ \ fg\ =\ bg;}
+\DoxyCodeLine{00184\ \ \ \ \ \ \ unicolor\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00185\ \ \ \ \ \}}
+\DoxyCodeLine{00186\ \ \ \ \ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00187\ \ \ \ \ \ \ unicolor\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00188\ }
+\DoxyCodeLine{00189\ \ \ \ \ \textcolor{comment}{/*\ Set\ the\ data...\ */}}
+\DoxyCodeLine{00190\ }
+\DoxyCodeLine{00191\ \ \ \ \ \textcolor{keywordflow}{if}\ (unicolor)\ \{}
+\DoxyCodeLine{00192\ \ \ \ \ \ \ memset\ (\mbox{\hyperlink{structdata}{data}},\ 0,\ \textcolor{keyword}{sizeof}\ (\mbox{\hyperlink{structdata}{data}}[0])\ *\ width\ *\ height);}
+\DoxyCodeLine{00193\ \ \ \ \ \ \ \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00194\ \ \ \ \ \}}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ bgc\ =\ color\_t::from\_ansi\ (bg);}
+\DoxyCodeLine{00197\ \ \ \ \ \mbox{\hyperlink{structcolor__t}{color\_t}}\ fgc\ =\ color\_t::from\_ansi\ (fg);}
+\DoxyCodeLine{00198\ \ \ \ \ \mbox{\hyperlink{structcolor__diff__t}{color\_diff\_t}}\ diff\ =\ fgc.diff\ (bgc);}
+\DoxyCodeLine{00199\ \ \ \ \ \textcolor{keywordtype}{int}\ dd\ =\ diff.dot\ (diff);}
+\DoxyCodeLine{00200\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y\ =\ 0;\ y\ <\ height;\ y++)}
+\DoxyCodeLine{00201\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x\ =\ 0;\ x\ <\ width;\ x++)\ \{}
+\DoxyCodeLine{00202\ \ \ \ \ \textcolor{keywordtype}{int}\ d\ =\ diff.dot\ (image\ (x,\ y).diff\ (bgc));}
+\DoxyCodeLine{00203\ \ \ \ \ (*this)(x,\ y)\ =\ d\ <\ 0\ ?\ 0\ :\ d\ >\ dd\ ?\ 255\ :\ lround\ (d\ *\ 255.\ /\ dd);}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00205\ \ \ \}}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ uint8\_t\ \&operator\ ()\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y)}
+\DoxyCodeLine{00208\ \ \ \{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structdata}{data}}[x\ +\ y\ *\ width];\ \}}
+\DoxyCodeLine{00209\ }
+\DoxyCodeLine{00210\ \ \ uint8\_t\ operator\ ()\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x,\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y)\textcolor{keyword}{\ const}}
+\DoxyCodeLine{00211\ \textcolor{keyword}{\ \ }\{\ \textcolor{keywordflow}{return}\ \mbox{\hyperlink{structdata}{data}}[x\ +\ y\ *\ width];\ \}}
+\DoxyCodeLine{00212\ }
+\DoxyCodeLine{00213\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ width;}
+\DoxyCodeLine{00214\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ height;}
+\DoxyCodeLine{00215\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ bg;}
+\DoxyCodeLine{00216\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ fg;}
+\DoxyCodeLine{00217\ \ \ \textcolor{keywordtype}{bool}\ unicolor;}
+\DoxyCodeLine{00218\ }
+\DoxyCodeLine{00219\ \ \ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00220\ \ \ uint8\_t\ *\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00221\ \};}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *}
+\DoxyCodeLine{00224\ block\_best\ (\textcolor{keyword}{const}\ \mbox{\hyperlink{structbiimage__t}{biimage\_t}}\ \&bi,\ \textcolor{keywordtype}{bool}\ *inverse)}
+\DoxyCodeLine{00225\ \{}
+\DoxyCodeLine{00226\ \ \ assert\ (bi.width\ \ <=\ CELL\_W);}
+\DoxyCodeLine{00227\ \ \ assert\ (bi.height\ <=\ CELL\_H);}
+\DoxyCodeLine{00228\ }
+\DoxyCodeLine{00229\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ score\ =\ UINT\_MAX;}
+\DoxyCodeLine{00230\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ row\_sum[CELL\_H]\ =\ \{0\};}
+\DoxyCodeLine{00231\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ col\_sum[CELL\_W]\ =\ \{0\};}
+\DoxyCodeLine{00232\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ row\_sum\_i[CELL\_H]\ =\ \{0\};}
+\DoxyCodeLine{00233\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ col\_sum\_i[CELL\_W]\ =\ \{0\};}
+\DoxyCodeLine{00234\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ quad[2][2]\ =\ \{\{0\}\};}
+\DoxyCodeLine{00235\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ quad\_i[2][2]\ =\ \{\{0\}\};}
+\DoxyCodeLine{00236\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ total\ =\ 0;}
+\DoxyCodeLine{00237\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ total\_i\ =\ 0;}
+\DoxyCodeLine{00238\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ y\ =\ 0;\ y\ <\ bi.height;\ y++)}
+\DoxyCodeLine{00239\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ x\ =\ 0;\ x\ <\ bi.width;\ x++)\ \{}
+\DoxyCodeLine{00240\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ c\ =\ bi\ (x,\ y);}
+\DoxyCodeLine{00241\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ c\_i\ =\ 255\ -\/\ c;}
+\DoxyCodeLine{00242\ \ \ \ \ \ \ row\_sum[y]\ +=\ c;}
+\DoxyCodeLine{00243\ \ \ \ \ \ \ row\_sum\_i[y]\ +=\ c\_i;}
+\DoxyCodeLine{00244\ \ \ \ \ \ \ col\_sum[x]\ +=\ c;}
+\DoxyCodeLine{00245\ \ \ \ \ \ \ col\_sum\_i[x]\ +=\ c\_i;}
+\DoxyCodeLine{00246\ \ \ \ \ \ \ quad[2\ *\ y\ /\ bi.height][2\ *\ x\ /\ bi.width]\ +=\ c;}
+\DoxyCodeLine{00247\ \ \ \ \ \ \ quad\_i[2\ *\ y\ /\ bi.height][2\ *\ x\ /\ bi.width]\ +=\ c\_i;}
+\DoxyCodeLine{00248\ \ \ \ \ \ \ total\ +=\ c;}
+\DoxyCodeLine{00249\ \ \ \ \ \ \ total\_i\ +=\ c\_i;}
+\DoxyCodeLine{00250\ \ \ \ \ \}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \textcolor{comment}{/*\ Make\ the\ sums\ cumulative\ */}}
+\DoxyCodeLine{00253\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ bi.height;\ i++)\ \{}
+\DoxyCodeLine{00254\ \ \ \ \ row\_sum[i]\ +=\ row\_sum[i\ -\/\ 1];}
+\DoxyCodeLine{00255\ \ \ \ \ row\_sum\_i[i]\ +=\ row\_sum\_i[i\ -\/\ 1];}
+\DoxyCodeLine{00256\ \ \ \}}
+\DoxyCodeLine{00257\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 1;\ i\ <\ bi.width;\ \ i++)\ \{}
+\DoxyCodeLine{00258\ \ \ \ \ col\_sum[i]\ +=\ col\_sum[i\ -\/\ 1];}
+\DoxyCodeLine{00259\ \ \ \ \ col\_sum\_i[i]\ +=\ col\_sum\_i[i\ -\/\ 1];}
+\DoxyCodeLine{00260\ \ \ \}}
+\DoxyCodeLine{00261\ }
+\DoxyCodeLine{00262\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *best\_c\ =\ \textcolor{stringliteral}{"{}\ "{}};}
+\DoxyCodeLine{00263\ }
+\DoxyCodeLine{00264\ \ \ \textcolor{comment}{/*\ Maybe\ empty\ is\ better!\ */}}
+\DoxyCodeLine{00265\ \ \ \textcolor{keywordflow}{if}\ (total\ <\ score)\ \{}
+\DoxyCodeLine{00266\ \ \ \ \ score\ =\ total;}
+\DoxyCodeLine{00267\ \ \ \ \ *inverse\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00268\ \ \ \ \ best\_c\ =\ \textcolor{stringliteral}{"{}\ "{}};}
+\DoxyCodeLine{00269\ \ \ \}}
+\DoxyCodeLine{00270\ \ \ \textcolor{comment}{/*\ Maybe\ full\ is\ better!\ */}}
+\DoxyCodeLine{00271\ \ \ \textcolor{keywordflow}{if}\ (total\_i\ <\ score)\ \{}
+\DoxyCodeLine{00272\ \ \ \ \ score\ =\ total\_i;}
+\DoxyCodeLine{00273\ \ \ \ \ *inverse\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00274\ \ \ \ \ best\_c\ =\ \textcolor{stringliteral}{"{}\ "{}};}
+\DoxyCodeLine{00275\ \ \ \}}
+\DoxyCodeLine{00276\ }
+\DoxyCodeLine{00277\ \ \ \textcolor{comment}{/*\ Find\ best\ lower\ line\ */}}
+\DoxyCodeLine{00278\ \ \ \textcolor{keywordflow}{if}\ (1)\ \{}
+\DoxyCodeLine{00279\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ best\_s\ =\ UINT\_MAX;}
+\DoxyCodeLine{00280\ \ \ \ \ \textcolor{keywordtype}{bool}\ best\_inv\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00281\ \ \ \ \ \textcolor{keywordtype}{int}\ best\_i\ =\ 0;}
+\DoxyCodeLine{00282\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ bi.height\ -\/\ 1;\ i++)}
+\DoxyCodeLine{00283\ \ \ \ \ \{}
+\DoxyCodeLine{00284\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ s;}
+\DoxyCodeLine{00285\ \ \ \ \ \ \ s\ =\ row\_sum[i]\ +\ total\_i\ -\/\ row\_sum\_i[i];}
+\DoxyCodeLine{00286\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (s\ <\ best\_s)\ \{}
+\DoxyCodeLine{00287\ \ \ \ \ best\_s\ =\ s;}
+\DoxyCodeLine{00288\ \ \ \ \ best\_i\ =\ i;}
+\DoxyCodeLine{00289\ \ \ \ \ best\_inv\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00290\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00291\ \ \ \ \ \ \ s\ =\ row\_sum\_i[i]\ +\ total\ -\/\ row\_sum[i];}
+\DoxyCodeLine{00292\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (s\ <\ best\_s)\ \{}
+\DoxyCodeLine{00293\ \ \ \ \ best\_s\ =\ s;}
+\DoxyCodeLine{00294\ \ \ \ \ best\_i\ =\ i;}
+\DoxyCodeLine{00295\ \ \ \ \ best\_inv\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00297\ \ \ \ \ \}}
+\DoxyCodeLine{00298\ \ \ \ \ \textcolor{keywordflow}{if}\ (best\_s\ <\ score)\ \{}
+\DoxyCodeLine{00299\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *lower[7]\ =\ \{\textcolor{stringliteral}{"{}▁"{}},\ \textcolor{stringliteral}{"{}▂"{}},\ \textcolor{stringliteral}{"{}▃"{}},\ \textcolor{stringliteral}{"{}▄"{}},\ \textcolor{stringliteral}{"{}▅"{}},\ \textcolor{stringliteral}{"{}▆"{}},\ \textcolor{stringliteral}{"{}▇"{}}\};}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ which\ =\ lround\ ((\textcolor{keywordtype}{double})\ ((best\_i\ +\ 1)\ *\ 8)\ /\ bi.height);}
+\DoxyCodeLine{00301\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (1\ <=\ which\ \&\&\ which\ <=\ 7)\ \{}
+\DoxyCodeLine{00302\ \ \ \ \ score\ =\ best\_s;}
+\DoxyCodeLine{00303\ \ \ \ \ *inverse\ =\ best\_inv;}
+\DoxyCodeLine{00304\ \ \ \ \ best\_c\ =\ lower[7\ -\/\ which];}
+\DoxyCodeLine{00305\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00306\ \ \ \ \ \}}
+\DoxyCodeLine{00307\ \ \ \}}
+\DoxyCodeLine{00308\ }
+\DoxyCodeLine{00309\ \ \ \textcolor{comment}{/*\ Find\ best\ left\ line\ */}}
+\DoxyCodeLine{00310\ \ \ \textcolor{keywordflow}{if}\ (1)\ \{}
+\DoxyCodeLine{00311\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ best\_s\ =\ UINT\_MAX;}
+\DoxyCodeLine{00312\ \ \ \ \ \textcolor{keywordtype}{bool}\ best\_inv\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00313\ \ \ \ \ \textcolor{keywordtype}{int}\ best\_i\ =\ 0;}
+\DoxyCodeLine{00314\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ bi.width\ -\/\ 1;\ i++)}
+\DoxyCodeLine{00315\ \ \ \ \ \{}
+\DoxyCodeLine{00316\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ s;}
+\DoxyCodeLine{00317\ \ \ \ \ \ \ s\ =\ col\_sum[i]\ +\ total\_i\ -\/\ col\_sum\_i[i];}
+\DoxyCodeLine{00318\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (s\ <\ best\_s)\ \{}
+\DoxyCodeLine{00319\ \ \ \ \ best\_s\ =\ s;}
+\DoxyCodeLine{00320\ \ \ \ \ best\_i\ =\ i;}
+\DoxyCodeLine{00321\ \ \ \ \ best\_inv\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00322\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00323\ \ \ \ \ \ \ s\ =\ col\_sum\_i[i]\ +\ total\ -\/\ col\_sum[i];}
+\DoxyCodeLine{00324\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (s\ <\ best\_s)\ \{}
+\DoxyCodeLine{00325\ \ \ \ \ best\_s\ =\ s;}
+\DoxyCodeLine{00326\ \ \ \ \ best\_i\ =\ i;}
+\DoxyCodeLine{00327\ \ \ \ \ best\_inv\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00328\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00329\ \ \ \ \ \}}
+\DoxyCodeLine{00330\ \ \ \ \ \textcolor{keywordflow}{if}\ (best\_s\ <\ score)\ \{}
+\DoxyCodeLine{00331\ \ \ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *left\ [7]\ =\ \{\textcolor{stringliteral}{"{}▏"{}},\ \textcolor{stringliteral}{"{}▎"{}},\ \textcolor{stringliteral}{"{}▍"{}},\ \textcolor{stringliteral}{"{}▌"{}},\ \textcolor{stringliteral}{"{}▋"{}},\ \textcolor{stringliteral}{"{}▊"{}},\ \textcolor{stringliteral}{"{}▉"{}}\};}
+\DoxyCodeLine{00332\ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ which\ =\ lround\ ((\textcolor{keywordtype}{double})\ ((best\_i\ +\ 1)\ *\ 8)\ /\ bi.width);}
+\DoxyCodeLine{00333\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (1\ <=\ which\ \&\&\ which\ <=\ 7)\ \{}
+\DoxyCodeLine{00334\ \ \ \ \ score\ =\ best\_s;}
+\DoxyCodeLine{00335\ \ \ \ \ *inverse\ =\ best\_inv;}
+\DoxyCodeLine{00336\ \ \ \ \ best\_c\ =\ left[which\ -\/\ 1];}
+\DoxyCodeLine{00337\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00338\ \ \ \ \ \}}
+\DoxyCodeLine{00339\ \ \ \}}
+\DoxyCodeLine{00340\ }
+\DoxyCodeLine{00341\ \ \ \textcolor{comment}{/*\ Find\ best\ quadrant\ */}}
+\DoxyCodeLine{00342\ \ \ \textcolor{keywordflow}{if}\ (1)\ \{}
+\DoxyCodeLine{00343\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ q\ =\ 0;}
+\DoxyCodeLine{00344\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ qs\ =\ 0;}
+\DoxyCodeLine{00345\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ i\ =\ 0;\ i\ <\ 2;\ i++)}
+\DoxyCodeLine{00346\ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ j\ =\ 0;\ j\ <\ 2;\ j++)}
+\DoxyCodeLine{00347\ \ \ \ \ \textcolor{keywordflow}{if}\ (quad[i][j]\ >\ quad\_i[i][j])\ \{}
+\DoxyCodeLine{00348\ \ \ \ \ \ \ q\ +=\ 1\ <<\ (2\ *\ i\ +\ j);}
+\DoxyCodeLine{00349\ \ \ \ \ \ \ qs\ +=\ quad\_i[i][j];}
+\DoxyCodeLine{00350\ \ \ \ \ \}\ \textcolor{keywordflow}{else}}
+\DoxyCodeLine{00351\ \ \ \ \ \ \ qs\ +=\ quad[i][j];}
+\DoxyCodeLine{00352\ \ \ \ \ \textcolor{keywordflow}{if}\ (qs\ <\ score)\ \{}
+\DoxyCodeLine{00353\ \ \ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *c\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00354\ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ inv\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00355\ \ \ \ \ \ \ \textcolor{keywordflow}{switch}\ (q)\ \{}
+\DoxyCodeLine{00356\ \ \ \ \ \textcolor{keywordflow}{case}\ 1:\ \ c\ =\ \textcolor{stringliteral}{"{}▟"{}};\ inv\ =\ \textcolor{keyword}{true};\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00357\ \ \ \ \ \textcolor{keywordflow}{case}\ 2:\ \ c\ =\ \textcolor{stringliteral}{"{}▙"{}};\ inv\ =\ \textcolor{keyword}{true};\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00358\ \ \ \ \ \textcolor{keywordflow}{case}\ 4:\ \ c\ =\ \textcolor{stringliteral}{"{}▖"{}};\ inv\ =\ \textcolor{keyword}{false};\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00359\ \ \ \ \ \textcolor{keywordflow}{case}\ 8:\ \ c\ =\ \textcolor{stringliteral}{"{}▗"{}};\ inv\ =\ \textcolor{keyword}{false};\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00360\ \ \ \ \ \textcolor{keywordflow}{case}\ 9:\ \ c\ =\ \textcolor{stringliteral}{"{}▚"{}};\ inv\ =\ \textcolor{keyword}{false};\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00361\ \ \ \ \ \textcolor{keywordflow}{case}\ 6:\ \ c\ =\ \textcolor{stringliteral}{"{}▞"{}};\ inv\ =\ \textcolor{keyword}{false};\ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00362\ \ \ \ \ \textcolor{keywordflow}{case}\ 7:\ \ c\ =\ \textcolor{stringliteral}{"{}▜"{}};\ inv\ =\ \textcolor{keyword}{true};\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00363\ \ \ \ \ \textcolor{keywordflow}{case}\ 11:\ c\ =\ \textcolor{stringliteral}{"{}▜"{}};\ inv\ =\ \textcolor{keyword}{true};\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00364\ \ \ \ \ \textcolor{keywordflow}{case}\ 13:\ c\ =\ \textcolor{stringliteral}{"{}▙"{}};\ inv\ =\ \textcolor{keyword}{true};\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00365\ \ \ \ \ \textcolor{keywordflow}{case}\ 14:\ c\ =\ \textcolor{stringliteral}{"{}▟"{}};\ inv\ =\ \textcolor{keyword}{true};\ \ \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00366\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00367\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (c)\ \{}
+\DoxyCodeLine{00368\ \ \ \ \ score\ =\ qs;}
+\DoxyCodeLine{00369\ \ \ \ \ *inverse\ =\ inv;}
+\DoxyCodeLine{00370\ \ \ \ \ best\_c\ =\ c;}
+\DoxyCodeLine{00371\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00372\ \ \ \ \ \}}
+\DoxyCodeLine{00373\ \ \ \}}
+\DoxyCodeLine{00374\ }
+\DoxyCodeLine{00375\ \ \ \textcolor{keywordflow}{return}\ best\_c;}
+\DoxyCodeLine{00376\ \}}
+\DoxyCodeLine{00377\ }
+\DoxyCodeLine{00378\ \textcolor{keyword}{static}\ \textcolor{keyword}{inline}\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00379\ ansi\_print\_image\_rgb24\ (\textcolor{keyword}{const}\ uint32\_t\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00380\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ width,}
+\DoxyCodeLine{00381\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ height,}
+\DoxyCodeLine{00382\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ stride)}
+\DoxyCodeLine{00383\ \{}
+\DoxyCodeLine{00384\ \ \ \mbox{\hyperlink{structimage__t}{image\_t}}\ image\ (width,\ height,\ \mbox{\hyperlink{structdata}{data}},\ stride);}
+\DoxyCodeLine{00385\ }
+\DoxyCodeLine{00386\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ rows\ =\ (height\ +\ CELL\_H\ -\/\ 1)\ /\ CELL\_H;}
+\DoxyCodeLine{00387\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ cols\ =\ (width\ +\ \ CELL\_W\ -\/\ 1)\ /\ CELL\_W;}
+\DoxyCodeLine{00388\ \ \ \mbox{\hyperlink{structimage__t}{image\_t}}\ cell\ (CELL\_W,\ CELL\_H);}
+\DoxyCodeLine{00389\ \ \ \mbox{\hyperlink{structbiimage__t}{biimage\_t}}\ bi\ (CELL\_W,\ CELL\_H);}
+\DoxyCodeLine{00390\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ last\_bg\ =\ -\/1,\ last\_fg\ =\ -\/1;}
+\DoxyCodeLine{00391\ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ row\ =\ 0;\ row\ <\ rows;\ row++)\ \{}
+\DoxyCodeLine{00392\ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ col\ =\ 0;\ col\ <\ cols;\ col++)\ \{}
+\DoxyCodeLine{00393\ \ \ \ \ \ \ image.copy\_sub\_image\ (cell,\ col\ *\ CELL\_W,\ row\ *\ CELL\_H,\ CELL\_W,\ CELL\_H);}
+\DoxyCodeLine{00394\ \ \ \ \ \ \ bi.set\ (cell);}
+\DoxyCodeLine{00395\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (bi.unicolor)\ \{}
+\DoxyCodeLine{00396\ \ \ \ \ \textcolor{keywordflow}{if}\ (last\_bg\ !=\ bi.bg)\ \{}
+\DoxyCodeLine{00397\ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}\%c[\%dm"{}},\ ESC\_E,\ 40\ +\ bi.bg);}
+\DoxyCodeLine{00398\ \ \ \ \ \ \ last\_bg\ =\ bi.bg;}
+\DoxyCodeLine{00399\ \ \ \ \ \}}
+\DoxyCodeLine{00400\ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}\ "{}});}
+\DoxyCodeLine{00401\ \ \ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00402\ \ \ \ \ \textcolor{comment}{/*\ Figure\ out\ the\ closest\ character\ to\ the\ biimage\ */}}
+\DoxyCodeLine{00403\ \ \ \ \ \textcolor{keywordtype}{bool}\ inverse\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00404\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *c\ =\ block\_best\ (bi,\ \&inverse);}
+\DoxyCodeLine{00405\ \ \ \ \ \textcolor{keywordflow}{if}\ (inverse)\ \{}
+\DoxyCodeLine{00406\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (last\_bg\ !=\ bi.fg\ ||\ last\_fg\ !=\ bi.bg)\ \{}
+\DoxyCodeLine{00407\ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}\%c[\%d;\%dm"{}},\ ESC\_E,\ 30\ +\ bi.bg,\ 40\ +\ bi.fg);}
+\DoxyCodeLine{00408\ \ \ \ \ \ \ \ \ last\_bg\ =\ bi.fg;}
+\DoxyCodeLine{00409\ \ \ \ \ \ \ \ \ last\_fg\ =\ bi.bg;}
+\DoxyCodeLine{00410\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00411\ \ \ \ \ \}\ \textcolor{keywordflow}{else}\ \{}
+\DoxyCodeLine{00412\ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (last\_bg\ !=\ bi.bg\ ||\ last\_fg\ !=\ bi.fg)\ \{}
+\DoxyCodeLine{00413\ \ \ \ \ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}\%c[\%d;\%dm"{}},\ ESC\_E,\ 40\ +\ bi.bg,\ 30\ +\ bi.fg);}
+\DoxyCodeLine{00414\ \ \ \ \ \ \ \ \ last\_bg\ =\ bi.bg;}
+\DoxyCodeLine{00415\ \ \ \ \ \ \ \ \ last\_fg\ =\ bi.fg;}
+\DoxyCodeLine{00416\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00417\ \ \ \ \ \}}
+\DoxyCodeLine{00418\ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}\%s"{}},\ c);}
+\DoxyCodeLine{00419\ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00420\ \ \ \ \ \}}
+\DoxyCodeLine{00421\ \ \ \ \ printf\ (\textcolor{stringliteral}{"{}\%c[0m\(\backslash\)n"{}},\ ESC\_E);\ \textcolor{comment}{/*\ Reset\ */}}
+\DoxyCodeLine{00422\ \ \ \ \ last\_bg\ =\ last\_fg\ =\ -\/1;}
+\DoxyCodeLine{00423\ \ \ \}}
+\DoxyCodeLine{00424\ \}}
+\DoxyCodeLine{00425\ }
+\DoxyCodeLine{00426\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

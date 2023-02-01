@@ -1,0 +1,126 @@
+\hypertarget{vp8li__enc_8h_source}{}\doxysection{vp8li\+\_\+enc.\+h}
+\label{vp8li__enc_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/enc/vp8li\_enc.h@{AseSprite/aseprite/third\_party/libwebp/src/enc/vp8li\_enc.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2012\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Lossless\ encoder:\ internal\ header.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Vikas\ Arora\ (vikaas.arora@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_ENC\_VP8LI\_ENC\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_ENC\_VP8LI\_ENC\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#ifdef\ HAVE\_CONFIG\_H}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}src/webp/config.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00020\ \textcolor{comment}{//\ Either\ WEBP\_NEAR\_LOSSLESS\ is\ defined\ as\ 0\ in\ config.h\ when\ compiling\ to}}
+\DoxyCodeLine{00021\ \textcolor{comment}{//\ disable\ near-\/lossless,\ or\ it\ is\ enabled\ by\ default.}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#ifndef\ WEBP\_NEAR\_LOSSLESS}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#define\ WEBP\_NEAR\_LOSSLESS\ 1}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}src/enc/backward\_references\_enc.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}src/enc/histogram\_enc.h"{}}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#include\ "{}src/utils/bit\_writer\_utils.h"{}}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ "{}src/webp/encode.h"{}}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ "{}src/webp/format\_constants.h"{}}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00033\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ maximum\ value\ of\ transform\_bits\_\ in\ VP8LEncoder.}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ MAX\_TRANSFORM\_BITS\ 6}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00040\ \ \ kEncoderNone\ =\ 0,}
+\DoxyCodeLine{00041\ \ \ kEncoderARGB,}
+\DoxyCodeLine{00042\ \ \ kEncoderNearLossless,}
+\DoxyCodeLine{00043\ \ \ kEncoderPalette}
+\DoxyCodeLine{00044\ \}\ VP8LEncoderARGBContent;}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00047\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ config\_;\ \ \ \ \ \ \textcolor{comment}{//\ user\ configuration\ and\ parameters}}
+\DoxyCodeLine{00048\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ pic\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ input\ picture.}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \ \ uint32\_t*\ argb\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Transformed\ argb\ image\ data.}}
+\DoxyCodeLine{00051\ \ \ VP8LEncoderARGBContent\ argb\_content\_;\ \ \textcolor{comment}{//\ Content\ type\ of\ the\ argb\ buffer.}}
+\DoxyCodeLine{00052\ \ \ uint32\_t*\ argb\_scratch\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Scratch\ memory\ for\ argb\ rows}}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ (used\ for\ prediction).}}
+\DoxyCodeLine{00054\ \ \ uint32\_t*\ transform\_data\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Scratch\ memory\ for\ transform\ data.}}
+\DoxyCodeLine{00055\ \ \ uint32\_t*\ transform\_mem\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Currently\ allocated\ memory.}}
+\DoxyCodeLine{00056\ \ \ \textcolor{keywordtype}{size\_t}\ \ \ \ transform\_mem\_size\_;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ Currently\ allocated\ memory\ size.}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ current\_width\_;\ \ \ \ \ \ \ \textcolor{comment}{//\ Corresponds\ to\ packed\ image\ width.}}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00060\ \ \ \textcolor{comment}{//\ Encoding\ parameters\ derived\ from\ quality\ parameter.}}
+\DoxyCodeLine{00061\ \ \ \textcolor{keywordtype}{int}\ histo\_bits\_;}
+\DoxyCodeLine{00062\ \ \ \textcolor{keywordtype}{int}\ transform\_bits\_;\ \ \ \ \textcolor{comment}{//\ <=\ MAX\_TRANSFORM\_BITS.}}
+\DoxyCodeLine{00063\ \ \ \textcolor{keywordtype}{int}\ cache\_bits\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ If\ equal\ to\ 0,\ don't\ use\ color\ cache.}}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \textcolor{comment}{//\ Encoding\ parameters\ derived\ from\ image\ characteristics.}}
+\DoxyCodeLine{00066\ \ \ \textcolor{keywordtype}{int}\ use\_cross\_color\_;}
+\DoxyCodeLine{00067\ \ \ \textcolor{keywordtype}{int}\ use\_subtract\_green\_;}
+\DoxyCodeLine{00068\ \ \ \textcolor{keywordtype}{int}\ use\_predict\_;}
+\DoxyCodeLine{00069\ \ \ \textcolor{keywordtype}{int}\ use\_palette\_;}
+\DoxyCodeLine{00070\ \ \ \textcolor{keywordtype}{int}\ palette\_size\_;}
+\DoxyCodeLine{00071\ \ \ uint32\_t\ palette\_[MAX\_PALETTE\_SIZE];}
+\DoxyCodeLine{00072\ \ \ \textcolor{comment}{//\ Sorted\ version\ of\ palette\_\ for\ cache\ purposes.}}
+\DoxyCodeLine{00073\ \ \ uint32\_t\ palette\_sorted\_[MAX\_PALETTE\_SIZE];}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \textcolor{comment}{//\ Some\ 'scratch'\ (potentially\ large)\ objects.}}
+\DoxyCodeLine{00076\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_l_backward_refs}{VP8LBackwardRefs}}\ refs\_[4];\ \ \textcolor{comment}{//\ Backward\ Refs\ array\ for\ temporaries.}}
+\DoxyCodeLine{00077\ \ \ \mbox{\hyperlink{struct_v_p8_l_hash_chain}{VP8LHashChain}}\ hash\_chain\_;\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ HashChain\ data\ for\ constructing}}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ backward\ references.}}
+\DoxyCodeLine{00079\ \}\ \mbox{\hyperlink{struct_v_p8_l_encoder}{VP8LEncoder}};}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00081\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00082\ \textcolor{comment}{//\ internal\ functions.\ Not\ public.}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{//\ Encodes\ the\ picture.}}
+\DoxyCodeLine{00085\ \textcolor{comment}{//\ Returns\ 0\ if\ config\ or\ picture\ is\ NULL\ or\ picture\ doesn't\ have\ valid\ argb}}
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ input.}}
+\DoxyCodeLine{00087\ \textcolor{keywordtype}{int}\ VP8LEncodeImage(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structconfig__s}{config}},}
+\DoxyCodeLine{00088\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ \textcolor{keyword}{const}\ picture);}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{comment}{//\ Encodes\ the\ main\ image\ stream\ using\ the\ supplied\ bit\ writer.}}
+\DoxyCodeLine{00091\ \textcolor{comment}{//\ If\ 'use\_cache'\ is\ false,\ disables\ the\ use\ of\ color\ cache.}}
+\DoxyCodeLine{00092\ WebPEncodingError\ VP8LEncodeStream(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_config}{WebPConfig}}*\ \textcolor{keyword}{const}\ \mbox{\hyperlink{structconfig__s}{config}},}
+\DoxyCodeLine{00093\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ \textcolor{keyword}{const}\ picture,}
+\DoxyCodeLine{00094\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_l_bit_writer}{VP8LBitWriter}}*\ \textcolor{keyword}{const}\ bw,\ \textcolor{keywordtype}{int}\ use\_cache);}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#if\ (WEBP\_NEAR\_LOSSLESS\ ==\ 1)}}
+\DoxyCodeLine{00097\ \textcolor{comment}{//\ in\ near\_lossless.c}}
+\DoxyCodeLine{00098\ \textcolor{comment}{//\ Near\ lossless\ preprocessing\ in\ RGB\ color-\/space.}}
+\DoxyCodeLine{00099\ \textcolor{keywordtype}{int}\ VP8ApplyNearLossless(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_picture}{WebPPicture}}*\ \textcolor{keyword}{const}\ picture,\ \textcolor{keywordtype}{int}\ quality,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ argb\_dst);}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00104\ \textcolor{comment}{//\ Image\ transforms\ in\ predictor.c.}}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00106\ \textcolor{keywordtype}{void}\ VP8LResidualImage(\textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ bits,\ \textcolor{keywordtype}{int}\ low\_effort,}
+\DoxyCodeLine{00107\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ argb,\ uint32\_t*\ \textcolor{keyword}{const}\ argb\_scratch,}
+\DoxyCodeLine{00108\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ image,\ \textcolor{keywordtype}{int}\ near\_lossless,\ \textcolor{keywordtype}{int}\ exact,}
+\DoxyCodeLine{00109\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ used\_subtract\_green);}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{keywordtype}{void}\ VP8LColorSpaceTransform(\textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height,\ \textcolor{keywordtype}{int}\ bits,\ \textcolor{keywordtype}{int}\ quality,}
+\DoxyCodeLine{00112\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t*\ \textcolor{keyword}{const}\ argb,\ uint32\_t*\ image);}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00115\ }
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00117\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_ENC\_VP8LI\_ENC\_H\_}}
+
+\end{DoxyCode}

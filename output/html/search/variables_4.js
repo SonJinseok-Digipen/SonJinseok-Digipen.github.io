@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['data_0',['data',['../struct_s_d_l___controller_sensor_event.html#a214cbd66e4c8b5e58a60f21faa00e0e7',1,'SDL_ControllerSensorEvent::data()'],['../struct_s_d_l___sensor_event.html#ab08c166baa755f66b13df0d66ed6d29b',1,'SDL_SensorEvent::data()'],['../struct_s_d_l___haptic_custom.html#ad5a034f97e1699eacbe3f478538537c5',1,'SDL_HapticCustom::data()']]],
+  ['data1_1',['data1',['../struct_s_d_l___display_event.html#a4feb7329af16a060cc16d539e5cb13b5',1,'SDL_DisplayEvent::data1()'],['../struct_s_d_l___window_event.html#a01da0025428d3434c80021f3e4089fec',1,'SDL_WindowEvent::data1()'],['../struct_s_d_l___user_event.html#ab2893a12be2f97195f16463a23107913',1,'SDL_UserEvent::data1()']]],
+  ['data2_2',['data2',['../struct_s_d_l___window_event.html#af6cd0a21bc9ecadfee42f6a0147d7171',1,'SDL_WindowEvent::data2()'],['../struct_s_d_l___user_event.html#aae4dbf65c34d654c9edf519eb061b7cf',1,'SDL_UserEvent::data2()']]],
+  ['deadband_3',['deadband',['../struct_s_d_l___haptic_condition.html#af684c8eeeb719739a32723c00c5a2bbd',1,'SDL_HapticCondition']]],
+  ['default_5fflag_5fvalues_5f_4',['default_flag_values_',['../class_c_l_i_1_1_option.html#ad2c7c8c939c6eacfb25ae7a83c0640af',1,'CLI::Option']]],
+  ['default_5ffunction_5f_5',['default_function_',['../class_c_l_i_1_1_option.html#acc7769c9cd48d7c7302dd51aa8fd3bd2',1,'CLI::Option']]],
+  ['default_5fstartup_6',['default_startup',['../class_c_l_i_1_1_app.html#ae55bdb283aa20595c30a0cbb83d833d3',1,'CLI::App']]],
+  ['default_5fstr_5f_7',['default_str_',['../class_c_l_i_1_1_option.html#a169893983f2dd0dc840ebca98bb76698',1,'CLI::Option']]],
+  ['delay_8',['delay',['../struct_s_d_l___haptic_constant.html#a16a751009893f5412201e3ce91146b25',1,'SDL_HapticConstant::delay()'],['../struct_s_d_l___haptic_periodic.html#a8688d1c7ee6270ed290f6b474aef5ec9',1,'SDL_HapticPeriodic::delay()'],['../struct_s_d_l___haptic_condition.html#aad40417980530ca8d80c62ba864a090b',1,'SDL_HapticCondition::delay()'],['../struct_s_d_l___haptic_ramp.html#ac9471016f41919b4a1c786bbd649a777',1,'SDL_HapticRamp::delay()'],['../struct_s_d_l___haptic_custom.html#a094229466ff4cf695860db664100a2b0',1,'SDL_HapticCustom::delay()']]],
+  ['delimiter_5f_9',['delimiter_',['../class_c_l_i_1_1_option_base.html#ac4164d93e2b8e59b2de24dad04a9f34b',1,'CLI::OptionBase']]],
+  ['desc_5ffunction_5f_10',['desc_function_',['../class_c_l_i_1_1_validator.html#a9f00a86d01b79facfc300be76b7463d7',1,'CLI::Validator']]],
+  ['description_5f_11',['description_',['../class_c_l_i_1_1_option.html#aa6427b2f3303cc4469cacdc098b9d4bf',1,'CLI::Option::description_()'],['../class_c_l_i_1_1_app.html#aa6a2e79e0a5990b44bc5d76504437fcd',1,'CLI::App::description_()']]],
+  ['dgesture_12',['dgesture',['../union_s_d_l___event.html#a4481167b9f8549aeb254e97ca812e74d',1,'SDL_Event']]],
+  ['dir_13',['dir',['../struct_s_d_l___haptic_direction.html#a6cebd8118a3e61e36bd0c503ae020362',1,'SDL_HapticDirection']]],
+  ['direction_14',['direction',['../struct_s_d_l___mouse_wheel_event.html#a9fc46552d116499e5b8ca89d66df932c',1,'SDL_MouseWheelEvent::direction()'],['../struct_s_d_l___haptic_constant.html#a3e871debf4e57c35960f019d2605d84f',1,'SDL_HapticConstant::direction()'],['../struct_s_d_l___haptic_periodic.html#a2c4f27d4583187a7a994e79ad49083d3',1,'SDL_HapticPeriodic::direction()'],['../struct_s_d_l___haptic_condition.html#a728507d30d18998949313de3a25e5581',1,'SDL_HapticCondition::direction()'],['../struct_s_d_l___haptic_ramp.html#a6fb6c67ccf262b8f3ec08bcdf08f9965',1,'SDL_HapticRamp::direction()'],['../struct_s_d_l___haptic_custom.html#ad7eb84f59404d9e0da07570b4b57dd43',1,'SDL_HapticCustom::direction()']]],
+  ['disable_5fflag_5foverride_5f_15',['disable_flag_override_',['../class_c_l_i_1_1_option_base.html#ab62f608c0957e32ccf56f2834aa574c1',1,'CLI::OptionBase']]],
+  ['disabled_5f_16',['disabled_',['../class_c_l_i_1_1_app.html#a405d0642ba4245a6ea61b230c4854667',1,'CLI::App']]],
+  ['display_17',['display',['../struct_s_d_l___display_event.html#af7159e813fb168a2fdfe5070e6026a39',1,'SDL_DisplayEvent::display()'],['../union_s_d_l___event.html#afe513d46e191a9791988b9adab705ef6',1,'SDL_Event::display()']]],
+  ['driverdata_18',['driverdata',['../struct_s_d_l___display_mode.html#a411f93025411da873f37a384ae62bbcf',1,'SDL_DisplayMode']]],
+  ['drop_19',['drop',['../union_s_d_l___event.html#acff77bccbca65abbb876360a3f5209c9',1,'SDL_Event']]],
+  ['dst_5fformat_20',['dst_format',['../struct_s_d_l___audio_c_v_t.html#a8f890d017be857a3b048bf00525736c6',1,'SDL_AudioCVT']]],
+  ['dx_21',['dx',['../struct_s_d_l___touch_finger_event.html#ac6acac209d6e2bd659fdb6760081393d',1,'SDL_TouchFingerEvent']]],
+  ['dy_22',['dy',['../struct_s_d_l___touch_finger_event.html#a9c0320c5f18a6b9d10da657e166608c9',1,'SDL_TouchFingerEvent']]]
+];

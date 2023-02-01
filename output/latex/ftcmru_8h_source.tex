@@ -1,0 +1,254 @@
+\hypertarget{ftcmru_8h_source}{}\doxysection{ftcmru.\+h}
+\label{ftcmru_8h_source}\index{AseSprite/aseprite/third\_party/freetype2/src/cache/ftcmru.h@{AseSprite/aseprite/third\_party/freetype2/src/cache/ftcmru.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/****************************************************************************}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ ftcmru.h}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ \ Simple\ MRU\ list-\/cache\ (specification).}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2000-\/2022\ by}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ David\ Turner,\ Robert\ Wilhelm,\ and\ Werner\ Lemberg.}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ This\ file\ is\ part\ of\ the\ FreeType\ project,\ and\ may\ only\ be\ used,}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ modified,\ and\ distributed\ under\ the\ terms\ of\ the\ FreeType\ project}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ license,\ LICENSE.TXT.\ \ By\ continuing\ to\ use,\ modify,\ or\ distribute}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ this\ file\ you\ indicate\ that\ you\ have\ read\ the\ license\ and}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ understand\ and\ accept\ it\ fully.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{comment}{\ \ /**************************************************************************}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ \ \ *\ An\ MRU\ is\ a\ list\ that\ cannot\ hold\ more\ than\ a\ certain\ number\ of}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ \ \ *\ elements\ (`max\_elements').\ \ All\ elements\ in\ the\ list\ are\ sorted\ in}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ \ \ *\ least-\/recently-\/used\ order,\ i.e.,\ the\ `oldest'\ element\ is\ at\ the\ tail}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ \ \ *\ of\ the\ list.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ \ \ *\ When\ doing\ a\ lookup\ (either\ through\ `Lookup()'\ or\ `Lookup\_Node()'),}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ \ \ *\ the\ list\ is\ searched\ for\ an\ element\ with\ the\ corresponding\ key.\ \ If}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ \ \ *\ it\ is\ found,\ the\ element\ is\ moved\ to\ the\ head\ of\ the\ list\ and\ is}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ \ \ *\ returned.}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00031\ \textcolor{comment}{\ \ \ *\ If\ no\ corresponding\ element\ is\ found,\ the\ lookup\ routine\ will\ try\ to}}
+\DoxyCodeLine{00032\ \textcolor{comment}{\ \ \ *\ obtain\ a\ new\ element\ with\ the\ relevant\ key.\ \ If\ the\ list\ is\ already}}
+\DoxyCodeLine{00033\ \textcolor{comment}{\ \ \ *\ full,\ the\ oldest\ element\ from\ the\ list\ is\ discarded\ and\ replaced\ by\ a}}
+\DoxyCodeLine{00034\ \textcolor{comment}{\ \ \ *\ new\ one;\ a\ new\ element\ is\ added\ to\ the\ list\ otherwise.}}
+\DoxyCodeLine{00035\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ \ \ *\ Note\ that\ it\ is\ possible\ to\ pre-\/allocate\ the\ element\ list\ nodes.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ \ \ *\ This\ is\ handy\ if\ `max\_elements'\ is\ sufficiently\ small,\ as\ it\ saves}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ \ \ *\ allocations/releases\ during\ the\ lookup\ process.}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ \ \ *}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ \ \ */}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#ifndef\ FTCMRU\_H\_}}
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#define\ FTCMRU\_H\_}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#include\ <freetype/freetype.h>}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#include\ <freetype/internal/compiler-\/macros.h>}}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#ifdef\ FREETYPE\_H}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#error\ "{}freetype.h\ of\ FreeType\ 1\ has\ been\ loaded!"{}}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#error\ "{}Please\ fix\ the\ directory\ search\ order\ for\ header\ files"{}}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\#error\ "{}so\ that\ freetype.h\ of\ FreeType\ 2\ is\ found\ first."{}}}
+\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\#define\ \ xxFT\_DEBUG\_ERROR}}
+\DoxyCodeLine{00057\ \textcolor{preprocessor}{\#define\ \ FTC\_INLINE}}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ FT\_BEGIN\_HEADER}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_t_c___mru_node_rec__}{FTC\_MruNodeRec\_}}*\ \ FTC\_MruNode;}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t_c___mru_node_rec__}{FTC\_MruNodeRec\_}}}
+\DoxyCodeLine{00064\ \ \ \{}
+\DoxyCodeLine{00065\ \ \ \ \ FTC\_MruNode\ \ next;}
+\DoxyCodeLine{00066\ \ \ \ \ FTC\_MruNode\ \ prev;}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \}\ \mbox{\hyperlink{struct_f_t_c___mru_node_rec__}{FTC\_MruNodeRec}};}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00072\ \ \ FTC\_MruNode\_Prepend(\ FTC\_MruNode\ \ *plist,}
+\DoxyCodeLine{00073\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\ \ \ node\ );}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00076\ \ \ FTC\_MruNode\_Up(\ FTC\_MruNode\ \ *plist,}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\ \ \ node\ );}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00080\ \ \ FTC\_MruNode\_Remove(\ FTC\_MruNode\ \ *plist,}
+\DoxyCodeLine{00081\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\ \ \ node\ );}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruListRec\_}}*\ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}};}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_f_t_c___mru_list_class_rec__}{FTC\_MruListClassRec\_}}\ const\ *\ \ FTC\_MruListClass;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \textcolor{keyword}{typedef}\ FT\_Bool}
+\DoxyCodeLine{00090\ \ \ (*FTC\_MruNode\_CompareFunc)(\ FTC\_MruNode\ \ node,}
+\DoxyCodeLine{00091\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ key\ );}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00094\ \ \ (*FTC\_MruNode\_InitFunc)(\ FTC\_MruNode\ \ node,}
+\DoxyCodeLine{00095\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ key,}
+\DoxyCodeLine{00096\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \mbox{\hyperlink{structdata}{data}}\ );}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \ \ \textcolor{keyword}{typedef}\ FT\_Error}
+\DoxyCodeLine{00099\ \ \ (*FTC\_MruNode\_ResetFunc)(\ FTC\_MruNode\ \ node,}
+\DoxyCodeLine{00100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ key,}
+\DoxyCodeLine{00101\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \mbox{\hyperlink{structdata}{data}}\ );}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \textcolor{keyword}{typedef}\ void}
+\DoxyCodeLine{00104\ \ \ (*FTC\_MruNode\_DoneFunc)(\ FTC\_MruNode\ \ node,}
+\DoxyCodeLine{00105\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \mbox{\hyperlink{structdata}{data}}\ );}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t_c___mru_list_class_rec__}{FTC\_MruListClassRec\_}}}
+\DoxyCodeLine{00109\ \ \ \{}
+\DoxyCodeLine{00110\ \ \ \ \ FT\_Offset\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ node\_size;}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \ \ \ \ FTC\_MruNode\_CompareFunc\ \ node\_compare;}
+\DoxyCodeLine{00113\ \ \ \ \ FTC\_MruNode\_InitFunc\ \ \ \ \ node\_init;}
+\DoxyCodeLine{00114\ \ \ \ \ FTC\_MruNode\_ResetFunc\ \ \ \ node\_reset;}
+\DoxyCodeLine{00115\ \ \ \ \ FTC\_MruNode\_DoneFunc\ \ \ \ \ node\_done;}
+\DoxyCodeLine{00116\ }
+\DoxyCodeLine{00117\ \ \ \}\ \mbox{\hyperlink{struct_f_t_c___mru_list_class_rec__}{FTC\_MruListClassRec}};}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ \ }\mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruListRec\_}}}
+\DoxyCodeLine{00121\ \ \ \{}
+\DoxyCodeLine{00122\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ num\_nodes;}
+\DoxyCodeLine{00123\ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ \ \ \ max\_nodes;}
+\DoxyCodeLine{00124\ \ \ \ \ FTC\_MruNode\ \ \ \ \ \ \ \ \ \ nodes;}
+\DoxyCodeLine{00125\ \ \ \ \ FT\_Pointer\ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structdata}{data}};}
+\DoxyCodeLine{00126\ \ \ \ \ \mbox{\hyperlink{struct_f_t_c___mru_list_class_rec__}{FTC\_MruListClassRec}}\ \ clazz;}
+\DoxyCodeLine{00127\ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}};}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00129\ \ \ \}\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruListRec}};}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00131\ }
+\DoxyCodeLine{00132\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00133\ \ \ FTC\_MruList\_Init(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ \ \ \ \ \ list,}
+\DoxyCodeLine{00134\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruListClass\ \ clazz,}
+\DoxyCodeLine{00135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_UInt\ \ \ \ \ \ \ \ \ \ \ max\_nodes,}
+\DoxyCodeLine{00136\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \ \ \ \ \ \mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00137\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Memory\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{structmemory}{memory}}\ );}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00140\ \ \ FTC\_MruList\_Reset(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ list\ );}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00144\ \ \ FTC\_MruList\_Done(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ list\ );}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ }
+\DoxyCodeLine{00147\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00148\ \ \ FTC\_MruList\_New(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ \ list,}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \ key,}
+\DoxyCodeLine{00150\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\ \ *anode\ );}
+\DoxyCodeLine{00151\ }
+\DoxyCodeLine{00152\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00153\ \ \ FTC\_MruList\_Remove(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ list,}
+\DoxyCodeLine{00154\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\ \ node\ );}
+\DoxyCodeLine{00155\ }
+\DoxyCodeLine{00156\ \ \ FT\_LOCAL(\ \textcolor{keywordtype}{void}\ )}
+\DoxyCodeLine{00157\ \ \ FTC\_MruList\_RemoveSelection(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ list,}
+\DoxyCodeLine{00158\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\_CompareFunc\ \ selection,}
+\DoxyCodeLine{00159\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ key\ );}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#ifdef\ FTC\_INLINE}}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\#define\ FTC\_MRULIST\_LOOKUP\_CMP(\ list,\ key,\ compare,\ node,\ error\ )\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\ \ FT\_BEGIN\_STMNT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\ \ \ \ FTC\_MruNode*\ \ \ \ \ \ \ \ \ \ \ \ \ \_pfirst\ \ =\ \&(list)-\/>nodes;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\ \ \ \ FTC\_MruNode\_CompareFunc\ \ \_compare\ =\ (FTC\_MruNode\_CompareFunc)(compare);\ \(\backslash\)}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\ \ \ \ FTC\_MruNode\ \ \ \ \ \ \ \ \ \ \ \ \ \ \_first,\ \_node;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\ \ \ \ error\ \ =\ FT\_Err\_Ok;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\ \ \ \ \_first\ =\ *(\_pfirst);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\ \ \ \ \_node\ \ =\ NULL;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\ \ \ \ if\ (\ \_first\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ \ \ \ \ \_node\ =\ \_first;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ \ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ if\ (\ \_compare(\ \_node,\ (key)\ )\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ if\ (\ \_node\ !=\ \_first\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\_Up(\ \_pfirst,\ \_node\ );\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ node\ =\ \_node;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00186\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ goto\ MruOk\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00188\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_node\ =\ \_node-\/>next;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\ \ \ \ \ \ \}\ while\ (\ \_node\ !=\ \_first);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\ \ \ \ error\ =\ FTC\_MruList\_New(\ (list),\ (key),\ (FTC\_MruNode*)(void*)\&(node)\ );\ \(\backslash\)}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\ \ MruOk\_:\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\ \ \ \ ;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\ \ FT\_END\_STMNT}}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\#define\ FTC\_MRULIST\_LOOKUP(\ list,\ key,\ node,\ error\ )\ \(\backslash\)}}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\ \ FTC\_MRULIST\_LOOKUP\_CMP(\ list,\ key,\ (list)-\/>clazz.node\_compare,\ node,\ error\ )}}
+\DoxyCodeLine{00200\ }
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\#else\ \ }\textcolor{comment}{/*\ !FTC\_INLINE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00202\ }
+\DoxyCodeLine{00203\ \ \ FT\_LOCAL(\ FTC\_MruNode\ )}
+\DoxyCodeLine{00204\ \ \ FTC\_MruList\_Find(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ list,}
+\DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ key\ );}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ FT\_LOCAL(\ FT\_Error\ )}
+\DoxyCodeLine{00208\ \ \ FTC\_MruList\_Lookup(\ \mbox{\hyperlink{struct_f_t_c___mru_list_rec__}{FTC\_MruList}}\ \ \ list,}
+\DoxyCodeLine{00209\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FT\_Pointer\ \ \ \ key,}
+\DoxyCodeLine{00210\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ FTC\_MruNode\ \ *pnode\ );}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#define\ FTC\_MRULIST\_LOOKUP(\ list,\ key,\ node,\ error\ )\ \(\backslash\)}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\ \ error\ =\ FTC\_MruList\_Lookup(\ (list),\ (key),\ (FTC\_MruNode*)\&(node)\ )}}
+\DoxyCodeLine{00214\ }
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ !FTC\_INLINE\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00216\ }
+\DoxyCodeLine{00217\ }
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\#define\ FTC\_MRULIST\_LOOP(\ list,\ node\ )\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\ \ FT\_BEGIN\_STMNT\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00220\ \textcolor{preprocessor}{\ \ \ \ FTC\_MruNode\ \ \_first\ =\ (list)-\/>nodes;\ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\ \ \ \ if\ (\ \_first\ )\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\ \ \ \ \ \ FTC\_MruNode\ \ \_node\ =\ \_first;\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00228\ \textcolor{preprocessor}{\ \ \ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\ \ \ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00230\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ *(FTC\_MruNode*)\&(node)\ =\ \_node;}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ }
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\#define\ FTC\_MRULIST\_LOOP\_END()\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_node\ =\ \_node-\/>next;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\ \ \ \ \ \ \}\ while\ (\ \_node\ !=\ \_first\ );\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\ \ \ \ \}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\ \ FT\_END\_STMNT}}
+\DoxyCodeLine{00239\ }
+\DoxyCodeLine{00240\ \ \textcolor{comment}{/*\ */}}
+\DoxyCodeLine{00241\ }
+\DoxyCodeLine{00242\ FT\_END\_HEADER}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ }
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ FTCMRU\_H\_\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00246\ }
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \textcolor{comment}{/*\ END\ */}}
+
+\end{DoxyCode}

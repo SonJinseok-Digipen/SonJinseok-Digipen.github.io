@@ -1,0 +1,94 @@
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1380}{}\doxysection{General}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1380}
+
+\begin{DoxyItemize}
+\item The default of DLG\+\_\+\+FILE (stripping DLG\+\_\+\+BASE\+\_\+\+PATH (if existent) from the current file) will not really compare DLG\+\_\+\+BASE\+\_\+\+PATH with the file name but just skip its length
+\item Adding your project name as tag to all calls coming from your library is probably a good idea. It can either be done defining DLG\+\_\+\+DEFAULT\+\_\+\+TAGS e.\+g. from the build system (prefer this method). Or add macros that add the tags like this (usually not a good idea)\+:
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ MY\_ADD\_TAGS(tags,\ ...)\ (MY\_EVAL\ tags,\ \_\_VA\_ARGS\_\_)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ MY\_EVAL(...)\ \_\_VA\_ARGS\_\_}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ my\_warn(...)\ dlg\_warnt(("{}my"{}}),\ \_\_VA\_ARGS\_\_)}
+\DoxyCodeLine{\textcolor{preprocessor}{\#deinfe\ my\_warnt(tags,\ ...)\ dlg\_warnt(MY\_ADD\_TAGS(tags,\ "{}my"{}}),\ \_\_VA\_ARGS\_\_)}
+
+\end{DoxyCode}
+
+
+{\bfseries{TODO}}\+: Add some examples on how tags could be used\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1381}{}\doxysection{Windows/msvc troubleshooting}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1381}
+Windows and msvc are fully supported (and tested) by dlg. We try to work around most of the... issues on windows by there are a few things you have to keep in mind for dlg to work.
+
+
+\begin{DoxyItemize}
+\item msvc (at the state of 2017, still) does not allow/correctly handle utf-\/8 string literals
+\begin{DoxyItemize}
+\item this means {\ttfamily dlg\+\_\+fprintf(stdout, u8\char`\"{}äü\char`\"{})} will not work by default since the string passed there is not utf-\/8 encoded
+\item The above example can be made to work using the {\ttfamily /utf-\/8} switch on msvc
+\end{DoxyItemize}
+\item note that dlg always passes filepaths in their native representation so with msvc the filepath will have backslashes (important if you e.\+g. want to handle logging calls from different files differently)
+\item meson on windows\+: if you want to define DLG\+\_\+\+BASE\+\_\+\+PATH using meson you will have to work around the backslashes (e.\+g. in the path returned from {\ttfamily meson.\+source\+\_\+root()}) sine those would be interpreted as invalid escape characters and there is not meson function to escape backslashes correctly (as of 2017).
+
+DLG itself handles it this way\+:
+\end{DoxyItemize}
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{source\_root\ =\ meson.source\_root().split('\(\backslash\)\(\backslash\)')}
+\DoxyCodeLine{add\_project\_arguments('-\/DDLG\_BASE\_PATH="{}'\ +\ '/'.join(source\_root)\ +\ '/"{}',\ language:\ 'c')}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1382}{}\doxysubsection{C-\/api tag guards}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1382}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_tag\_base(global,\ tags,\ code)\ \{\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ const\ char*\ \_dlg\_tag\_tags[]\ =\ \{DLG\_EVAL\ tags\};\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ const\ char**\ \_dlg\_tag\_ptr\ =\ \_dlg\_tag\_tags;;\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ const\ char*\ \_dlg\_tag\_func\ =\ global\ ?\ NULL\ :\ \_\_FUNCTION\_\_;\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ while(\_dlg\_tag\_ptr)\ \ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ dlg\_add\_tag(\_dlg\_tag\_ptr++,\ \_dlg\_tag\_func);\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ code\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \_dlg\_tag\_ptr\ =\ \_dlg\_tag\_tags;\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ while(\_dlg\_tag\_ptr)\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ dlg\_remove\_tag(\_dlg\_tag\_ptr++,\ \_dlg\_tag\_func);\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \}}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#if\ DLG\_CHECK}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_check(code)\ \{\ code\ \}}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_checkt(tags,\ code)\ dlg\_tag(tags,\ code)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_check(code)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ dlg\_checkt(tags,\ code)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ DLG\_CHECK}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ dlg\_tag(tags,\ code)\ dlg\_tag\_base(false,\ tags,\ code)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ dlg\_tag\_global(tags,\ code)\ dlg\_tag\_base(true,\ tags,\ code)}}
+
+\end{DoxyCode}
+\hypertarget{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1383}{}\doxysubsection{Idea\+: Custom assert macro handler}\label{md__ase_sprite_aseprite_third_party_freetype2_subprojects_dlg_docs_notes_autotoc_md1383}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{comment}{//\ Can\ be\ specified\ to\ a\ custom\ assert\ handler/checker.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Will\ be\ called\ for\ every\ failed\ assertion.\ If\ it\ returns\ true,}}
+\DoxyCodeLine{\textcolor{comment}{//\ the\ default\ failed\ assertion\ log\ will\ be\ done\ by\ dlg,\ otherwise}}
+\DoxyCodeLine{\textcolor{comment}{//\ no\ further\ action\ will\ be\ taken.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Must\ have\ the\ signature\ 'bool\ (const\ char*\ expr)'.}}
+\DoxyCodeLine{\textcolor{comment}{//\ The\ default\ (dlg\_\_assertion\_failed)\ just\ always\ returns\ false.}}
+\DoxyCodeLine{\textcolor{comment}{//\ Useful\ as\ breakpoint.}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#ifndef\ DLG\_ASSERT\_FILTER}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ \#define\ DLG\_ASSERT\_FILTER\ dlg\_\_assertion\_failed}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keywordtype}{bool}\ dlg\_assertion\_failed(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ expr);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//}}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ DLG\_\_CHECK\_ASSERT(lvl,\ expr)\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ (level\ >\ DLG\_ASSERT\_LEVEL\ \&\&\ !(expr)\ \&\&\ DLG\_ASSERT\_FILER(\#expr))}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{preprocessor}{\#define\ dlg\_assertl(level,\ expr)\ if(DLG\_\_CHECK\_ASSERT(level,\ expr))\ \(\backslash\)}}
+\DoxyCodeLine{\textcolor{preprocessor}{\ \ \ \ dlg\_\_do\_log(level,\ DLG\_CREATE\_TAGS(NULL),\ DLG\_FILE,\ \_\_LINE\_\_,\ \_\_func\_\_,\ NULL,\ \#expr)}}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{comment}{//\ ...}}
+
+\end{DoxyCode}
+ 

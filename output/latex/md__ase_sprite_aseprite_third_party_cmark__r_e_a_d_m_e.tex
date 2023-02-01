@@ -1,0 +1,67 @@
+\href{https://github.com/commonmark/cmark/actions}{\texttt{ }}
+
+{\ttfamily cmark} is the C reference implementation of \href{http://commonmark.org}{\texttt{ Common\+Mark}}, a rationalized version of Markdown syntax with a \href{http://spec.commonmark.org}{\texttt{ spec}}. (For the Java\+Script reference implementation, see \href{https://github.com/commonmark/commonmark.js}{\texttt{ commonmark.\+js}}.)
+
+It provides a shared library ({\ttfamily libcmark}) with functions for parsing Common\+Mark documents to an abstract syntax tree (AST), manipulating the AST, and rendering the document to HTML, groff man, La\+TeX, Common\+Mark, or an XML representation of the AST. It also provides a command-\/line program ({\ttfamily cmark}) for parsing and rendering Common\+Mark documents.
+
+Advantages of this library\+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Portable.}} The library and program are written in standard C99 and have no external dependencies. They have been tested with MSVC, gcc, tcc, and clang.
+\item {\bfseries{Fast.}} cmark can render a Markdown version of {\itshape War and Peace} in the blink of an eye (127 milliseconds on a ten year old laptop, vs. 100-\/400 milliseconds for an eye blink). In our \mbox{\hyperlink{md__ase_sprite_aseprite_third_party_cmark_benchmarks}{benchmarks}}, cmark is 10,000 times faster than the original {\ttfamily Markdown.\+pl}, and on par with the very fastest available Markdown processors.
+\item {\bfseries{Accurate.}} The library passes all Common\+Mark conformance tests.
+\item {\bfseries{Standardized.}} The library can be expected to parse Common\+Mark the same way as any other conforming parser. So, for example, you can use {\ttfamily commonmark.\+js} on the client to preview content that will be rendered on the server using {\ttfamily cmark}.
+\item {\bfseries{Robust.}} The library has been extensively fuzz-\/tested using \href{http://lcamtuf.coredump.cx/afl/}{\texttt{ american fuzzy lop}}. The test suite includes pathological cases that bring many other Markdown parsers to a crawl (for example, thousands-\/deep nested bracketed text or block quotes).
+\item {\bfseries{Flexible.}} Common\+Mark input is parsed to an AST which can be manipulated programmatically prior to rendering.
+\item {\bfseries{Multiple renderers.}} Output in HTML, groff man, La\+TeX, Common\+Mark, and a custom XML format is supported. And it is easy to write new renderers to support other formats.
+\item {\bfseries{Free.}} BSD2-\/licensed.
+\end{DoxyItemize}
+
+It is easy to use {\ttfamily libcmark} in python, lua, ruby, and other dynamic languages\+: see the {\ttfamily wrappers/} subdirectory for some simple examples.
+
+There are also libraries that wrap {\ttfamily libcmark} for \href{https://github.com/rhinoman/go-commonmark}{\texttt{ Go}}, \href{https://hackage.haskell.org/package/cmark}{\texttt{ Haskell}}, \href{https://github.com/gjtorikian/commonmarker}{\texttt{ Ruby}}, \href{https://github.com/jgm/cmark-lua}{\texttt{ Lua}}, \href{https://metacpan.org/release/CommonMark}{\texttt{ Perl}}, \href{https://pypi.python.org/pypi/paka.cmark}{\texttt{ Python}}, \href{https://cran.r-project.org/package=commonmark}{\texttt{ R}} and \href{https://github.com/sparsetech/cmark-scala}{\texttt{ Scala}}.\hypertarget{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md632}{}\doxysection{Installing}\label{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md632}
+Building the C program ({\ttfamily cmark}) and shared library ({\ttfamily libcmark}) requires \href{http://www.cmake.org/download/}{\texttt{ cmake}}. If you modify {\ttfamily scanners.\+re}, then you will also need \href{http://re2c.org}{\texttt{ re2c}} (\texorpdfstring{$>$}{>}= 0.\+14.\+2), which is used to generate {\ttfamily scanners.\+c} from {\ttfamily scanners.\+re}. We have included a pre-\/generated {\ttfamily scanners.\+c} in the repository to reduce build dependencies.
+
+If you have GNU make, you can simply {\ttfamily make}, {\ttfamily make test}, and {\ttfamily make install}. This calls \href{http://www.cmake.org/download/}{\texttt{ cmake}} to create a {\ttfamily Makefile} in the {\ttfamily build} directory, then uses that {\ttfamily Makefile} to create the executable and library. The binaries can be found in {\ttfamily build/src}. The default installation prefix is {\ttfamily /usr/local}. To change the installation prefix, pass the {\ttfamily INSTALL\+\_\+\+PREFIX} variable if you run {\ttfamily make} for the first time\+: {\ttfamily make INSTALL\+\_\+\+PREFIX=path}.
+
+For a more portable method, you can use \href{http://www.cmake.org/download/}{\texttt{ cmake}} manually. \href{http://www.cmake.org/download/}{\texttt{ cmake}} knows how to create build environments for many build systems. For example, on Free\+BSD\+: \begin{DoxyVerb}mkdir build
+cd build
+cmake ..  # optionally: -DCMAKE_INSTALL_PREFIX=path
+make      # executable will be created as build/src/cmark
+make test
+make install
+\end{DoxyVerb}
+ Or, to create Xcode project files on OSX\+: \begin{DoxyVerb}mkdir build
+cd build
+cmake -G Xcode ..
+open cmark.xcodeproj
+\end{DoxyVerb}
+ The GNU Makefile also provides a few other targets for developers. To run a benchmark\+: \begin{DoxyVerb}make bench
+\end{DoxyVerb}
+ For more detailed benchmarks\+: \begin{DoxyVerb}make newbench
+\end{DoxyVerb}
+ To run a test for memory leaks using {\ttfamily valgrind}\+: \begin{DoxyVerb}make leakcheck
+\end{DoxyVerb}
+ To reformat source code using {\ttfamily clang-\/format}\+: \begin{DoxyVerb}make format
+\end{DoxyVerb}
+ To run a \char`\"{}fuzz test\char`\"{} against ten long randomly generated inputs\+: \begin{DoxyVerb}make fuzztest
+\end{DoxyVerb}
+ To do a more systematic fuzz test with \mbox{[}american fuzzy lop\mbox{]}\+: \begin{DoxyVerb}AFL_PATH=/path/to/afl_directory make afl
+\end{DoxyVerb}
+ Fuzzing with \href{http://llvm.org/docs/LibFuzzer.html}{\texttt{ lib\+Fuzzer}} is also supported but, because lib\+Fuzzer is still under active development, may not work with your system-\/installed version of clang. Assuming LLVM has been built in {\ttfamily \$HOME/src/llvm/build} the fuzzer can be run with\+: \begin{DoxyVerb}CC="$HOME/src/llvm/build/bin/clang" LIB_FUZZER_PATH="$HOME/src/llvm/lib/Fuzzer/libFuzzer.a" make libFuzzer
+\end{DoxyVerb}
+ To make a release tarball and zip archive\+: \begin{DoxyVerb}make archive
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md633}{}\doxysection{Installing (\+Windows)}\label{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md633}
+To compile with MSVC and NMAKE\+: \begin{DoxyVerb}nmake
+\end{DoxyVerb}
+ You can cross-\/compile a Windows binary and dll on linux if you have the {\ttfamily mingw32} compiler\+: \begin{DoxyVerb}make mingw
+\end{DoxyVerb}
+ The binaries will be in {\ttfamily build-\/mingw/windows/bin}.\hypertarget{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md634}{}\doxysection{Usage}\label{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md634}
+Instructions for the use of the command line program and library can be found in the man pages in the {\ttfamily man} subdirectory.\hypertarget{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md635}{}\doxysection{Security}\label{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md635}
+By default, the library will scrub raw HTML and potentially dangerous links ({\ttfamily javascript\+:}, {\ttfamily vbscript\+:}, {\ttfamily data\+:}, {\ttfamily file\+:}).
+
+To allow these, use the option {\ttfamily CMARK\+\_\+\+OPT\+\_\+\+UNSAFE} (or {\ttfamily -\/-\/unsafe}) with the command line program. If doing so, we recommend you use a HTML sanitizer specific to your needs to protect against \href{http://en.wikipedia.org/wiki/Cross-site_scripting}{\texttt{ XSS attacks}}.\hypertarget{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md636}{}\doxysection{Contributing}\label{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md636}
+There is a \href{http://talk.commonmark.org}{\texttt{ forum for discussing Common\+Mark}}; you should use it instead of github issues for questions and possibly open-\/ended discussions. Use the \href{http://github.com/commonmark/CommonMark/issues}{\texttt{ github issue tracker}} only for simple, clear, actionable issues.\hypertarget{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md637}{}\doxysection{Authors}\label{md__ase_sprite_aseprite_third_party_cmark__r_e_a_d_m_e_autotoc_md637}
+John Mac\+Farlane wrote the original library and program. The block parsing algorithm was worked out together with David Greenspan. Vicent Marti optimized the C implementation for performance, increasing its speed tenfold. Kārlis Gaņģis helped work out a better parsing algorithm for links and emphasis, eliminating several worst-\/case performance issues. Nick Wellnhofer contributed many improvements, including most of the C library\textquotesingle{}s API and its test harness. 

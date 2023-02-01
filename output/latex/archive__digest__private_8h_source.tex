@@ -1,0 +1,422 @@
+\hypertarget{archive__digest__private_8h_source}{}\doxysection{archive\+\_\+digest\+\_\+private.\+h}
+\label{archive__digest__private_8h_source}\index{AseSprite/aseprite/third\_party/libarchive/libarchive/archive\_digest\_private.h@{AseSprite/aseprite/third\_party/libarchive/libarchive/archive\_digest\_private.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00002\ \textcolor{comment}{*\ Copyright\ (c)\ 2003-\/2007\ Tim\ Kientzle}}
+\DoxyCodeLine{00003\ \textcolor{comment}{*\ Copyright\ (c)\ 2011\ Andres\ Mejia}}
+\DoxyCodeLine{00004\ \textcolor{comment}{*\ All\ rights\ reserved.}}
+\DoxyCodeLine{00005\ \textcolor{comment}{*}}
+\DoxyCodeLine{00006\ \textcolor{comment}{*\ Redistribution\ and\ use\ in\ source\ and\ binary\ forms,\ with\ or\ without}}
+\DoxyCodeLine{00007\ \textcolor{comment}{*\ modification,\ are\ permitted\ provided\ that\ the\ following\ conditions}}
+\DoxyCodeLine{00008\ \textcolor{comment}{*\ are\ met:}}
+\DoxyCodeLine{00009\ \textcolor{comment}{*\ 1.\ Redistributions\ of\ source\ code\ must\ retain\ the\ above\ copyright}}
+\DoxyCodeLine{00010\ \textcolor{comment}{*\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{*\ 2.\ Redistributions\ in\ binary\ form\ must\ reproduce\ the\ above\ copyright}}
+\DoxyCodeLine{00012\ \textcolor{comment}{*\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer\ in\ the}}
+\DoxyCodeLine{00013\ \textcolor{comment}{*\ \ \ \ documentation\ and/or\ other\ materials\ provided\ with\ the\ distribution.}}
+\DoxyCodeLine{00014\ \textcolor{comment}{*}}
+\DoxyCodeLine{00015\ \textcolor{comment}{*\ THIS\ SOFTWARE\ IS\ PROVIDED\ BY\ THE\ AUTHOR(S)\ ``AS\ IS''\ AND\ ANY\ EXPRESS\ OR}}
+\DoxyCodeLine{00016\ \textcolor{comment}{*\ IMPLIED\ WARRANTIES,\ INCLUDING,\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES}}
+\DoxyCodeLine{00017\ \textcolor{comment}{*\ OF\ MERCHANTABILITY\ AND\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ ARE\ DISCLAIMED.}}
+\DoxyCodeLine{00018\ \textcolor{comment}{*\ IN\ NO\ EVENT\ SHALL\ THE\ AUTHOR(S)\ BE\ LIABLE\ FOR\ ANY\ DIRECT,\ INDIRECT,}}
+\DoxyCodeLine{00019\ \textcolor{comment}{*\ INCIDENTAL,\ SPECIAL,\ EXEMPLARY,\ OR\ CONSEQUENTIAL\ DAMAGES\ (INCLUDING,\ BUT}}
+\DoxyCodeLine{00020\ \textcolor{comment}{*\ NOT\ LIMITED\ TO,\ PROCUREMENT\ OF\ SUBSTITUTE\ GOODS\ OR\ SERVICES;\ LOSS\ OF\ USE,}}
+\DoxyCodeLine{00021\ \textcolor{comment}{*\ DATA,\ OR\ PROFITS;\ OR\ BUSINESS\ INTERRUPTION)\ HOWEVER\ CAUSED\ AND\ ON\ ANY}}
+\DoxyCodeLine{00022\ \textcolor{comment}{*\ THEORY\ OF\ LIABILITY,\ WHETHER\ IN\ CONTRACT,\ STRICT\ LIABILITY,\ OR\ TORT}}
+\DoxyCodeLine{00023\ \textcolor{comment}{*\ (INCLUDING\ NEGLIGENCE\ OR\ OTHERWISE)\ ARISING\ IN\ ANY\ WAY\ OUT\ OF\ THE\ USE\ OF}}
+\DoxyCodeLine{00024\ \textcolor{comment}{*\ THIS\ SOFTWARE,\ EVEN\ IF\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH\ DAMAGE.}}
+\DoxyCodeLine{00025\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifndef\ ARCHIVE\_DIGEST\_PRIVATE\_H\_INCLUDED}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ ARCHIVE\_DIGEST\_PRIVATE\_H\_INCLUDED}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#ifndef\ \_\_LIBARCHIVE\_BUILD}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#error\ This\ header\ is\ only\ to\ be\ used\ internally\ to\ libarchive.}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#ifndef\ \_\_LIBARCHIVE\_CONFIG\_H\_INCLUDED}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#error\ "{}Should\ have\ include\ config.h\ first!"{}}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ Crypto\ support\ in\ various\ Operating\ Systems:}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ NetBSD:}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ -\/\ MD5\ and\ SHA1\ in\ libc:\ without\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ -\/\ SHA2\ in\ libc:\ with\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ OpenBSD:}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ -\/\ MD5,\ SHA1\ and\ SHA2\ in\ libc:\ without\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ -\/\ OpenBSD\ 4.4\ and\ earlier\ have\ SHA2\ in\ libc\ with\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00048\ \textcolor{comment}{\ *\ DragonFly\ and\ FreeBSD:}}
+\DoxyCodeLine{00049\ \textcolor{comment}{\ *\ -\/\ MD5\ libmd:\ without\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00050\ \textcolor{comment}{\ *\ -\/\ SHA1,\ SHA256\ and\ SHA512\ in\ libmd:\ with\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00051\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00052\ \textcolor{comment}{\ *\ Mac\ OS\ X\ (10.4\ and\ later):}}
+\DoxyCodeLine{00053\ \textcolor{comment}{\ *\ -\/\ MD5,\ SHA1\ and\ SHA2\ in\ libSystem:\ with\ CC\_\ prefix\ and\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00054\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00055\ \textcolor{comment}{\ *\ OpenSSL:}}
+\DoxyCodeLine{00056\ \textcolor{comment}{\ *\ -\/\ MD5,\ SHA1\ and\ SHA2\ in\ libcrypto:\ with\ \_\ after\ algorithm\ name}}
+\DoxyCodeLine{00057\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00058\ \textcolor{comment}{\ *\ Windows:}}
+\DoxyCodeLine{00059\ \textcolor{comment}{\ *\ -\/\ MD5,\ SHA1\ and\ SHA2\ in\ archive\_crypto.c\ using\ Windows\ crypto\ API}}
+\DoxyCodeLine{00060\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{comment}{/*\ libc\ crypto\ headers\ */}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBC)}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#include\ <md5.h>}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_RMD160\_LIBC)}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#include\ <rmd160.h>}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBC)}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#include\ <sha1.h>}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC2)\ ||\(\backslash\)}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC3)\ ||\(\backslash\)}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC2)\ ||\(\backslash\)}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC3)\ ||\(\backslash\)}}
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC2)\ ||\(\backslash\)}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC3)}}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#include\ <sha2.h>}}
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \textcolor{comment}{/*\ libmd\ crypto\ headers\ */}}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBMD)\ ||\(\backslash\)}}
+\DoxyCodeLine{00086\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_RMD160\_LIBMD)\ ||\(\backslash\)}}
+\DoxyCodeLine{00087\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBMD)\ ||\(\backslash\)}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBMD)\ ||\(\backslash\)}}
+\DoxyCodeLine{00089\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBMD)}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#define\ ARCHIVE\_CRYPTO\_LIBMD\ 1}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBMD)}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#include\ <md5.h>}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_RMD160\_LIBMD)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\#include\ <ripemd.h>}}
+\DoxyCodeLine{00098\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBMD)}}
+\DoxyCodeLine{00100\ \textcolor{preprocessor}{\#include\ <sha.h>}}
+\DoxyCodeLine{00101\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBMD)}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#include\ <sha256.h>}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBMD)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#include\ <sha512.h>}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00109\ \textcolor{comment}{/*\ libSystem\ crypto\ headers\ */}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBSYSTEM)}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#include\ <CommonCrypto/CommonDigest.h>}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00118\ \textcolor{comment}{/*\ mbed\ TLS\ crypto\ headers\ */}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_MBEDTLS)}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#include\ <mbedtls/md5.h>}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_RMD160\_MBEDTLS)}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#include\ <mbedtls/ripemd160.h>}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA1\_MBEDTLS)}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#include\ <mbedtls/sha1.h>}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA256\_MBEDTLS)}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#include\ <mbedtls/sha256.h>}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA384\_MBEDTLS)\ ||\(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_MBEDTLS)}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#include\ <mbedtls/sha512.h>}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00135\ }
+\DoxyCodeLine{00136\ \textcolor{comment}{/*\ Nettle\ crypto\ headers\ */}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_NETTLE)}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#include\ <nettle/md5.h>}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_RMD160\_NETTLE)}}
+\DoxyCodeLine{00141\ \textcolor{preprocessor}{\#include\ <nettle/ripemd160.h>}}
+\DoxyCodeLine{00142\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00143\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA1\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00144\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_NETTLE)}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\#include\ <nettle/sha.h>}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00149\ }
+\DoxyCodeLine{00150\ \textcolor{comment}{/*\ OpenSSL\ crypto\ headers\ */}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_RMD160\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_OPENSSL)}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\#define\ ARCHIVE\_CRYPTO\_OPENSSL\ 1}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\#include\ "{}archive\_openssl\_evp\_private.h"{}}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00160\ }
+\DoxyCodeLine{00161\ \textcolor{comment}{/*\ Windows\ crypto\ headers\ */}}
+\DoxyCodeLine{00162\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_WIN)\ \ \ \ ||\(\backslash\)}}
+\DoxyCodeLine{00163\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_WIN)\ \ \ ||\(\backslash\)}}
+\DoxyCodeLine{00164\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_WIN)\ ||\(\backslash\)}}
+\DoxyCodeLine{00165\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_WIN)\ ||\(\backslash\)}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_WIN)}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\#include\ <windows.h>}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\#include\ <wincrypt.h>}}
+\DoxyCodeLine{00169\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00170\ \ \ \textcolor{keywordtype}{int}\ \ \ valid;}
+\DoxyCodeLine{00171\ \ \ HCRYPTPROV\ \ cryptProv;}
+\DoxyCodeLine{00172\ \ \ HCRYPTHASH\ \ hash;}
+\DoxyCodeLine{00173\ \}\ Digest\_CTX;}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00175\ }
+\DoxyCodeLine{00176\ \textcolor{comment}{/*\ typedefs\ */}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBC)}}
+\DoxyCodeLine{00178\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_m_d5___c_t_x}{MD5\_CTX}}\ archive\_md5\_ctx;}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBMD)}}
+\DoxyCodeLine{00180\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{struct_m_d5___c_t_x}{MD5\_CTX}}\ archive\_md5\_ctx;}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBSYSTEM)}}
+\DoxyCodeLine{00182\ \textcolor{keyword}{typedef}\ CC\_MD5\_CTX\ archive\_md5\_ctx;}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_MD5\_MBEDTLS)}}
+\DoxyCodeLine{00184\ \textcolor{keyword}{typedef}\ mbedtls\_md5\_context\ archive\_md5\_ctx;}
+\DoxyCodeLine{00185\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_MD5\_NETTLE)}}
+\DoxyCodeLine{00186\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structmd5__ctx}{md5\_ctx}}\ archive\_md5\_ctx;}
+\DoxyCodeLine{00187\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_MD5\_OPENSSL)}}
+\DoxyCodeLine{00188\ \textcolor{keyword}{typedef}\ EVP\_MD\_CTX\ *archive\_md5\_ctx;}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_MD5\_WIN)}}
+\DoxyCodeLine{00190\ \textcolor{keyword}{typedef}\ Digest\_CTX\ archive\_md5\_ctx;}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00192\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ archive\_md5\_ctx;}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00194\ }
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_RMD160\_LIBC)}}
+\DoxyCodeLine{00196\ \textcolor{keyword}{typedef}\ RMD160\_CTX\ archive\_rmd160\_ctx;}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_RMD160\_LIBMD)}}
+\DoxyCodeLine{00198\ \textcolor{keyword}{typedef}\ RIPEMD160\_CTX\ archive\_rmd160\_ctx;}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_RMD160\_MBEDTLS)}}
+\DoxyCodeLine{00200\ \textcolor{keyword}{typedef}\ mbedtls\_ripemd160\_context\ archive\_rmd160\_ctx;}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_RMD160\_NETTLE)}}
+\DoxyCodeLine{00202\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }ripemd160\_ctx\ archive\_rmd160\_ctx;}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_RMD160\_OPENSSL)}}
+\DoxyCodeLine{00204\ \textcolor{keyword}{typedef}\ EVP\_MD\_CTX\ *archive\_rmd160\_ctx;}
+\DoxyCodeLine{00205\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00206\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ archive\_rmd160\_ctx;}
+\DoxyCodeLine{00207\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00208\ }
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBC)}}
+\DoxyCodeLine{00210\ \textcolor{keyword}{typedef}\ SHA1\_CTX\ archive\_sha1\_ctx;}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBMD)}}
+\DoxyCodeLine{00212\ \textcolor{keyword}{typedef}\ SHA1\_CTX\ archive\_sha1\_ctx;}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBSYSTEM)}}
+\DoxyCodeLine{00214\ \textcolor{keyword}{typedef}\ CC\_SHA1\_CTX\ archive\_sha1\_ctx;}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA1\_MBEDTLS)}}
+\DoxyCodeLine{00216\ \textcolor{keyword}{typedef}\ mbedtls\_sha1\_context\ archive\_sha1\_ctx;}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA1\_NETTLE)}}
+\DoxyCodeLine{00218\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }sha1\_ctx\ archive\_sha1\_ctx;}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA1\_OPENSSL)}}
+\DoxyCodeLine{00220\ \textcolor{keyword}{typedef}\ EVP\_MD\_CTX\ *archive\_sha1\_ctx;}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA1\_WIN)}}
+\DoxyCodeLine{00222\ \textcolor{keyword}{typedef}\ Digest\_CTX\ archive\_sha1\_ctx;}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00224\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ archive\_sha1\_ctx;}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00226\ }
+\DoxyCodeLine{00227\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC)}}
+\DoxyCodeLine{00228\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structsha256__state}{SHA256\_CTX}}\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00229\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC2)}}
+\DoxyCodeLine{00230\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structsha256__state}{SHA256\_CTX}}\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC3)}}
+\DoxyCodeLine{00232\ \textcolor{keyword}{typedef}\ SHA2\_CTX\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBMD)}}
+\DoxyCodeLine{00234\ \textcolor{keyword}{typedef}\ \mbox{\hyperlink{structsha256__state}{SHA256\_CTX}}\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBSYSTEM)}}
+\DoxyCodeLine{00236\ \textcolor{keyword}{typedef}\ CC\_SHA256\_CTX\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_MBEDTLS)}}
+\DoxyCodeLine{00238\ \textcolor{keyword}{typedef}\ mbedtls\_sha256\_context\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_NETTLE)}}
+\DoxyCodeLine{00240\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }sha256\_ctx\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_OPENSSL)}}
+\DoxyCodeLine{00242\ \textcolor{keyword}{typedef}\ EVP\_MD\_CTX\ *archive\_sha256\_ctx;}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA256\_WIN)}}
+\DoxyCodeLine{00244\ \textcolor{keyword}{typedef}\ Digest\_CTX\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00246\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ archive\_sha256\_ctx;}
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00248\ }
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC)}}
+\DoxyCodeLine{00250\ \textcolor{keyword}{typedef}\ SHA384\_CTX\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00251\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC2)}}
+\DoxyCodeLine{00252\ \textcolor{keyword}{typedef}\ SHA384\_CTX\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00253\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC3)}}
+\DoxyCodeLine{00254\ \textcolor{keyword}{typedef}\ SHA2\_CTX\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00255\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBSYSTEM)}}
+\DoxyCodeLine{00256\ \textcolor{keyword}{typedef}\ CC\_SHA512\_CTX\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA384\_MBEDTLS)}}
+\DoxyCodeLine{00258\ \textcolor{keyword}{typedef}\ mbedtls\_sha512\_context\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA384\_NETTLE)}}
+\DoxyCodeLine{00260\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }sha384\_ctx\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA384\_OPENSSL)}}
+\DoxyCodeLine{00262\ \textcolor{keyword}{typedef}\ EVP\_MD\_CTX\ *archive\_sha384\_ctx;}
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA384\_WIN)}}
+\DoxyCodeLine{00264\ \textcolor{keyword}{typedef}\ Digest\_CTX\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00265\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00266\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ archive\_sha384\_ctx;}
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00268\ }
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC)}}
+\DoxyCodeLine{00270\ \textcolor{keyword}{typedef}\ SHA512\_CTX\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC2)}}
+\DoxyCodeLine{00272\ \textcolor{keyword}{typedef}\ SHA512\_CTX\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00273\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC3)}}
+\DoxyCodeLine{00274\ \textcolor{keyword}{typedef}\ SHA2\_CTX\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00275\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBMD)}}
+\DoxyCodeLine{00276\ \textcolor{keyword}{typedef}\ SHA512\_CTX\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00277\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBSYSTEM)}}
+\DoxyCodeLine{00278\ \textcolor{keyword}{typedef}\ CC\_SHA512\_CTX\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00279\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_MBEDTLS)}}
+\DoxyCodeLine{00280\ \textcolor{keyword}{typedef}\ mbedtls\_sha512\_context\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00281\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_NETTLE)}}
+\DoxyCodeLine{00282\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }sha512\_ctx\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00283\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_OPENSSL)}}
+\DoxyCodeLine{00284\ \textcolor{keyword}{typedef}\ EVP\_MD\_CTX\ *archive\_sha512\_ctx;}
+\DoxyCodeLine{00285\ \textcolor{preprocessor}{\#elif\ defined(ARCHIVE\_CRYPTO\_SHA512\_WIN)}}
+\DoxyCodeLine{00286\ \textcolor{keyword}{typedef}\ Digest\_CTX\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00287\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00288\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ archive\_sha512\_ctx;}
+\DoxyCodeLine{00289\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00290\ }
+\DoxyCodeLine{00291\ \textcolor{comment}{/*\ defines\ */}}
+\DoxyCodeLine{00292\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_MD5\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00293\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_MD5\_LIBMD)\ ||\ \ \(\backslash\)}}
+\DoxyCodeLine{00294\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_MD5\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00295\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_MD5\_MBEDTLS)\ ||\(\backslash\)}}
+\DoxyCodeLine{00296\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_MD5\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00297\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_MD5\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00298\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_MD5\_WIN)}}
+\DoxyCodeLine{00299\ \textcolor{preprocessor}{\#define\ ARCHIVE\_HAS\_MD5}}
+\DoxyCodeLine{00300\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00301\ \textcolor{preprocessor}{\#define\ archive\_md5\_init(ctx)\(\backslash\)}}
+\DoxyCodeLine{00302\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.md5init(ctx)}}
+\DoxyCodeLine{00303\ \textcolor{preprocessor}{\#define\ archive\_md5\_final(ctx,\ md)\(\backslash\)}}
+\DoxyCodeLine{00304\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.md5final(ctx,\ md)}}
+\DoxyCodeLine{00305\ \textcolor{preprocessor}{\#define\ archive\_md5\_update(ctx,\ buf,\ n)\(\backslash\)}}
+\DoxyCodeLine{00306\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.md5update(ctx,\ buf,\ n)}}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_RMD160\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00309\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_RMD160\_MBEDTLS)\ ||\(\backslash\)}}
+\DoxyCodeLine{00310\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_RMD160\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00311\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_RMD160\_OPENSSL)}}
+\DoxyCodeLine{00312\ \textcolor{preprocessor}{\#define\ ARCHIVE\_HAS\_RMD160}}
+\DoxyCodeLine{00313\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00314\ \textcolor{preprocessor}{\#define\ archive\_rmd160\_init(ctx)\(\backslash\)}}
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.rmd160init(ctx)}}
+\DoxyCodeLine{00316\ \textcolor{preprocessor}{\#define\ archive\_rmd160\_final(ctx,\ md)\(\backslash\)}}
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.rmd160final(ctx,\ md)}}
+\DoxyCodeLine{00318\ \textcolor{preprocessor}{\#define\ archive\_rmd160\_update(ctx,\ buf,\ n)\(\backslash\)}}
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.rmd160update(ctx,\ buf,\ n)}}
+\DoxyCodeLine{00320\ }
+\DoxyCodeLine{00321\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00322\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBMD)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00323\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00324\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_MBEDTLS)\ ||\(\backslash\)}}
+\DoxyCodeLine{00325\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00326\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00327\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA1\_WIN)}}
+\DoxyCodeLine{00328\ \textcolor{preprocessor}{\#define\ ARCHIVE\_HAS\_SHA1}}
+\DoxyCodeLine{00329\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00330\ \textcolor{preprocessor}{\#define\ archive\_sha1\_init(ctx)\(\backslash\)}}
+\DoxyCodeLine{00331\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha1init(ctx)}}
+\DoxyCodeLine{00332\ \textcolor{preprocessor}{\#define\ archive\_sha1\_final(ctx,\ md)\(\backslash\)}}
+\DoxyCodeLine{00333\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha1final(ctx,\ md)}}
+\DoxyCodeLine{00334\ \textcolor{preprocessor}{\#define\ archive\_sha1\_update(ctx,\ buf,\ n)\(\backslash\)}}
+\DoxyCodeLine{00335\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha1update(ctx,\ buf,\ n)}}
+\DoxyCodeLine{00336\ }
+\DoxyCodeLine{00337\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00338\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC2)\ ||\(\backslash\)}}
+\DoxyCodeLine{00339\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBC3)\ ||\(\backslash\)}}
+\DoxyCodeLine{00340\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBMD)\ ||\(\backslash\)}}
+\DoxyCodeLine{00341\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00342\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_MBEDTLS)\ ||\(\backslash\)}}
+\DoxyCodeLine{00343\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00344\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00345\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA256\_WIN)}}
+\DoxyCodeLine{00346\ \textcolor{preprocessor}{\#define\ ARCHIVE\_HAS\_SHA256}}
+\DoxyCodeLine{00347\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00348\ \textcolor{preprocessor}{\#define\ archive\_sha256\_init(ctx)\(\backslash\)}}
+\DoxyCodeLine{00349\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha256init(ctx)}}
+\DoxyCodeLine{00350\ \textcolor{preprocessor}{\#define\ archive\_sha256\_final(ctx,\ md)\(\backslash\)}}
+\DoxyCodeLine{00351\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha256final(ctx,\ md)}}
+\DoxyCodeLine{00352\ \textcolor{preprocessor}{\#define\ archive\_sha256\_update(ctx,\ buf,\ n)\(\backslash\)}}
+\DoxyCodeLine{00353\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha256update(ctx,\ buf,\ n)}}
+\DoxyCodeLine{00354\ }
+\DoxyCodeLine{00355\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00356\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC2)\ ||\(\backslash\)}}
+\DoxyCodeLine{00357\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBC3)\ ||\(\backslash\)}}
+\DoxyCodeLine{00358\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00359\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_MBEDTLS)\ ||\(\backslash\)}}
+\DoxyCodeLine{00360\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00361\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00362\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA384\_WIN)}}
+\DoxyCodeLine{00363\ \textcolor{preprocessor}{\#define\ ARCHIVE\_HAS\_SHA384}}
+\DoxyCodeLine{00364\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00365\ \textcolor{preprocessor}{\#define\ archive\_sha384\_init(ctx)\(\backslash\)}}
+\DoxyCodeLine{00366\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha384init(ctx)}}
+\DoxyCodeLine{00367\ \textcolor{preprocessor}{\#define\ archive\_sha384\_final(ctx,\ md)\(\backslash\)}}
+\DoxyCodeLine{00368\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha384final(ctx,\ md)}}
+\DoxyCodeLine{00369\ \textcolor{preprocessor}{\#define\ archive\_sha384\_update(ctx,\ buf,\ n)\(\backslash\)}}
+\DoxyCodeLine{00370\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha384update(ctx,\ buf,\ n)}}
+\DoxyCodeLine{00371\ }
+\DoxyCodeLine{00372\ \textcolor{preprocessor}{\#if\ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC)\ ||\(\backslash\)}}
+\DoxyCodeLine{00373\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC2)\ ||\(\backslash\)}}
+\DoxyCodeLine{00374\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBC3)\ ||\(\backslash\)}}
+\DoxyCodeLine{00375\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBMD)\ ||\(\backslash\)}}
+\DoxyCodeLine{00376\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_LIBSYSTEM)\ ||\(\backslash\)}}
+\DoxyCodeLine{00377\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_MBEDTLS)\ ||\(\backslash\)}}
+\DoxyCodeLine{00378\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_NETTLE)\ ||\(\backslash\)}}
+\DoxyCodeLine{00379\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_OPENSSL)\ ||\(\backslash\)}}
+\DoxyCodeLine{00380\ \textcolor{preprocessor}{\ \ defined(ARCHIVE\_CRYPTO\_SHA512\_WIN)}}
+\DoxyCodeLine{00381\ \textcolor{preprocessor}{\#define\ ARCHIVE\_HAS\_SHA512}}
+\DoxyCodeLine{00382\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00383\ \textcolor{preprocessor}{\#define\ archive\_sha512\_init(ctx)\(\backslash\)}}
+\DoxyCodeLine{00384\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha512init(ctx)}}
+\DoxyCodeLine{00385\ \textcolor{preprocessor}{\#define\ archive\_sha512\_final(ctx,\ md)\(\backslash\)}}
+\DoxyCodeLine{00386\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha512final(ctx,\ md)}}
+\DoxyCodeLine{00387\ \textcolor{preprocessor}{\#define\ archive\_sha512\_update(ctx,\ buf,\ n)\(\backslash\)}}
+\DoxyCodeLine{00388\ \textcolor{preprocessor}{\ \ \_\_archive\_digest.sha512update(ctx,\ buf,\ n)}}
+\DoxyCodeLine{00389\ }
+\DoxyCodeLine{00390\ \textcolor{comment}{/*\ Minimal\ interface\ to\ digest\ functionality\ for\ internal\ use\ in\ libarchive\ */}}
+\DoxyCodeLine{00391\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive__digest}{archive\_digest}}}
+\DoxyCodeLine{00392\ \{}
+\DoxyCodeLine{00393\ \ \ \textcolor{comment}{/*\ Message\ Digest\ */}}
+\DoxyCodeLine{00394\ \ \ int\ (*md5init)(archive\_md5\_ctx\ *ctx);}
+\DoxyCodeLine{00395\ \ \ int\ (*md5update)(archive\_md5\_ctx\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ size\_t);}
+\DoxyCodeLine{00396\ \ \ int\ (*md5final)(archive\_md5\_ctx\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00397\ \ \ int\ (*rmd160init)(archive\_rmd160\_ctx\ *);}
+\DoxyCodeLine{00398\ \ \ int\ (*rmd160update)(archive\_rmd160\_ctx\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ size\_t);}
+\DoxyCodeLine{00399\ \ \ int\ (*rmd160final)(archive\_rmd160\_ctx\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00400\ \ \ int\ (*sha1init)(archive\_sha1\_ctx\ *);}
+\DoxyCodeLine{00401\ \ \ int\ (*sha1update)(archive\_sha1\_ctx\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ size\_t);}
+\DoxyCodeLine{00402\ \ \ int\ (*sha1final)(archive\_sha1\_ctx\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00403\ \ \ int\ (*sha256init)(archive\_sha256\_ctx\ *);}
+\DoxyCodeLine{00404\ \ \ int\ (*sha256update)(archive\_sha256\_ctx\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ size\_t);}
+\DoxyCodeLine{00405\ \ \ int\ (*sha256final)(archive\_sha256\_ctx\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00406\ \ \ int\ (*sha384init)(archive\_sha384\_ctx\ *);}
+\DoxyCodeLine{00407\ \ \ int\ (*sha384update)(archive\_sha384\_ctx\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ size\_t);}
+\DoxyCodeLine{00408\ \ \ int\ (*sha384final)(archive\_sha384\_ctx\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00409\ \ \ int\ (*sha512init)(archive\_sha512\_ctx\ *);}
+\DoxyCodeLine{00410\ \ \ int\ (*sha512update)(archive\_sha512\_ctx\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ *,\ size\_t);}
+\DoxyCodeLine{00411\ \ \ int\ (*sha512final)(archive\_sha512\_ctx\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00412\ \};}
+\DoxyCodeLine{00413\ }
+\DoxyCodeLine{00414\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive__digest}{archive\_digest}}\ \_\_archive\_digest;}
+\DoxyCodeLine{00415\ }
+\DoxyCodeLine{00416\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

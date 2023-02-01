@@ -1,0 +1,88 @@
+\hypertarget{cost__enc_8h_source}{}\doxysection{cost\+\_\+enc.\+h}
+\label{cost__enc_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/enc/cost\_enc.h@{AseSprite/aseprite/third\_party/libwebp/src/enc/cost\_enc.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2011\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ Cost\ tables\ for\ level\ and\ modes.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_ENC\_COST\_ENC\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_ENC\_COST\_ENC\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <assert.h>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <stdlib.h>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}src/enc/vp8i\_enc.h"{}}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00022\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{comment}{//\ On-\/the-\/fly\ info\ about\ the\ current\ set\ of\ residuals.\ Handy\ to\ avoid}}
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ passing\ zillions\ of\ params.}}
+\DoxyCodeLine{00027\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}}\ \mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}};}
+\DoxyCodeLine{00028\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}}\ \{}
+\DoxyCodeLine{00029\ \ \ \textcolor{keywordtype}{int}\ first;}
+\DoxyCodeLine{00030\ \ \ \textcolor{keywordtype}{int}\ last;}
+\DoxyCodeLine{00031\ \ \ \textcolor{keyword}{const}\ int16\_t*\ coeffs;}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \ \ \textcolor{keywordtype}{int}\ coeff\_type;}
+\DoxyCodeLine{00034\ \ \ ProbaArray*\ \ \ prob;}
+\DoxyCodeLine{00035\ \ \ StatsArray*\ \ \ stats;}
+\DoxyCodeLine{00036\ \ \ CostArrayPtr\ \ costs;}
+\DoxyCodeLine{00037\ \};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keywordtype}{void}\ VP8InitResidual(\textcolor{keywordtype}{int}\ first,\ \textcolor{keywordtype}{int}\ coeff\_type,}
+\DoxyCodeLine{00040\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_encoder}{VP8Encoder}}*\ \textcolor{keyword}{const}\ enc,\ \mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}}*\ \textcolor{keyword}{const}\ res);}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keywordtype}{int}\ VP8RecordCoeffs(\textcolor{keywordtype}{int}\ ctx,\ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_residual}{VP8Residual}}*\ \textcolor{keyword}{const}\ res);}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{comment}{//\ Record\ proba\ context\ used.}}
+\DoxyCodeLine{00045\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8RecordStats(\textcolor{keywordtype}{int}\ bit,\ proba\_t*\ \textcolor{keyword}{const}\ stats)\ \{}
+\DoxyCodeLine{00046\ \ \ proba\_t\ p\ =\ *stats;}
+\DoxyCodeLine{00047\ \ \ \textcolor{comment}{//\ An\ overflow\ is\ inbound.\ Note\ we\ handle\ this\ at\ 0xfffe0000u\ instead\ of}}
+\DoxyCodeLine{00048\ \ \ \textcolor{comment}{//\ 0xffff0000u\ to\ make\ sure\ p\ +\ 1u\ does\ not\ overflow.}}
+\DoxyCodeLine{00049\ \ \ \textcolor{keywordflow}{if}\ (p\ >=\ 0xfffe0000u)\ \{}
+\DoxyCodeLine{00050\ \ \ \ \ p\ =\ ((p\ +\ 1u)\ >>\ 1)\ \&\ 0x7fff7fffu;\ \ \textcolor{comment}{//\ -\/>\ divide\ the\ stats\ by\ 2.}}
+\DoxyCodeLine{00051\ \ \ \}}
+\DoxyCodeLine{00052\ \ \ \textcolor{comment}{//\ record\ bit\ count\ (lower\ 16\ bits)\ and\ increment\ total\ count\ (upper\ 16\ bits).}}
+\DoxyCodeLine{00053\ \ \ p\ +=\ 0x00010000u\ +\ bit;}
+\DoxyCodeLine{00054\ \ \ *stats\ =\ p;}
+\DoxyCodeLine{00055\ \ \ \textcolor{keywordflow}{return}\ bit;}
+\DoxyCodeLine{00056\ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ Cost\ of\ coding\ one\ event\ with\ probability\ 'proba'.}}
+\DoxyCodeLine{00059\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8BitCost(\textcolor{keywordtype}{int}\ bit,\ uint8\_t\ proba)\ \{}
+\DoxyCodeLine{00060\ \ \ \textcolor{keywordflow}{return}\ !bit\ ?\ VP8EntropyCost[proba]\ :\ VP8EntropyCost[255\ -\/\ proba];}
+\DoxyCodeLine{00061\ \}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{comment}{//\ Level\ cost\ calculations}}
+\DoxyCodeLine{00064\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint16\_t\ VP8LevelCodes[MAX\_VARIABLE\_LEVEL][2];}
+\DoxyCodeLine{00065\ \textcolor{keywordtype}{void}\ VP8CalculateLevelCosts(\mbox{\hyperlink{struct_v_p8_enc_proba}{VP8EncProba}}*\ \textcolor{keyword}{const}\ proba);}
+\DoxyCodeLine{00066\ \textcolor{keyword}{static}\ WEBP\_INLINE\ \textcolor{keywordtype}{int}\ VP8LevelCost(\textcolor{keyword}{const}\ uint16\_t*\ \textcolor{keyword}{const}\ table,\ \textcolor{keywordtype}{int}\ level)\ \{}
+\DoxyCodeLine{00067\ \ \ \textcolor{keywordflow}{return}\ VP8LevelFixedCosts[level]}
+\DoxyCodeLine{00068\ \ \ \ \ \ \ \ +\ table[(level\ >\ MAX\_VARIABLE\_LEVEL)\ ?\ MAX\_VARIABLE\_LEVEL\ :\ level];}
+\DoxyCodeLine{00069\ \}}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{comment}{//\ Mode\ costs}}
+\DoxyCodeLine{00072\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint16\_t\ VP8FixedCostsUV[4];}
+\DoxyCodeLine{00073\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint16\_t\ VP8FixedCostsI16[4];}
+\DoxyCodeLine{00074\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ uint16\_t\ VP8FixedCostsI4[NUM\_BMODES][NUM\_BMODES][NUM\_BMODES];}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00079\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_ENC\_COST\_ENC\_H\_}}
+
+\end{DoxyCode}

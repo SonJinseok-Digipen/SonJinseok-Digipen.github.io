@@ -1,0 +1,183 @@
+\hypertarget{cycleclock_8h_source}{}\doxysection{cycleclock.\+h}
+\label{cycleclock_8h_source}\index{AseSprite/aseprite/third\_party/benchmark/src/cycleclock.h@{AseSprite/aseprite/third\_party/benchmark/src/cycleclock.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//\ CycleClock}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ \ \ \ A\ CycleClock\ tells\ you\ the\ current\ time\ in\ Cycles.\ \ The\ "{}time"{}}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ \ \ \ is\ actually\ time\ since\ power-\/on.\ \ This\ is\ like\ time()\ but\ doesn't}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ \ \ \ involve\ a\ system\ call\ and\ is\ much\ more\ precise.}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ NOTE:\ Not\ all\ cpu/platform/kernel\ combinations\ guarantee\ that\ this}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ clock\ increments\ at\ a\ constant\ rate\ or\ is\ synchronized\ across\ all\ logical}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//\ cpus\ in\ a\ system.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ If\ you\ need\ the\ above\ guarantees,\ please\ consider\ using\ a\ different}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ API.\ There\ are\ efforts\ to\ provide\ an\ interface\ which\ provides\ a\ millisecond}}
+\DoxyCodeLine{00013\ \textcolor{comment}{//\ granularity\ and\ implemented\ as\ a\ memory\ read.\ A\ memory\ read\ is\ generally}}
+\DoxyCodeLine{00014\ \textcolor{comment}{//\ cheaper\ than\ the\ CycleClock\ for\ many\ architectures.}}
+\DoxyCodeLine{00015\ \textcolor{comment}{//}}
+\DoxyCodeLine{00016\ \textcolor{comment}{//\ Also,\ in\ some\ out\ of\ order\ CPU\ implementations,\ the\ CycleClock\ is\ not}}
+\DoxyCodeLine{00017\ \textcolor{comment}{//\ serializing.\ So\ if\ you're\ trying\ to\ count\ at\ cycles\ granularity,\ your}}
+\DoxyCodeLine{00018\ \textcolor{comment}{//\ data\ might\ be\ inaccurate\ due\ to\ out\ of\ order\ instruction\ execution.}}
+\DoxyCodeLine{00019\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#ifndef\ BENCHMARK\_CYCLECLOCK\_H\_}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ BENCHMARK\_CYCLECLOCK\_H\_}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ "{}benchmark/benchmark.h"{}}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#include\ "{}internal\_macros.h"{}}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#if\ defined(BENCHMARK\_OS\_MACOSX)}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ <mach/mach\_time.h>}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00032\ \textcolor{comment}{//\ For\ MSVC,\ we\ want\ to\ use\ '\_asm\ rdtsc'\ when\ possible\ (since\ it\ works}}
+\DoxyCodeLine{00033\ \textcolor{comment}{//\ with\ even\ ancient\ MSVC\ compilers),\ and\ when\ not\ possible\ the}}
+\DoxyCodeLine{00034\ \textcolor{comment}{//\ \_\_rdtsc\ intrinsic,\ declared\ in\ <intrin.h>.\ \ Unfortunately,\ in\ some}}
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ environments,\ <windows.h>\ and\ <intrin.h>\ have\ conflicting}}
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ declarations\ of\ some\ other\ intrinsics,\ breaking\ compilation.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ Therefore,\ we\ simply\ declare\ \_\_rdtsc\ ourselves.\ See\ also}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ http://connect.microsoft.com/VisualStudio/feedback/details/262047}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#if\ defined(COMPILER\_MSVC)\ \&\&\ !defined(\_M\_IX86)}}
+\DoxyCodeLine{00040\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ uint64\_t\ \_\_rdtsc();}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#pragma\ intrinsic(\_\_rdtsc)}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{preprocessor}{\#ifndef\ BENCHMARK\_OS\_WINDOWS}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#include\ <sys/time.h>}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#include\ <time.h>}}
+\DoxyCodeLine{00047\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#ifdef\ BENCHMARK\_OS\_EMSCRIPTEN}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#include\ <emscripten.h>}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \textcolor{keyword}{namespace\ }benchmark\ \{}
+\DoxyCodeLine{00054\ \textcolor{comment}{//\ NOTE:\ only\ i386\ and\ x86\_64\ have\ been\ well\ tested.}}
+\DoxyCodeLine{00055\ \textcolor{comment}{//\ PPC,\ sparc,\ alpha,\ and\ ia64\ are\ based\ on}}
+\DoxyCodeLine{00056\ \textcolor{comment}{//\ \ \ \ http://peter.kuscsik.com/wordpress/?p=14}}
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ with\ modifications\ by\ m3b.\ \ See\ also}}
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ \ \ \ https://setisvn.ssl.berkeley.edu/svn/lib/fftw-\/3.0.1/kernel/cycle.h}}
+\DoxyCodeLine{00059\ \textcolor{keyword}{namespace\ }cycleclock\ \{}
+\DoxyCodeLine{00060\ \textcolor{comment}{//\ This\ should\ return\ the\ number\ of\ cycles\ since\ power-\/on.\ \ Thread-\/safe.}}
+\DoxyCodeLine{00061\ \textcolor{keyword}{inline}\ BENCHMARK\_ALWAYS\_INLINE\ int64\_t\ Now()\ \{}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#if\ defined(BENCHMARK\_OS\_MACOSX)}}
+\DoxyCodeLine{00063\ \ \ \textcolor{comment}{//\ this\ goes\ at\ the\ top\ because\ we\ need\ ALL\ Macs,\ regardless\ of}}
+\DoxyCodeLine{00064\ \ \ \textcolor{comment}{//\ architecture,\ to\ return\ the\ number\ of\ "{}mach\ time\ units"{}\ that}}
+\DoxyCodeLine{00065\ \ \ \textcolor{comment}{//\ have\ passed\ since\ startup.\ \ See\ sysinfo.cc\ where}}
+\DoxyCodeLine{00066\ \ \ \textcolor{comment}{//\ InitializeSystemInfo()\ sets\ the\ supposed\ cpu\ clock\ frequency\ of}}
+\DoxyCodeLine{00067\ \ \ \textcolor{comment}{//\ macs\ to\ the\ number\ of\ mach\ time\ units\ per\ second,\ not\ actual}}
+\DoxyCodeLine{00068\ \ \ \textcolor{comment}{//\ CPU\ clock\ frequency\ (which\ can\ change\ in\ the\ face\ of\ CPU}}
+\DoxyCodeLine{00069\ \ \ \textcolor{comment}{//\ frequency\ scaling).\ \ Also\ note\ that\ when\ the\ Mac\ sleeps,\ this}}
+\DoxyCodeLine{00070\ \ \ \textcolor{comment}{//\ counter\ pauses;\ it\ does\ not\ continue\ counting,\ nor\ does\ it}}
+\DoxyCodeLine{00071\ \ \ \textcolor{comment}{//\ reset\ to\ zero.}}
+\DoxyCodeLine{00072\ \ \ \textcolor{keywordflow}{return}\ mach\_absolute\_time();}
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#elif\ defined(BENCHMARK\_OS\_EMSCRIPTEN)}}
+\DoxyCodeLine{00074\ \ \ \textcolor{comment}{//\ this\ goes\ above\ x86-\/specific\ code\ because\ old\ versions\ of\ Emscripten}}
+\DoxyCodeLine{00075\ \ \ \textcolor{comment}{//\ define\ \_\_x86\_64\_\_,\ although\ they\ have\ nothing\ to\ do\ with\ it.}}
+\DoxyCodeLine{00076\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}int64\_t\textcolor{keyword}{>}(emscripten\_get\_now()\ *\ 1e+6);}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#elif\ defined(\_\_i386\_\_)}}
+\DoxyCodeLine{00078\ \ \ int64\_t\ ret;}
+\DoxyCodeLine{00079\ \ \ \_\_asm\_\_\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}rdtsc"{}}\ :\ \textcolor{stringliteral}{"{}=A"{}}(ret));}
+\DoxyCodeLine{00080\ \ \ \textcolor{keywordflow}{return}\ ret;}
+\DoxyCodeLine{00081\ \textcolor{preprocessor}{\#elif\ defined(\_\_x86\_64\_\_)\ ||\ defined(\_\_amd64\_\_)}}
+\DoxyCodeLine{00082\ \ \ uint64\_t\ low,\ high;}
+\DoxyCodeLine{00083\ \ \ \_\_asm\_\_\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}rdtsc"{}}\ :\ \textcolor{stringliteral}{"{}=a"{}}(low),\ \textcolor{stringliteral}{"{}=d"{}}(high));}
+\DoxyCodeLine{00084\ \ \ \textcolor{keywordflow}{return}\ (high\ <<\ 32)\ |\ low;}
+\DoxyCodeLine{00085\ \textcolor{preprocessor}{\#elif\ defined(\_\_powerpc\_\_)\ ||\ defined(\_\_ppc\_\_)}}
+\DoxyCodeLine{00086\ \ \ \textcolor{comment}{//\ This\ returns\ a\ time-\/base,\ which\ is\ not\ always\ precisely\ a\ cycle-\/count.}}
+\DoxyCodeLine{00087\ \ \ int64\_t\ tbl,\ tbu0,\ tbu1;}
+\DoxyCodeLine{00088\ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mftbu\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(tbu0));}
+\DoxyCodeLine{00089\ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mftb\ \ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(tbl));}
+\DoxyCodeLine{00090\ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mftbu\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(tbu1));}
+\DoxyCodeLine{00091\ \ \ tbl\ \&=\ -\/\textcolor{keyword}{static\_cast<}int64\_t\textcolor{keyword}{>}(tbu0\ ==\ tbu1);}
+\DoxyCodeLine{00092\ \ \ \textcolor{comment}{//\ high\ 32\ bits\ in\ tbu1;\ low\ 32\ bits\ in\ tbl\ \ (tbu0\ is\ garbage)}}
+\DoxyCodeLine{00093\ \ \ \textcolor{keywordflow}{return}\ (tbu1\ <<\ 32)\ |\ tbl;}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\#elif\ defined(\_\_sparc\_\_)}}
+\DoxyCodeLine{00095\ \ \ int64\_t\ tick;}
+\DoxyCodeLine{00096\ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}.byte\ 0x83,\ 0x41,\ 0x00,\ 0x00"{}});}
+\DoxyCodeLine{00097\ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mov\ \ \ \%\%g1,\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(tick));}
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordflow}{return}\ tick;}
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#elif\ defined(\_\_ia64\_\_)}}
+\DoxyCodeLine{00100\ \ \ int64\_t\ itc;}
+\DoxyCodeLine{00101\ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}mov\ \%0\ =\ ar.itc"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(itc));}
+\DoxyCodeLine{00102\ \ \ \textcolor{keywordflow}{return}\ itc;}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#elif\ defined(COMPILER\_MSVC)\ \&\&\ defined(\_M\_IX86)}}
+\DoxyCodeLine{00104\ \ \ \textcolor{comment}{//\ Older\ MSVC\ compilers\ (like\ 7.x)\ don't\ seem\ to\ support\ the}}
+\DoxyCodeLine{00105\ \ \ \textcolor{comment}{//\ \_\_rdtsc\ intrinsic\ properly,\ so\ I\ prefer\ to\ use\ \_asm\ instead}}
+\DoxyCodeLine{00106\ \ \ \textcolor{comment}{//\ when\ I\ know\ it\ will\ work.\ \ Otherwise,\ I'll\ use\ \_\_rdtsc\ and\ hope}}
+\DoxyCodeLine{00107\ \ \ \textcolor{comment}{//\ the\ code\ is\ being\ compiled\ with\ a\ non-\/ancient\ compiler.}}
+\DoxyCodeLine{00108\ \ \ \_asm\ rdtsc}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#elif\ defined(COMPILER\_MSVC)}}
+\DoxyCodeLine{00110\ \ \ \textcolor{keywordflow}{return}\ \_\_rdtsc();}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#elif\ defined(BENCHMARK\_OS\_NACL)}}
+\DoxyCodeLine{00112\ \ \ \textcolor{comment}{//\ Native\ Client\ validator\ on\ x86/x86-\/64\ allows\ RDTSC\ instructions,}}
+\DoxyCodeLine{00113\ \ \ \textcolor{comment}{//\ and\ this\ case\ is\ handled\ above.\ Native\ Client\ validator\ on\ ARM}}
+\DoxyCodeLine{00114\ \ \ \textcolor{comment}{//\ rejects\ MRC\ instructions\ (used\ in\ the\ ARM-\/specific\ sequence\ below),}}
+\DoxyCodeLine{00115\ \ \ \textcolor{comment}{//\ so\ we\ handle\ it\ here.\ Portable\ Native\ Client\ compiles\ to}}
+\DoxyCodeLine{00116\ \ \ \textcolor{comment}{//\ architecture-\/agnostic\ bytecode,\ which\ doesn't\ provide\ any}}
+\DoxyCodeLine{00117\ \ \ \textcolor{comment}{//\ cycle\ counter\ access\ mnemonics.}}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00119\ \ \ \textcolor{comment}{//\ Native\ Client\ does\ not\ provide\ any\ API\ to\ access\ cycle\ counter.}}
+\DoxyCodeLine{00120\ \ \ \textcolor{comment}{//\ Use\ clock\_gettime(CLOCK\_MONOTONIC,\ ...)\ instead\ of\ gettimeofday}}
+\DoxyCodeLine{00121\ \ \ \textcolor{comment}{//\ because\ is\ provides\ nanosecond\ resolution\ (which\ is\ noticable\ at}}
+\DoxyCodeLine{00122\ \ \ \textcolor{comment}{//\ least\ for\ PNaCl\ modules\ running\ on\ x86\ Mac\ \&\ Linux).}}
+\DoxyCodeLine{00123\ \ \ \textcolor{comment}{//\ Initialize\ to\ always\ return\ 0\ if\ clock\_gettime\ fails.}}
+\DoxyCodeLine{00124\ \ \ \textcolor{keyword}{struct\ }timespec\ ts\ =\ \{0,\ 0\};}
+\DoxyCodeLine{00125\ \ \ clock\_gettime(CLOCK\_MONOTONIC,\ \&ts);}
+\DoxyCodeLine{00126\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}int64\_t\textcolor{keyword}{>}(ts.tv\_sec)\ *\ 1000000000\ +\ ts.tv\_nsec;}
+\DoxyCodeLine{00127\ \#elif\ defined(\_\_aarch64\_\_)}
+\DoxyCodeLine{00128\ \ \ \textcolor{comment}{//\ System\ timer\ of\ ARMv8\ runs\ at\ a\ different\ frequency\ than\ the\ CPU's.}}
+\DoxyCodeLine{00129\ \ \ \textcolor{comment}{//\ The\ frequency\ is\ fixed,\ typically\ in\ the\ range\ 1-\/50MHz.\ \ It\ can\ be}}
+\DoxyCodeLine{00130\ \ \ \textcolor{comment}{//\ read\ at\ CNTFRQ\ special\ register.\ \ We\ assume\ the\ OS\ has\ set\ up}}
+\DoxyCodeLine{00131\ \ \ \textcolor{comment}{//\ the\ virtual\ timer\ properly.}}
+\DoxyCodeLine{00132\ \ \ int64\_t\ virtual\_timer\_value;}
+\DoxyCodeLine{00133\ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrs\ \%0,\ cntvct\_el0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(virtual\_timer\_value));}
+\DoxyCodeLine{00134\ \ \ \textcolor{keywordflow}{return}\ virtual\_timer\_value;}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\#elif\ defined(\_\_ARM\_ARCH)}}
+\DoxyCodeLine{00136\ \ \ \textcolor{comment}{//\ V6\ is\ the\ earliest\ arch\ that\ has\ a\ standard\ cyclecount}}
+\DoxyCodeLine{00137\ \ \ \textcolor{comment}{//\ Native\ Client\ validator\ doesn't\ allow\ MRC\ instructions.}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\#if\ (\_\_ARM\_ARCH\ >=\ 6)}}
+\DoxyCodeLine{00139\ \ \ uint32\_t\ pmccntr;}
+\DoxyCodeLine{00140\ \ \ uint32\_t\ pmuseren;}
+\DoxyCodeLine{00141\ \ \ uint32\_t\ pmcntenset;}
+\DoxyCodeLine{00142\ \ \ \textcolor{comment}{//\ Read\ the\ user\ mode\ perf\ monitor\ counter\ access\ permissions.}}
+\DoxyCodeLine{00143\ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrc\ p15,\ 0,\ \%0,\ c9,\ c14,\ 0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(pmuseren));}
+\DoxyCodeLine{00144\ \ \ \textcolor{keywordflow}{if}\ (pmuseren\ \&\ 1)\ \{\ \ \textcolor{comment}{//\ Allows\ reading\ perfmon\ counters\ for\ user\ mode\ code.}}
+\DoxyCodeLine{00145\ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrc\ p15,\ 0,\ \%0,\ c9,\ c12,\ 1"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(pmcntenset));}
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keywordflow}{if}\ (pmcntenset\ \&\ 0x80000000ul)\ \{\ \ \textcolor{comment}{//\ Is\ it\ counting?}}
+\DoxyCodeLine{00147\ \ \ \ \ \ \ \textcolor{keyword}{asm}\ \textcolor{keyword}{volatile}(\textcolor{stringliteral}{"{}mrc\ p15,\ 0,\ \%0,\ c9,\ c13,\ 0"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}(pmccntr));}
+\DoxyCodeLine{00148\ \ \ \ \ \ \ \textcolor{comment}{//\ The\ counter\ is\ set\ up\ to\ count\ every\ 64th\ cycle}}
+\DoxyCodeLine{00149\ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}int64\_t\textcolor{keyword}{>}(pmccntr)\ *\ 64;\ \ \textcolor{comment}{//\ Should\ optimize\ to\ <<\ 6}}
+\DoxyCodeLine{00150\ \ \ \ \ \}}
+\DoxyCodeLine{00151\ \ \ \}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00153\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtimeval}{timeval}}\ tv;}
+\DoxyCodeLine{00154\ \ \ gettimeofday(\&tv,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00155\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}int64\_t\textcolor{keyword}{>}(tv.tv\_sec)\ *\ 1000000\ +\ tv.tv\_usec;}
+\DoxyCodeLine{00156\ \#elif\ defined(\_\_mips\_\_)}
+\DoxyCodeLine{00157\ \ \ \textcolor{comment}{//\ mips\ apparently\ only\ allows\ rdtsc\ for\ superusers,\ so\ we\ fall}}
+\DoxyCodeLine{00158\ \ \ \textcolor{comment}{//\ back\ to\ gettimeofday.\ \ It's\ possible\ clock\_gettime\ would\ be\ better.}}
+\DoxyCodeLine{00159\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structtimeval}{timeval}}\ tv;}
+\DoxyCodeLine{00160\ \ \ gettimeofday(\&tv,\ \textcolor{keyword}{nullptr});}
+\DoxyCodeLine{00161\ \ \ \textcolor{keywordflow}{return}\ \textcolor{keyword}{static\_cast<}int64\_t\textcolor{keyword}{>}(tv.tv\_sec)\ *\ 1000000\ +\ tv.tv\_usec;}
+\DoxyCodeLine{00162\ \#elif\ defined(\_\_s390\_\_)\ \ \textcolor{comment}{//\ Covers\ both\ s390\ and\ s390x.}}
+\DoxyCodeLine{00163\ \ \ \textcolor{comment}{//\ Return\ the\ CPU\ clock.}}
+\DoxyCodeLine{00164\ \ \ uint64\_t\ tsc;}
+\DoxyCodeLine{00165\ \ \ \textcolor{keyword}{asm}(\textcolor{stringliteral}{"{}stck\ \%0"{}}\ :\ \textcolor{stringliteral}{"{}=Q"{}}(tsc)\ :\ :\ \textcolor{stringliteral}{"{}cc"{}});}
+\DoxyCodeLine{00166\ \ \ \textcolor{keywordflow}{return}\ tsc;}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00168\ \textcolor{comment}{//\ The\ soft\ failover\ to\ a\ generic\ implementation\ is\ automatic\ only\ for\ ARM.}}
+\DoxyCodeLine{00169\ \textcolor{comment}{//\ For\ other\ platforms\ the\ developer\ is\ expected\ to\ make\ an\ attempt\ to\ create}}
+\DoxyCodeLine{00170\ \textcolor{comment}{//\ a\ fast\ implementation\ and\ use\ generic\ version\ if\ nothing\ better\ is\ available.}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\#error\ You\ need\ to\ define\ CycleTimer\ for\ your\ OS\ and\ CPU}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00173\ \}}
+\DoxyCodeLine{00174\ \}\ \ \textcolor{comment}{//\ end\ namespace\ cycleclock}}
+\DoxyCodeLine{00175\ \}\ \ \textcolor{comment}{//\ end\ namespace\ benchmark}}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ BENCHMARK\_CYCLECLOCK\_H\_}}
+
+\end{DoxyCode}

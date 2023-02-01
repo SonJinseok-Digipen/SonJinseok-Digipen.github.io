@@ -1,0 +1,325 @@
+\hypertarget{vp8i__dec_8h_source}{}\doxysection{vp8i\+\_\+dec.\+h}
+\label{vp8i__dec_8h_source}\index{AseSprite/aseprite/third\_party/libwebp/src/dec/vp8i\_dec.h@{AseSprite/aseprite/third\_party/libwebp/src/dec/vp8i\_dec.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{//\ Copyright\ 2010\ Google\ Inc.\ All\ Rights\ Reserved.}}
+\DoxyCodeLine{00002\ \textcolor{comment}{//}}
+\DoxyCodeLine{00003\ \textcolor{comment}{//\ Use\ of\ this\ source\ code\ is\ governed\ by\ a\ BSD-\/style\ license}}
+\DoxyCodeLine{00004\ \textcolor{comment}{//\ that\ can\ be\ found\ in\ the\ COPYING\ file\ in\ the\ root\ of\ the\ source}}
+\DoxyCodeLine{00005\ \textcolor{comment}{//\ tree.\ An\ additional\ intellectual\ property\ rights\ grant\ can\ be\ found}}
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ in\ the\ file\ PATENTS.\ All\ contributing\ project\ authors\ may}}
+\DoxyCodeLine{00007\ \textcolor{comment}{//\ be\ found\ in\ the\ AUTHORS\ file\ in\ the\ root\ of\ the\ source\ tree.}}
+\DoxyCodeLine{00008\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00009\ \textcolor{comment}{//}}
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ VP8\ decoder:\ internal\ header.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ Author:\ Skal\ (pascal.massimino@gmail.com)}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ WEBP\_DEC\_VP8I\_DEC\_H\_}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ WEBP\_DEC\_VP8I\_DEC\_H\_}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <string.h>}\ \ \ \ \ \textcolor{comment}{//\ for\ memcpy()}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}src/dec/common\_dec.h"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}src/dec/vp8li\_dec.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}src/utils/bit\_reader\_utils.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}src/utils/random\_utils.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ "{}src/utils/thread\_utils.h"{}}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}src/dsp/dsp.h"{}}}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00026\ \textcolor{keyword}{extern}\ \textcolor{stringliteral}{"{}C"{}}\ \{}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00030\ \textcolor{comment}{//\ Various\ defines\ and\ enums}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{comment}{//\ version\ numbers}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#define\ DEC\_MAJ\_VERSION\ 1}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#define\ DEC\_MIN\_VERSION\ 2}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ DEC\_REV\_VERSION\ 1}}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ YUV-\/cache\ parameters.\ Cache\ is\ 32-\/bytes\ wide\ (=\ one\ cacheline).}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ Constraints\ are:\ We\ need\ to\ store\ one\ 16x16\ block\ of\ luma\ samples\ (y),}}
+\DoxyCodeLine{00039\ \textcolor{comment}{//\ and\ two\ 8x8\ chroma\ blocks\ (u/v).\ These\ are\ better\ be\ 16-\/bytes\ aligned,}}
+\DoxyCodeLine{00040\ \textcolor{comment}{//\ in\ order\ to\ be\ SIMD-\/friendly.\ We\ also\ need\ to\ store\ the\ top,\ left\ and}}
+\DoxyCodeLine{00041\ \textcolor{comment}{//\ top-\/left\ samples\ (from\ previously\ decoded\ blocks),\ along\ with\ four}}
+\DoxyCodeLine{00042\ \textcolor{comment}{//\ extra\ top-\/right\ samples\ for\ luma\ (intra4x4\ prediction\ only).}}
+\DoxyCodeLine{00043\ \textcolor{comment}{//\ One\ possible\ layout\ is,\ using\ 32\ *\ (17\ +\ 9)\ bytes:}}
+\DoxyCodeLine{00044\ \textcolor{comment}{//}}
+\DoxyCodeLine{00045\ \textcolor{comment}{//\ \ \ .+-\/-\/-\/-\/-\/-\/\ \ \ <-\/\ only\ 1\ pixel\ high}}
+\DoxyCodeLine{00046\ \textcolor{comment}{//\ \ \ .|yyyyt.}}
+\DoxyCodeLine{00047\ \textcolor{comment}{//\ \ \ .|yyyyt.}}
+\DoxyCodeLine{00048\ \textcolor{comment}{//\ \ \ .|yyyyt.}}
+\DoxyCodeLine{00049\ \textcolor{comment}{//\ \ \ .|yyyy..}}
+\DoxyCodeLine{00050\ \textcolor{comment}{//\ \ \ .+-\/-\/.+-\/-\/\ \ \ <-\/\ only\ 1\ pixel\ high}}
+\DoxyCodeLine{00051\ \textcolor{comment}{//\ \ \ .|uu.|vv}}
+\DoxyCodeLine{00052\ \textcolor{comment}{//\ \ \ .|uu.|vv}}
+\DoxyCodeLine{00053\ \textcolor{comment}{//}}
+\DoxyCodeLine{00054\ \textcolor{comment}{//\ Every\ character\ is\ a\ 4x4\ block,\ with\ legend:}}
+\DoxyCodeLine{00055\ \textcolor{comment}{//\ \ '.'\ =\ unused}}
+\DoxyCodeLine{00056\ \textcolor{comment}{//\ \ 'y'\ =\ y-\/samples\ \ \ 'u'\ =\ u-\/samples\ \ \ \ \ 'v'\ =\ u-\/samples}}
+\DoxyCodeLine{00057\ \textcolor{comment}{//\ \ '|'\ =\ left\ sample,\ \ \ '-\/'\ =\ top\ sample,\ \ \ \ '+'\ =\ top-\/left\ sample}}
+\DoxyCodeLine{00058\ \textcolor{comment}{//\ \ 't'\ =\ extra\ top-\/right\ sample\ for\ 4x4\ modes}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#define\ YUV\_SIZE\ (BPS\ *\ 17\ +\ BPS\ *\ 9)}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#define\ Y\_OFF\ \ \ \ (BPS\ *\ 1\ +\ 8)}}
+\DoxyCodeLine{00061\ \textcolor{preprocessor}{\#define\ U\_OFF\ \ \ \ (Y\_OFF\ +\ BPS\ *\ 16\ +\ BPS)}}
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#define\ V\_OFF\ \ \ \ (U\_OFF\ +\ 16)}}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00064\ \textcolor{comment}{//\ minimal\ width\ under\ which\ lossy\ multi-\/threading\ is\ always\ disabled}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ MIN\_WIDTH\_FOR\_THREADS\ 512}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00068\ \textcolor{comment}{//\ Headers}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00071\ \ \ uint8\_t\ key\_frame\_;}
+\DoxyCodeLine{00072\ \ \ uint8\_t\ profile\_;}
+\DoxyCodeLine{00073\ \ \ uint8\_t\ show\_;}
+\DoxyCodeLine{00074\ \ \ uint32\_t\ partition\_length\_;}
+\DoxyCodeLine{00075\ \}\ \mbox{\hyperlink{struct_v_p8_frame_header}{VP8FrameHeader}};}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00078\ \ \ uint16\_t\ width\_;}
+\DoxyCodeLine{00079\ \ \ uint16\_t\ height\_;}
+\DoxyCodeLine{00080\ \ \ uint8\_t\ xscale\_;}
+\DoxyCodeLine{00081\ \ \ uint8\_t\ yscale\_;}
+\DoxyCodeLine{00082\ \ \ uint8\_t\ colorspace\_;\ \ \ \textcolor{comment}{//\ 0\ =\ YCbCr}}
+\DoxyCodeLine{00083\ \ \ uint8\_t\ clamp\_type\_;}
+\DoxyCodeLine{00084\ \}\ \mbox{\hyperlink{struct_v_p8_picture_header}{VP8PictureHeader}};}
+\DoxyCodeLine{00085\ }
+\DoxyCodeLine{00086\ \textcolor{comment}{//\ segment\ features}}
+\DoxyCodeLine{00087\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00088\ \ \ \textcolor{keywordtype}{int}\ use\_segment\_;}
+\DoxyCodeLine{00089\ \ \ \textcolor{keywordtype}{int}\ update\_map\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ whether\ to\ update\ the\ segment\ map\ or\ not}}
+\DoxyCodeLine{00090\ \ \ \textcolor{keywordtype}{int}\ absolute\_delta\_;\ \ \ \ \textcolor{comment}{//\ absolute\ or\ delta\ values\ for\ quantizer\ and\ filter}}
+\DoxyCodeLine{00091\ \ \ int8\_t\ quantizer\_[NUM\_MB\_SEGMENTS];\ \ \ \ \ \ \ \ \textcolor{comment}{//\ quantization\ changes}}
+\DoxyCodeLine{00092\ \ \ int8\_t\ filter\_strength\_[NUM\_MB\_SEGMENTS];\ \ \textcolor{comment}{//\ filter\ strength\ for\ segments}}
+\DoxyCodeLine{00093\ \}\ \mbox{\hyperlink{struct_v_p8_segment_header}{VP8SegmentHeader}};}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00095\ \textcolor{comment}{//\ probas\ associated\ to\ one\ of\ the\ contexts}}
+\DoxyCodeLine{00096\ \textcolor{keyword}{typedef}\ uint8\_t\ VP8ProbaArray[NUM\_PROBAS];}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{\ \ \ \textcolor{comment}{//\ all\ the\ probas\ associated\ to\ one\ band}}
+\DoxyCodeLine{00099\ \ \ VP8ProbaArray\ probas\_[NUM\_CTX];}
+\DoxyCodeLine{00100\ \}\ \mbox{\hyperlink{struct_v_p8_band_probas}{VP8BandProbas}};}
+\DoxyCodeLine{00101\ }
+\DoxyCodeLine{00102\ \textcolor{comment}{//\ Struct\ collecting\ all\ frame-\/persistent\ probabilities.}}
+\DoxyCodeLine{00103\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00104\ \ \ uint8\_t\ segments\_[MB\_FEATURE\_TREE\_PROBS];}
+\DoxyCodeLine{00105\ \ \ \textcolor{comment}{//\ Type:\ 0:Intra16-\/AC\ \ 1:Intra16-\/DC\ \ \ 2:Chroma\ \ \ 3:Intra4}}
+\DoxyCodeLine{00106\ \ \ \mbox{\hyperlink{struct_v_p8_band_probas}{VP8BandProbas}}\ bands\_[NUM\_TYPES][NUM\_BANDS];}
+\DoxyCodeLine{00107\ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_band_probas}{VP8BandProbas}}*\ bands\_ptr\_[NUM\_TYPES][16\ +\ 1];}
+\DoxyCodeLine{00108\ \}\ \mbox{\hyperlink{struct_v_p8_proba}{VP8Proba}};}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00110\ \textcolor{comment}{//\ Filter\ parameters}}
+\DoxyCodeLine{00111\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00112\ \ \ \textcolor{keywordtype}{int}\ simple\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0=complex,\ 1=simple}}
+\DoxyCodeLine{00113\ \ \ \textcolor{keywordtype}{int}\ level\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ [0..63]}}
+\DoxyCodeLine{00114\ \ \ \textcolor{keywordtype}{int}\ sharpness\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ [0..7]}}
+\DoxyCodeLine{00115\ \ \ \textcolor{keywordtype}{int}\ use\_lf\_delta\_;}
+\DoxyCodeLine{00116\ \ \ \textcolor{keywordtype}{int}\ ref\_lf\_delta\_[NUM\_REF\_LF\_DELTAS];}
+\DoxyCodeLine{00117\ \ \ \textcolor{keywordtype}{int}\ mode\_lf\_delta\_[NUM\_MODE\_LF\_DELTAS];}
+\DoxyCodeLine{00118\ \}\ \mbox{\hyperlink{struct_v_p8_filter_header}{VP8FilterHeader}};}
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00121\ \textcolor{comment}{//\ Informations\ about\ the\ macroblocks.}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{\ \ \textcolor{comment}{//\ filter\ specs}}
+\DoxyCodeLine{00124\ \ \ uint8\_t\ f\_limit\_;\ \ \ \ \ \ \textcolor{comment}{//\ filter\ limit\ in\ [3..189],\ or\ 0\ if\ no\ filtering}}
+\DoxyCodeLine{00125\ \ \ uint8\_t\ f\_ilevel\_;\ \ \ \ \ \textcolor{comment}{//\ inner\ limit\ in\ [1..63]}}
+\DoxyCodeLine{00126\ \ \ uint8\_t\ f\_inner\_;\ \ \ \ \ \ \textcolor{comment}{//\ do\ inner\ filtering?}}
+\DoxyCodeLine{00127\ \ \ uint8\_t\ hev\_thresh\_;\ \ \ \textcolor{comment}{//\ high\ edge\ variance\ threshold\ in\ [0..2]}}
+\DoxyCodeLine{00128\ \}\ \mbox{\hyperlink{struct_v_p8_f_info}{VP8FInfo}};}
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{\ \ \textcolor{comment}{//\ Top/Left\ Contexts\ used\ for\ syntax-\/parsing}}
+\DoxyCodeLine{00131\ \ \ uint8\_t\ nz\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ non-\/zero\ AC/DC\ coeffs\ (4bit\ for\ luma\ +\ 4bit\ for\ chroma)}}
+\DoxyCodeLine{00132\ \ \ uint8\_t\ nz\_dc\_;\ \ \ \ \ \textcolor{comment}{//\ non-\/zero\ DC\ coeff\ (1bit)}}
+\DoxyCodeLine{00133\ \}\ \mbox{\hyperlink{struct_v_p8_m_b}{VP8MB}};}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{comment}{//\ Dequantization\ matrices}}
+\DoxyCodeLine{00136\ \textcolor{keyword}{typedef}\ \textcolor{keywordtype}{int}\ quant\_t[2];\ \ \ \ \ \ \textcolor{comment}{//\ [DC\ /\ AC].\ \ Can\ be\ 'uint16\_t[2]'\ too\ (\string~slower).}}
+\DoxyCodeLine{00137\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00138\ \ \ quant\_t\ y1\_mat\_,\ y2\_mat\_,\ uv\_mat\_;}
+\DoxyCodeLine{00139\ }
+\DoxyCodeLine{00140\ \ \ \textcolor{keywordtype}{int}\ uv\_quant\_;\ \ \ \textcolor{comment}{//\ U/V\ quantizer\ value}}
+\DoxyCodeLine{00141\ \ \ \textcolor{keywordtype}{int}\ dither\_;\ \ \ \ \ \textcolor{comment}{//\ dithering\ amplitude\ (0\ =\ off,\ max=255)}}
+\DoxyCodeLine{00142\ \}\ \mbox{\hyperlink{struct_v_p8_quant_matrix}{VP8QuantMatrix}};}
+\DoxyCodeLine{00143\ }
+\DoxyCodeLine{00144\ \textcolor{comment}{//\ Data\ needed\ to\ reconstruct\ a\ macroblock}}
+\DoxyCodeLine{00145\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00146\ \ \ int16\_t\ coeffs\_[384];\ \ \ \textcolor{comment}{//\ 384\ coeffs\ =\ (16+4+4)\ *\ 4*4}}
+\DoxyCodeLine{00147\ \ \ uint8\_t\ is\_i4x4\_;\ \ \ \ \ \ \ \textcolor{comment}{//\ true\ if\ intra4x4}}
+\DoxyCodeLine{00148\ \ \ uint8\_t\ imodes\_[16];\ \ \ \ \textcolor{comment}{//\ one\ 16x16\ mode\ (\#0)\ or\ sixteen\ 4x4\ modes}}
+\DoxyCodeLine{00149\ \ \ uint8\_t\ uvmode\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ chroma\ prediction\ mode}}
+\DoxyCodeLine{00150\ \ \ \textcolor{comment}{//\ bit-\/wise\ info\ about\ the\ content\ of\ each\ sub-\/4x4\ blocks\ (in\ decoding\ order).}}
+\DoxyCodeLine{00151\ \ \ \textcolor{comment}{//\ Each\ of\ the\ 4x4\ blocks\ for\ y/u/v\ is\ associated\ with\ a\ 2b\ code\ according\ to:}}
+\DoxyCodeLine{00152\ \ \ \textcolor{comment}{//\ \ \ code=0\ -\/>\ no\ coefficient}}
+\DoxyCodeLine{00153\ \ \ \textcolor{comment}{//\ \ \ code=1\ -\/>\ only\ DC}}
+\DoxyCodeLine{00154\ \ \ \textcolor{comment}{//\ \ \ code=2\ -\/>\ first\ three\ coefficients\ are\ non-\/zero}}
+\DoxyCodeLine{00155\ \ \ \textcolor{comment}{//\ \ \ code=3\ -\/>\ more\ than\ three\ coefficients\ are\ non-\/zero}}
+\DoxyCodeLine{00156\ \ \ \textcolor{comment}{//\ This\ allows\ to\ call\ specialized\ transform\ functions.}}
+\DoxyCodeLine{00157\ \ \ uint32\_t\ non\_zero\_y\_;}
+\DoxyCodeLine{00158\ \ \ uint32\_t\ non\_zero\_uv\_;}
+\DoxyCodeLine{00159\ \ \ uint8\_t\ dither\_;\ \ \ \ \ \ \textcolor{comment}{//\ local\ dithering\ strength\ (deduced\ from\ non\_zero\_*)}}
+\DoxyCodeLine{00160\ \ \ uint8\_t\ skip\_;}
+\DoxyCodeLine{00161\ \ \ uint8\_t\ segment\_;}
+\DoxyCodeLine{00162\ \}\ \mbox{\hyperlink{struct_v_p8_m_b_data}{VP8MBData}};}
+\DoxyCodeLine{00163\ }
+\DoxyCodeLine{00164\ \textcolor{comment}{//\ Persistent\ information\ needed\ by\ the\ parallel\ processing}}
+\DoxyCodeLine{00165\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00166\ \ \ \textcolor{keywordtype}{int}\ id\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ cache\ row\ to\ process\ (in\ [0..2])}}
+\DoxyCodeLine{00167\ \ \ \textcolor{keywordtype}{int}\ mb\_y\_;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ macroblock\ position\ of\ the\ row}}
+\DoxyCodeLine{00168\ \ \ \textcolor{keywordtype}{int}\ filter\_row\_;\ \ \ \ \ \ \textcolor{comment}{//\ true\ if\ row-\/filtering\ is\ needed}}
+\DoxyCodeLine{00169\ \ \ \mbox{\hyperlink{struct_v_p8_f_info}{VP8FInfo}}*\ f\_info\_;\ \ \ \ \textcolor{comment}{//\ filter\ strengths\ (swapped\ with\ dec-\/>f\_info\_)}}
+\DoxyCodeLine{00170\ \ \ \mbox{\hyperlink{struct_v_p8_m_b_data}{VP8MBData}}*\ mb\_data\_;\ \ \textcolor{comment}{//\ reconstruction\ data\ (swapped\ with\ dec-\/>mb\_data\_)}}
+\DoxyCodeLine{00171\ \ \ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}\ io\_;\ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ copy\ of\ the\ VP8Io\ to\ pass\ to\ put()}}
+\DoxyCodeLine{00172\ \}\ \mbox{\hyperlink{struct_v_p8_thread_context}{VP8ThreadContext}};}
+\DoxyCodeLine{00173\ }
+\DoxyCodeLine{00174\ \textcolor{comment}{//\ Saved\ top\ samples,\ per\ macroblock.\ Fits\ into\ a\ cache-\/line.}}
+\DoxyCodeLine{00175\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00176\ \ \ uint8\_t\ y[16],\ u[8],\ v[8];}
+\DoxyCodeLine{00177\ \}\ \mbox{\hyperlink{struct_v_p8_top_samples}{VP8TopSamples}};}
+\DoxyCodeLine{00178\ }
+\DoxyCodeLine{00179\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00180\ \textcolor{comment}{//\ VP8Decoder:\ the\ main\ opaque\ structure\ handed\ over\ to\ user}}
+\DoxyCodeLine{00181\ }
+\DoxyCodeLine{00182\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}\ \{}
+\DoxyCodeLine{00183\ \ \ VP8StatusCode\ status\_;}
+\DoxyCodeLine{00184\ \ \ \textcolor{keywordtype}{int}\ ready\_;\ \ \ \ \ \textcolor{comment}{//\ true\ if\ ready\ to\ decode\ a\ picture\ with\ VP8Decode()}}
+\DoxyCodeLine{00185\ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ error\_msg\_;\ \ \textcolor{comment}{//\ set\ when\ status\_\ is\ not\ OK.}}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00187\ \ \ \textcolor{comment}{//\ Main\ data\ source}}
+\DoxyCodeLine{00188\ \ \ \mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}\ br\_;}
+\DoxyCodeLine{00189\ }
+\DoxyCodeLine{00190\ \ \ \textcolor{comment}{//\ headers}}
+\DoxyCodeLine{00191\ \ \ \mbox{\hyperlink{struct_v_p8_frame_header}{VP8FrameHeader}}\ \ \ frm\_hdr\_;}
+\DoxyCodeLine{00192\ \ \ \mbox{\hyperlink{struct_v_p8_picture_header}{VP8PictureHeader}}\ pic\_hdr\_;}
+\DoxyCodeLine{00193\ \ \ \mbox{\hyperlink{struct_v_p8_filter_header}{VP8FilterHeader}}\ \ filter\_hdr\_;}
+\DoxyCodeLine{00194\ \ \ \mbox{\hyperlink{struct_v_p8_segment_header}{VP8SegmentHeader}}\ segment\_hdr\_;}
+\DoxyCodeLine{00195\ }
+\DoxyCodeLine{00196\ \ \ \textcolor{comment}{//\ Worker}}
+\DoxyCodeLine{00197\ \ \ \mbox{\hyperlink{struct_web_p_worker}{WebPWorker}}\ worker\_;}
+\DoxyCodeLine{00198\ \ \ \textcolor{keywordtype}{int}\ mt\_method\_;\ \ \ \ \ \ \textcolor{comment}{//\ multi-\/thread\ method:\ 0=off,\ 1=[parse+recon][filter]}}
+\DoxyCodeLine{00199\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 2=[parse][recon+filter]}}
+\DoxyCodeLine{00200\ \ \ \textcolor{keywordtype}{int}\ cache\_id\_;\ \ \ \ \ \ \ \textcolor{comment}{//\ current\ cache\ row}}
+\DoxyCodeLine{00201\ \ \ \textcolor{keywordtype}{int}\ num\_caches\_;\ \ \ \ \ \textcolor{comment}{//\ number\ of\ cached\ rows\ of\ 16\ pixels\ (1,\ 2\ or\ 3)}}
+\DoxyCodeLine{00202\ \ \ \mbox{\hyperlink{struct_v_p8_thread_context}{VP8ThreadContext}}\ thread\_ctx\_;\ \ \textcolor{comment}{//\ Thread\ context}}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00204\ \ \ \textcolor{comment}{//\ dimension,\ in\ macroblock\ units.}}
+\DoxyCodeLine{00205\ \ \ \textcolor{keywordtype}{int}\ mb\_w\_,\ mb\_h\_;}
+\DoxyCodeLine{00206\ }
+\DoxyCodeLine{00207\ \ \ \textcolor{comment}{//\ Macroblock\ to\ process/filter,\ depending\ on\ cropping\ and\ filter\_type.}}
+\DoxyCodeLine{00208\ \ \ \textcolor{keywordtype}{int}\ tl\_mb\_x\_,\ tl\_mb\_y\_;\ \ \textcolor{comment}{//\ top-\/left\ MB\ that\ must\ be\ in-\/loop\ filtered}}
+\DoxyCodeLine{00209\ \ \ \textcolor{keywordtype}{int}\ br\_mb\_x\_,\ br\_mb\_y\_;\ \ \textcolor{comment}{//\ last\ bottom-\/right\ MB\ that\ must\ be\ decoded}}
+\DoxyCodeLine{00210\ }
+\DoxyCodeLine{00211\ \ \ \textcolor{comment}{//\ number\ of\ partitions\ minus\ one.}}
+\DoxyCodeLine{00212\ \ \ uint32\_t\ num\_parts\_minus\_one\_;}
+\DoxyCodeLine{00213\ \ \ \textcolor{comment}{//\ per-\/partition\ boolean\ decoders.}}
+\DoxyCodeLine{00214\ \ \ \mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}\ parts\_[MAX\_NUM\_PARTITIONS];}
+\DoxyCodeLine{00215\ }
+\DoxyCodeLine{00216\ \ \ \textcolor{comment}{//\ Dithering\ strength,\ deduced\ from\ decoding\ options}}
+\DoxyCodeLine{00217\ \ \ \textcolor{keywordtype}{int}\ dither\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ whether\ to\ use\ dithering\ or\ not}}
+\DoxyCodeLine{00218\ \ \ \mbox{\hyperlink{struct_v_p8_random}{VP8Random}}\ dithering\_rg\_;\ \ \ \ \textcolor{comment}{//\ random\ generator\ for\ dithering}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \ \ \textcolor{comment}{//\ dequantization\ (one\ set\ of\ DC/AC\ dequant\ factor\ per\ segment)}}
+\DoxyCodeLine{00221\ \ \ \mbox{\hyperlink{struct_v_p8_quant_matrix}{VP8QuantMatrix}}\ dqm\_[NUM\_MB\_SEGMENTS];}
+\DoxyCodeLine{00222\ }
+\DoxyCodeLine{00223\ \ \ \textcolor{comment}{//\ probabilities}}
+\DoxyCodeLine{00224\ \ \ \mbox{\hyperlink{struct_v_p8_proba}{VP8Proba}}\ proba\_;}
+\DoxyCodeLine{00225\ \ \ \textcolor{keywordtype}{int}\ use\_skip\_proba\_;}
+\DoxyCodeLine{00226\ \ \ uint8\_t\ skip\_p\_;}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \ \ \textcolor{comment}{//\ Boundary\ data\ cache\ and\ persistent\ buffers.}}
+\DoxyCodeLine{00229\ \ \ uint8\_t*\ intra\_t\_;\ \ \ \ \ \ \textcolor{comment}{//\ top\ intra\ modes\ values:\ 4\ *\ mb\_w\_}}
+\DoxyCodeLine{00230\ \ \ uint8\_t\ \ intra\_l\_[4];\ \ \ \textcolor{comment}{//\ left\ intra\ modes\ values}}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \ \ \mbox{\hyperlink{struct_v_p8_top_samples}{VP8TopSamples}}*\ yuv\_t\_;\ \ \textcolor{comment}{//\ top\ y/u/v\ samples}}
+\DoxyCodeLine{00233\ }
+\DoxyCodeLine{00234\ \ \ \mbox{\hyperlink{struct_v_p8_m_b}{VP8MB}}*\ mb\_info\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ contextual\ macroblock\ info\ (mb\_w\_\ +\ 1)}}
+\DoxyCodeLine{00235\ \ \ \mbox{\hyperlink{struct_v_p8_f_info}{VP8FInfo}}*\ f\_info\_;\ \ \ \ \ \ \textcolor{comment}{//\ filter\ strength\ info}}
+\DoxyCodeLine{00236\ \ \ uint8\_t*\ yuv\_b\_;\ \ \ \ \ \ \ \ \textcolor{comment}{//\ main\ block\ for\ Y/U/V\ (size\ =\ YUV\_SIZE)}}
+\DoxyCodeLine{00237\ }
+\DoxyCodeLine{00238\ \ \ uint8\_t*\ cache\_y\_;\ \ \ \ \ \ \textcolor{comment}{//\ macroblock\ row\ for\ storing\ unfiltered\ samples}}
+\DoxyCodeLine{00239\ \ \ uint8\_t*\ cache\_u\_;}
+\DoxyCodeLine{00240\ \ \ uint8\_t*\ cache\_v\_;}
+\DoxyCodeLine{00241\ \ \ \textcolor{keywordtype}{int}\ cache\_y\_stride\_;}
+\DoxyCodeLine{00242\ \ \ \textcolor{keywordtype}{int}\ cache\_uv\_stride\_;}
+\DoxyCodeLine{00243\ }
+\DoxyCodeLine{00244\ \ \ \textcolor{comment}{//\ main\ memory\ chunk\ for\ the\ above\ data.\ Persistent.}}
+\DoxyCodeLine{00245\ \ \ \textcolor{keywordtype}{void}*\ mem\_;}
+\DoxyCodeLine{00246\ \ \ \textcolor{keywordtype}{size\_t}\ mem\_size\_;}
+\DoxyCodeLine{00247\ }
+\DoxyCodeLine{00248\ \ \ \textcolor{comment}{//\ Per\ macroblock\ non-\/persistent\ infos.}}
+\DoxyCodeLine{00249\ \ \ \textcolor{keywordtype}{int}\ mb\_x\_,\ mb\_y\_;\ \ \ \ \ \ \ \textcolor{comment}{//\ current\ position,\ in\ macroblock\ units}}
+\DoxyCodeLine{00250\ \ \ \mbox{\hyperlink{struct_v_p8_m_b_data}{VP8MBData}}*\ mb\_data\_;\ \ \ \ \textcolor{comment}{//\ parsed\ reconstruction\ data}}
+\DoxyCodeLine{00251\ }
+\DoxyCodeLine{00252\ \ \ \textcolor{comment}{//\ Filtering\ side-\/info}}
+\DoxyCodeLine{00253\ \ \ \textcolor{keywordtype}{int}\ filter\_type\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ 0=off,\ 1=simple,\ 2=complex}}
+\DoxyCodeLine{00254\ \ \ \mbox{\hyperlink{struct_v_p8_f_info}{VP8FInfo}}\ fstrengths\_[NUM\_MB\_SEGMENTS][2];\ \ \textcolor{comment}{//\ precalculated\ per-\/segment/type}}
+\DoxyCodeLine{00255\ }
+\DoxyCodeLine{00256\ \ \ \textcolor{comment}{//\ Alpha}}
+\DoxyCodeLine{00257\ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_a_l_p_h_decoder}{ALPHDecoder}}*\ alph\_dec\_;\ \ \textcolor{comment}{//\ alpha-\/plane\ decoder\ object}}
+\DoxyCodeLine{00258\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ alpha\_data\_;\ \ \ \ \ \textcolor{comment}{//\ compressed\ alpha\ data\ (if\ present)}}
+\DoxyCodeLine{00259\ \ \ \textcolor{keywordtype}{size\_t}\ alpha\_data\_size\_;}
+\DoxyCodeLine{00260\ \ \ \textcolor{keywordtype}{int}\ is\_alpha\_decoded\_;\ \ \ \ \ \ \textcolor{comment}{//\ true\ if\ alpha\_data\_\ is\ decoded\ in\ alpha\_plane\_}}
+\DoxyCodeLine{00261\ \ \ uint8\_t*\ alpha\_plane\_mem\_;\ \ \textcolor{comment}{//\ memory\ allocated\ for\ alpha\_plane\_}}
+\DoxyCodeLine{00262\ \ \ uint8\_t*\ alpha\_plane\_;\ \ \ \ \ \ \textcolor{comment}{//\ output.\ Persistent,\ contains\ the\ whole\ data.}}
+\DoxyCodeLine{00263\ \ \ \textcolor{keyword}{const}\ uint8\_t*\ alpha\_prev\_line\_;\ \ \textcolor{comment}{//\ last\ decoded\ alpha\ row\ (or\ NULL)}}
+\DoxyCodeLine{00264\ \ \ \textcolor{keywordtype}{int}\ alpha\_dithering\_;\ \ \ \ \ \ \ \textcolor{comment}{//\ derived\ from\ decoding\ options\ (0=off,\ 100=full)}}
+\DoxyCodeLine{00265\ \};}
+\DoxyCodeLine{00266\ }
+\DoxyCodeLine{00267\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00268\ \textcolor{comment}{//\ internal\ functions.\ Not\ public.}}
+\DoxyCodeLine{00269\ }
+\DoxyCodeLine{00270\ \textcolor{comment}{//\ in\ vp8.c}}
+\DoxyCodeLine{00271\ \textcolor{keywordtype}{int}\ VP8SetError(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,}
+\DoxyCodeLine{00272\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ VP8StatusCode\ error,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \textcolor{keyword}{const}\ msg);}
+\DoxyCodeLine{00273\ }
+\DoxyCodeLine{00274\ \textcolor{comment}{//\ in\ tree.c}}
+\DoxyCodeLine{00275\ \textcolor{keywordtype}{void}\ VP8ResetProba(\mbox{\hyperlink{struct_v_p8_proba}{VP8Proba}}*\ \textcolor{keyword}{const}\ proba);}
+\DoxyCodeLine{00276\ \textcolor{keywordtype}{void}\ VP8ParseProba(\mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ \textcolor{keyword}{const}\ br,\ \mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00277\ \textcolor{comment}{//\ parses\ one\ row\ of\ intra\ mode\ data\ in\ partition\ 0,\ returns\ !eof}}
+\DoxyCodeLine{00278\ \textcolor{keywordtype}{int}\ VP8ParseIntraModeRow(\mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ \textcolor{keyword}{const}\ br,\ \mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00279\ }
+\DoxyCodeLine{00280\ \textcolor{comment}{//\ in\ quant.c}}
+\DoxyCodeLine{00281\ \textcolor{keywordtype}{void}\ VP8ParseQuant(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00282\ }
+\DoxyCodeLine{00283\ \textcolor{comment}{//\ in\ frame.c}}
+\DoxyCodeLine{00284\ \textcolor{keywordtype}{int}\ VP8InitFrame(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io);}
+\DoxyCodeLine{00285\ \textcolor{comment}{//\ Call\ io-\/>setup()\ and\ finish\ setting\ up\ scan\ parameters.}}
+\DoxyCodeLine{00286\ \textcolor{comment}{//\ After\ this\ call\ returns,\ one\ must\ always\ call\ VP8ExitCritical()\ with\ the}}
+\DoxyCodeLine{00287\ \textcolor{comment}{//\ same\ parameters.\ Both\ functions\ should\ be\ used\ in\ pair.\ Returns\ VP8\_STATUS\_OK}}
+\DoxyCodeLine{00288\ \textcolor{comment}{//\ if\ ok,\ otherwise\ sets\ and\ returns\ the\ error\ status\ on\ *dec.}}
+\DoxyCodeLine{00289\ VP8StatusCode\ VP8EnterCritical(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io);}
+\DoxyCodeLine{00290\ \textcolor{comment}{//\ Must\ always\ be\ called\ in\ pair\ with\ VP8EnterCritical().}}
+\DoxyCodeLine{00291\ \textcolor{comment}{//\ Returns\ false\ in\ case\ of\ error.}}
+\DoxyCodeLine{00292\ \textcolor{keywordtype}{int}\ VP8ExitCritical(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io);}
+\DoxyCodeLine{00293\ \textcolor{comment}{//\ Return\ the\ multi-\/threading\ method\ to\ use\ (0=off),\ depending}}
+\DoxyCodeLine{00294\ \textcolor{comment}{//\ on\ options\ and\ bitstream\ size.\ Only\ for\ lossy\ decoding.}}
+\DoxyCodeLine{00295\ \textcolor{keywordtype}{int}\ VP8GetThreadMethod(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_decoder_options}{WebPDecoderOptions}}*\ \textcolor{keyword}{const}\ options,}
+\DoxyCodeLine{00296\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_header_structure}{WebPHeaderStructure}}*\ \textcolor{keyword}{const}\ headers,}
+\DoxyCodeLine{00297\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ width,\ \textcolor{keywordtype}{int}\ height);}
+\DoxyCodeLine{00298\ \textcolor{comment}{//\ Initialize\ dithering\ post-\/process\ if\ needed.}}
+\DoxyCodeLine{00299\ \textcolor{keywordtype}{void}\ VP8InitDithering(\textcolor{keyword}{const}\ \mbox{\hyperlink{struct_web_p_decoder_options}{WebPDecoderOptions}}*\ \textcolor{keyword}{const}\ options,}
+\DoxyCodeLine{00300\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00301\ \textcolor{comment}{//\ Process\ the\ last\ decoded\ row\ (filtering\ +\ output).}}
+\DoxyCodeLine{00302\ \textcolor{keywordtype}{int}\ VP8ProcessRow(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io);}
+\DoxyCodeLine{00303\ \textcolor{comment}{//\ To\ be\ called\ at\ the\ start\ of\ a\ new\ scanline,\ to\ initialize\ predictors.}}
+\DoxyCodeLine{00304\ \textcolor{keywordtype}{void}\ VP8InitScanline(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec);}
+\DoxyCodeLine{00305\ \textcolor{comment}{//\ Decode\ one\ macroblock.\ Returns\ false\ if\ there\ is\ not\ enough\ data.}}
+\DoxyCodeLine{00306\ \textcolor{keywordtype}{int}\ VP8DecodeMB(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,\ \mbox{\hyperlink{struct_v_p8_bit_reader}{VP8BitReader}}*\ \textcolor{keyword}{const}\ token\_br);}
+\DoxyCodeLine{00307\ }
+\DoxyCodeLine{00308\ \textcolor{comment}{//\ in\ alpha.c}}
+\DoxyCodeLine{00309\ \textcolor{keyword}{const}\ uint8\_t*\ VP8DecompressAlphaRows(\mbox{\hyperlink{struct_v_p8_decoder}{VP8Decoder}}*\ \textcolor{keyword}{const}\ dec,}
+\DoxyCodeLine{00310\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ \mbox{\hyperlink{struct_v_p8_io}{VP8Io}}*\ \textcolor{keyword}{const}\ io,}
+\DoxyCodeLine{00311\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{int}\ row,\ \textcolor{keywordtype}{int}\ num\_rows);}
+\DoxyCodeLine{00312\ }
+\DoxyCodeLine{00313\ \textcolor{comment}{//-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00314\ }
+\DoxyCodeLine{00315\ \textcolor{preprocessor}{\#ifdef\ \_\_cplusplus}}
+\DoxyCodeLine{00316\ \}\ \ \ \ \textcolor{comment}{//\ extern\ "{}C"{}}}
+\DoxyCodeLine{00317\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00318\ }
+\DoxyCodeLine{00319\ \textcolor{preprocessor}{\#endif\ \ }\textcolor{comment}{//\ WEBP\_DEC\_VP8I\_DEC\_H\_}}
+
+\end{DoxyCode}

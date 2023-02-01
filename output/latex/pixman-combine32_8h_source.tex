@@ -1,0 +1,278 @@
+\hypertarget{pixman-combine32_8h_source}{}\doxysection{pixman-\/combine32.h}
+\label{pixman-combine32_8h_source}\index{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/combine32.h@{AseSprite/aseprite/third\_party/pixman/pixman/pixman-\/combine32.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#define\ COMPONENT\_SIZE\ 8}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ MASK\ 0xff}}
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#define\ ONE\_HALF\ 0x80}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#define\ A\_SHIFT\ 8\ *\ 3}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#define\ R\_SHIFT\ 8\ *\ 2}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#define\ G\_SHIFT\ 8}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#define\ A\_MASK\ 0xff000000}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#define\ R\_MASK\ 0xff0000}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#define\ G\_MASK\ 0xff00}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ RB\_MASK\ 0xff00ff}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#define\ AG\_MASK\ 0xff00ff00}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#define\ RB\_ONE\_HALF\ 0x800080}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ RB\_MASK\_PLUS\_ONE\ 0x1000100}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#define\ ALPHA\_8(x)\ ((x)\ >>\ A\_SHIFT)}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#define\ RED\_8(x)\ (((x)\ >>\ R\_SHIFT)\ \&\ MASK)}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#define\ GREEN\_8(x)\ (((x)\ >>\ G\_SHIFT)\ \&\ MASK)}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#define\ BLUE\_8(x)\ ((x)\ \&\ MASK)}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ ARMv6\ has\ UQADD8\ instruction,\ which\ implements\ unsigned\ saturated}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *\ addition\ for\ 8-\/bit\ values\ packed\ in\ 32-\/bit\ registers.\ It\ is\ very\ useful}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ for\ UN8x4\_ADD\_UN8x4,\ UN8\_rb\_ADD\_UN8\_rb\ and\ ADD\_UN8\ macros\ (which\ would}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ *\ otherwise\ need\ a\ lot\ of\ arithmetic\ operations\ to\ simulate\ this\ operation).}}
+\DoxyCodeLine{00027\ \textcolor{comment}{\ *\ Since\ most\ of\ the\ major\ ARM\ linux\ distros\ are\ built\ for\ ARMv7,\ we\ are}}
+\DoxyCodeLine{00028\ \textcolor{comment}{\ *\ much\ less\ dependent\ on\ runtime\ CPU\ detection\ and\ can\ get\ practical}}
+\DoxyCodeLine{00029\ \textcolor{comment}{\ *\ benefits\ from\ conditional\ compilation\ here\ for\ a\ lot\ of\ users.}}
+\DoxyCodeLine{00030\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#if\ defined(USE\_GCC\_INLINE\_ASM)\ \&\&\ defined(\_\_arm\_\_)\ \&\&\ \(\backslash\)}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\ \ \ \ !defined(\_\_aarch64\_\_)\ \&\&\ (!defined(\_\_thumb\_\_)\ ||\ defined(\_\_thumb2\_\_))}}
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#if\ defined(\_\_ARM\_ARCH\_6\_\_)\ \ \ ||\ defined(\_\_ARM\_ARCH\_6J\_\_)\ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_ARM\_ARCH\_6K\_\_)\ \ ||\ defined(\_\_ARM\_ARCH\_6Z\_\_)\ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_ARM\_ARCH\_6ZK\_\_)\ ||\ defined(\_\_ARM\_ARCH\_6T2\_\_)\ ||\ \(\backslash\)}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_ARM\_ARCH\_6M\_\_)\ \ ||\ defined(\_\_ARM\_ARCH\_7\_\_)\ \ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{00038\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_ARM\_ARCH\_7A\_\_)\ \ ||\ defined(\_\_ARM\_ARCH\_7R\_\_)\ \ ||\ \(\backslash\)}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\ \ \ \ defined(\_\_ARM\_ARCH\_7M\_\_)\ \ ||\ defined(\_\_ARM\_ARCH\_7EM\_\_)}}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{static}\ force\_inline\ uint32\_t}
+\DoxyCodeLine{00042\ un8x4\_add\_un8x4\ (uint32\_t\ x,\ uint32\_t\ y)}
+\DoxyCodeLine{00043\ \{}
+\DoxyCodeLine{00044\ \ \ \ \ uint32\_t\ t;}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keyword}{asm}\ (\textcolor{stringliteral}{"{}uqadd8\ \%0,\ \%1,\ \%2"{}}\ :\ \textcolor{stringliteral}{"{}=r"{}}\ (t)\ :\ \textcolor{stringliteral}{"{}\%r"{}}\ (x),\ \textcolor{stringliteral}{"{}r"{}}\ (y));}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordflow}{return}\ t;}
+\DoxyCodeLine{00047\ \}}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#define\ UN8x4\_ADD\_UN8x4(x,\ y)\ \(\backslash\)}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\ \ \ \ ((x)\ =\ un8x4\_add\_un8x4\ ((x),\ (y)))}}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#define\ UN8\_rb\_ADD\_UN8\_rb(x,\ y,\ t)\ \(\backslash\)}}
+\DoxyCodeLine{00053\ \textcolor{preprocessor}{\ \ \ \ ((t)\ =\ un8x4\_add\_un8x4\ ((x),\ (y)),\ (x)\ =\ (t))}}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{preprocessor}{\#define\ ADD\_UN8(x,\ y,\ t)\ \(\backslash\)}}
+\DoxyCodeLine{00056\ \textcolor{preprocessor}{\ \ \ \ ((t)\ =\ (x),\ un8x4\_add\_un8x4\ ((t),\ (y)))}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00059\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \textcolor{comment}{/*****************************************************************************/}}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00063\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00064\ \textcolor{comment}{\ *\ Helper\ macros.}}
+\DoxyCodeLine{00065\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#define\ MUL\_UN8(a,\ b,\ t)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\ \ \ \ ((t)\ =\ (a)\ *\ (uint16\_t)(b)\ +\ ONE\_HALF,\ ((((t)\ >>\ G\_SHIFT\ )\ +\ (t)\ )\ >>\ G\_SHIFT\ ))}}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ DIV\_UN8(a,\ b)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\ \ \ \ (((uint16\_t)\ (a)\ *\ MASK\ +\ ((b)\ /\ 2))\ /\ (b))}}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \textcolor{preprocessor}{\#ifndef\ ADD\_UN8}}
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ ADD\_UN8(x,\ y,\ t)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00075\ \textcolor{preprocessor}{\ \ \ \ ((t)\ =\ (x)\ +\ (y),\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00076\ \textcolor{preprocessor}{\ \ \ \ \ (uint32\_t)\ (uint8\_t)\ ((t)\ |\ (0\ -\/\ ((t)\ >>\ G\_SHIFT))))}}
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#define\ DIV\_ONE\_UN8(x)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00080\ \textcolor{preprocessor}{\ \ \ \ (((x)\ +\ ONE\_HALF\ +\ (((x)\ +\ ONE\_HALF)\ >>\ G\_SHIFT))\ >>\ G\_SHIFT)}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00083\ \textcolor{comment}{\ *\ The\ methods\ below\ use\ some\ tricks\ to\ be\ able\ to\ do\ two\ color}}
+\DoxyCodeLine{00084\ \textcolor{comment}{\ *\ components\ at\ the\ same\ time.}}
+\DoxyCodeLine{00085\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00088\ \textcolor{comment}{\ *\ x\_rb\ =\ (x\_rb\ *\ a)\ /\ 255}}
+\DoxyCodeLine{00089\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00090\ \textcolor{preprocessor}{\#define\ UN8\_rb\_MUL\_UN8(x,\ a,\ t)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00091\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00092\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00093\ \textcolor{preprocessor}{\ \ \ \ t\ \ =\ ((x)\ \&\ RB\_MASK)\ *\ (a);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00094\ \textcolor{preprocessor}{\ \ \ \ t\ +=\ RB\_ONE\_HALF;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00095\ \textcolor{preprocessor}{\ \ \ \ x\ =\ (t\ +\ ((t\ >>\ G\_SHIFT)\ \&\ RB\_MASK))\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00096\ \textcolor{preprocessor}{\ \ \ \ x\ \&=\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00097\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00100\ \textcolor{comment}{\ *\ x\_rb\ =\ min\ (x\_rb\ +\ y\_rb,\ 255)}}
+\DoxyCodeLine{00101\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00102\ \textcolor{preprocessor}{\#ifndef\ UN8\_rb\_ADD\_UN8\_rb}}
+\DoxyCodeLine{00103\ \textcolor{preprocessor}{\#define\ UN8\_rb\_ADD\_UN8\_rb(x,\ y,\ t)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00105\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\ \ \ \ t\ =\ ((x)\ +\ (y));\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00107\ \textcolor{preprocessor}{\ \ \ \ t\ |=\ RB\_MASK\_PLUS\_ONE\ -\/\ ((t\ >>\ G\_SHIFT)\ \&\ RB\_MASK);\ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00108\ \textcolor{preprocessor}{\ \ \ \ x\ =\ (t\ \&\ RB\_MASK);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00112\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00113\ \textcolor{comment}{\ *\ x\_rb\ =\ (x\_rb\ *\ a\_rb)\ /\ 255}}
+\DoxyCodeLine{00114\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ UN8\_rb\_MUL\_UN8\_rb(x,\ a,\ t)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\ \ \ \ t\ \ =\ (x\ \&\ MASK)\ *\ (a\ \&\ MASK);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\ \ \ \ t\ |=\ (x\ \&\ R\_MASK)\ *\ ((a\ >>\ R\_SHIFT)\ \&\ MASK);\ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\ \ \ \ t\ +=\ RB\_ONE\_HALF;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\ \ \ \ t\ =\ (t\ +\ ((t\ >>\ G\_SHIFT)\ \&\ RB\_MASK))\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\ \ \ \ x\ =\ t\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00124\ }
+\DoxyCodeLine{00125\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00126\ \textcolor{comment}{\ *\ x\_c\ =\ (x\_c\ *\ a)\ /\ 255}}
+\DoxyCodeLine{00127\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#define\ UN8x4\_MUL\_UN8(x,\ a)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ r1\_\_,\ r2\_\_,\ t\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\ \ \ \ r1\_\_\ =\ (x);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00134\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r1\_\_,\ (a),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00135\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00136\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (x)\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00137\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r2\_\_,\ (a),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00138\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00139\ \textcolor{preprocessor}{\ \ \ \ (x)\ =\ r1\_\_\ |\ (r2\_\_\ <<\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00140\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00141\ }
+\DoxyCodeLine{00142\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00143\ \textcolor{comment}{\ *\ x\_c\ =\ (x\_c\ *\ a)\ /\ 255\ +\ y\_c}}
+\DoxyCodeLine{00144\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00145\ \textcolor{preprocessor}{\#define\ UN8x4\_MUL\_UN8\_ADD\_UN8x4(x,\ a,\ y)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00146\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00147\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00148\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ r1\_\_,\ r2\_\_,\ r3\_\_,\ t\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00149\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00150\ \textcolor{preprocessor}{\ \ \ \ r1\_\_\ =\ (x);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00151\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (y)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00152\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r1\_\_,\ (a),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00153\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00154\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00155\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (x)\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00156\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ ((y)\ >>\ G\_SHIFT)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00157\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r2\_\_,\ (a),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00158\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00159\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00160\ \textcolor{preprocessor}{\ \ \ \ (x)\ =\ r1\_\_\ |\ (r2\_\_\ <<\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00161\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00162\ }
+\DoxyCodeLine{00163\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00164\ \textcolor{comment}{\ *\ x\_c\ =\ (x\_c\ *\ a\ +\ y\_c\ *\ b)\ /\ 255}}
+\DoxyCodeLine{00165\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00166\ \textcolor{preprocessor}{\#define\ UN8x4\_MUL\_UN8\_ADD\_UN8x4\_MUL\_UN8(x,\ a,\ y,\ b)\ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00167\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00168\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00169\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ r1\_\_,\ r2\_\_,\ r3\_\_,\ t\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00170\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00171\ \textcolor{preprocessor}{\ \ \ \ r1\_\_\ =\ (x);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00172\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (y);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00173\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r1\_\_,\ (a),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00174\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r2\_\_,\ (b),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00175\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00176\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00177\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ ((x)\ >>\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00178\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ ((y)\ >>\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00179\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r2\_\_,\ (a),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00180\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r3\_\_,\ (b),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00181\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00182\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00183\ \textcolor{preprocessor}{\ \ \ \ (x)\ =\ r1\_\_\ |\ (r2\_\_\ <<\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00184\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00185\ }
+\DoxyCodeLine{00186\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00187\ \textcolor{comment}{\ *\ x\_c\ =\ (x\_c\ *\ a\_c)\ /\ 255}}
+\DoxyCodeLine{00188\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00189\ \textcolor{preprocessor}{\#define\ UN8x4\_MUL\_UN8x4(x,\ a)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00190\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00191\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00192\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ r1\_\_,\ r2\_\_,\ r3\_\_,\ t\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00193\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00194\ \textcolor{preprocessor}{\ \ \ \ r1\_\_\ =\ (x);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00195\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (a);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00196\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00197\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00198\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (x)\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ (a)\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00200\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00201\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00202\ \textcolor{preprocessor}{\ \ \ \ (x)\ =\ r1\_\_\ |\ (r2\_\_\ <<\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00203\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00204\ }
+\DoxyCodeLine{00205\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00206\ \textcolor{comment}{\ *\ x\_c\ =\ (x\_c\ *\ a\_c)\ /\ 255\ +\ y\_c}}
+\DoxyCodeLine{00207\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00208\ \textcolor{preprocessor}{\#define\ UN8x4\_MUL\_UN8x4\_ADD\_UN8x4(x,\ a,\ y)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00209\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00210\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00211\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ r1\_\_,\ r2\_\_,\ r3\_\_,\ t\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00213\ \textcolor{preprocessor}{\ \ \ \ r1\_\_\ =\ (x);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (a);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00215\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00216\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (y)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00217\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00219\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ ((x)\ >>\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00220\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ ((a)\ >>\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00221\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00222\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ ((y)\ >>\ G\_SHIFT)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00223\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00224\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00225\ \textcolor{preprocessor}{\ \ \ \ (x)\ =\ r1\_\_\ |\ (r2\_\_\ <<\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00226\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00227\ }
+\DoxyCodeLine{00228\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00229\ \textcolor{comment}{\ *\ x\_c\ =\ (x\_c\ *\ a\_c\ +\ y\_c\ *\ b)\ /\ 255}}
+\DoxyCodeLine{00230\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00231\ \textcolor{preprocessor}{\#define\ UN8x4\_MUL\_UN8x4\_ADD\_UN8x4\_MUL\_UN8(x,\ a,\ y,\ b)\ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00232\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00233\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00234\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ r1\_\_,\ r2\_\_,\ r3\_\_,\ t\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00235\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00236\ \textcolor{preprocessor}{\ \ \ \ r1\_\_\ =\ (x);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (a);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00238\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00239\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (y);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00240\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r2\_\_,\ (b),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00241\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00242\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00243\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (x)\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00244\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ (a)\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00245\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00246\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ (y)\ >>\ G\_SHIFT;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00247\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_MUL\_UN8\ (r3\_\_,\ (b),\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00248\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00249\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00250\ \textcolor{preprocessor}{\ \ \ \ x\ =\ r1\_\_\ |\ (r2\_\_\ <<\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00251\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00252\ }
+\DoxyCodeLine{00253\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00254\ \textcolor{comment}{\ \ x\_c\ =\ min(x\_c\ +\ y\_c,\ 255)}}
+\DoxyCodeLine{00255\ \textcolor{comment}{*/}}
+\DoxyCodeLine{00256\ \textcolor{preprocessor}{\#ifndef\ UN8x4\_ADD\_UN8x4}}
+\DoxyCodeLine{00257\ \textcolor{preprocessor}{\#define\ UN8x4\_ADD\_UN8x4(x,\ y)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00258\ \textcolor{preprocessor}{\ \ \ \ do\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00259\ \textcolor{preprocessor}{\ \ \ \ \{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00260\ \textcolor{preprocessor}{\ \ \ \ uint32\_t\ r1\_\_,\ r2\_\_,\ r3\_\_,\ t\_\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00261\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00262\ \textcolor{preprocessor}{\ \ \ \ r1\_\_\ =\ (x)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00263\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ (y)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00264\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r1\_\_,\ r2\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00265\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00266\ \textcolor{preprocessor}{\ \ \ \ r2\_\_\ =\ ((x)\ >>\ G\_SHIFT)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00267\ \textcolor{preprocessor}{\ \ \ \ r3\_\_\ =\ ((y)\ >>\ G\_SHIFT)\ \&\ RB\_MASK;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00268\ \textcolor{preprocessor}{\ \ \ \ UN8\_rb\_ADD\_UN8\_rb\ (r2\_\_,\ r3\_\_,\ t\_\_);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00269\ \textcolor{preprocessor}{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00270\ \textcolor{preprocessor}{\ \ \ \ x\ =\ r1\_\_\ |\ (r2\_\_\ <<\ G\_SHIFT);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)}}
+\DoxyCodeLine{00271\ \textcolor{preprocessor}{\ \ \ \ \}\ while\ (0)}}
+\DoxyCodeLine{00272\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

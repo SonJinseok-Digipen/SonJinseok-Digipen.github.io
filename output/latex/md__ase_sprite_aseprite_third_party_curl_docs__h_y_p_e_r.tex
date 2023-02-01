@@ -1,0 +1,44 @@
+Hyper is a separate \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} library written in Rust. curl can be told to use this library as a backend to deal with \mbox{\hyperlink{struct_h_t_t_p}{HTTP}}.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md989}{}\doxysection{Experimental!}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md989}
+Hyper support in curl is considered {\bfseries{EXPERIMENTAL}} until further notice. It needs to be explicitly enabled at build-\/time.
+
+Further development and tweaking of the Hyper backend support in curl will happen in in the master branch using pull-\/requests, just like ordinary changes.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md990}{}\doxysection{Hyper version}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md990}
+The C API for Hyper is brand new and is still under development.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md991}{}\doxysection{build curl with hyper}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md991}
+Build hyper and enable the C API\+: \begin{DoxyVerb} % git clone https://github.com/hyperium/hyper
+ % cd hyper
+ % RUSTFLAGS="--cfg hyper_unstable_ffi" cargo build --features client,http1,http2,ffi
+\end{DoxyVerb}
+ Build curl to use hyper\textquotesingle{}s C API\+: \begin{DoxyVerb} % git clone https://github.com/curl/curl
+ % cd curl
+ % ./buildconf
+ % ./configure --with-hyper=<hyper dir>
+ % make
+\end{DoxyVerb}
+ \hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md992}{}\doxysection{using Hyper internally}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md992}
+Hyper is a low level \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} transport library. curl itself provides all \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} headers and Hyper provides all received headers back to curl.
+
+Therefore, most of the \char`\"{}header logic\char`\"{} in curl as in responding to and acting on specific input and output headers are done the same way in curl code.
+
+The API in Hyper delivers received \mbox{\hyperlink{struct_h_t_t_p}{HTTP}} headers as (cleaned up) name=value pairs, making it impossible for curl to know the exact byte representation over the wire with Hyper.\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md993}{}\doxysubsection{Limitations}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md993}
+The hyper backend doesn\textquotesingle{}t support
+
+
+\begin{DoxyItemize}
+\item {\ttfamily CURLOPT\+\_\+\+IGNORE\+\_\+\+CONTENT\+\_\+\+LENGTH}
+\item \mbox{\hyperlink{struct_r_t_s_p}{RTSP}}
+\end{DoxyItemize}\hypertarget{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md994}{}\doxysubsection{Remaining issues}\label{md__ase_sprite_aseprite_third_party_curl_docs__h_y_p_e_r_autotoc_md994}
+This backend is still not feature complete with the native backend. Areas that still need attention and verification include\+:
+
+
+\begin{DoxyItemize}
+\item multiplexed HTTP/2
+\item h2 Upgrade\+:
+\item pausing transfers
+\item co-\/exist with a HTTP/3 build
+\item receiving HTTP/1 trailers
+\item sending HTTP/1 trailers
+\item accept-\/encoding
+\item transfer encoding
+\item alt-\/svc
+\item hsts
+\item DoH (\href{https://github.com/curl/curl/issues/6389}{\texttt{ \#6389}}) 
+\end{DoxyItemize}

@@ -1,0 +1,118 @@
+\hypertarget{schannel_8h_source}{}\doxysection{schannel.\+h}
+\label{schannel_8h_source}\index{AseSprite/aseprite/third\_party/curl/lib/vtls/schannel.h@{AseSprite/aseprite/third\_party/curl/lib/vtls/schannel.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ HEADER\_CURL\_SCHANNEL\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ HEADER\_CURL\_SCHANNEL\_H}}
+\DoxyCodeLine{00003\ \textcolor{comment}{/***************************************************************************}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\ \ \ \_\ \_\_\_\_\ \ \_}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ \ Project\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \_\_\_|\ |\ |\ |\ \ \_\ \(\backslash\)|\ |}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ /\ \_\_|\ |\ |\ |\ |\_)\ |\ |}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ (\_\_|\ |\_|\ |\ \ \_\ <|\ |\_\_\_}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \(\backslash\)\_\_\_|\(\backslash\)\_\_\_/|\_|\ \(\backslash\)\_\(\backslash\)\_\_\_\_\_|}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2012,\ Marc\ Hoersken,\ <info@marc-\/hoersken.de>,\ et\ al.}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ Copyright\ (C)\ 2012\ -\/\ 2021,\ Daniel\ Stenberg,\ <daniel@haxx.se>,\ et\ al.}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *\ This\ software\ is\ licensed\ as\ described\ in\ the\ file\ COPYING,\ which}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ you\ should\ have\ received\ as\ part\ of\ this\ distribution.\ The\ terms}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ are\ also\ available\ at\ https://curl.se/docs/copyright.html.}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ You\ may\ opt\ to\ use,\ copy,\ modify,\ merge,\ publish,\ distribute\ and/or\ sell}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ copies\ of\ the\ Software,\ and\ permit\ persons\ to\ whom\ the\ Software\ is}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ furnished\ to\ do\ so,\ under\ the\ terms\ of\ the\ COPYING\ file.}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ This\ software\ is\ distributed\ on\ an\ "{}AS\ IS"{}\ basis,\ WITHOUT\ WARRANTY\ OF\ ANY}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ KIND,\ either\ express\ or\ implied.}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ ***************************************************************************/}}
+\DoxyCodeLine{00025\ \textcolor{preprocessor}{\#include\ "{}curl\_setup.h"{}}}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#ifdef\ USE\_SCHANNEL}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#include\ <schnlsp.h>}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#include\ <schannel.h>}}
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}curl\_sspi.h"{}}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#include\ "{}urldata.h"{}}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{comment}{/*\ <wincrypt.h>\ has\ been\ included\ via\ the\ above\ <schnlsp.h>.}}
+\DoxyCodeLine{00036\ \textcolor{comment}{\ *\ Or\ in\ case\ of\ ldap.c,\ it\ was\ included\ via\ <winldap.h>.}}
+\DoxyCodeLine{00037\ \textcolor{comment}{\ *\ And\ since\ <wincrypt.h>\ has\ this:}}
+\DoxyCodeLine{00038\ \textcolor{comment}{\ *\ \ \ \#define\ X509\_NAME\ \ ((LPCSTR)\ 7)}}
+\DoxyCodeLine{00039\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00040\ \textcolor{comment}{\ *\ And\ in\ BoringSSL's\ <openssl/base.h>\ there\ is:}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ \ typedef\ struct\ X509\_name\_st\ X509\_NAME;}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *\ \ etc.}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ this\ will\ cause\ all\ kinds\ of\ C-\/preprocessing\ paste\ errors\ in}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ BoringSSL's\ <openssl/x509.h>:\ So\ just\ undefine\ those\ defines\ here}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ (and\ only\ here).}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00048\ \textcolor{preprocessor}{\#if\ defined(HAVE\_BORINGSSL)\ ||\ defined(OPENSSL\_IS\_BORINGSSL)}}
+\DoxyCodeLine{00049\ \textcolor{preprocessor}{\#\ undef\ X509\_NAME}}
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#\ undef\ X509\_CERT\_PAIR}}
+\DoxyCodeLine{00051\ \textcolor{preprocessor}{\#\ undef\ X509\_EXTENSIONS}}
+\DoxyCodeLine{00052\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00054\ \textcolor{keyword}{extern}\ \textcolor{keyword}{const}\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{struct_curl__ssl}{Curl\_ssl}}\ Curl\_ssl\_schannel;}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00056\ CURLcode\ Curl\_verify\_certificate(\textcolor{keyword}{struct}\ \mbox{\hyperlink{struct_curl__easy}{Curl\_easy}}\ *\mbox{\hyperlink{structdata}{data}},}
+\DoxyCodeLine{00057\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structconnectdata}{connectdata}}\ *conn,\ \textcolor{keywordtype}{int}\ sockindex);}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00059\ \textcolor{comment}{/*\ structs\ to\ expose\ only\ in\ schannel.c\ and\ schannel\_verify.c\ */}}
+\DoxyCodeLine{00060\ \textcolor{preprocessor}{\#ifdef\ EXPOSE\_SCHANNEL\_INTERNAL\_STRUCTS}}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#ifdef\ \_\_MINGW32\_\_}}
+\DoxyCodeLine{00063\ \textcolor{preprocessor}{\#include\ <\_mingw.h>}}
+\DoxyCodeLine{00064\ \textcolor{preprocessor}{\#ifdef\ \_\_MINGW64\_VERSION\_MAJOR}}
+\DoxyCodeLine{00065\ \textcolor{preprocessor}{\#define\ HAS\_MANUAL\_VERIFY\_API}}
+\DoxyCodeLine{00066\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00068\ \textcolor{preprocessor}{\#include\ <wincrypt.h>}}
+\DoxyCodeLine{00069\ \textcolor{preprocessor}{\#ifdef\ CERT\_CHAIN\_REVOCATION\_CHECK\_CHAIN}}
+\DoxyCodeLine{00070\ \textcolor{preprocessor}{\#define\ HAS\_MANUAL\_VERIFY\_API}}
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \textcolor{preprocessor}{\#define\ NUMOF\_CIPHERS\ 45\ }\textcolor{comment}{/*\ There\ are\ 45\ listed\ in\ the\ MS\ headers\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \textcolor{keyword}{struct\ }Curl\_schannel\_cred\ \{}
+\DoxyCodeLine{00077\ \ \ CredHandle\ cred\_handle;}
+\DoxyCodeLine{00078\ \ \ TimeStamp\ time\_stamp;}
+\DoxyCodeLine{00079\ \ \ \textcolor{keywordtype}{int}\ refcount;}
+\DoxyCodeLine{00080\ \};}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{struct\ }Curl\_schannel\_ctxt\ \{}
+\DoxyCodeLine{00083\ \ \ CtxtHandle\ ctxt\_handle;}
+\DoxyCodeLine{00084\ \ \ TimeStamp\ time\_stamp;}
+\DoxyCodeLine{00085\ \};}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00087\ \textcolor{keyword}{struct\ }ssl\_backend\_data\ \{}
+\DoxyCodeLine{00088\ \ \ \textcolor{keyword}{struct\ }Curl\_schannel\_cred\ *cred;}
+\DoxyCodeLine{00089\ \ \ \textcolor{keyword}{struct\ }Curl\_schannel\_ctxt\ *ctxt;}
+\DoxyCodeLine{00090\ \ \ SecPkgContext\_StreamSizes\ stream\_sizes;}
+\DoxyCodeLine{00091\ \ \ \textcolor{keywordtype}{size\_t}\ encdata\_length,\ decdata\_length;}
+\DoxyCodeLine{00092\ \ \ \textcolor{keywordtype}{size\_t}\ encdata\_offset,\ decdata\_offset;}
+\DoxyCodeLine{00093\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{char}\ *encdata\_buffer,\ *decdata\_buffer;}
+\DoxyCodeLine{00094\ \ \ \textcolor{comment}{/*\ encdata\_is\_incomplete:\ if\ encdata\ contains\ only\ a\ partial\ record\ that}}
+\DoxyCodeLine{00095\ \textcolor{comment}{\ \ \ \ \ can't\ be\ decrypted\ without\ another\ Curl\_read\_plain\ (that\ is,\ status\ is}}
+\DoxyCodeLine{00096\ \textcolor{comment}{\ \ \ \ \ SEC\_E\_INCOMPLETE\_MESSAGE)\ then\ set\ this\ true.\ after\ Curl\_read\_plain\ writes}}
+\DoxyCodeLine{00097\ \textcolor{comment}{\ \ \ \ \ more\ bytes\ into\ encdata\ then\ set\ this\ back\ to\ false.\ */}}
+\DoxyCodeLine{00098\ \ \ \textcolor{keywordtype}{bool}\ encdata\_is\_incomplete;}
+\DoxyCodeLine{00099\ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{long}\ req\_flags,\ ret\_flags;}
+\DoxyCodeLine{00100\ \ \ CURLcode\ recv\_unrecoverable\_err;\ \textcolor{comment}{/*\ schannel\_recv\ had\ an\ unrecoverable\ err\ */}}
+\DoxyCodeLine{00101\ \ \ \textcolor{keywordtype}{bool}\ recv\_sspi\_close\_notify;\ \textcolor{comment}{/*\ true\ if\ connection\ closed\ by\ close\_notify\ */}}
+\DoxyCodeLine{00102\ \ \ \textcolor{keywordtype}{bool}\ recv\_connection\_closed;\ \textcolor{comment}{/*\ true\ if\ connection\ closed,\ regardless\ how\ */}}
+\DoxyCodeLine{00103\ \ \ \textcolor{keywordtype}{bool}\ use\_alpn;\ \textcolor{comment}{/*\ true\ if\ ALPN\ is\ used\ for\ this\ connection\ */}}
+\DoxyCodeLine{00104\ \textcolor{preprocessor}{\#ifdef\ HAS\_MANUAL\_VERIFY\_API}}
+\DoxyCodeLine{00105\ \ \ \textcolor{keywordtype}{bool}\ use\_manual\_cred\_validation;\ \textcolor{comment}{/*\ true\ if\ manual\ cred\ validation\ is\ used\ */}}
+\DoxyCodeLine{00106\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00107\ \ \ ALG\_ID\ algIds[NUMOF\_CIPHERS];}
+\DoxyCodeLine{00108\ \};}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ EXPOSE\_SCHANNEL\_INTERNAL\_STRUCTS\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ USE\_SCHANNEL\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{/*\ HEADER\_CURL\_SCHANNEL\_H\ */}\textcolor{preprocessor}{}}
+
+\end{DoxyCode}

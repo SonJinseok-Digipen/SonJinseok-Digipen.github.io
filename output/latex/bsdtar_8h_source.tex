@@ -1,0 +1,243 @@
+\hypertarget{bsdtar_8h_source}{}\doxysection{bsdtar.\+h}
+\label{bsdtar_8h_source}\index{AseSprite/aseprite/third\_party/libarchive/tar/bsdtar.h@{AseSprite/aseprite/third\_party/libarchive/tar/bsdtar.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{comment}{/*-\/}}
+\DoxyCodeLine{00002\ \textcolor{comment}{\ *\ Copyright\ (c)\ 2003-\/2007\ Tim\ Kientzle}}
+\DoxyCodeLine{00003\ \textcolor{comment}{\ *\ All\ rights\ reserved.}}
+\DoxyCodeLine{00004\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00005\ \textcolor{comment}{\ *\ Redistribution\ and\ use\ in\ source\ and\ binary\ forms,\ with\ or\ without}}
+\DoxyCodeLine{00006\ \textcolor{comment}{\ *\ modification,\ are\ permitted\ provided\ that\ the\ following\ conditions}}
+\DoxyCodeLine{00007\ \textcolor{comment}{\ *\ are\ met:}}
+\DoxyCodeLine{00008\ \textcolor{comment}{\ *\ 1.\ Redistributions\ of\ source\ code\ must\ retain\ the\ above\ copyright}}
+\DoxyCodeLine{00009\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer.}}
+\DoxyCodeLine{00010\ \textcolor{comment}{\ *\ 2.\ Redistributions\ in\ binary\ form\ must\ reproduce\ the\ above\ copyright}}
+\DoxyCodeLine{00011\ \textcolor{comment}{\ *\ \ \ \ notice,\ this\ list\ of\ conditions\ and\ the\ following\ disclaimer\ in\ the}}
+\DoxyCodeLine{00012\ \textcolor{comment}{\ *\ \ \ \ documentation\ and/or\ other\ materials\ provided\ with\ the\ distribution.}}
+\DoxyCodeLine{00013\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00014\ \textcolor{comment}{\ *\ THIS\ SOFTWARE\ IS\ PROVIDED\ BY\ THE\ AUTHOR(S)\ ``AS\ IS''\ AND\ ANY\ EXPRESS\ OR}}
+\DoxyCodeLine{00015\ \textcolor{comment}{\ *\ IMPLIED\ WARRANTIES,\ INCLUDING,\ BUT\ NOT\ LIMITED\ TO,\ THE\ IMPLIED\ WARRANTIES}}
+\DoxyCodeLine{00016\ \textcolor{comment}{\ *\ OF\ MERCHANTABILITY\ AND\ FITNESS\ FOR\ A\ PARTICULAR\ PURPOSE\ ARE\ DISCLAIMED.}}
+\DoxyCodeLine{00017\ \textcolor{comment}{\ *\ IN\ NO\ EVENT\ SHALL\ THE\ AUTHOR(S)\ BE\ LIABLE\ FOR\ ANY\ DIRECT,\ INDIRECT,}}
+\DoxyCodeLine{00018\ \textcolor{comment}{\ *\ INCIDENTAL,\ SPECIAL,\ EXEMPLARY,\ OR\ CONSEQUENTIAL\ DAMAGES\ (INCLUDING,\ BUT}}
+\DoxyCodeLine{00019\ \textcolor{comment}{\ *\ NOT\ LIMITED\ TO,\ PROCUREMENT\ OF\ SUBSTITUTE\ GOODS\ OR\ SERVICES;\ LOSS\ OF\ USE,}}
+\DoxyCodeLine{00020\ \textcolor{comment}{\ *\ DATA,\ OR\ PROFITS;\ OR\ BUSINESS\ INTERRUPTION)\ HOWEVER\ CAUSED\ AND\ ON\ ANY}}
+\DoxyCodeLine{00021\ \textcolor{comment}{\ *\ THEORY\ OF\ LIABILITY,\ WHETHER\ IN\ CONTRACT,\ STRICT\ LIABILITY,\ OR\ TORT}}
+\DoxyCodeLine{00022\ \textcolor{comment}{\ *\ (INCLUDING\ NEGLIGENCE\ OR\ OTHERWISE)\ ARISING\ IN\ ANY\ WAY\ OUT\ OF\ THE\ USE\ OF}}
+\DoxyCodeLine{00023\ \textcolor{comment}{\ *\ THIS\ SOFTWARE,\ EVEN\ IF\ ADVISED\ OF\ THE\ POSSIBILITY\ OF\ SUCH\ DAMAGE.}}
+\DoxyCodeLine{00024\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00025\ \textcolor{comment}{\ *\ \$FreeBSD:\ src/usr.bin/tar/bsdtar.h,v\ 1.37\ 2008/12/06\ 07:37:14\ kientzle\ Exp\ \$}}
+\DoxyCodeLine{00026\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#ifndef\ BSDTAR\_H\_INCLUDED}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ BSDTAR\_H\_INCLUDED}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{preprocessor}{\#include\ "{}bsdtar\_platform.h"{}}}
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#include\ <stdio.h>}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{preprocessor}{\#define\ DEFAULT\_BYTES\_PER\_BLOCK\ (20*512)}}
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#define\ ENV\_READER\_OPTIONS\ \ "{}TAR\_READER\_OPTIONS"{}}}
+\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#define\ ENV\_WRITER\_OPTIONS\ \ "{}TAR\_WRITER\_OPTIONS"{}}}
+\DoxyCodeLine{00037\ \textcolor{preprocessor}{\#define\ IGNORE\_WRONG\_MODULE\_NAME\ "{}\_\_ignore\_wrong\_module\_name\_\_,"{}}}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcreation__set}{creation\_set}};}
+\DoxyCodeLine{00040\ \textcolor{comment}{/*}}
+\DoxyCodeLine{00041\ \textcolor{comment}{\ *\ The\ internal\ state\ for\ the\ "{}bsdtar"{}\ program.}}
+\DoxyCodeLine{00042\ \textcolor{comment}{\ *}}
+\DoxyCodeLine{00043\ \textcolor{comment}{\ *\ Keeping\ all\ of\ the\ state\ in\ a\ structure\ like\ this\ simplifies\ memory}}
+\DoxyCodeLine{00044\ \textcolor{comment}{\ *\ leak\ testing\ (at\ exit,\ anything\ left\ on\ the\ heap\ is\ suspect).\ \ A}}
+\DoxyCodeLine{00045\ \textcolor{comment}{\ *\ pointer\ to\ this\ structure\ is\ passed\ to\ most\ bsdtar\ internal}}
+\DoxyCodeLine{00046\ \textcolor{comment}{\ *\ functions.}}
+\DoxyCodeLine{00047\ \textcolor{comment}{\ */}}
+\DoxyCodeLine{00048\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structbsdtar}{bsdtar}}\ \{}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{comment}{/*\ Options\ */}}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ *filename;\ \textcolor{comment}{/*\ -\/f\ filename\ */}}
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ *pending\_chdir;\ \textcolor{comment}{/*\ -\/C\ dir\ */}}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ *names\_from\_file;\ \textcolor{comment}{/*\ -\/T\ file\ */}}
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ bytes\_per\_block;\ \textcolor{comment}{/*\ -\/b\ block\_size\ */}}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ bytes\_in\_last\_block;\ \textcolor{comment}{/*\ See\ -\/b\ handling.\ */}}
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ verbose;\ \ \ \textcolor{comment}{/*\ -\/v\ */}}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{unsigned}\ \textcolor{keywordtype}{int}\ \ \ \ \ \ flags;\ \textcolor{comment}{/*\ Bitfield\ of\ boolean\ options\ */}}
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ extract\_flags;\ \textcolor{comment}{/*\ Flags\ for\ extract\ operation\ */}}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ readdisk\_flags;\ \textcolor{comment}{/*\ Flags\ for\ read\ disk\ operation\ */}}
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ strip\_components;\ \textcolor{comment}{/*\ Remove\ this\ many\ leading\ dirs\ */}}
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ gid;\ \ \textcolor{comment}{/*\ -\/-\/gid\ */}}
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ *gname;\ \textcolor{comment}{/*\ -\/-\/gname\ */}}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ uid;\ \ \textcolor{comment}{/*\ -\/-\/uid\ */}}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ *uname;\ \textcolor{comment}{/*\ -\/-\/uname\ */}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ *passphrase;\ \textcolor{comment}{/*\ -\/-\/passphrase\ */}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ mode;\ \textcolor{comment}{/*\ Program\ mode:\ 'c',\ 't',\ 'r',\ 'u',\ 'x'\ */}}
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ symlink\_mode;\ \textcolor{comment}{/*\ H\ or\ L,\ per\ BSD\ conventions\ */}}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ *option\_options;\ \textcolor{comment}{/*\ -\/-\/options\ */}}
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ day\_first;\ \textcolor{comment}{/*\ show\ day\ before\ month\ in\ -\/tv\ output\ */}}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcreation__set}{creation\_set}}\ *cset;}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \ \ \ \ \textcolor{comment}{/*\ Option\ parser\ state\ */}}
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ getopt\_state;}
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ *getopt\_word;}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{comment}{/*\ If\ >=\ 0,\ then\ close\ this\ when\ done.\ */}}
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ fd;}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{comment}{/*\ Miscellaneous\ state\ information\ */}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ argc;}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ **argv;}
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ \ \ *argument;}
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \ \ \ \ \ \ \ gs\_width;\ \textcolor{comment}{/*\ For\ 'list\_item'\ in\ read.c\ */}}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \ \ \ \ \ \ \ u\_width;\ \textcolor{comment}{/*\ for\ 'list\_item'\ in\ read.c\ */}}
+\DoxyCodeLine{00084\ \ \ \ \ uid\_t\ \ \ \ \ \ \ \ \ user\_uid;\ \textcolor{comment}{/*\ UID\ running\ this\ program\ */}}
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ return\_value;\ \textcolor{comment}{/*\ Value\ returned\ by\ main()\ */}}
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ warned\_lead\_slash;\ \textcolor{comment}{/*\ Already\ displayed\ warning\ */}}
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ next\_line\_is\_dir;\ \textcolor{comment}{/*\ Used\ for\ -\/C\ parsing\ in\ -\/cT\ */}}
+\DoxyCodeLine{00088\ }
+\DoxyCodeLine{00089\ \ \ \ \ \textcolor{comment}{/*}}
+\DoxyCodeLine{00090\ \textcolor{comment}{\ \ \ \ \ *\ Data\ for\ various\ subsystems.\ \ Full\ definitions\ are\ located\ in}}
+\DoxyCodeLine{00091\ \textcolor{comment}{\ \ \ \ \ *\ the\ file\ where\ they\ are\ used.}}
+\DoxyCodeLine{00092\ \textcolor{comment}{\ \ \ \ \ */}}
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive}{archive}}\ \ \ \ \ \ \ *diskreader;\ \ \ \ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive__entry__linkresolver}{archive\_entry\_linkresolver}}\ *resolver;\ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive__dir}{archive\_dir}}\ \ \ *\mbox{\hyperlink{structarchive__dir}{archive\_dir}};\ \ \ \ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structname__cache}{name\_cache}}\ *gname\_cache;\ \ \ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ *buff;\ \ \ \ \ \ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \ \ \ \ \ \ \ \ \ \ buff\_size;\ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ first\_fs;\ \ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structarchive}{archive}}\ \ \ \ \ \ \ *matching;\ \ \textcolor{comment}{/*\ for\ matching.c\ */}}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keyword}{struct\ }security\ \ \ \ \ *security;\ \ \textcolor{comment}{/*\ for\ read.c\ */}}
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structname__cache}{name\_cache}}\ *uname\_cache;\ \ \ \textcolor{comment}{/*\ for\ write.c\ */}}
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{keyword}{struct\ }siginfo\_data\ *siginfo;\ \ \ \textcolor{comment}{/*\ for\ siginfo.c\ */}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keyword}{struct\ }substitution\ *substitution;\ \ \textcolor{comment}{/*\ for\ subst.c\ */}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{char}\ \ \ \ \ \ \ \ \ \ \ \ *ppbuff;\ \ \ \ \textcolor{comment}{/*\ for\ util.c\ */}}
+\DoxyCodeLine{00106\ \};}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \textcolor{comment}{/*\ Options\ for\ flags\ bitfield\ */}}
+\DoxyCodeLine{00109\ \textcolor{preprocessor}{\#define\ OPTFLAG\_AUTO\_COMPRESS\ \ \ (0x00000001)\ \ \ \ }\textcolor{comment}{/*\ -\/a\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00110\ \textcolor{preprocessor}{\#define\ OPTFLAG\_ABSOLUTE\_PATHS\ \ (0x00000002)\ \ \ \ }\textcolor{comment}{/*\ -\/P\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00111\ \textcolor{preprocessor}{\#define\ OPTFLAG\_CHROOT\ \ \ \ \ \ (0x00000004)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/chroot\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00112\ \textcolor{preprocessor}{\#define\ OPTFLAG\_FAST\_READ\ \ \ (0x00000008)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/fast-\/read\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00113\ \textcolor{preprocessor}{\#define\ OPTFLAG\_IGNORE\_ZEROS\ \ \ \ (0x00000010)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/ignore-\/zeros\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#define\ OPTFLAG\_INTERACTIVE\ (0x00000020)\ \ \ \ }\textcolor{comment}{/*\ -\/w\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00115\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NO\_OWNER\ \ \ \ (0x00000040)\ \ \ \ }\textcolor{comment}{/*\ -\/o\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00116\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NO\_SUBDIRS\ \ (0x00000080)\ \ \ \ }\textcolor{comment}{/*\ -\/n\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00117\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NULL\ \ \ \ \ \ \ \ (0x00000100)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/null\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00118\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NUMERIC\_OWNER\ \ \ (0x00000200)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/numeric-\/owner\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00119\ \textcolor{preprocessor}{\#define\ OPTFLAG\_O\ \ \ \ \ \ \ (0x00000400)\ \ \ \ }\textcolor{comment}{/*\ -\/o\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00120\ \textcolor{preprocessor}{\#define\ OPTFLAG\_STDOUT\ \ \ \ \ \ (0x00000800)\ \ \ \ }\textcolor{comment}{/*\ -\/O\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00121\ \textcolor{preprocessor}{\#define\ OPTFLAG\_TOTALS\ \ \ \ \ \ (0x00001000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/totals\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00122\ \textcolor{preprocessor}{\#define\ OPTFLAG\_UNLINK\_FIRST\ \ \ \ (0x00002000)\ \ \ \ }\textcolor{comment}{/*\ -\/U\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00123\ \textcolor{preprocessor}{\#define\ OPTFLAG\_WARN\_LINKS\ \ (0x00004000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/check-\/links\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NO\_XATTRS\ \ \ (0x00008000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/no-\/xattrs\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00125\ \textcolor{preprocessor}{\#define\ OPTFLAG\_XATTRS\ \ \ \ \ \ (0x00010000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/xattrs\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00126\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NO\_ACLS\ \ \ \ \ (0x00020000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/no-\/acls\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00127\ \textcolor{preprocessor}{\#define\ OPTFLAG\_ACLS\ \ \ \ \ \ \ \ (0x00040000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/acls\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00128\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NO\_FFLAGS\ \ \ (0x00080000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/no-\/fflags\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00129\ \textcolor{preprocessor}{\#define\ OPTFLAG\_FFLAGS\ \ \ \ \ \ (0x00100000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/fflags\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00130\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NO\_MAC\_METADATA\ (0x00200000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/no-\/mac-\/metadata\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00131\ \textcolor{preprocessor}{\#define\ OPTFLAG\_MAC\_METADATA\ \ \ \ (0x00400000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/mac-\/metadata\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00132\ \textcolor{preprocessor}{\#define\ OPTFLAG\_NO\_READ\_SPARSE\ \ (0x00800000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/no-\/read-\/sparse\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00133\ \textcolor{preprocessor}{\#define\ OPTFLAG\_READ\_SPARSE\ \ \ \ \ (0x01000000)\ \ \ \ }\textcolor{comment}{/*\ -\/-\/read-\/sparse\ */}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00135\ \textcolor{comment}{/*\ Fake\ short\ equivalents\ for\ long\ options\ that\ otherwise\ lack\ them.\ */}}
+\DoxyCodeLine{00136\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00137\ \ \ \ \ OPTION\_ACLS\ =\ 1,}
+\DoxyCodeLine{00138\ \ \ \ \ OPTION\_B64ENCODE,}
+\DoxyCodeLine{00139\ \ \ \ \ OPTION\_CHECK\_LINKS,}
+\DoxyCodeLine{00140\ \ \ \ \ OPTION\_CHROOT,}
+\DoxyCodeLine{00141\ \ \ \ \ OPTION\_CLEAR\_NOCHANGE\_FFLAGS,}
+\DoxyCodeLine{00142\ \ \ \ \ OPTION\_EXCLUDE,}
+\DoxyCodeLine{00143\ \ \ \ \ OPTION\_EXCLUDE\_VCS,}
+\DoxyCodeLine{00144\ \ \ \ \ OPTION\_FFLAGS,}
+\DoxyCodeLine{00145\ \ \ \ \ OPTION\_FORMAT,}
+\DoxyCodeLine{00146\ \ \ \ \ OPTION\_GID,}
+\DoxyCodeLine{00147\ \ \ \ \ OPTION\_GNAME,}
+\DoxyCodeLine{00148\ \ \ \ \ OPTION\_GRZIP,}
+\DoxyCodeLine{00149\ \ \ \ \ OPTION\_HELP,}
+\DoxyCodeLine{00150\ \ \ \ \ OPTION\_HFS\_COMPRESSION,}
+\DoxyCodeLine{00151\ \ \ \ \ OPTION\_IGNORE\_ZEROS,}
+\DoxyCodeLine{00152\ \ \ \ \ OPTION\_INCLUDE,}
+\DoxyCodeLine{00153\ \ \ \ \ OPTION\_KEEP\_NEWER\_FILES,}
+\DoxyCodeLine{00154\ \ \ \ \ OPTION\_LRZIP,}
+\DoxyCodeLine{00155\ \ \ \ \ OPTION\_LZ4,}
+\DoxyCodeLine{00156\ \ \ \ \ OPTION\_LZIP,}
+\DoxyCodeLine{00157\ \ \ \ \ OPTION\_LZMA,}
+\DoxyCodeLine{00158\ \ \ \ \ OPTION\_LZOP,}
+\DoxyCodeLine{00159\ \ \ \ \ OPTION\_MAC\_METADATA,}
+\DoxyCodeLine{00160\ \ \ \ \ OPTION\_NEWER\_CTIME,}
+\DoxyCodeLine{00161\ \ \ \ \ OPTION\_NEWER\_CTIME\_THAN,}
+\DoxyCodeLine{00162\ \ \ \ \ OPTION\_NEWER\_MTIME,}
+\DoxyCodeLine{00163\ \ \ \ \ OPTION\_NEWER\_MTIME\_THAN,}
+\DoxyCodeLine{00164\ \ \ \ \ OPTION\_NODUMP,}
+\DoxyCodeLine{00165\ \ \ \ \ OPTION\_NOPRESERVE\_HFS\_COMPRESSION,}
+\DoxyCodeLine{00166\ \ \ \ \ OPTION\_NO\_ACLS,}
+\DoxyCodeLine{00167\ \ \ \ \ OPTION\_NO\_FFLAGS,}
+\DoxyCodeLine{00168\ \ \ \ \ OPTION\_NO\_MAC\_METADATA,}
+\DoxyCodeLine{00169\ \ \ \ \ OPTION\_NO\_READ\_SPARSE,}
+\DoxyCodeLine{00170\ \ \ \ \ OPTION\_NO\_SAFE\_WRITES,}
+\DoxyCodeLine{00171\ \ \ \ \ OPTION\_NO\_SAME\_OWNER,}
+\DoxyCodeLine{00172\ \ \ \ \ OPTION\_NO\_SAME\_PERMISSIONS,}
+\DoxyCodeLine{00173\ \ \ \ \ OPTION\_NO\_XATTRS,}
+\DoxyCodeLine{00174\ \ \ \ \ OPTION\_NULL,}
+\DoxyCodeLine{00175\ \ \ \ \ OPTION\_NUMERIC\_OWNER,}
+\DoxyCodeLine{00176\ \ \ \ \ OPTION\_OLDER\_CTIME,}
+\DoxyCodeLine{00177\ \ \ \ \ OPTION\_OLDER\_CTIME\_THAN,}
+\DoxyCodeLine{00178\ \ \ \ \ OPTION\_OLDER\_MTIME,}
+\DoxyCodeLine{00179\ \ \ \ \ OPTION\_OLDER\_MTIME\_THAN,}
+\DoxyCodeLine{00180\ \ \ \ \ OPTION\_ONE\_FILE\_SYSTEM,}
+\DoxyCodeLine{00181\ \ \ \ \ OPTION\_OPTIONS,}
+\DoxyCodeLine{00182\ \ \ \ \ OPTION\_PASSPHRASE,}
+\DoxyCodeLine{00183\ \ \ \ \ OPTION\_POSIX,}
+\DoxyCodeLine{00184\ \ \ \ \ OPTION\_READ\_SPARSE,}
+\DoxyCodeLine{00185\ \ \ \ \ OPTION\_SAFE\_WRITES,}
+\DoxyCodeLine{00186\ \ \ \ \ OPTION\_SAME\_OWNER,}
+\DoxyCodeLine{00187\ \ \ \ \ OPTION\_STRIP\_COMPONENTS,}
+\DoxyCodeLine{00188\ \ \ \ \ OPTION\_TOTALS,}
+\DoxyCodeLine{00189\ \ \ \ \ OPTION\_UID,}
+\DoxyCodeLine{00190\ \ \ \ \ OPTION\_UNAME,}
+\DoxyCodeLine{00191\ \ \ \ \ OPTION\_USE\_COMPRESS\_PROGRAM,}
+\DoxyCodeLine{00192\ \ \ \ \ OPTION\_UUENCODE,}
+\DoxyCodeLine{00193\ \ \ \ \ OPTION\_VERSION,}
+\DoxyCodeLine{00194\ \ \ \ \ OPTION\_XATTRS,}
+\DoxyCodeLine{00195\ \ \ \ \ OPTION\_ZSTD,}
+\DoxyCodeLine{00196\ \};}
+\DoxyCodeLine{00197\ }
+\DoxyCodeLine{00198\ \textcolor{keywordtype}{int}\ bsdtar\_getopt(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *);}
+\DoxyCodeLine{00199\ \textcolor{keywordtype}{void}\ \ \ \ do\_chdir(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *);}
+\DoxyCodeLine{00200\ \textcolor{keywordtype}{int}\ edit\_pathname(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *,\ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{00201\ \textcolor{keywordtype}{int}\ need\_report(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00202\ \textcolor{keywordtype}{int}\ pathcmp(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\mbox{\hyperlink{structa}{a}},\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *b);}
+\DoxyCodeLine{00203\ \textcolor{keywordtype}{void}\ \ \ \ safe\_fprintf(FILE\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *fmt,\ ...)\ \_\_LA\_PRINTF(2,\ 3);}
+\DoxyCodeLine{00204\ \textcolor{keywordtype}{void}\ \ \ \ set\_chdir(struct\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *,\ const\ \textcolor{keywordtype}{char}\ *newdir);}
+\DoxyCodeLine{00205\ const\ \textcolor{keywordtype}{char}\ *tar\_i64toa(int64\_t);}
+\DoxyCodeLine{00206\ \textcolor{keywordtype}{void}\ \ \ \ tar\_mode\_c(struct\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *\mbox{\hyperlink{structbsdtar}{bsdtar}});}
+\DoxyCodeLine{00207\ \textcolor{keywordtype}{void}\ \ \ \ tar\_mode\_r(struct\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *\mbox{\hyperlink{structbsdtar}{bsdtar}});}
+\DoxyCodeLine{00208\ \textcolor{keywordtype}{void}\ \ \ \ tar\_mode\_t(struct\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *\mbox{\hyperlink{structbsdtar}{bsdtar}});}
+\DoxyCodeLine{00209\ \textcolor{keywordtype}{void}\ \ \ \ tar\_mode\_u(struct\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *\mbox{\hyperlink{structbsdtar}{bsdtar}});}
+\DoxyCodeLine{00210\ \textcolor{keywordtype}{void}\ \ \ \ tar\_mode\_x(struct\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *\mbox{\hyperlink{structbsdtar}{bsdtar}});}
+\DoxyCodeLine{00211\ \textcolor{keywordtype}{void}\ \ \ \ usage(\textcolor{keywordtype}{void})\ \_\_LA\_DEAD;}
+\DoxyCodeLine{00212\ \textcolor{keywordtype}{int}\ yes(const\ \textcolor{keywordtype}{char}\ *fmt,\ ...)\ \_\_LA\_PRINTF(1,\ 2);}
+\DoxyCodeLine{00213\ }
+\DoxyCodeLine{00214\ \textcolor{preprocessor}{\#if\ defined(HAVE\_REGEX\_H)\ ||\ defined(HAVE\_PCREPOSIX\_H)}}
+\DoxyCodeLine{00215\ \textcolor{keywordtype}{void}\ \ \ \ add\_substitution(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00216\ \textcolor{keywordtype}{int}\ apply\_substitution(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *,\ \textcolor{keywordtype}{char}\ **,\ \textcolor{keywordtype}{int},\ \textcolor{keywordtype}{int});}
+\DoxyCodeLine{00217\ \textcolor{keywordtype}{void}\ \ \ \ cleanup\_substitution(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *);}
+\DoxyCodeLine{00218\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00219\ }
+\DoxyCodeLine{00220\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ cset\_add\_filter(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00221\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ cset\_add\_filter\_program(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00222\ \textcolor{keywordtype}{int}\ \ \ \ \ cset\_auto\_compress(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00223\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ cset\_free(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *);}
+\DoxyCodeLine{00224\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ \ \ \ cset\_get\_format(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *);}
+\DoxyCodeLine{00225\ \textcolor{keyword}{struct\ }\mbox{\hyperlink{structcreation__set}{creation\_set}}\ *cset\_new(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00226\ \textcolor{keywordtype}{int}\ \ \ \ \ cset\_read\_support\_filter\_program(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *,}
+\DoxyCodeLine{00227\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *);}
+\DoxyCodeLine{00228\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ cset\_set\_format(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00229\ \textcolor{keywordtype}{int}\ \ \ \ \ cset\_write\_add\_filters(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structcreation__set}{creation\_set}}\ *,}
+\DoxyCodeLine{00230\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{void}\ **);}
+\DoxyCodeLine{00231\ }
+\DoxyCodeLine{00232\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *\ passphrase\_callback(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive}{archive}}\ *,\ \textcolor{keywordtype}{void}\ *);}
+\DoxyCodeLine{00233\ \textcolor{keywordtype}{void}\ \ \ \ \ \ \ \ \ passphrase\_free(\textcolor{keywordtype}{char}\ *);}
+\DoxyCodeLine{00234\ \textcolor{keywordtype}{void}\ \ \ \ list\_item\_verbose(\textcolor{keyword}{struct}\ \mbox{\hyperlink{structbsdtar}{bsdtar}}\ *,\ FILE\ *,}
+\DoxyCodeLine{00235\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{struct}\ \mbox{\hyperlink{structarchive__entry}{archive\_entry}}\ *);}
+\DoxyCodeLine{00236\ }
+\DoxyCodeLine{00237\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}
